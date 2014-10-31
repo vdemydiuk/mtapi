@@ -1,0 +1,16 @@
+LIBRARY MTConnector
+
+EXPORTS initExpert
+        deinitExpert
+        updateQuote
+		sendIntResponse
+		sendBooleanResponse
+		sendDoubleResponse
+		sendStringResponse
+		sendVoidResponse
+		sendDoubleArrayResponse
+		sendIntArrayResponse
+		getCommandType
+		getIntValue
+		getDoubleValue
+		getStringValue

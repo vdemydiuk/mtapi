@@ -1,0 +1,43 @@
+﻿<Window x:Class="ConnectionsManager.AddProfileDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Add new connection profile" Height="180" Width="300"
+        WindowStyle="ToolWindow"
+        WindowStartupLocation="CenterOwner">
+    <Grid x:Name="_MainLayout">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Profile name" Margin="5"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Margin="5" 
+                 Text="{Binding Path=ProfileName, UpdateSourceTrigger=PropertyChanged}"
+                 TextChanged="TextBox_TextChanged"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Host" Margin="5"/>
+        <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" 
+                  ItemsSource="{Binding HostList}"
+                  SelectedItem="{Binding Host}"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Port" Margin="5"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Margin="5" 
+                 Text="{Binding Path=Port, UpdateSourceTrigger=PropertyChanged}"
+                 PreviewTextInput="TextBox_PreviewTextInput"
+                 TextChanged="TextBox_TextChanged"/>
+
+        <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="0,10,0,0"                    
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom">
+            <Button Content="OK" Width="70" Margin="4" IsDefault="True" Command="{Binding OkCommand}"/>
+            <Button Content="Cancel" Width="70" Margin="4" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

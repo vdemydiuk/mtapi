@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?define ProductName="MtApi" ?>
+  <?define ProductVersion="1.0.15" ?>
+  <?define Manufacturer="DW"?>
+  
+	<Product Id="*" 
+           Name="$(var.ProductName) $(var.ProductVersion)" 
+           Language="1033" 
+           Version="$(var.ProductVersion)" 
+           Manufacturer="$(var.Manufacturer)" 
+           UpgradeCode="4107F5F4-7300-4B45-88CE-63929AF228FA">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		<MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="MtApi" Title="$(var.ProductName)" Level="1">
+      <ComponentGroupRef Id="MtApiComponents"/>
+    </Feature>
+    
+    <Feature Id="MTConnector" Title="MT Connector" Level="1">
+      <ComponentGroupRef Id="MTConnectorComponents"/>
+    </Feature>
+
+    <Property Id="WIXUI_INSTALLDIR">INSTALLFOLDER</Property>
+    <UIRef Id="WixUI_Mondo" />
+  </Product>
+
+	<Fragment>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+				<Directory Id="INSTALLFOLDER" Name="$(var.ProductName)">
+
+          <Directory Id="ExpertFolder" Name="Experts">                        
+          </Directory>
+          
+          <Directory Id="GAC" Name="GAC">
+          </Directory>
+          
+         </Directory>        
+      </Directory>
+
+      <Directory Id="SystemFolder">
+      </Directory>
+
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="$(var.ProductName)">
+        </Directory>
+      </Directory>
+
+    </Directory>   
+  </Fragment>
+
+	<Fragment>
+		<ComponentGroup Id="MtApiComponents">
+
+      <Component Id="MtApiDll" Directory="INSTALLFOLDER">
+        <File Id="MtApi.dll" Name="MtApi.dll" KeyPath="yes"
+            Source="..\Release\MtApi.dll" />
+        
+        <RegistryKey Root="HKLM"
+            Key="Software\Microsoft\.NetFramework\v4.0.30319\AssemblyFoldersEx\$(var.ProductName)"
+            Action="createAndRemoveOnUninstall">
+          <RegistryValue Type="string" Value="[INSTALLFOLDER]"/>
+        </RegistryKey>
+
+      </Component>
+
+      <Component Id="MTApiServiceDll" Directory="INSTALLFOLDER">
+        <File Id="GAC_MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
+            src="..\Release\MTApiService.dll"/>
+      </Component>
+
+      <Component Id="MtApiExpert" Directory="ExpertFolder">
+        <File Id="MtApi.ex4" Name="MtApi.ex4" KeyPath="yes"
+              Source="..\mq4\MtApi.ex4" />
+      </Component>        
+
+      <Component Id="ConnectionsManagerApp" Directory="INSTALLFOLDER">
+        <File Id="ConnectionsManager.exe" Name="ConnectionsManager.exe" KeyPath="yes"
+            Source="..\Release\ConnectionsManager.exe" />
+      </Component>
+
+      <Component Id="AppShortcutConnMgr" Guid="*" Directory="ApplicationProgramsFolder">
+        <Shortcut Id="ShortcutConnMgr"
+             Name="ConnectionManager"
+             Description="$(var.ProductName)"
+             Target="[INSTALLFOLDER]ConnectionsManager.exe"
+             WorkingDirectory="INSTALLFOLDER"/>
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+        <RegistryValue Root="HKCU" Key="Software\$(var.ProductName)" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+      </Component>
+
+    </ComponentGroup>
+
+    <ComponentGroup Id="MTConnectorComponents">
+
+      <Component Id="ConnectionProfileRegistryKey" Guid="*" Directory="INSTALLFOLDER">
+        <RegistryKey Root="HKCU"
+                     Key="Software\MtApi\ConnectionProfiles\Local"
+              Action="createAndRemoveOnUninstall">
+          <RegistryValue Type="string" Name="Host" Value=""/>
+          <RegistryValue Type="integer" Name="Port" Value="8222" KeyPath="yes"/>
+        </RegistryKey>
+      </Component>
+
+      <Component Id="MTApiServiceDllGAC" Guid="7285AE3C-D4A9-482A-BC7E-8F5B2A0FE97E" Directory="GAC">
+        <File Id="MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
+            src="..\Release\MTApiService.dll" Checksum="yes"
+            Assembly=".net" AssemblyManifest="MTApiService.dll" Vital="yes" />
+      </Component>
+
+      <Component Id="MTConnectorDll" Directory="SystemFolder">
+        <File Id="MTConnector.dll" Name="MTConnector.dll" KeyPath="yes"
+              Source="..\Release\MTConnector.dll" />
+      </Component>
+
+    </ComponentGroup>
+	</Fragment>
+</Wix>
