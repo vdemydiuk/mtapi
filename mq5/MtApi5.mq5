@@ -32,7 +32,7 @@
    bool getStringValue(int expertHandle, int paramIndex, string& res);
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res);
    
-   void verify(bool isDemo, string accountName, long accountNumber);   
+//   void verify(bool isDemo, string accountName, long accountNumber);   
 #import
 
 input string ConnectionProfile = "Local5";
@@ -87,7 +87,7 @@ int init()
 {
    preinit();
    
-   verify(IsDemo(), AccountInfoString(ACCOUNT_NAME), AccountInfoInteger(ACCOUNT_LOGIN));
+//   verify(IsDemo(), AccountInfoString(ACCOUNT_NAME), AccountInfoInteger(ACCOUNT_LOGIN));
 
    if (TerminalInfoInteger(TERMINAL_DLLS_ALLOWED) == false) 
    {

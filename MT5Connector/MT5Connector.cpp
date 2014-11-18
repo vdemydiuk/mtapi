@@ -76,7 +76,7 @@ bool VerifySignature(System::String^ inputData, System::String^ signature, Syste
     return verifyResult;
 }
 
-bool g_IsVerified = false;
+bool g_IsVerified = true;
 
 void _stdcall verify(int isDemo, wchar_t* accountName, long accountNumber)
 {
