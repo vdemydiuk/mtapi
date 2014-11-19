@@ -33,30 +33,36 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_94494A22DF029F9CDB7587F3705ECD27"
-        "OwnerKey" = "8:_324E39D64C4D4ECDA1AAA532677EA0F4"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_94494A22DF029F9CDB7587F3705ECD27"
-        "OwnerKey" = "8:_A1E29B278F4C4BCAA1195F775A473B52"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_94494A22DF029F9CDB7587F3705ECD27"
-        "OwnerKey" = "8:_8B9C059CECE541EF9F06C906252E106A"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_A1E29B278F4C4BCAA1195F775A473B52"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
+        "MsmKey" = "8:_ABBDB217243940A29CA1695ECF7EAB6E"
+        "OwnerKey" = "8:_8B9C059CECE541EF9F06C906252E106A"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C28BD2D9EC05E0CCB849ABEEA4360539"
+        "OwnerKey" = "8:_324E39D64C4D4ECDA1AAA532677EA0F4"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C28BD2D9EC05E0CCB849ABEEA4360539"
+        "OwnerKey" = "8:_A1E29B278F4C4BCAA1195F775A473B52"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C28BD2D9EC05E0CCB849ABEEA4360539"
+        "OwnerKey" = "8:_8B9C059CECE541EF9F06C906252E106A"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_324E39D64C4D4ECDA1AAA532677EA0F4"
         "MsmSig" = "8:_UNDEFINED"
@@ -64,7 +70,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_94494A22DF029F9CDB7587F3705ECD27"
+        "OwnerKey" = "8:_A1E29B278F4C4BCAA1195F775A473B52"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -76,7 +82,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_A1E29B278F4C4BCAA1195F775A473B52"
+        "OwnerKey" = "8:_C28BD2D9EC05E0CCB849ABEEA4360539"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -204,13 +210,18 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_94494A22DF029F9CDB7587F3705ECD27"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_C28BD2D9EC05E0CCB849ABEEA4360539"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:MTApiService, Version=1.0.11.0, Culture=neutral, PublicKeyToken=89665af970372331, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:MTApiService, Version=1.0.13.0, Culture=neutral, PublicKeyToken=704b91b7000ff499, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_C28BD2D9EC05E0CCB849ABEEA4360539"
+                    {
+                    "Name" = "8:MTApiService.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:MTApiService.dll"
             "TargetName" = "8:"
@@ -341,15 +352,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:MtApi5"
-        "ProductCode" = "8:{3971A386-CB8F-49BB-88C9-74B3EA19A61D}"
-        "PackageCode" = "8:{63B42982-8A16-40C9-B607-44A2DBF8C445}"
+        "ProductCode" = "8:{1B4F0280-F088-4FC6-B877-C7C7031007EA}"
+        "PackageCode" = "8:{15183A5E-5212-4E5F-A771-0113933E7E5D}"
         "UpgradeCode" = "8:{5673F99F-74B5-4D75-9648-3250C9B492FB}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.5"
+        "ProductVersion" = "8:1.0.6"
         "Manufacturer" = "8:DW"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1036,6 +1047,20 @@
         }
         "MergeModule"
         {
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_ABBDB217243940A29CA1695ECF7EAB6E"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:Microsoft_VC100_CRT_x64.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:FALSE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
         }
         "ProjectOutput"
         {
@@ -1069,7 +1094,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_8B9C059CECE541EF9F06C906252E106A"
             {
-            "SourcePath" = "8:..\\Release\\MT5Connector.dll"
+            "SourcePath" = "8:..\\x64\\Release\\MT5Connector.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_6185AD4113574BCA9BE89DF5A396A60C"
