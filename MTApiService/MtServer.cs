@@ -195,7 +195,7 @@ namespace MTApiService
                 else
                 {
                     //by Socket
-                    var bind = new NetTcpBinding();
+                    var bind = new NetTcpBinding(SecurityMode.None);
                     bind.MaxReceivedMessageSize = 2147483647;
                     bind.MaxBufferSize = 2147483647;
 

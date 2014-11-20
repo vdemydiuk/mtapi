@@ -28,13 +28,13 @@
         "Entry"
         {
         "MsmKey" = "8:_1894B11511EC28CA06BF342E1D467761"
-        "OwnerKey" = "8:_67B77AB154964269BD0C77F69052517C"
+        "OwnerKey" = "8:_BC617CC9A43A49E8B6CDC49115E4A3BC"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_1894B11511EC28CA06BF342E1D467761"
-        "OwnerKey" = "8:_BC617CC9A43A49E8B6CDC49115E4A3BC"
+        "OwnerKey" = "8:_67B77AB154964269BD0C77F69052517C"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -47,12 +47,6 @@
         {
         "MsmKey" = "8:_BC617CC9A43A49E8B6CDC49115E4A3BC"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_EDD946B02D16440A9AA72453168324B8"
-        "OwnerKey" = "8:_BC617CC9A43A49E8B6CDC49115E4A3BC"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -70,7 +64,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_67B77AB154964269BD0C77F69052517C"
+        "OwnerKey" = "8:_1894B11511EC28CA06BF342E1D467761"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -82,7 +76,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_1894B11511EC28CA06BF342E1D467761"
+        "OwnerKey" = "8:_67B77AB154964269BD0C77F69052517C"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -197,11 +191,6 @@
             "AssemblyAsmDisplayName" = "8:MTApiService, Version=1.0.13.0, Culture=neutral, PublicKeyToken=704b91b7000ff499, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_1894B11511EC28CA06BF342E1D467761"
-                    {
-                    "Name" = "8:MTApiService.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:MTApiService.dll"
             "TargetName" = "8:"
@@ -352,15 +341,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:MtApi5"
-        "ProductCode" = "8:{4CBFDF8A-83F0-44FA-B751-DAF09F35F4D8}"
-        "PackageCode" = "8:{6B397899-8A7F-4F89-B273-1D9651858EBE}"
+        "ProductCode" = "8:{B374AA70-7936-4A44-AF48-ADF152634A97}"
+        "PackageCode" = "8:{8BA7181F-7E81-4114-B5AA-F0806596313B}"
         "UpgradeCode" = "8:{0D37B66D-F57F-4AF8-9AF5-B0EB060D60BE}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.6"
+        "ProductVersion" = "8:1.0.7"
         "Manufacturer" = "8:DW"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -955,20 +944,6 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_EDD946B02D16440A9AA72453168324B8"
-            {
-            "UseDynamicProperties" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:Microsoft_VC100_CRT_x86.msm"
-                "Properties"
-                {
-                }
-            "LanguageId" = "3:0"
-            "Exclude" = "11:FALSE"
-            "Folder" = "8:"
-            "Feature" = "8:"
-            "IsolateTo" = "8:"
-            }
         }
         "ProjectOutput"
         {
@@ -1030,7 +1005,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_BC617CC9A43A49E8B6CDC49115E4A3BC"
             {
-            "SourcePath" = "8:..\\Release\\MT5Connector.dll"
+            "SourcePath" = "8:..\\x64\\Release\\MT5Connector.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_82290571E7764B168E741604315C2206"
