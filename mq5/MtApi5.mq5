@@ -2,6 +2,7 @@
 #property link      ""
 
 #include <Trade\SymbolInfo.mqh>
+#include <trade/trade.mqh>
 
 #import "MT5Connector.dll"
    bool initExpert(int expertHandle, string connectionProfile, string symbol, double bid, double ask, string& err);
@@ -1590,6 +1591,17 @@ int executeCommand()
       }
    }
    break;
+   
+   case 63: //OrderCloseAll
+   {
+      bool retVal;            
+      
+      retVal = OrderCloseAll(); 
+      
+      sendBooleanResponse(ExpertHandle, retVal);  
+   }
+   break;
+   
 
    default:
       Print("Unknown command type = ", commandType);
@@ -1704,4 +1716,15 @@ string ResultToString(bool retVal, datetime from, datetime to)
       , (int)to);
       
       return strResult;
+}
+
+bool OrderCloseAll()
+{
+   CTrade trade;
+   int i = PositionsTotal()-1;
+   while (i >= 0)
+   {
+      if (trade.PositionClose(PositionGetSymbol(i))) i--;
+   }
+   return true;
 }

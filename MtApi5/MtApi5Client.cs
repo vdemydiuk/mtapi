@@ -466,6 +466,15 @@ namespace MtApi5
 
             return sendCommand<string>(Mt5CommandType.HistoryDealGetString, commandParameters);
         }
+
+        ///<summary>
+        ///Close all open positions. 
+        ///</summary>
+        ///<param name="ticket">OrderCloseAll</param>
+        public bool OrderCloseAll()
+        {
+            return sendCommand<bool>(Mt5CommandType.OrderCloseAll, null);
+        }
         #endregion
 
         #region Account Information functions

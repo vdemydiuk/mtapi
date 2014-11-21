@@ -99,6 +99,7 @@ namespace MtApi5
         SymbolInfoSessionTrade              = 59,
         MarketBookAdd                       = 60,
         MarketBookRelease                   = 61,
-        MarketBookGet                       = 62
+        MarketBookGet                       = 62,
+        OrderCloseAll                       = 63
     }
 }
