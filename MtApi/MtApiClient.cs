@@ -303,6 +303,10 @@ namespace MtApi
             return (TradeOperation) retVal;
         }
 
+        public bool OrderCloseAll()
+        {
+            return sendCommand<bool>(MtCommandType.OrderCloseAll, null);
+        }
         #endregion
 
         #region Check Status

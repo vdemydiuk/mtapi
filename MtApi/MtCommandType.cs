@@ -181,6 +181,7 @@ namespace MtApi
         iTimeArray                          = 149,
 
         //
-        RefreshRates                        = 150
+        RefreshRates                        = 150,
+        OrderCloseAll                       = 151
     }
 }

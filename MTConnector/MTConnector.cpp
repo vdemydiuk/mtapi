@@ -4,6 +4,7 @@
 
 #include "MT4Handler.h"
 #include "Windows.h"
+#include < vcclr.h >
 
 using namespace System;
 using namespace MTApiService;

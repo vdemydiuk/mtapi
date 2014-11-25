@@ -149,20 +149,20 @@ int init() {
       
    if (IsDllsAllowed() == FALSE) 
    {
-      MessageBoxA(0, "Dlls not allowed.", "MtApi", 0);
+      MessageBox("Dlls not allowed.", "MtApi", MB_OK);
       isCrashed = TRUE;
       return (1);
    }
    if (IsLibrariesAllowed() == FALSE) 
    {
-      MessageBoxA(0, "Libraries not allowed.", "MtApi", 0);
+      MessageBox("Libraries not allowed.", "MtApi", MB_OK);
       isCrashed = TRUE;
       return (1);
    }
 
    if (IsTradeAllowed() == FALSE) 
    {
-      MessageBoxA(0, "Trade not allowed.", "MtApi", 0);
+      MessageBox("Trade not allowed.", "MtApi", MB_OK);
       isCrashed = TRUE;
       return (1);
    }  
@@ -171,7 +171,7 @@ int init() {
    
    if (!initExpert(ExpertHandle, ConnectionProfile, Symbol(), Bid, Ask, message))
    {
-       MessageBoxA(0, message[0], "MtApi", 0);
+       MessageBox(message[0], "MtApi", MB_OK);
        isCrashed = TRUE;
        return(1);
    }
@@ -190,7 +190,7 @@ int deinit() {
    {
       if (!deinitExpert(ExpertHandle, message)) 
       {
-         MessageBoxA(0, message[0], "MtApi", 0);
+         MessageBox(message[0], "MtApi", MB_OK);
          isCrashed = TRUE;
          return (1);
       }
@@ -1176,7 +1176,7 @@ int executeCommand()
          PrintParamError("date");
       }
 
-      if (!sendIntResponse(ExpertHandle, TimeDayOfYear(dateValue))) 
+      if (!sendIntResponse(ExpertHandle, TimeDayOfYear(dateValue[0]))) 
       {
          PrintResponseError("TimeDayOfYear");
       } 
@@ -3335,6 +3335,13 @@ int executeCommand()
          PrintResponseError("RefreshRates");
       }    
    break;
+   
+   case 151: //OrderCloseAll
+      if (!sendBooleanResponse(ExpertHandle, OrderCloseAll())) 
+      {
+         PrintResponseError("OrderCloseAll");
+      }    
+   break;   
 
    default:
       Print("Unknown command type = ", commandType);
@@ -3370,4 +3377,28 @@ void PrintParamError(string paramName)
 void PrintResponseError(string commandName)
 {
    Print("[ERROR] response: ", commandName);
+}
+
+bool OrderCloseAll()
+{
+   int total = OrdersTotal();
+   for(int i = total-1; i >= 0; i--)
+   {
+      if (OrderSelect(i, SELECT_BY_POS))
+      {
+         int type = OrderType();
+   
+         switch(type)
+         {
+            //Close opened long positions
+            case OP_BUY: OrderClose( OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_BID), 5, Red );
+               break;      
+         //Close opened short positions
+            case OP_SELL: OrderClose( OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_ASK), 5, Red );
+               break;
+         }      
+      }
+   }
+   
+   return (true);
 }
