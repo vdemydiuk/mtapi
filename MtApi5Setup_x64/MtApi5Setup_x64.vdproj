@@ -15,13 +15,13 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_26066077D06445DAA7176D267C4A5A5C"
-        "OwnerKey" = "8:_UNDEFINED"
+        "MsmKey" = "8:_09A2A529F84A49C7B6AB040A24312600"
+        "OwnerKey" = "8:_8B9C059CECE541EF9F06C906252E106A"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_324E39D64C4D4ECDA1AAA532677EA0F4"
+        "MsmKey" = "8:_26066077D06445DAA7176D267C4A5A5C"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -40,7 +40,7 @@
         "Entry"
         {
         "MsmKey" = "8:_C28BD2D9EC05E0CCB849ABEEA4360539"
-        "OwnerKey" = "8:_324E39D64C4D4ECDA1AAA532677EA0F4"
+        "OwnerKey" = "8:_A1E29B278F4C4BCAA1195F775A473B52"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -51,32 +51,20 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_C28BD2D9EC05E0CCB849ABEEA4360539"
+        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_A1E29B278F4C4BCAA1195F775A473B52"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_324E39D64C4D4ECDA1AAA532677EA0F4"
+        "OwnerKey" = "8:_8B9C059CECE541EF9F06C906252E106A"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_C28BD2D9EC05E0CCB849ABEEA4360539"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_8B9C059CECE541EF9F06C906252E106A"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_A1E29B278F4C4BCAA1195F775A473B52"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -208,9 +196,14 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:MTApiService, Version=1.0.13.0, Culture=neutral, PublicKeyToken=704b91b7000ff499, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:MTApiService, Version=1.0.16.0, Culture=neutral, PublicKeyToken=704b91b7000ff499, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_C28BD2D9EC05E0CCB849ABEEA4360539"
+                    {
+                    "Name" = "8:MTApiService.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:MTApiService.dll"
             "TargetName" = "8:"
@@ -341,15 +334,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:MtApi5"
-        "ProductCode" = "8:{02DC498A-5F06-4134-BD32-C5D677B8017A}"
-        "PackageCode" = "8:{23755B17-D96D-4C2C-A6BD-D3E136A8992E}"
+        "ProductCode" = "8:{63AEBD77-6321-43A9-AAD6-A23851E21689}"
+        "PackageCode" = "8:{7C51C7DD-2527-4EAA-BFEB-E679F5598C7C}"
         "UpgradeCode" = "8:{5673F99F-74B5-4D75-9648-3250C9B492FB}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.0.8"
+        "ProductVersion" = "8:1.0.9"
         "Manufacturer" = "8:DW"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -612,20 +605,6 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_1ED863424C6F4192BB1EA4C93066568D"
-            {
-            "Name" = "8:ConnectionsManager"
-            "Arguments" = "8:"
-            "Description" = "8:"
-            "ShowCmd" = "3:1"
-            "IconIndex" = "3:32512"
-            "Transitive" = "11:FALSE"
-            "Target" = "8:_324E39D64C4D4ECDA1AAA532677EA0F4"
-            "Folder" = "8:_DBA35A849F8E43DA91CB111FD9E4DA07"
-            "WorkingFolder" = "8:_234A0E905EAA4F9288321F174D48109C"
-            "Icon" = "8:_324E39D64C4D4ECDA1AAA532677EA0F4"
-            "Feature" = "8:"
-            }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_A632B76B37AF4FF4B995A0F1797DB1D8"
             {
             "Name" = "8:MtApi5.ex5"
@@ -1036,40 +1015,26 @@
         }
         "MergeModule"
         {
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_09A2A529F84A49C7B6AB040A24312600"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:Microsoft_VC100_CRT_x64.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:FALSE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_324E39D64C4D4ECDA1AAA532677EA0F4"
-            {
-            "SourcePath" = "8:..\\ConnectionsManager\\obj\\Release\\ConnectionsManager.exe"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_234A0E905EAA4F9288321F174D48109C"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            "ProjectOutputGroupRegister" = "3:1"
-            "OutputConfiguration" = "8:"
-            "OutputGroupCanonicalName" = "8:Built"
-            "OutputProjectGuid" = "8:{C8751BA1-6A85-468C-87BD-758F37B8C0DD}"
-            "ShowKeyOutput" = "11:TRUE"
-                "ExcludeFilters"
-                {
-                }
-            }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_8B9C059CECE541EF9F06C906252E106A"
             {
-            "SourcePath" = "8:..\\Release\\MT5Connector.dll"
+            "SourcePath" = "8:..\\x64\\Release\\MT5Connector.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_6185AD4113574BCA9BE89DF5A396A60C"

@@ -8,6 +8,7 @@ using System.Net;
 using System.Diagnostics;
 using System.ServiceModel.Channels;
 using System.Runtime.InteropServices;
+using System.Net.Sockets;
 
 namespace MTApiService
 {
@@ -19,10 +20,12 @@ namespace MTApiService
         #endregion
 
         #region ctor
-        public MtServer(MtConnectionProfile profile)
+        public MtServer(int port)
         {
-            Profile = profile;
+            Port = port;
             mService = new MtService(this);
+
+            mHosts = new List<ServiceHost>();
 
             mExecutorManager = new MtCommandExecutorManager();
             mExecutorManager.CommandExecuted += mExecutorManager_CommandExecuted;
@@ -30,32 +33,83 @@ namespace MTApiService
         #endregion
 
         #region Properties
-        public MtConnectionProfile Profile { get; private set; }        
+        public int Port { get; private set; }
         #endregion
 
         #region Public Methods
         public void Start()
         {
-            lock (mHostLocker)
-            {
-                if (mHost != null)
-                    return;
-                            
-                ServiceHost host = new ServiceHost(mService);
-
-                string mServerUrlAdress = CreateConnectionAddress(Profile);
-                Binding mBinding = CreateConnectionBinding(Profile);
-
-                host.AddServiceEndpoint(typeof(IMtApi), mBinding, mServerUrlAdress);
-                host.Open();
-
-                mHost = host;
-            }
+            bool hostsInitialized = InitHosts(Port);
+            if (hostsInitialized == false)
+                return;
 
             lock (mExpertsLocker)
             {
                 mExperts = new List<MtExpert>();    
             }
+        }
+
+        private bool InitHosts(int port)
+        {
+            lock (mHostLocker)
+            {
+                if (mHosts.Count > 0)
+                    return false;
+
+                //init local pipe host
+                string localUrl = CreateConnectionAddress(null, port, true);
+                ServiceHost localServiceHost = CreateServiceHost(localUrl, true);
+                if (localServiceHost != null)
+                {
+                    mHosts.Add(localServiceHost);
+                }
+                
+                //init network hosts
+                IPHostEntry ips = Dns.GetHostEntry(Dns.GetHostName());
+                if (ips != null)
+                {
+                    foreach (IPAddress ipAddress in ips.AddressList)
+                    {
+                        if (ipAddress != null)
+                        {
+                            if (ipAddress.AddressFamily == AddressFamily.InterNetwork)
+                            {
+                                string ip = ipAddress.ToString();
+                                string networkUrl = CreateConnectionAddress(ip, port, false);
+                                ServiceHost serviceHost = CreateServiceHost(networkUrl, false);
+                                if (serviceHost != null)
+                                {
+                                    mHosts.Add(serviceHost);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private ServiceHost CreateServiceHost(string serverUrlAdress, bool local)
+        {
+            ServiceHost serviceHost = null;            
+            if (serverUrlAdress != null)
+            {
+                try
+                {
+                    serviceHost = new ServiceHost(mService);
+                    Binding binding = CreateConnectionBinding(local);
+
+                    serviceHost.AddServiceEndpoint(typeof(IMtApi), binding, serverUrlAdress);
+                    serviceHost.Open();
+                }
+                catch(Exception e) 
+                {
+                    Debug.WriteLine("CreateServiceHost: Create ServiceHost failed. " + e.Message);
+                }
+            }
+
+            return serviceHost;
         }
 
         public void AddExpert(MtExpert expert)
@@ -148,67 +202,64 @@ namespace MTApiService
             stopTimer.Elapsed -= stopTimer_Elapsed;
         }
 
-        private string CreateConnectionAddress(MtConnectionProfile profile)
+        private string CreateConnectionAddress(string host, int port, bool local)
         {
             string connectionAddress = null;
 
-            if (profile != null)
+            if (local == true)
             {
-                if (string.IsNullOrEmpty(profile.Host))
+                //by Pipe
+                connectionAddress = "net.pipe://localhost/MtApiService_" + port.ToString();
+            }
+            else
+            {
+                //by Socket
+                if (host != null)
                 {
-                    //by Pipe
-                    connectionAddress = "net.pipe://localhost/MtApiService_" + profile.Port.ToString();
-                }
-                else
-                {
-                    //by Socket
-                    connectionAddress = "net.tcp://" + profile.Host.ToString() + ":" + profile.Port.ToString() + "/MtApiService";
-                }
+                    connectionAddress = "net.tcp://" + host.ToString() + ":" + port.ToString() + "/MtApiService";
+                }                
             }
 
             return connectionAddress;
         }
 
-        private static Binding CreateConnectionBinding(MtConnectionProfile profile)
+        private static Binding CreateConnectionBinding(bool local)
         {
             Binding connectionBinding = null;
 
-            if (profile != null)
+            if (local == true)
             {
-                if (string.IsNullOrEmpty(profile.Host))
-                {
-                    //by Pipe
-                    var bind = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None);
-                    bind.MaxReceivedMessageSize = 2147483647;
-                    bind.MaxBufferSize = 2147483647;
+                //by Pipe
+                var bind = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None);
+                bind.MaxReceivedMessageSize = 2147483647;
+                bind.MaxBufferSize = 2147483647;
 
-                    // Commented next statement since it is not required
-                    bind.MaxBufferPoolSize = 2147483647;
-                    bind.ReaderQuotas.MaxArrayLength = 2147483647;
-                    bind.ReaderQuotas.MaxBytesPerRead = 2147483647;
-                    bind.ReaderQuotas.MaxDepth = 2147483647;
-                    bind.ReaderQuotas.MaxStringContentLength = 2147483647;
-                    bind.ReaderQuotas.MaxNameTableCharCount = 2147483647;
+                // Commented next statement since it is not required
+                bind.MaxBufferPoolSize = 2147483647;
+                bind.ReaderQuotas.MaxArrayLength = 2147483647;
+                bind.ReaderQuotas.MaxBytesPerRead = 2147483647;
+                bind.ReaderQuotas.MaxDepth = 2147483647;
+                bind.ReaderQuotas.MaxStringContentLength = 2147483647;
+                bind.ReaderQuotas.MaxNameTableCharCount = 2147483647;
 
-                    connectionBinding = bind;
-                }
-                else
-                {
-                    //by Socket
-                    var bind = new NetTcpBinding(SecurityMode.None);
-                    bind.MaxReceivedMessageSize = 2147483647;
-                    bind.MaxBufferSize = 2147483647;
+                connectionBinding = bind;
+            }
+            else
+            {
+                //by Socket
+                var bind = new NetTcpBinding(SecurityMode.None);
+                bind.MaxReceivedMessageSize = 2147483647;
+                bind.MaxBufferSize = 2147483647;
 
-                    // Commented next statement since it is not required
-                    bind.MaxBufferPoolSize = 2147483647;
-                    bind.ReaderQuotas.MaxArrayLength = 2147483647;
-                    bind.ReaderQuotas.MaxBytesPerRead = 2147483647;
-                    bind.ReaderQuotas.MaxDepth = 2147483647;
-                    bind.ReaderQuotas.MaxStringContentLength = 2147483647;
-                    bind.ReaderQuotas.MaxNameTableCharCount = 2147483647;
+                // Commented next statement since it is not required
+                bind.MaxBufferPoolSize = 2147483647;
+                bind.ReaderQuotas.MaxArrayLength = 2147483647;
+                bind.ReaderQuotas.MaxBytesPerRead = 2147483647;
+                bind.ReaderQuotas.MaxDepth = 2147483647;
+                bind.ReaderQuotas.MaxStringContentLength = 2147483647;
+                bind.ReaderQuotas.MaxNameTableCharCount = 2147483647;
 
-                    connectionBinding = bind;
-                }
+                connectionBinding = bind;
             }
 
             return connectionBinding;
@@ -220,23 +271,29 @@ namespace MTApiService
 
             lock (mHostLocker)
             {
-                if (mHost == null)
+                if (mHosts.Count == 0)
                     return;
 
                 try
                 {
-                    mHost.Close();
+                    foreach (var host in mHosts)
+                    {
+                        host.Close();
+                    }
                 }
                 catch (TimeoutException)
                 {
-                    mHost.Abort();
+                    foreach (var host in mHosts)
+                    {
+                        host.Abort();
+                    }
                 }
                 catch (Exception)
                 {
                 }
                 finally
                 {
-                    mHost = null;
+                    mHosts.Clear();
                 }
             }
 
@@ -317,7 +374,7 @@ namespace MTApiService
 
         #region Fields              
         private readonly MtService mService;
-        private ServiceHost mHost;        
+        private readonly List<ServiceHost> mHosts;        
 
         private readonly MtCommandExecutorManager mExecutorManager;
         private List<MtExpert> mExperts;

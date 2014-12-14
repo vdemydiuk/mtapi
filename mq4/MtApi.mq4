@@ -5,7 +5,7 @@
 #include <stdlib.mqh>
 
 #import "MTConnector.dll"
-   bool initExpert(int expertHandle, string connectionProfile, string symbol, double bid, double ask, string& err[]);
+   bool initExpert(int expertHandle, int port, string symbol, double bid, double ask, string& err[]);
    bool deinitExpert(int expertHandle, string& err[]);   
    bool updateQuote(int expertHandle, string symbol, double bid, double ask, string& err[]);   
    
@@ -23,7 +23,7 @@
    bool getStringValue(int expertHandle, int paramIndex, string& res[]);
 #import
 
-extern string ConnectionProfile = "Local";
+extern int Port = 8222;
 
 int ExpertHandle;
 
@@ -169,7 +169,7 @@ int init() {
 
    ExpertHandle = WindowHandle(Symbol(), Period());
    
-   if (!initExpert(ExpertHandle, ConnectionProfile, Symbol(), Bid, Ask, message))
+   if (!initExpert(ExpertHandle, Port, Symbol(), Bid, Ask, message))
    {
        MessageBox(message[0], "MtApi", MB_OK);
        isCrashed = TRUE;

@@ -36,13 +36,13 @@ void mqlStrFromNetStr(MqlStr* dst, String^ src)
 	*((int*) dst) = num;
 }
 
-int _stdcall initExpert(int expertHandle, char* connectionProfile, char* symbol, double bid, double ask, MqlStr* err)
+int _stdcall initExpert(int expertHandle, int port, char* symbol, double bid, double ask, MqlStr* err)
 {
 	try
 	{
 		MT4Handler^ mtHandler = gcnew MT4Handler();
 
-		MtServerInstance::GetInstance()->InitExpert(expertHandle, gcnew String(connectionProfile), gcnew String(symbol), bid, ask, mtHandler);
+		MtServerInstance::GetInstance()->InitExpert(expertHandle, port, gcnew String(symbol), bid, ask, mtHandler);
 	}
 	catch (Exception^ e)
 	{

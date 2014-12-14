@@ -31,37 +31,22 @@ namespace MTApiService
 
 
         #region Public Methods
-        public void InitExpert(int expertHandle, string profileName, string symbol, double bid, double ask, IMetaTraderHandler mtHandler)
+        public void InitExpert(int expertHandle, int port, string symbol, double bid, double ask, IMetaTraderHandler mtHandler)
         {
-            Debug.WriteLine("MtApiServerInstance::InitExpert: symbol = {0}, expertHandle = {1}, profileName = {2}", symbol, expertHandle, profileName);
-
-            if (profileName == null)
-            {
-                string errorMessage = string.Format("Connection profile is null or empty");
-                throw new Exception(errorMessage);
-            }
+            Debug.WriteLine("MtApiServerInstance::InitExpert: symbol = {0}, expertHandle = {1}, port = {2}", symbol, expertHandle, port);
 
             MtServer server = null;
             lock (mServersDictionary)
             {
-                if (mServersDictionary.ContainsKey(profileName))
+                if (mServersDictionary.ContainsKey(port))
                 {
-                    server = mServersDictionary[profileName];
+                    server = mServersDictionary[port];
                 }
                 else
                 {
-                    var profile = MtRegistryManager.LoadConnectionProfile(profileName);
-
-                    if (profile == null)
-                    {
-                        string errorMessage = string.Format("Connection profile '{0}' is not found", profileName);
-                        throw new Exception(errorMessage);
-                    }
-
-                    server = new MtServer(profile);
+                    server = new MtServer(port);
                     server.Stopped += new EventHandler(server_Stopped);
-
-                    mServersDictionary[profile.Name] = server;
+                    mServersDictionary[port] = server;
 
                     server.Start();
                 }
@@ -69,7 +54,7 @@ namespace MTApiService
 
             var expert = new MtExpert(expertHandle, new MtQuote(symbol, bid, ask), mtHandler);
 
-            lock(mExpertsDictionary)
+            lock (mExpertsDictionary)
             {
                 mExpertsDictionary[expert.Handle] = expert;
             }
@@ -167,15 +152,12 @@ namespace MTApiService
             MtServer server = (MtServer)sender;
             server.Stopped -= server_Stopped;
 
-            var profile = server.Profile;
-            if (profile != null)
+            var port = server.Port;
+            lock (mServersDictionary)
             {
-                lock (mServersDictionary)
+                if (mServersDictionary.ContainsKey(port))
                 {
-                    if (mServersDictionary.ContainsKey(profile.Name))
-                    {
-                        mServersDictionary.Remove(profile.Name);
-                    }
+                    mServersDictionary.Remove(port);
                 }
             }
         }
@@ -183,7 +165,7 @@ namespace MTApiService
 
         #region Fields
         private readonly MtRegistryManager mConnectionManager = new MtRegistryManager();
-        private readonly Dictionary<string, MtServer> mServersDictionary = new Dictionary<string, MtServer>();
+        private readonly Dictionary<int, MtServer> mServersDictionary = new Dictionary<int, MtServer>();
         private readonly Dictionary<int, MtExpert> mExpertsDictionary = new Dictionary<int, MtExpert>();
         #endregion
     }

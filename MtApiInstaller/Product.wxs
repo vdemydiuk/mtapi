@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <?define ProductName="MtApi" ?>
-  <?define ProductVersion="1.0.17" ?>
+  <?define ProductVersion="1.0.18" ?>
   <?define Manufacturer="DW"?>
   
 	<Product Id="*" 
@@ -77,17 +77,21 @@
               Source="..\mq4\MtApi.ex4" />
       </Component>        
 
+      <!--
       <Component Id="ConnectionsManagerApp" Directory="INSTALLFOLDER">
         <File Id="ConnectionsManager.exe" Name="ConnectionsManager.exe" KeyPath="yes"
             Source="..\Release\ConnectionsManager.exe" />
       </Component>
-
+      -->
+      
       <Component Id="AppShortcutConnMgr" Guid="*" Directory="ApplicationProgramsFolder">
+        <!--
         <Shortcut Id="ShortcutConnMgr"
              Name="ConnectionManager"
              Description="$(var.ProductName)"
              Target="[INSTALLFOLDER]ConnectionsManager.exe"
              WorkingDirectory="INSTALLFOLDER"/>
+        -->
         <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
         <RegistryValue Root="HKCU" Key="Software\$(var.ProductName)" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
       </Component>

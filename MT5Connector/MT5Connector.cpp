@@ -94,7 +94,7 @@ void _stdcall verify(int isDemo, wchar_t* accountName, long accountNumber)
 	g_IsVerified = VerifySignature(inputData, gcnew System::String(signature), publicKey);
 }
 
-int _stdcall initExpert(int expertHandle, wchar_t* connectionProfile, wchar_t* symbol, double bid, double ask, wchar_t* err)
+int _stdcall initExpert(int expertHandle, int port, wchar_t* symbol, double bid, double ask, wchar_t* err)
 {
 	if (g_IsVerified == false)
 	{
@@ -107,7 +107,7 @@ int _stdcall initExpert(int expertHandle, wchar_t* connectionProfile, wchar_t* s
 	try
 	{
 		MT5Handler^ mtHander = gcnew MT5Handler();
-		MtServerInstance::GetInstance()->InitExpert(expertHandle, gcnew String(connectionProfile), gcnew String(symbol), bid, ask, mtHander);
+		MtServerInstance::GetInstance()->InitExpert(expertHandle, port, gcnew String(symbol), bid, ask, mtHander);
 	}
 	catch (Exception^ e)
 	{

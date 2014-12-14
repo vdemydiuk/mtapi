@@ -5,7 +5,7 @@
 #include <trade/trade.mqh>
 
 #import "MT5Connector.dll"
-   bool initExpert(int expertHandle, string connectionProfile, string symbol, double bid, double ask, string& err);
+   bool initExpert(int expertHandle, int port, string symbol, double bid, double ask, string& err);
    bool deinitExpert(int expertHandle, string& err);
    
    bool updateQuote(int expertHandle, string symbol, double bid, double ask, string& err);
@@ -36,7 +36,7 @@
 //   void verify(bool isDemo, string accountName, long accountNumber);   
 #import
 
-input string ConnectionProfile = "Local5";
+input int Port = 8228;
 
 int ExpertHandle;
 
@@ -121,7 +121,7 @@ int init()
    myBid = Bid;
    myAsk = Ask;
 
-   if (!initExpert(ExpertHandle, ConnectionProfile, Symbol(), Bid, Ask, message))
+   if (!initExpert(ExpertHandle, Port, Symbol(), Bid, Ask, message))
    {
        MessageBox(message, "MtApi", 0);
        isCrashed = true;
@@ -216,7 +216,17 @@ int executeCommand()
             
       sendStringResponse(ExpertHandle, ResultToString(retVal, result));
    }
-   break;   
+   break;
+
+   case 63: //OrderCloseAll
+   {
+      bool retVal;            
+      
+      retVal = OrderCloseAll(); 
+      
+      sendBooleanResponse(ExpertHandle, retVal);  
+   }
+   break;
       
    case 2: // OrderCalcMargin
    {
@@ -1590,18 +1600,7 @@ int executeCommand()
          sendVoidResponse(ExpertHandle);
       }
    }
-   break;
-   
-   case 63: //OrderCloseAll
-   {
-      bool retVal;            
-      
-      retVal = OrderCloseAll(); 
-      
-      sendBooleanResponse(ExpertHandle, retVal);  
-   }
-   break;
-   
+   break;     
 
    default:
       Print("Unknown command type = ", commandType);
