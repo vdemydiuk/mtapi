@@ -5,9 +5,9 @@
 #include <stdlib.mqh>
 
 #import "MTConnector.dll"
-   bool initExpert(int expertHandle, int port, string symbol, double bid, double ask, string& err[]);
-   bool deinitExpert(int expertHandle, string& err[]);   
-   bool updateQuote(int expertHandle, string symbol, double bid, double ask, string& err[]);   
+   bool initExpert(int expertHandle, int port, string symbol, double bid, double ask, string& err);
+   bool deinitExpert(int expertHandle, string& err);   
+   bool updateQuote(int expertHandle, string symbol, double bid, double ask, string& err);   
    
    bool sendIntResponse(int expertHandle, int response);
    bool sendBooleanResponse(int expertHandle, int response);
@@ -17,29 +17,29 @@
    bool sendDoubleArrayResponse(int expertHandle, double& values[], int size);
    bool sendIntArrayResponse(int expertHandle, int& values[], int size);   
    
-   bool getCommandType(int expertHandle, int& res[]);
-   bool getIntValue(int expertHandle, int paramIndex, int& res[]);
-   bool getDoubleValue(int expertHandle, int paramIndex, double& res[]);
-   bool getStringValue(int expertHandle, int paramIndex, string& res[]);
+   bool getCommandType(int expertHandle, int& res);
+   bool getIntValue(int expertHandle, int paramIndex, int& res);
+   bool getDoubleValue(int expertHandle, int paramIndex, double& res);
+   bool getStringValue(int expertHandle, int paramIndex, string& res);
 #import
 
 extern int Port = 8222;
 
 int ExpertHandle;
 
-string message[1];
+string message;
 bool isCrashed = FALSE;
 
-string symbolValue[1];
-string commentValue[1];
-string msgValue[1];
-string captionValue[1];
-string filenameValue[1];
-string ftp_pathValue[1];
-string subjectValue[1];
-string some_textValue[1];
-string nameValue[1];
-string prefix_nameValue[1];
+string symbolValue;
+string commentValue;
+string msgValue;
+string captionValue;
+string filenameValue;
+string ftp_pathValue;
+string subjectValue;
+string some_textValue;
+string nameValue;
+string prefix_nameValue;
 
 int barsCount;
 int priceCount;
@@ -49,73 +49,73 @@ int index;
 int paramIndex;
 int arraySize;
 
-int pCommandType[1];
-int cmdValue[1];
-int slippageValue[1];
-int ticketValue[1];
-int oppositeValue[1];
-int magicValue[1];
-int expirationValue[1];
-int arrow_colorValue[1];
-int colorValue[1];
-int indexValue[1];
-int selectValue[1];
-int poolValue[1];
-int errorCodeValue[1];
-int typeValue[1];
-int flagValue[1];
-int millisecondsValue[1];
-int dateValue[1];
-int timeValue[1];
-int timeframeValue[1];
-int shiftValue[1];
-int periodValue[1];
-int applied_priceValue[1];
-int modeValue[1];
-int deviationValue[1];
-int bands_shiftValue[1];
-int ma_periodValue[1];
-int ma_methodValue[1];
-int ma_shiftValue[1];
-int jaw_periodValue[1];
-int jaw_shiftValue[1];
-int teeth_periodValue[1];
-int teeth_shiftValue[1];
-int lips_periodValue[1];
-int lips_shiftValue[1];
-int tenkan_senValue[1];
-int kijun_senValue[1];
-int senkou_span_bValue[1];
-int fast_ema_periodValue[1];
-int slow_ema_periodValue[1];
-int signal_periodValue[1];
-int KperiodValue[1];
-int DperiodValue[1];
-int slowingValue[1];
-int methodValue[1];
-int price_fieldValue[1];
-int exactValue[1];
-int startValue[1];
-int countValue[1];
-int timeArray[1];
-int totalValue[1];
-int tempIntValue[1];
+int pCommandType;
+int cmdValue;
+int slippageValue;
+int ticketValue;
+int oppositeValue;
+int magicValue;
+int expirationValue;
+int arrow_colorValue;
+int colorValue;
+int indexValue;
+int selectValue;
+int poolValue;
+int errorCodeValue;
+int typeValue;
+int flagValue;
+int millisecondsValue;
+int dateValue;
+int timeValue;
+int timeframeValue;
+int shiftValue;
+int periodValue;
+int applied_priceValue;
+int modeValue;
+int deviationValue;
+int bands_shiftValue;
+int ma_periodValue;
+int ma_methodValue;
+int ma_shiftValue;
+int jaw_periodValue;
+int jaw_shiftValue;
+int teeth_periodValue;
+int teeth_shiftValue;
+int lips_periodValue;
+int lips_shiftValue;
+int tenkan_senValue;
+int kijun_senValue;
+int senkou_span_bValue;
+int fast_ema_periodValue;
+int slow_ema_periodValue;
+int signal_periodValue;
+int KperiodValue;
+int DperiodValue;
+int slowingValue;
+int methodValue;
+int price_fieldValue;
+int exactValue;
+int startValue;
+int countValue;
+int totalValue;
+int tempIntValue;
 
+int timeArray[];
 int intValuesArray[];
 
 double result;
 
-double lotsValue[1];
-double volumeValue[1];
-double priceValue[1];
-double stoplossValue[1];
-double takeprofitValue[1];
-double valueValue[1];
-double check_value[1];
-double deviationDoubleValue[1];
-double stepValue[1];
-double maximumValue[1];
-double tempDoubleValue[1];
+double lotsValue;
+double volumeValue;
+double priceValue;
+double stoplossValue;
+double takeprofitValue;
+double valueValue;
+double check_value;
+double deviationDoubleValue;
+double stepValue;
+double maximumValue;
+double tempDoubleValue;
 
 double priceArray[];
 double volumeArray[];
@@ -126,17 +126,17 @@ double myAsk;
 
 int preinit()
 {
-   message[0]        = "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111" + "";
-   symbolValue[0]    = "222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222" + "";
-   commentValue[0]   = "333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333" + "";
-   msgValue[0]       = "444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444" + "";
-   captionValue[0]   = "555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555" + "";
-   filenameValue[0]  = "666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666" + "";
-   ftp_pathValue[0]  = "777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777" + "";
-   subjectValue[0]   = "888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888" + "";
-   some_textValue[0] = "999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999" + "";
-   nameValue[0]      = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" + "";
-   prefix_nameValue[0] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" + "";
+   message        = "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111" + "";
+   symbolValue    = "222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222" + "";
+   commentValue   = "333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333" + "";
+   msgValue       = "444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444" + "";
+   captionValue   = "555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555" + "";
+   filenameValue  = "666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666" + "";
+   ftp_pathValue  = "777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777" + "";
+   subjectValue   = "888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888" + "";
+   some_textValue = "999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999" + "";
+   nameValue      = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" + "";
+   prefix_nameValue = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" + "";
 
    return (0);
 }
@@ -171,7 +171,7 @@ int init() {
    
    if (!initExpert(ExpertHandle, Port, Symbol(), Bid, Ask, message))
    {
-       MessageBox(message[0], "MtApi", MB_OK);
+       MessageBox(message, "MtApi", MB_OK);
        isCrashed = TRUE;
        return(1);
    }
@@ -190,7 +190,7 @@ int deinit() {
    {
       if (!deinitExpert(ExpertHandle, message)) 
       {
-         MessageBox(message[0], "MtApi", MB_OK);
+         MessageBox(message, "MtApi", MB_OK);
          isCrashed = TRUE;
          return (1);
       }
@@ -224,7 +224,7 @@ int start()
 
 int executeCommand()
 {
-   pCommandType[0] = 0;
+   pCommandType = 0;
       
    if (!getCommandType(ExpertHandle, pCommandType))
    {
@@ -232,7 +232,7 @@ int executeCommand()
       return (0);
    }         
    
-   int commandType = pCommandType[0];     
+   int commandType = pCommandType;     
    
    switch (commandType) 
    {
@@ -296,9 +296,9 @@ int executeCommand()
          PrintParamError("arrow_color");  
       }
       
-      if (!sendIntResponse(ExpertHandle, OrderSend(symbolValue[0], cmdValue[0], volumeValue[0], priceValue[0]
-                                       , slippageValue[0], stoplossValue[0], takeprofitValue[0]
-                                       , commentValue[0], magicValue[0], expirationValue[0], arrow_colorValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, OrderSend(symbolValue, cmdValue, volumeValue, priceValue
+                                       , slippageValue, stoplossValue, takeprofitValue
+                                       , commentValue, magicValue, expirationValue, arrow_colorValue))) 
       {
          PrintResponseError("OrderSend");
       }         
@@ -331,7 +331,7 @@ int executeCommand()
          PrintParamError("color");    
       }
 
-      if (!sendBooleanResponse(ExpertHandle, OrderClose(ticketValue[0], lotsValue[0], priceValue[0], slippageValue[0], colorValue[0]))) 
+      if (!sendBooleanResponse(ExpertHandle, OrderClose(ticketValue, lotsValue, priceValue, slippageValue, colorValue))) 
       {
          PrintResponseError("OrderClose");
       }               
@@ -354,7 +354,7 @@ int executeCommand()
          PrintParamError("color");
       }
 
-      if (!sendBooleanResponse(ExpertHandle, OrderCloseBy(ticketValue[0], oppositeValue[0], colorValue[0]))) 
+      if (!sendBooleanResponse(ExpertHandle, OrderCloseBy(ticketValue, oppositeValue, colorValue))) 
       {
          PrintResponseError("OrderCloseBy");
       }  
@@ -424,7 +424,7 @@ int executeCommand()
          PrintParamError("arrow_color");      
       }
       
-      if (!sendDoubleResponse(ExpertHandle, OrderDelete(ticketValue[0], arrow_colorValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, OrderDelete(ticketValue, arrow_colorValue))) 
       {
          PrintResponseError("OrderDelete");
       }
@@ -487,7 +487,7 @@ int executeCommand()
          PrintParamError("arrow_color");
       }
       
-      if (!sendBooleanResponse(ExpertHandle, OrderModify(ticketValue[0], priceValue[0], stoplossValue[0], takeprofitValue[0], expirationValue[0], arrow_colorValue[0]))) 
+      if (!sendBooleanResponse(ExpertHandle, OrderModify(ticketValue, priceValue, stoplossValue, takeprofitValue, expirationValue, arrow_colorValue))) 
       {
          PrintResponseError("OrderModify");
       }  
@@ -548,9 +548,9 @@ int executeCommand()
       
    case 17: //OrderSelect
    
-      indexValue[0] = 0;
-      selectValue[0] = 0;
-      poolValue[0] = 0;
+      indexValue = 0;
+      selectValue = 0;
+      poolValue = 0;
       
       if (!getIntValue(ExpertHandle, 0, indexValue))
       {
@@ -567,7 +567,7 @@ int executeCommand()
          PrintParamError("pool");
       }
       
-      if (!sendBooleanResponse(ExpertHandle, OrderSelect(indexValue[0], selectValue[0], poolValue[0]))) 
+      if (!sendBooleanResponse(ExpertHandle, OrderSelect(indexValue, selectValue, poolValue))) 
       {
          PrintResponseError("OrderSelect");
       }  
@@ -748,7 +748,7 @@ int executeCommand()
          PrintParamError("errorCode");
       }
    
-      if (!sendStringResponse(ExpertHandle, ErrorDescription(errorCodeValue[0]))) 
+      if (!sendStringResponse(ExpertHandle, ErrorDescription(errorCodeValue))) 
       {
          PrintResponseError("ErrorDescription");
       } 
@@ -819,7 +819,7 @@ int executeCommand()
          PrintParamError("volume");
       }
       
-      if (!sendDoubleResponse(ExpertHandle, AccountFreeMarginCheck(symbolValue[0], cmdValue[0], volumeValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, AccountFreeMarginCheck(symbolValue, cmdValue, volumeValue))) 
       {
          PrintResponseError("AccountFreeMarginCheck");
       }  
@@ -904,7 +904,7 @@ int executeCommand()
          PrintParamError("msg");
       }
       
-      Alert(msgValue[0]);
+      Alert(msgValue);
       
       break;         
 
@@ -914,7 +914,7 @@ int executeCommand()
          PrintParamError("msg");
       }
       
-      Comment(msgValue[0]);
+      Comment(msgValue);
       
       break;         
 
@@ -937,7 +937,7 @@ int executeCommand()
          PrintParamError("type");
       }
       
-      if (!sendDoubleResponse(ExpertHandle, MarketInfo(symbolValue[0], typeValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, MarketInfo(symbolValue, typeValue))) 
       {
          PrintResponseError("MarketInfo");
       } 
@@ -950,7 +950,7 @@ int executeCommand()
          PrintParamError("symbol");
       }
       
-      if (!sendIntResponse(ExpertHandle, MessageBox(symbolValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, MessageBox(symbolValue))) 
       {
          PrintResponseError("MessageBox");
       } 
@@ -973,7 +973,7 @@ int executeCommand()
          PrintParamError("flag");
       }
       
-      if (!sendIntResponse(ExpertHandle, MessageBox(symbolValue[0], captionValue[0], flagValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, MessageBox(symbolValue, captionValue, flagValue))) 
       {
          PrintResponseError("MessageBox");
       } 
@@ -986,7 +986,7 @@ int executeCommand()
          PrintParamError("filename");
       }
       
-      PlaySound(filenameValue[0]);
+      PlaySound(filenameValue);
                
       break;         
 
@@ -996,7 +996,7 @@ int executeCommand()
          PrintParamError("msg");
       }
    
-      Print(msgValue[0]);
+      Print(msgValue);
       
       break;         
 
@@ -1006,7 +1006,7 @@ int executeCommand()
          PrintParamError("filename");
       }
       
-      if (!sendBooleanResponse(ExpertHandle, SendFTP(filenameValue[0]))) 
+      if (!sendBooleanResponse(ExpertHandle, SendFTP(filenameValue))) 
       {
          PrintResponseError("SendFTP");
       } 
@@ -1024,7 +1024,7 @@ int executeCommand()
          PrintParamError("ftp_path");
       }
       
-      if (!sendBooleanResponse(ExpertHandle, SendFTP(filenameValue[0], ftp_pathValue[0]))) 
+      if (!sendBooleanResponse(ExpertHandle, SendFTP(filenameValue, ftp_pathValue))) 
       {
          PrintResponseError("SendFTP");
       } 
@@ -1042,7 +1042,7 @@ int executeCommand()
          PrintParamError("some_text");
       }
       
-      SendMail(subjectValue[0], some_textValue[0]);
+      SendMail(subjectValue, some_textValue);
       
       break;         
 
@@ -1052,7 +1052,7 @@ int executeCommand()
          PrintParamError("milliseconds");
       }
       
-      Sleep(millisecondsValue[0]);
+      Sleep(millisecondsValue);
       
       break;         
 
@@ -1150,7 +1150,7 @@ int executeCommand()
          PrintParamError("date");
       }
 
-      if (!sendIntResponse(ExpertHandle, TimeDay(dateValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, TimeDay(dateValue))) 
       {
          PrintResponseError("TimeDay");
       } 
@@ -1163,7 +1163,7 @@ int executeCommand()
          PrintParamError("date");
       }
 
-      if (!sendIntResponse(ExpertHandle, TimeDayOfWeek(dateValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, TimeDayOfWeek(dateValue))) 
       {
          PrintResponseError("TimeDayOfWeek");
       } 
@@ -1176,7 +1176,7 @@ int executeCommand()
          PrintParamError("date");
       }
 
-      if (!sendIntResponse(ExpertHandle, TimeDayOfYear(dateValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, TimeDayOfYear(dateValue))) 
       {
          PrintResponseError("TimeDayOfYear");
       } 
@@ -1189,7 +1189,7 @@ int executeCommand()
          PrintParamError("time");
       }
 
-      if (!sendIntResponse(ExpertHandle, TimeHour(timeValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, TimeHour(timeValue))) 
       {
          PrintResponseError("TimeHour");
       } 
@@ -1210,7 +1210,7 @@ int executeCommand()
          PrintParamError("time");
       }
 
-      if (!sendIntResponse(ExpertHandle, TimeMinute(timeValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, TimeMinute(timeValue))) 
       {
          PrintResponseError("TimeMinute");
       } 
@@ -1223,7 +1223,7 @@ int executeCommand()
          PrintParamError("time");
       }
 
-      if (!sendIntResponse(ExpertHandle, TimeMonth(timeValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, TimeMonth(timeValue))) 
       {
          PrintResponseError("TimeMonth");
       } 
@@ -1236,7 +1236,7 @@ int executeCommand()
          PrintParamError("time");
       }
 
-      if (!sendIntResponse(ExpertHandle, TimeSeconds(timeValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, TimeSeconds(timeValue))) 
       {
          PrintResponseError("TimeSeconds");
       } 
@@ -1249,7 +1249,7 @@ int executeCommand()
          PrintParamError("time");
       }
 
-      if (!sendIntResponse(ExpertHandle, TimeYear(timeValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, TimeYear(timeValue))) 
       {
          PrintResponseError("TimeYear");
       } 
@@ -1270,7 +1270,7 @@ int executeCommand()
          PrintParamError("name");
       }
       
-      if (!sendBooleanResponse(ExpertHandle, GlobalVariableCheck(nameValue[0]))) 
+      if (!sendBooleanResponse(ExpertHandle, GlobalVariableCheck(nameValue))) 
       {
          PrintResponseError("GlobalVariableCheck");
       } 
@@ -1283,7 +1283,7 @@ int executeCommand()
          PrintParamError("name");
       }
       
-      if (!sendBooleanResponse(ExpertHandle, GlobalVariableDel(nameValue[0]))) 
+      if (!sendBooleanResponse(ExpertHandle, GlobalVariableDel(nameValue))) 
       {
          PrintResponseError("GlobalVariableDel");
       } 
@@ -1296,7 +1296,7 @@ int executeCommand()
          PrintParamError("name");
       }
       
-      if (!sendDoubleResponse(ExpertHandle, GlobalVariableGet(nameValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, GlobalVariableGet(nameValue))) 
       {
          PrintResponseError("GlobalVariableGet");
       } 
@@ -1309,7 +1309,7 @@ int executeCommand()
          PrintParamError("index");
       }
       
-      if (!sendStringResponse(ExpertHandle, GlobalVariableName(indexValue[0]))) 
+      if (!sendStringResponse(ExpertHandle, GlobalVariableName(indexValue))) 
       {
          PrintResponseError("GlobalVariableName");
       } 
@@ -1327,7 +1327,7 @@ int executeCommand()
          PrintParamError("value");
       }
       
-      if (!sendIntResponse(ExpertHandle, GlobalVariableSet(nameValue[0], valueValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, GlobalVariableSet(nameValue, valueValue))) 
       {
          PrintResponseError("GlobalVariableSet");
       } 
@@ -1350,7 +1350,7 @@ int executeCommand()
          PrintParamError("check_value");
       }
       
-      if (!sendBooleanResponse(ExpertHandle, GlobalVariableSetOnCondition(nameValue[0], valueValue[0], check_value[0]))) 
+      if (!sendBooleanResponse(ExpertHandle, GlobalVariableSetOnCondition(nameValue, valueValue, check_value))) 
       {
          PrintResponseError("GlobalVariableSetOnCondition");
       } 
@@ -1363,7 +1363,7 @@ int executeCommand()
          PrintParamError("prefix_name");
       }
       
-      if (!sendIntResponse(ExpertHandle, GlobalVariablesDeleteAll(prefix_nameValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, GlobalVariablesDeleteAll(prefix_nameValue))) 
       {
          PrintResponseError("GlobalVariablesDeleteAll");
       } 
@@ -1394,7 +1394,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iAC(symbolValue[0], timeframeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iAC(symbolValue, timeframeValue, shiftValue))) 
       {
          PrintResponseError("iAC");
       } 
@@ -1417,7 +1417,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iAD(symbolValue[0], timeframeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iAD(symbolValue, timeframeValue, shiftValue))) 
       {
          PrintResponseError("iAD");
       } 
@@ -1440,7 +1440,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iAD(symbolValue[0], timeframeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iAD(symbolValue, timeframeValue, shiftValue))) 
       {
          PrintResponseError("iAD");
       } 
@@ -1478,7 +1478,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iADX(symbolValue[0], timeframeValue[0], periodValue[0], applied_priceValue[0], modeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iADX(symbolValue, timeframeValue, periodValue, applied_priceValue, modeValue, shiftValue))) 
       {
          PrintResponseError("iADX");
       } 
@@ -1506,7 +1506,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iATR(symbolValue[0], timeframeValue[0], periodValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iATR(symbolValue, timeframeValue, periodValue, shiftValue))) 
       {
          PrintResponseError("iATR");
       } 
@@ -1529,7 +1529,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iAO(symbolValue[0], timeframeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iAO(symbolValue, timeframeValue, shiftValue))) 
       {
          PrintResponseError("iAO");
       }      
@@ -1561,7 +1561,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iBearsPower(symbolValue[0], timeframeValue[0], periodValue[0], applied_priceValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iBearsPower(symbolValue, timeframeValue, periodValue, applied_priceValue, shiftValue))) 
       {
          PrintResponseError("iBearsPower");
       }      
@@ -1609,7 +1609,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iBands(symbolValue[0], timeframeValue[0], periodValue[0], deviationValue[0], bands_shiftValue[0], applied_priceValue[0], modeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iBands(symbolValue, timeframeValue, periodValue, deviationValue, bands_shiftValue, applied_priceValue, modeValue, shiftValue))) 
       {
          PrintResponseError("iBands");
       }      
@@ -1623,14 +1623,14 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, countValue);
       paramIndex++;
       
-      arraySize = countValue[0];      
+      arraySize = countValue;      
       ArrayResize(doubleValuesArray, arraySize);
       
       for(index = 0; index < arraySize; index++)
       {
          getDoubleValue(ExpertHandle, paramIndex, tempDoubleValue);
          paramIndex++;
-         doubleValuesArray[index] = tempDoubleValue[0];         
+         doubleValuesArray[index] = tempDoubleValue;         
       }                  
       
       getIntValue(ExpertHandle, paramIndex, totalValue);
@@ -1646,7 +1646,7 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, shiftValue);
       paramIndex++;    
       
-      if (!sendDoubleResponse(ExpertHandle, iBandsOnArray(doubleValuesArray, totalValue[0], periodValue[0], deviationValue[0], bands_shiftValue[0], modeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iBandsOnArray(doubleValuesArray, totalValue, periodValue, deviationValue, bands_shiftValue, modeValue, shiftValue))) 
       {
          PrintResponseError("iBandsOnArray");
       }      
@@ -1679,7 +1679,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iBullsPower(symbolValue[0], timeframeValue[0], periodValue[0], applied_priceValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iBullsPower(symbolValue, timeframeValue, periodValue, applied_priceValue, shiftValue))) 
       {
          PrintResponseError("iBullsPower");
       }      
@@ -1712,7 +1712,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iCCI(symbolValue[0], timeframeValue[0], periodValue[0], applied_priceValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iCCI(symbolValue, timeframeValue, periodValue, applied_priceValue, shiftValue))) 
       {
          PrintResponseError("iCCI");
       }      
@@ -1727,14 +1727,14 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, countValue);
       paramIndex++;
       
-      arraySize = countValue[0];      
+      arraySize = countValue;      
       ArrayResize(doubleValuesArray, arraySize);
       
       for(index = 0; index < arraySize; index++)
       {
          getDoubleValue(ExpertHandle, paramIndex, tempDoubleValue);
          paramIndex++;
-         doubleValuesArray[index] = tempDoubleValue[0];         
+         doubleValuesArray[index] = tempDoubleValue;         
       }                  
       
       getIntValue(ExpertHandle, paramIndex, totalValue);
@@ -1744,7 +1744,7 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, shiftValue);
       paramIndex++;    
       
-      if (!sendDoubleResponse(ExpertHandle, iCCIOnArray(doubleValuesArray, totalValue[0], periodValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iCCIOnArray(doubleValuesArray, totalValue, periodValue, shiftValue))) 
       {
          PrintResponseError("iCCIOnArray");
       }      
@@ -1768,14 +1768,14 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, countValue);
       paramIndex++;
       
-      arraySize = countValue[0];      
+      arraySize = countValue;      
       ArrayResize(intValuesArray, arraySize);
       
       for(index = 0; index < arraySize; index++)
       {
          getIntValue(ExpertHandle, paramIndex, tempIntValue);
          paramIndex++;
-         intValuesArray[index] = tempIntValue[0];         
+         intValuesArray[index] = tempIntValue;         
       }                  
       
       getIntValue(ExpertHandle, paramIndex, modeValue);
@@ -1786,55 +1786,55 @@ int executeCommand()
       switch(arraySize)
       {
          case 0:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0], totalValue[0], periodValue[0], shiftValue[0]));
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue, totalValue, periodValue, shiftValue));
             break;
          case 1:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , intValuesArray[0]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;
          case 2:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , intValuesArray[0]
                , intValuesArray[1]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;            
          case 3:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , intValuesArray[0]
                , intValuesArray[1]
                , intValuesArray[2]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;                    
          case 4:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , intValuesArray[0]
                , intValuesArray[1]
                , intValuesArray[2]
                , intValuesArray[3]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;   
          case 5:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , intValuesArray[0]
                , intValuesArray[1]
                , intValuesArray[2]
                , intValuesArray[3]
                , intValuesArray[4]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;        
          case 6:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , intValuesArray[0]
                , intValuesArray[1]
                , intValuesArray[2]
                , intValuesArray[3]
                , intValuesArray[4]
                , intValuesArray[5]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;                                        
          case 7:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , intValuesArray[0]
                , intValuesArray[1]
                , intValuesArray[2]
@@ -1842,10 +1842,10 @@ int executeCommand()
                , intValuesArray[4]
                , intValuesArray[5]
                , intValuesArray[6]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;      
          case 8:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , intValuesArray[0]
                , intValuesArray[1]
                , intValuesArray[2]
@@ -1854,10 +1854,10 @@ int executeCommand()
                , intValuesArray[5]
                , intValuesArray[6]
                , intValuesArray[7]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;                             
          case 9:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , intValuesArray[0]
                , intValuesArray[1]
                , intValuesArray[2]
@@ -1867,11 +1867,11 @@ int executeCommand()
                , intValuesArray[6]
                , intValuesArray[7]
                , intValuesArray[8]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;                     
          case 10:
          default:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
             , intValuesArray[0]
             , intValuesArray[1]
             , intValuesArray[2]
@@ -1882,7 +1882,7 @@ int executeCommand()
             , intValuesArray[7]
             , intValuesArray[8]
             , intValuesArray[9]
-            , totalValue[0], periodValue[0], shiftValue[0]));
+            , totalValue, periodValue, shiftValue));
       }
    }
    break;
@@ -1904,14 +1904,14 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, countValue);
       paramIndex++;
       
-      arraySize = countValue[0];      
+      arraySize = countValue;      
       ArrayResize(doubleValuesArray, arraySize);
       
       for(index = 0; index < arraySize; index++)
       {
          getDoubleValue(ExpertHandle, paramIndex, tempDoubleValue);
          paramIndex++;
-         doubleValuesArray[index] = tempDoubleValue[0];         
+         doubleValuesArray[index] = tempDoubleValue;         
       }                  
       
       getIntValue(ExpertHandle, paramIndex, modeValue);
@@ -1922,55 +1922,55 @@ int executeCommand()
       switch(arraySize)
       {
          case 0:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0], totalValue[0], periodValue[0], shiftValue[0]));
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue, totalValue, periodValue, shiftValue));
             break;
          case 1:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , doubleValuesArray[0]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;
          case 2:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , doubleValuesArray[0]
                , doubleValuesArray[1]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;            
          case 3:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , doubleValuesArray[0]
                , doubleValuesArray[1]
                , doubleValuesArray[2]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;                    
          case 4:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , doubleValuesArray[0]
                , doubleValuesArray[1]
                , doubleValuesArray[2]
                , doubleValuesArray[3]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;   
          case 5:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , doubleValuesArray[0]
                , doubleValuesArray[1]
                , doubleValuesArray[2]
                , doubleValuesArray[3]
                , doubleValuesArray[4]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;        
          case 6:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , doubleValuesArray[0]
                , doubleValuesArray[1]
                , doubleValuesArray[2]
                , doubleValuesArray[3]
                , doubleValuesArray[4]
                , doubleValuesArray[5]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;                                        
          case 7:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , doubleValuesArray[0]
                , doubleValuesArray[1]
                , doubleValuesArray[2]
@@ -1978,10 +1978,10 @@ int executeCommand()
                , doubleValuesArray[4]
                , doubleValuesArray[5]
                , doubleValuesArray[6]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;      
          case 8:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , doubleValuesArray[0]
                , doubleValuesArray[1]
                , doubleValuesArray[2]
@@ -1990,10 +1990,10 @@ int executeCommand()
                , doubleValuesArray[5]
                , doubleValuesArray[6]
                , doubleValuesArray[7]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;                             
          case 9:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , doubleValuesArray[0]
                , doubleValuesArray[1]
                , doubleValuesArray[2]
@@ -2003,11 +2003,11 @@ int executeCommand()
                , doubleValuesArray[6]
                , doubleValuesArray[7]
                , doubleValuesArray[8]
-               , totalValue[0], periodValue[0], shiftValue[0]));
+               , totalValue, periodValue, shiftValue));
                break;                     
          case 10:
          default:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue[0], timeframeValue[0], nameValue[0]
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
             , doubleValuesArray[0]
             , doubleValuesArray[1]
             , doubleValuesArray[2]
@@ -2018,7 +2018,7 @@ int executeCommand()
             , doubleValuesArray[7]
             , doubleValuesArray[8]
             , doubleValuesArray[9]
-            , totalValue[0], periodValue[0], shiftValue[0]));
+            , totalValue, periodValue, shiftValue));
       }
    }
    break;
@@ -2044,7 +2044,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iDeMarker(symbolValue[0], timeframeValue[0], periodValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iDeMarker(symbolValue, timeframeValue, periodValue, shiftValue))) 
       {
          PrintResponseError("iDeMarker");
       }      
@@ -2097,9 +2097,9 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iEnvelopes(symbolValue[0], timeframeValue[0], ma_periodValue[0], ma_methodValue[0],
-                                                         ma_shiftValue[0], applied_priceValue[0], deviationDoubleValue[0], modeValue[0],
-                                                         shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iEnvelopes(symbolValue, timeframeValue, ma_periodValue, ma_methodValue,
+                                                         ma_shiftValue, applied_priceValue, deviationDoubleValue, modeValue,
+                                                         shiftValue))) 
       {
          PrintResponseError("iEnvelopes");
       }      
@@ -2114,14 +2114,14 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, countValue);
       paramIndex++;
       
-      arraySize = countValue[0];      
+      arraySize = countValue;      
       ArrayResize(doubleValuesArray, arraySize);
       
       for(index = 0; index < arraySize; index++)
       {
          getDoubleValue(ExpertHandle, paramIndex, tempDoubleValue);
          paramIndex++;
-         doubleValuesArray[index] = tempDoubleValue[0];         
+         doubleValuesArray[index] = tempDoubleValue;         
       }                  
       
       getIntValue(ExpertHandle, paramIndex, totalValue);
@@ -2139,7 +2139,7 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, shiftValue);
       paramIndex++;    
       
-      if (!sendDoubleResponse(ExpertHandle, iEnvelopesOnArray(doubleValuesArray, totalValue[0], ma_periodValue[0], ma_methodValue[0], ma_shiftValue[0],  deviationDoubleValue[0], modeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iEnvelopesOnArray(doubleValuesArray, totalValue, ma_periodValue, ma_methodValue, ma_shiftValue,  deviationDoubleValue, modeValue, shiftValue))) 
       {
          PrintResponseError("iEnvelopesOnArray");
       }      
@@ -2177,8 +2177,8 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iForce(symbolValue[0], timeframeValue[0], periodValue[0], ma_methodValue[0],
-                                                         applied_priceValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iForce(symbolValue, timeframeValue, periodValue, ma_methodValue,
+                                                         applied_priceValue, shiftValue))) 
       {
          PrintResponseError("iForce");
       }      
@@ -2206,7 +2206,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iFractals(symbolValue[0], timeframeValue[0], modeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iFractals(symbolValue, timeframeValue, modeValue, shiftValue))) 
       {
          PrintResponseError("iFractals");
       }      
@@ -2274,9 +2274,9 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iGator(symbolValue[0], timeframeValue[0], jaw_periodValue[0], jaw_shiftValue[0]
-                                                      , teeth_periodValue[0], teeth_shiftValue[0], lips_periodValue[0], lips_shiftValue[0]
-                                                      , ma_methodValue[0], applied_priceValue[0], modeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iGator(symbolValue, timeframeValue, jaw_periodValue, jaw_shiftValue
+                                                      , teeth_periodValue, teeth_shiftValue, lips_periodValue, lips_shiftValue
+                                                      , ma_methodValue, applied_priceValue, modeValue, shiftValue))) 
       {
          PrintResponseError("iGator");
       }      
@@ -2319,8 +2319,8 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iIchimoku(symbolValue[0], timeframeValue[0], tenkan_senValue[0], kijun_senValue[0]
-                                                      , senkou_span_bValue[0], modeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iIchimoku(symbolValue, timeframeValue, tenkan_senValue, kijun_senValue
+                                                      , senkou_span_bValue, modeValue, shiftValue))) 
       {
          PrintResponseError("iIchimoku");
       }      
@@ -2343,7 +2343,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iBWMFI(symbolValue[0], timeframeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iBWMFI(symbolValue, timeframeValue, shiftValue))) 
       {
          PrintResponseError("iBWMFI");
       }      
@@ -2376,8 +2376,8 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iMomentum(symbolValue[0], timeframeValue[0], periodValue[0], applied_priceValue[0]
-                                                         , shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iMomentum(symbolValue, timeframeValue, periodValue, applied_priceValue
+                                                         , shiftValue))) 
       {
          PrintResponseError("iMomentum");
       }            
@@ -2391,14 +2391,14 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, countValue);
       paramIndex++;
       
-      arraySize = countValue[0];      
+      arraySize = countValue;      
       ArrayResize(doubleValuesArray, arraySize);
       
       for(index = 0; index < arraySize; index++)
       {
          getDoubleValue(ExpertHandle, paramIndex, tempDoubleValue);
          paramIndex++;
-         doubleValuesArray[index] = tempDoubleValue[0];         
+         doubleValuesArray[index] = tempDoubleValue;         
       }                  
       
       getIntValue(ExpertHandle, paramIndex, totalValue);
@@ -2408,7 +2408,7 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, shiftValue);
       paramIndex++;    
       
-      if (!sendDoubleResponse(ExpertHandle, iMomentumOnArray(doubleValuesArray, totalValue[0], periodValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iMomentumOnArray(doubleValuesArray, totalValue, periodValue, shiftValue))) 
       {
          PrintResponseError("iMomentumOnArray");
       }      
@@ -2436,7 +2436,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iMFI(symbolValue[0], timeframeValue[0], periodValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iMFI(symbolValue, timeframeValue, periodValue, shiftValue))) 
       {
          PrintResponseError("iMFI");
       }            
@@ -2479,8 +2479,8 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iMA(symbolValue[0], timeframeValue[0], periodValue[0], ma_shiftValue[0]
-                                                   , ma_methodValue[0], applied_priceValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iMA(symbolValue, timeframeValue, periodValue, ma_shiftValue
+                                                   , ma_methodValue, applied_priceValue, shiftValue))) 
       {
          PrintResponseError("iMA");
       }            
@@ -2495,14 +2495,14 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, countValue);
       paramIndex++;
       
-      arraySize = countValue[0];      
+      arraySize = countValue;      
       ArrayResize(doubleValuesArray, arraySize);
       
       for(index = 0; index < arraySize; index++)
       {
          getDoubleValue(ExpertHandle, paramIndex, tempDoubleValue);
          paramIndex++;
-         doubleValuesArray[index] = tempDoubleValue[0];         
+         doubleValuesArray[index] = tempDoubleValue;         
       }                  
       
       getIntValue(ExpertHandle, paramIndex, totalValue);
@@ -2516,7 +2516,7 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, shiftValue);
       paramIndex++;    
       
-      if (!sendDoubleResponse(ExpertHandle, iMAOnArray(doubleValuesArray, totalValue[0], periodValue[0], ma_shiftValue[0], ma_methodValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iMAOnArray(doubleValuesArray, totalValue, periodValue, ma_shiftValue, ma_methodValue, shiftValue))) 
       {
          PrintResponseError("iMAOnArray");
       }      
@@ -2560,8 +2560,8 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iOsMA(symbolValue[0], timeframeValue[0], fast_ema_periodValue[0], slow_ema_periodValue[0]
-                                                   , signal_periodValue[0], applied_priceValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iOsMA(symbolValue, timeframeValue, fast_ema_periodValue, slow_ema_periodValue
+                                                   , signal_periodValue, applied_priceValue, shiftValue))) 
       {
          PrintResponseError("iOsMA");
       }            
@@ -2609,8 +2609,8 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iMACD(symbolValue[0], timeframeValue[0], fast_ema_periodValue[0], slow_ema_periodValue[0]
-                                                   , signal_periodValue[0], applied_priceValue[0], modeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iMACD(symbolValue, timeframeValue, fast_ema_periodValue, slow_ema_periodValue
+                                                   , signal_periodValue, applied_priceValue, modeValue, shiftValue))) 
       {
          PrintResponseError("iMACD");
       }        
@@ -2638,7 +2638,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iOBV(symbolValue[0], timeframeValue[0], applied_priceValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iOBV(symbolValue, timeframeValue, applied_priceValue, shiftValue))) 
       {
          PrintResponseError("iOBV");
       }        
@@ -2671,7 +2671,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iSAR(symbolValue[0], timeframeValue[0], stepValue[0], maximumValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iSAR(symbolValue, timeframeValue, stepValue, maximumValue, shiftValue))) 
       {
          PrintResponseError("iSAR");
       }        
@@ -2704,7 +2704,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iRSI(symbolValue[0], timeframeValue[0], periodValue[0], applied_priceValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iRSI(symbolValue, timeframeValue, periodValue, applied_priceValue, shiftValue))) 
       {
          PrintResponseError("iRSI");
       }        
@@ -2719,14 +2719,14 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, countValue);
       paramIndex++;
       
-      arraySize = countValue[0];      
+      arraySize = countValue;      
       ArrayResize(doubleValuesArray, arraySize);
       
       for(index = 0; index < arraySize; index++)
       {
          getDoubleValue(ExpertHandle, paramIndex, tempDoubleValue);
          paramIndex++;
-         doubleValuesArray[index] = tempDoubleValue[0];         
+         doubleValuesArray[index] = tempDoubleValue;         
       }                  
       
       getIntValue(ExpertHandle, paramIndex, totalValue);
@@ -2736,7 +2736,7 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, shiftValue);
       paramIndex++;    
       
-      if (!sendDoubleResponse(ExpertHandle, iRSIOnArray(doubleValuesArray, totalValue[0], periodValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iRSIOnArray(doubleValuesArray, totalValue, periodValue, shiftValue))) 
       {
          PrintResponseError("iRSIOnArray");
       }      
@@ -2769,7 +2769,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iRVI(symbolValue[0], timeframeValue[0], periodValue[0], modeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iRVI(symbolValue, timeframeValue, periodValue, modeValue, shiftValue))) 
       {
          PrintResponseError("iRVI");
       }        
@@ -2812,8 +2812,8 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iStdDev(symbolValue[0], timeframeValue[0], ma_periodValue[0], ma_shiftValue[0]
-                                                      , ma_methodValue[0], applied_priceValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iStdDev(symbolValue, timeframeValue, ma_periodValue, ma_shiftValue
+                                                      , ma_methodValue, applied_priceValue, shiftValue))) 
       {
          PrintResponseError("iStdDev");
       }      
@@ -2828,14 +2828,14 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, countValue);
       paramIndex++;
       
-      arraySize = countValue[0];      
+      arraySize = countValue;      
       ArrayResize(doubleValuesArray, arraySize);
       
       for(index = 0; index < arraySize; index++)
       {
          getDoubleValue(ExpertHandle, paramIndex, tempDoubleValue);
          paramIndex++;
-         doubleValuesArray[index] = tempDoubleValue[0];         
+         doubleValuesArray[index] = tempDoubleValue;         
       }                  
       
       getIntValue(ExpertHandle, paramIndex, totalValue);
@@ -2849,7 +2849,7 @@ int executeCommand()
       getIntValue(ExpertHandle, paramIndex, shiftValue);
       paramIndex++;    
       
-      if (!sendDoubleResponse(ExpertHandle, iStdDevOnArray(doubleValuesArray, totalValue[0], ma_periodValue[0], ma_shiftValue[0], ma_methodValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iStdDevOnArray(doubleValuesArray, totalValue, ma_periodValue, ma_shiftValue, ma_methodValue, shiftValue))) 
       {
          PrintResponseError("iStdDevOnArray");
       }      
@@ -2902,8 +2902,8 @@ int executeCommand()
          PrintParamError("shift");
       }         
       
-      if (!sendDoubleResponse(ExpertHandle, iStochastic(symbolValue[0], timeframeValue[0], KperiodValue[0], DperiodValue[0]
-                                                      , slowingValue[0], methodValue[0], price_fieldValue[0], modeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iStochastic(symbolValue, timeframeValue, KperiodValue, DperiodValue
+                                                      , slowingValue, methodValue, price_fieldValue, modeValue, shiftValue))) 
       {
          PrintResponseError("iStochastic");
       }      
@@ -2931,7 +2931,7 @@ int executeCommand()
          PrintParamError("shift");
       }         
 
-      if (!sendDoubleResponse(ExpertHandle, iWPR(symbolValue[0], timeframeValue[0], periodValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iWPR(symbolValue, timeframeValue, periodValue, shiftValue))) 
       {
          PrintResponseError("iWPR");
       }      
@@ -2949,7 +2949,7 @@ int executeCommand()
          PrintParamError("timeframe");
       }
       
-      if (!sendIntResponse(ExpertHandle, iBars(symbolValue[0], timeframeValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, iBars(symbolValue, timeframeValue))) 
       {
          PrintResponseError("iBars");
       }           
@@ -2976,7 +2976,7 @@ int executeCommand()
          PrintParamError("exact");
       }
       
-      if (!sendIntResponse(ExpertHandle, iBarShift(symbolValue[0], timeframeValue[0], timeValue[0], exactValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, iBarShift(symbolValue, timeframeValue, timeValue, exactValue))) 
       {
          PrintResponseError("iBarShift");
       }        
@@ -2998,7 +2998,7 @@ int executeCommand()
          PrintParamError("shift");
       }
       
-      if (!sendDoubleResponse(ExpertHandle, iClose(symbolValue[0], timeframeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iClose(symbolValue, timeframeValue, shiftValue))) 
       {
          PrintResponseError("iClose");
       }
@@ -3020,7 +3020,7 @@ int executeCommand()
          PrintParamError("shift");
       }
       
-      if (!sendDoubleResponse(ExpertHandle, iHigh(symbolValue[0], timeframeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iHigh(symbolValue, timeframeValue, shiftValue))) 
       {
          PrintResponseError("iHigh");
       }
@@ -3052,7 +3052,7 @@ int executeCommand()
          PrintParamError("count");
       }
       
-      if (!sendIntResponse(ExpertHandle, iHighest(symbolValue[0], timeframeValue[0], typeValue[0], countValue[0], startValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, iHighest(symbolValue, timeframeValue, typeValue, countValue, startValue))) 
       {
          PrintResponseError("iHighest");
       }
@@ -3074,7 +3074,7 @@ int executeCommand()
          PrintParamError("shift");
       }
       
-      if (!sendDoubleResponse(ExpertHandle, iLow(symbolValue[0], timeframeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iLow(symbolValue, timeframeValue, shiftValue))) 
       {
          PrintResponseError("iLow");
       }
@@ -3106,7 +3106,7 @@ int executeCommand()
          PrintParamError("count");
       }
       
-      if (!sendIntResponse(ExpertHandle, iLowest(symbolValue[0], timeframeValue[0], typeValue[0], countValue[0], startValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, iLowest(symbolValue, timeframeValue, typeValue, countValue, startValue))) 
       {
          PrintResponseError("iLowest");
       }
@@ -3128,7 +3128,7 @@ int executeCommand()
          PrintParamError("shift");
       }
       
-      if (!sendDoubleResponse(ExpertHandle, iOpen(symbolValue[0], timeframeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iOpen(symbolValue, timeframeValue, shiftValue))) 
       {
          PrintResponseError("iOpen");
       }
@@ -3151,7 +3151,7 @@ int executeCommand()
          PrintParamError("shift");
       }
 
-      if (!sendIntResponse(ExpertHandle, iTime(symbolValue[0], timeframeValue[0], shiftValue[0]))) 
+      if (!sendIntResponse(ExpertHandle, iTime(symbolValue, timeframeValue, shiftValue))) 
       {
          PrintResponseError("iTime");
       }
@@ -3173,7 +3173,7 @@ int executeCommand()
          PrintParamError("shift");
       }
       
-      if (!sendDoubleResponse(ExpertHandle, iVolume(symbolValue[0], timeframeValue[0], shiftValue[0]))) 
+      if (!sendDoubleResponse(ExpertHandle, iVolume(symbolValue, timeframeValue, shiftValue))) 
       {
          PrintResponseError("iVolume");
       }
@@ -3190,12 +3190,12 @@ int executeCommand()
          PrintParamError("timeframe");
       }
             
-      barsCount = iBars(symbolValue[0], timeframeValue[0]);
+      barsCount = iBars(symbolValue, timeframeValue);
       priceCount = ArrayResize(priceArray, barsCount);
       
       for(index = 0; index < priceCount; index++)
       {
-         priceArray[index] = iClose(symbolValue[0], timeframeValue[0], index);
+         priceArray[index] = iClose(symbolValue, timeframeValue, index);
       }
                           
       if (!sendDoubleArrayResponse(ExpertHandle, priceArray, priceCount)) 
@@ -3215,12 +3215,12 @@ int executeCommand()
          PrintParamError("timeframe");
       }
             
-      barsCount = iBars(symbolValue[0], timeframeValue[0]);
+      barsCount = iBars(symbolValue, timeframeValue);
       priceCount = ArrayResize(priceArray, barsCount);
       
       for(index = 0; index < priceCount; index++)
       {
-         priceArray[index] = iHigh(symbolValue[0], timeframeValue[0], index);
+         priceArray[index] = iHigh(symbolValue, timeframeValue, index);
       }
                           
       if (!sendDoubleArrayResponse(ExpertHandle, priceArray, priceCount)) 
@@ -3240,12 +3240,12 @@ int executeCommand()
          PrintParamError("timeframe");
       }
             
-      barsCount = iBars(symbolValue[0], timeframeValue[0]);
+      barsCount = iBars(symbolValue, timeframeValue);
       priceCount = ArrayResize(priceArray, barsCount);
       
       for(index = 0; index < priceCount; index++)
       {
-         priceArray[index] = iLow(symbolValue[0], timeframeValue[0], index);
+         priceArray[index] = iLow(symbolValue, timeframeValue, index);
       }
                           
       if (!sendDoubleArrayResponse(ExpertHandle, priceArray, priceCount)) 
@@ -3265,12 +3265,12 @@ int executeCommand()
          PrintParamError("timeframe");
       }
             
-      barsCount = iBars(symbolValue[0], timeframeValue[0]);
+      barsCount = iBars(symbolValue, timeframeValue);
       priceCount = ArrayResize(priceArray, barsCount);
       
       for(index = 0; index < priceCount; index++)
       {
-         priceArray[index] = iOpen(symbolValue[0], timeframeValue[0], index);
+         priceArray[index] = iOpen(symbolValue, timeframeValue, index);
       }
                           
       if (!sendDoubleArrayResponse(ExpertHandle, priceArray, priceCount)) 
@@ -3290,12 +3290,12 @@ int executeCommand()
          PrintParamError("timeframe");
       }
             
-      barsCount = iBars(symbolValue[0], timeframeValue[0]);
+      barsCount = iBars(symbolValue, timeframeValue);
       volumeCount = ArrayResize(volumeArray, barsCount);
       
       for(index = 0; index < volumeCount; index++)
       {
-         volumeArray[index] = iVolume(symbolValue[0], timeframeValue[0], index);
+         volumeArray[index] = iVolume(symbolValue, timeframeValue, index);
       }
                           
       if (!sendDoubleArrayResponse(ExpertHandle, volumeArray, volumeCount)) 
@@ -3315,12 +3315,12 @@ int executeCommand()
          PrintParamError("timeframe");
       }
             
-      barsCount = iBars(symbolValue[0], timeframeValue[0]);
+      barsCount = iBars(symbolValue, timeframeValue);
       timeCount = ArrayResize(timeArray, barsCount);
       
       for(index = 0; index < timeCount; index++)
       {
-         timeArray[index] = iTime(symbolValue[0], timeframeValue[0], index);
+         timeArray[index] = iTime(symbolValue, timeframeValue, index);
       }
                           
       if (!sendIntArrayResponse(ExpertHandle, timeArray, timeCount)) 
@@ -3356,7 +3356,7 @@ bool OrderSelectByTicketFromCommand()
 {
    bool selected = false;
    
-   ticketValue[0] = 0;
+   ticketValue = 0;
          
    if (!getIntValue(ExpertHandle, 0, ticketValue))
    {
@@ -3364,7 +3364,7 @@ bool OrderSelectByTicketFromCommand()
       return (false);
    }   
    
-   selected = OrderSelect(ticketValue[0], SELECT_BY_TICKET);
+   selected = OrderSelect(ticketValue, SELECT_BY_TICKET);
    
    return (selected);
 }

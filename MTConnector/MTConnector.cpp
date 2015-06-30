@@ -17,26 +17,14 @@ using namespace System::IO;
 using namespace  System::Collections::Generic;
 using namespace System::Diagnostics;
 
-struct MqlStr
+void convertSystemString(wchar_t* dest, String^ src)
 {
-};
-
-void mqlStrFromNetStr(MqlStr* dst, String^ src)
-{
-	char* numPtr2 = *((char**) (dst + 4));
-	char* numPtr = (char*) Marshal::StringToHGlobalAnsi(src).ToPointer();
-	int num = strlen(numPtr);
-	int num2 = 0x80;
-	if (num >= num2)
-	{
-		num = num2 - 1;
-	}
-	strncpy_s(numPtr2, (unsigned int) num2, numPtr, (unsigned int) num);
-	Marshal::FreeHGlobal((IntPtr) numPtr);
-	*((int*) dst) = num;
+	pin_ptr<const wchar_t> wch = PtrToStringChars(src);
+	memcpy(dest, wch, wcslen(wch) * sizeof(wchar_t));
+	dest[wcslen(wch)] = '\0';
 }
 
-int _stdcall initExpert(int expertHandle, int port, char* symbol, double bid, double ask, MqlStr* err)
+int _stdcall initExpert(int expertHandle, int port, wchar_t* symbol, double bid, double ask, wchar_t* err)
 {
 	try
 	{
@@ -46,14 +34,14 @@ int _stdcall initExpert(int expertHandle, int port, char* symbol, double bid, do
 	}
 	catch (Exception^ e)
 	{
-		mqlStrFromNetStr(err, e->Message);
+		convertSystemString(err, e->Message);
 		Debug::WriteLine("[ERROR] MTConnector:initExpert(): " + e->Message);
 		return 0;
 	}
 	return 1;
 }
 
-int _stdcall deinitExpert(int expertHandle, MqlStr* err)
+int _stdcall deinitExpert(int expertHandle, wchar_t* err)
 {
 	try
 	{
@@ -61,14 +49,14 @@ int _stdcall deinitExpert(int expertHandle, MqlStr* err)
 	}	
 	catch (Exception^ e)
 	{
-		mqlStrFromNetStr(err, e->Message);
+		convertSystemString(err, e->Message);
 		Debug::WriteLine("[ERROR] MTConnector:deinitExpert(): " + e->Message);
 		return 0;
 	}
 	return 1;
 }
 
-int _stdcall updateQuote(int expertHandle, char* symbol, double bid, double ask, MqlStr* err)
+int _stdcall updateQuote(int expertHandle, wchar_t* symbol, double bid, double ask, wchar_t* err)
 {
 	try
 	{
@@ -76,7 +64,7 @@ int _stdcall updateQuote(int expertHandle, char* symbol, double bid, double ask,
 	}
 	catch (Exception^ e)
 	{
-		mqlStrFromNetStr(err, e->Message);
+		convertSystemString(err, e->Message);
 		Debug::WriteLine("[ERROR] MTConnector:updateQuote(): " + e->Message);
 		return 0;
 	}
@@ -127,7 +115,7 @@ int _stdcall sendDoubleResponse(int expertHandle, double response)
 	return 1;
 }
 
-int _stdcall sendStringResponse(int expertHandle, char* response)
+int _stdcall sendStringResponse(int expertHandle, wchar_t* response)
 {
 	try
 	{
@@ -239,11 +227,11 @@ int _stdcall getDoubleValue(int expertHandle, int paramIndex, double* res)
 	return 1;
 }
 
-int _stdcall getStringValue(int expertHandle, int paramIndex, MqlStr* res)
+int _stdcall getStringValue(int expertHandle, int paramIndex, wchar_t* res)
 {
 	try
 	{
-		mqlStrFromNetStr(res, (String^)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex));
+		convertSystemString(res, (String^)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex));
 	}
 	catch (Exception^ e)
 	{
