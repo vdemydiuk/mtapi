@@ -3,6 +3,7 @@
   <?define ProductName="MtApi" ?>
   <?define ProductVersion="1.0.19" ?>
   <?define Manufacturer="DW"?>
+  <?define ProductPath="..\build\products\$(var.Configuration)\"?>
   
 	<Product Id="*" 
            Name="$(var.ProductName) $(var.ProductVersion)" 
@@ -57,7 +58,7 @@
 
       <Component Id="MtApiDll" Directory="INSTALLFOLDER">
         <File Id="MtApi.dll" Name="MtApi.dll" KeyPath="yes"
-            Source="..\Release\MtApi.dll" />
+            Source="$(var.ProductPath)MtApi.dll" />
         
         <RegistryKey Root="HKLM"
             Key="Software\Microsoft\.NetFramework\v4.0.30319\AssemblyFoldersEx\$(var.ProductName)"
@@ -69,7 +70,7 @@
 
       <Component Id="MTApiServiceDll" Directory="INSTALLFOLDER">
         <File Id="GAC_MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
-            src="..\Release\MTApiService.dll"/>
+            src="$(var.ProductPath)MTApiService.dll"/>
       </Component>
 
       <Component Id="MtApiExpert" Directory="ExpertFolder">
@@ -111,13 +112,13 @@
 
       <Component Id="MTApiServiceDllGAC" Guid="7285AE3C-D4A9-482A-BC7E-8F5B2A0FE97E" Directory="GAC">
         <File Id="MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
-            src="..\Release\MTApiService.dll" Checksum="yes"
+            src="$(var.ProductPath)MTApiService.dll" Checksum="yes"
             Assembly=".net" AssemblyManifest="MTApiService.dll" Vital="yes" />
       </Component>
 
       <Component Id="MTConnectorDll" Directory="SystemFolder">
         <File Id="MTConnector.dll" Name="MTConnector.dll" KeyPath="yes"
-              Source="..\Release\MTConnector.dll" />
+              Source="$(var.ProductPath)MTConnector.dll" />
       </Component>
 
     </ComponentGroup>
