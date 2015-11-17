@@ -132,6 +132,30 @@ namespace MtApi
             return 0;
         }
 
+        public int OrderSendBuy(string symbol, double volume, int slippage)
+        {
+            var commandParameters = new ArrayList { symbol, volume, slippage};
+            return sendCommand<int>(MtCommandType.OrderSendBuy, commandParameters);
+        }
+
+        public int OrderSendSell(string symbol, double volume, int slippage)
+        {
+            var commandParameters = new ArrayList { symbol, volume, slippage };
+            return sendCommand<int>(MtCommandType.OrderSendSell, commandParameters);
+        }
+
+        public int OrderSendBuy(string symbol, double volume, int slippage, double stoploss, double takeprofit)
+        {
+            var commandParameters = new ArrayList { symbol, volume, slippage, stoploss, takeprofit };
+            return sendCommand<int>(MtCommandType.OrderSendBuyStoplossProfit, commandParameters);
+        }
+
+        public int OrderSendSell(string symbol, double volume, int slippage, double stoploss, double takeprofit)
+        {
+            var commandParameters = new ArrayList { symbol, volume, slippage, stoploss, takeprofit };
+            return sendCommand<int>(MtCommandType.OrderSendSellStoplossProfit, commandParameters);
+        }
+
         public bool OrderClose(int ticket, double lots, double price, int slippage, Color color)
         {
             var commandParameters = new ArrayList { ticket, lots, price, slippage, MtApiColorConverter.ConvertToMtColor(color) };

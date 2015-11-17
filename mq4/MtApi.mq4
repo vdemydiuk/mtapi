@@ -304,6 +304,130 @@ int executeCommand()
       }         
       
       break;   
+      
+   case 1001: // OrderSendBuy
+      if (!getStringValue(ExpertHandle, 0, symbolValue)) 
+      {
+         PrintParamError("symbol");
+      }
+               
+      if (!getDoubleValue(ExpertHandle, 1, volumeValue))
+      {
+         PrintParamError("volume");      
+      }
+           
+      if (!getIntValue(ExpertHandle, 2, slippageValue))
+      {
+         PrintParamError("slippage");        
+      }
+      
+      priceValue = MarketInfo(symbolValue, MODE_ASK);
+         
+      if (!sendIntResponse(ExpertHandle, OrderSend(symbolValue, OP_BUY, volumeValue, priceValue
+                                       , slippageValue, 0, 0))) 
+      {
+         PrintResponseError("OrderSend");
+      }         
+      
+      break;
+      
+   case 1002: // OrderSendSell
+      if (!getStringValue(ExpertHandle, 0, symbolValue)) 
+      {
+         PrintParamError("symbol");
+      }
+               
+      if (!getDoubleValue(ExpertHandle, 1, volumeValue))
+      {
+         PrintParamError("volume");      
+      }
+           
+      if (!getIntValue(ExpertHandle, 2, slippageValue))
+      {
+         PrintParamError("slippage");        
+      }
+      
+      priceValue = MarketInfo(symbolValue, MODE_BID);
+         
+      if (!sendIntResponse(ExpertHandle, OrderSend(symbolValue, OP_SELL, volumeValue, priceValue
+                                       , slippageValue, 0, 0))) 
+      {
+         PrintResponseError("OrderSend");
+      }         
+      
+      break;
+      
+   case 10011: // OrderSendBuy (stoploss and profit)
+      if (!getStringValue(ExpertHandle, 0, symbolValue)) 
+      {
+         PrintParamError("symbol");
+      }
+               
+      if (!getDoubleValue(ExpertHandle, 1, volumeValue))
+      {
+         PrintParamError("volume");      
+      }
+           
+      if (!getIntValue(ExpertHandle, 2, slippageValue))
+      {
+         PrintParamError("slippage");        
+      }
+      
+      if (!getDoubleValue(ExpertHandle, 3, stoplossValue))
+      {
+         PrintParamError("stoploss"); 
+      }
+
+      if (!getDoubleValue(ExpertHandle, 4, takeprofitValue))
+      {
+         PrintParamError("takeprofit");
+      }      
+      
+      priceValue = MarketInfo(symbolValue, MODE_ASK);
+         
+      if (!sendIntResponse(ExpertHandle, OrderSend(symbolValue, OP_BUY, volumeValue, priceValue
+                                       , slippageValue, stoplossValue, takeprofitValue))) 
+      {
+         PrintResponseError("OrderSend");
+      }         
+      
+      break;
+      
+   case 10012: // OrderSendSell (stoploss and profit)
+      if (!getStringValue(ExpertHandle, 0, symbolValue)) 
+      {
+         PrintParamError("symbol");
+      }
+               
+      if (!getDoubleValue(ExpertHandle, 1, volumeValue))
+      {
+         PrintParamError("volume");      
+      }
+           
+      if (!getIntValue(ExpertHandle, 2, slippageValue))
+      {
+         PrintParamError("slippage");        
+      }
+      
+      if (!getDoubleValue(ExpertHandle, 3, stoplossValue))
+      {
+         PrintParamError("stoploss"); 
+      }
+
+      if (!getDoubleValue(ExpertHandle, 4, takeprofitValue))
+      {
+         PrintParamError("takeprofit");
+      }  
+      
+      priceValue = MarketInfo(symbolValue, MODE_BID);
+         
+      if (!sendIntResponse(ExpertHandle, OrderSend(symbolValue, OP_SELL, volumeValue, priceValue
+                                       , slippageValue, stoplossValue, takeprofitValue))) 
+      {
+         PrintResponseError("OrderSend");
+      }         
+      
+      break;            
             
    case 2: // OrderClose
       if (!getIntValue(ExpertHandle, 0, ticketValue)) 

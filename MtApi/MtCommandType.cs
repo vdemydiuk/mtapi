@@ -11,6 +11,10 @@ namespace MtApi
 
         //trade operations
         OrderSend                           = 1,
+        OrderSendBuy                        = 1001,
+        OrderSendSell                       = 1002,
+        OrderSendBuyStoplossProfit          = 10011,
+        OrderSendSellStoplossProfit         = 10012,
         OrderClose                          = 2,
         OrderCloseBy                        = 3,
         OrderClosePrice                     = 4,
