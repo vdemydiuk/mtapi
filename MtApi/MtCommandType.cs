@@ -16,10 +16,12 @@ namespace MtApi
         OrderSendBuyStoplossProfit          = 10011,
         OrderSendSellStoplossProfit         = 10012,
         OrderClose                          = 2,
+        OrderCloseByCurrentPrice            = 152,
         OrderCloseBy                        = 3,
         OrderClosePrice                     = 4,
         OrderClosePriceByTicket             = 1004,
         OrderCloseTime                      = 5,
+        OrderCloseAll                       = 151,
         OrderComment                        = 6,
         OrderCommission                     = 7,
         OrderDelete                         = 8,
@@ -185,7 +187,6 @@ namespace MtApi
         iTimeArray                          = 149,
 
         //
-        RefreshRates                        = 150,
-        OrderCloseAll                       = 151
+        RefreshRates                        = 150
     }
 }

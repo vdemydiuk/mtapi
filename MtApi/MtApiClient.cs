@@ -178,6 +178,12 @@ namespace MtApi
             return OrderCloseBy(ticket, opposite, Color.Empty);
         }
 
+        public bool OrderCloseByCurrentPrice(int ticket, int slippage)
+        {
+            var commandParameters = new ArrayList { ticket, slippage };
+            return sendCommand<bool>(MtCommandType.OrderCloseByCurrentPrice, commandParameters);
+        }
+
         public double OrderClosePrice()
         {
             return sendCommand<double>(MtCommandType.OrderClosePrice, null);

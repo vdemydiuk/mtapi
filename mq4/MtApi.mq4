@@ -459,8 +459,47 @@ int executeCommand()
       {
          PrintResponseError("OrderClose");
       }               
+   break;
+      
+   case 151: //OrderCloseAll
+      if (!sendBooleanResponse(ExpertHandle, OrderCloseAll())) 
+      {
+         PrintResponseError("OrderCloseAll");
+      }    
+   break;
+   
+   case 152: //OrderCloseByCurrentPrice
+      if (!getIntValue(ExpertHandle, 0, ticketValue)) 
+      {
+         PrintParamError("ticket");
+      }
 
-      break;
+      if (!getIntValue(ExpertHandle, 1, slippageValue))
+      {
+         PrintParamError("slippage");       
+      }
+      
+      lotsValue = 0;
+      if (OrderSelect(ticketValue, SELECT_BY_TICKET))
+      {
+         symbolValue = OrderSymbol();
+         lotsValue = OrderLots();
+         if (OrderType() == OP_SELL)
+         {
+            priceValue = MarketInfo(symbolValue, MODE_ASK);     
+         }
+         else
+         {
+            priceValue = MarketInfo(symbolValue, MODE_BID);      
+         }
+      }
+
+      if (!sendBooleanResponse(ExpertHandle, OrderClose(ticketValue, lotsValue, priceValue, slippageValue))) 
+      {
+         PrintResponseError("OrderClose");
+      }
+   break;
+      
       
    case 3: // OrderCloseBy
       if (!getIntValue(ExpertHandle, 0, ticketValue)) 
@@ -3460,13 +3499,6 @@ int executeCommand()
       }    
    break;
    
-   case 151: //OrderCloseAll
-      if (!sendBooleanResponse(ExpertHandle, OrderCloseAll())) 
-      {
-         PrintResponseError("OrderCloseAll");
-      }    
-   break;   
-
    default:
       Print("Unknown command type = ", commandType);
       sendVoidResponse(ExpertHandle);      
