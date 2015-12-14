@@ -7,9 +7,9 @@ namespace MtApi
 {
     public enum MtConnectionState
     {
+        Disconnected,
         Connecting,
         Connected,
-        Disconnected,
         Failed
     }
 }
