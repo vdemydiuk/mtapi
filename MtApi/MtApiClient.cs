@@ -134,26 +134,34 @@ namespace MtApi
 
         public int OrderSendBuy(string symbol, double volume, int slippage)
         {
-            var commandParameters = new ArrayList { symbol, volume, slippage};
-            return sendCommand<int>(MtCommandType.OrderSendBuy, commandParameters);
+            return OrderSendBuy(symbol, volume, slippage, 0, 0, null, 0);
         }
 
         public int OrderSendSell(string symbol, double volume, int slippage)
         {
-            var commandParameters = new ArrayList { symbol, volume, slippage };
-            return sendCommand<int>(MtCommandType.OrderSendSell, commandParameters);
+            return OrderSendSell(symbol, volume, slippage, 0, 0, null, 0);
         }
 
         public int OrderSendBuy(string symbol, double volume, int slippage, double stoploss, double takeprofit)
         {
-            var commandParameters = new ArrayList { symbol, volume, slippage, stoploss, takeprofit };
-            return sendCommand<int>(MtCommandType.OrderSendBuyStoplossProfit, commandParameters);
+            return OrderSendBuy(symbol, volume, slippage, stoploss, takeprofit, null, 0);
         }
 
         public int OrderSendSell(string symbol, double volume, int slippage, double stoploss, double takeprofit)
         {
-            var commandParameters = new ArrayList { symbol, volume, slippage, stoploss, takeprofit };
-            return sendCommand<int>(MtCommandType.OrderSendSellStoplossProfit, commandParameters);
+            return OrderSendSell(symbol, volume, slippage, stoploss, takeprofit, null, 0);
+        }
+
+        public int OrderSendBuy(string symbol, double volume, int slippage, double stoploss, double takeprofit, string comment, int magic)
+        {
+            var commandParameters = new ArrayList { symbol, volume, slippage, stoploss, takeprofit, comment, magic };
+            return sendCommand<int>(MtCommandType.OrderSendBuy, commandParameters);
+        }
+
+        public int OrderSendSell(string symbol, double volume, int slippage, double stoploss, double takeprofit, string comment, int magic)
+        {
+            var commandParameters = new ArrayList { symbol, volume, slippage, stoploss, takeprofit, comment, magic };
+            return sendCommand<int>(MtCommandType.OrderSendSell, commandParameters);
         }
 
         public bool OrderClose(int ticket, double lots, double price, int slippage, Color color)

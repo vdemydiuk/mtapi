@@ -13,8 +13,6 @@ namespace MtApi
         OrderSend                           = 1,
         OrderSendBuy                        = 1001,
         OrderSendSell                       = 1002,
-        OrderSendBuyStoplossProfit          = 10011,
-        OrderSendSellStoplossProfit         = 10012,
         OrderClose                          = 2,
         OrderCloseByCurrentPrice            = 152,
         OrderCloseBy                        = 3,

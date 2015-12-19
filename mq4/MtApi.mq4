@@ -321,10 +321,31 @@ int executeCommand()
          PrintParamError("slippage");        
       }
       
+      if (!getDoubleValue(ExpertHandle, 3, stoplossValue))
+      {
+         PrintParamError("stoploss"); 
+      }
+
+      if (!getDoubleValue(ExpertHandle, 4, takeprofitValue))
+      {
+         PrintParamError("takeprofit");
+      }
+      
+      if (!getStringValue(ExpertHandle, 5, commentValue)) 
+      {
+         PrintParamError("comment");
+      }
+      
+      if (!getIntValue(ExpertHandle, 6, magicValue))
+      {
+         PrintParamError("magic");
+      }
+      
       priceValue = MarketInfo(symbolValue, MODE_ASK);
          
       if (!sendIntResponse(ExpertHandle, OrderSend(symbolValue, OP_BUY, volumeValue, priceValue
-                                       , slippageValue, 0, 0))) 
+                                       , slippageValue, stoplossValue, takeprofitValue
+                                       , commentValue, magicValue)))
       {
          PrintResponseError("OrderSend");
       }         
@@ -347,32 +368,6 @@ int executeCommand()
          PrintParamError("slippage");        
       }
       
-      priceValue = MarketInfo(symbolValue, MODE_BID);
-         
-      if (!sendIntResponse(ExpertHandle, OrderSend(symbolValue, OP_SELL, volumeValue, priceValue
-                                       , slippageValue, 0, 0))) 
-      {
-         PrintResponseError("OrderSend");
-      }         
-      
-      break;
-      
-   case 10011: // OrderSendBuy (stoploss and profit)
-      if (!getStringValue(ExpertHandle, 0, symbolValue)) 
-      {
-         PrintParamError("symbol");
-      }
-               
-      if (!getDoubleValue(ExpertHandle, 1, volumeValue))
-      {
-         PrintParamError("volume");      
-      }
-           
-      if (!getIntValue(ExpertHandle, 2, slippageValue))
-      {
-         PrintParamError("slippage");        
-      }
-      
       if (!getDoubleValue(ExpertHandle, 3, stoplossValue))
       {
          PrintParamError("stoploss"); 
@@ -381,53 +376,28 @@ int executeCommand()
       if (!getDoubleValue(ExpertHandle, 4, takeprofitValue))
       {
          PrintParamError("takeprofit");
-      }      
-      
-      priceValue = MarketInfo(symbolValue, MODE_ASK);
-         
-      if (!sendIntResponse(ExpertHandle, OrderSend(symbolValue, OP_BUY, volumeValue, priceValue
-                                       , slippageValue, stoplossValue, takeprofitValue))) 
-      {
-         PrintResponseError("OrderSend");
-      }         
-      
-      break;
-      
-   case 10012: // OrderSendSell (stoploss and profit)
-      if (!getStringValue(ExpertHandle, 0, symbolValue)) 
-      {
-         PrintParamError("symbol");
-      }
-               
-      if (!getDoubleValue(ExpertHandle, 1, volumeValue))
-      {
-         PrintParamError("volume");      
-      }
-           
-      if (!getIntValue(ExpertHandle, 2, slippageValue))
-      {
-         PrintParamError("slippage");        
       }
       
-      if (!getDoubleValue(ExpertHandle, 3, stoplossValue))
+      if (!getStringValue(ExpertHandle, 5, commentValue)) 
       {
-         PrintParamError("stoploss"); 
+         PrintParamError("comment");
       }
-
-      if (!getDoubleValue(ExpertHandle, 4, takeprofitValue))
-      {
-         PrintParamError("takeprofit");
-      }  
       
+      if (!getIntValue(ExpertHandle, 6, magicValue))
+      {
+         PrintParamError("magic");
+      }
+            
       priceValue = MarketInfo(symbolValue, MODE_BID);
          
       if (!sendIntResponse(ExpertHandle, OrderSend(symbolValue, OP_SELL, volumeValue, priceValue
-                                       , slippageValue, stoplossValue, takeprofitValue))) 
+                                       , slippageValue, stoplossValue, takeprofitValue
+                                       , commentValue, magicValue))) 
       {
          PrintResponseError("OrderSend");
       }         
       
-      break;            
+      break;     
             
    case 2: // OrderClose
       if (!getIntValue(ExpertHandle, 0, ticketValue)) 
