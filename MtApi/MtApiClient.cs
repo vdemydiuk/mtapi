@@ -855,7 +855,10 @@ namespace MtApi
             var commandParameters = new ArrayList { symbol, timeframe, name };
             int arraySize = parameters != null ? parameters.Length : 0;
             commandParameters.Add(arraySize);
-            commandParameters.AddRange(parameters);
+            if (arraySize > 0)
+            {
+                commandParameters.AddRange(parameters);
+            }
             commandParameters.Add(mode);
             commandParameters.Add(shift);
 
