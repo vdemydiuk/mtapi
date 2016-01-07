@@ -1919,25 +1919,25 @@ int executeCommand()
       switch(arraySize)
       {
          case 0:
-            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue, totalValue, periodValue, shiftValue));
+            sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue, totalValue, modeValue, shiftValue));
             break;
          case 1:
             sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , intValuesArray[0]
-               , totalValue, periodValue, shiftValue));
+               , totalValue, modeValue, shiftValue));
                break;
          case 2:
             sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , intValuesArray[0]
                , intValuesArray[1]
-               , totalValue, periodValue, shiftValue));
+               , totalValue, modeValue, shiftValue));
                break;            
          case 3:
             sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
                , intValuesArray[0]
                , intValuesArray[1]
                , intValuesArray[2]
-               , totalValue, periodValue, shiftValue));
+               , totalValue, modeValue, shiftValue));
                break;                    
          case 4:
             sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
@@ -1945,7 +1945,7 @@ int executeCommand()
                , intValuesArray[1]
                , intValuesArray[2]
                , intValuesArray[3]
-               , totalValue, periodValue, shiftValue));
+               , totalValue, modeValue, shiftValue));
                break;   
          case 5:
             sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
@@ -1954,7 +1954,7 @@ int executeCommand()
                , intValuesArray[2]
                , intValuesArray[3]
                , intValuesArray[4]
-               , totalValue, periodValue, shiftValue));
+               , totalValue, modeValue, shiftValue));
                break;        
          case 6:
             sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
@@ -1964,7 +1964,7 @@ int executeCommand()
                , intValuesArray[3]
                , intValuesArray[4]
                , intValuesArray[5]
-               , totalValue, periodValue, shiftValue));
+               , totalValue, modeValue, shiftValue));
                break;                                        
          case 7:
             sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
@@ -1975,7 +1975,7 @@ int executeCommand()
                , intValuesArray[4]
                , intValuesArray[5]
                , intValuesArray[6]
-               , totalValue, periodValue, shiftValue));
+               , totalValue, modeValue, shiftValue));
                break;      
          case 8:
             sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
@@ -1987,7 +1987,7 @@ int executeCommand()
                , intValuesArray[5]
                , intValuesArray[6]
                , intValuesArray[7]
-               , totalValue, periodValue, shiftValue));
+               , totalValue, modeValue, shiftValue));
                break;                             
          case 9:
             sendDoubleResponse(ExpertHandle, iCustom(symbolValue, timeframeValue, nameValue
@@ -2000,7 +2000,7 @@ int executeCommand()
                , intValuesArray[6]
                , intValuesArray[7]
                , intValuesArray[8]
-               , totalValue, periodValue, shiftValue));
+               , totalValue, modeValue, shiftValue));
                break;                     
          case 10:
          default:
@@ -2015,7 +2015,7 @@ int executeCommand()
             , intValuesArray[7]
             , intValuesArray[8]
             , intValuesArray[9]
-            , totalValue, periodValue, shiftValue));
+            , totalValue, modeValue, shiftValue));
       }
    }
    break;
