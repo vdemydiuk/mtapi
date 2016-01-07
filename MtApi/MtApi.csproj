@@ -58,6 +58,7 @@
     <Compile Include="MtCommandType.cs" />
     <Compile Include="MtQuote.cs" />
     <Compile Include="MtQuoteEventArgs.cs" />
+    <Compile Include="MtTypes.cs" />
     <Compile Include="PriceConstantsType.cs" />
     <Compile Include="MarketInfoModeType.cs" />
     <Compile Include="MtApiClient.cs" />

@@ -3469,6 +3469,35 @@ int executeCommand()
       }    
    break;
    
+   case 153: //TerminalInfoString
+      if (getIntValue(ExpertHandle, 0, typeValue))
+      {
+         PrintParamError("property_id");
+      }
+      
+      if (!sendStringResponse(ExpertHandle, TerminalInfoString(typeValue))) 
+      {
+         PrintResponseError("TerminalInfoString");
+      }
+   break;
+   
+   case 154: //SymbolInfoString
+      if (!getStringValue(ExpertHandle, 0, symbolValue)) 
+      {
+         PrintParamError("symbol");
+      }
+            
+      if (getIntValue(ExpertHandle, 1, typeValue))
+      {
+         PrintParamError("prop_id");
+      }
+      
+      if (!sendStringResponse(ExpertHandle, SymbolInfoString(symbolValue, typeValue))) 
+      {
+         PrintResponseError("SymbolInfoString");
+      }
+   break;
+   
    default:
       Print("Unknown command type = ", commandType);
       sendVoidResponse(ExpertHandle);      

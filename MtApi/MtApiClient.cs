@@ -1208,6 +1208,20 @@ namespace MtApi
 
         #endregion
 
+        #region Checkup
+        public string TerminalInfoString(ENUM_TERMINAL_INFO_STRING property_id)
+        {
+            var commandParameters = new ArrayList { (int)property_id };
+            return sendCommand<string>(MtCommandType.TerminalInfoString, commandParameters);
+        }
+
+        public string SymbolInfoString(string name, ENUM_SYMBOL_INFO_STRING prop_id)
+        {
+            var commandParameters = new ArrayList { name, (int)prop_id };
+            return sendCommand<string>(MtCommandType.SymbolInfoString, commandParameters); ;
+        }
+        #endregion
+
         #region Private Methods
         private void Connect(string host, int port)
         {
