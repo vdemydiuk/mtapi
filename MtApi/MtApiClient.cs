@@ -1314,10 +1314,7 @@ namespace MtApi
         {
             if (quote != null)
             {
-                if (QuoteUpdated != null)
-                {
-                    QuoteUpdated(this, quote.Instrument, quote.Bid, quote.Ask);
-                }
+                QuoteUpdated.FireEvent(this, quote.Instrument, quote.Bid, quote.Ask);
             }
         }
 

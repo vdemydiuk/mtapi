@@ -2,26 +2,45 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace MtApi
 {
     static class ExtensionMethods
     {
         #region Event Methods
-        public static void FireEvent(this EventHandler eventHandler, object sender)
+
+        public static async void FireEvent(this MtApiQuoteHandler evenHandler, object sender, string symbol, double bid, double ask)
         {
-            if (eventHandler != null)
+            if (evenHandler != null)
             {
-                eventHandler(sender, EventArgs.Empty);
+                await Task.Factory.StartNew(() =>
+                {
+                    evenHandler(sender, symbol, bid, ask);
+                });
             }
         }
 
-        public static void FireEvent<T>(this EventHandler<T> eventHandler, object sender, T e)
+        public static async void FireEvent(this EventHandler eventHandler, object sender)
+        {
+            if (eventHandler != null)
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    eventHandler(sender, EventArgs.Empty);
+                });
+            }
+        }
+
+        public static async void FireEvent<T>(this EventHandler<T> eventHandler, object sender, T e)
             where T : EventArgs
         {
             if (eventHandler != null)
             {
-                eventHandler(sender, e);
+                await Task.Factory.StartNew(() =>
+                {
+                    eventHandler(sender, e);    
+                });
             }
         }
 
