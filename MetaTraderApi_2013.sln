@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestServer", "TestServer\TestServer.csproj", "{220F01DF-8489-44F3-9C79-D5AFFCE94D6B}"
 EndProject
@@ -92,6 +92,7 @@ Global
 		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Debug|x64.Build.0 = Debug|Any CPU
 		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Release|Win32.ActiveCfg = Release|x86
 		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Release|x64.ActiveCfg = Release|Any CPU
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Release|x64.Build.0 = Release|Any CPU
 		{EB7C228D-9494-4985-845E-B8312450DF3D}.Debug|Win32.ActiveCfg = Debug|x86
 		{EB7C228D-9494-4985-845E-B8312450DF3D}.Debug|x64.ActiveCfg = Debug|x86
 		{EB7C228D-9494-4985-845E-B8312450DF3D}.Release|Win32.ActiveCfg = Release|x86
@@ -104,10 +105,12 @@ Global
 		{78B94552-DB17-40EC-B7C6-23D32DB85DC1}.Release|x64.ActiveCfg = Release|x86
 		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Debug|Win32.ActiveCfg = Debug|x86
 		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Debug|Win32.Build.0 = Debug|x86
-		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Debug|x64.ActiveCfg = Debug|x86
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Debug|x64.ActiveCfg = Debug|x64
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Debug|x64.Build.0 = Debug|x64
 		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Release|Win32.ActiveCfg = Release|x86
 		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Release|Win32.Build.0 = Release|x86
-		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Release|x64.ActiveCfg = Release|x86
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Release|x64.ActiveCfg = Release|x64
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

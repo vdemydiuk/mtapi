@@ -1,30 +1,123 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" Name="MtApi5Installer" Language="1033" Version="1.0.0.0" Manufacturer="" UpgradeCode="d72d346e-e6f7-4c23-85c6-1c42b3175599">
+    <?if $(var.Platform) = x64 ?>
+        <?define ProductName="MtApi5_x64" ?>
+        <?define ProductPathNative="..\build\products\$(var.Configuration)\"?>
+        <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
+        <?define PlatformSystemFolder = "System64Folder" ?>    
+    <?else ?>
+        <?define ProductName="MtApi5" ?>
+        <?define ProductPathNative="..\build\products\$(var.Configuration)\x64\"?>
+        <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
+        <?define PlatformSystemFolder = "SystemFolder" ?>
+    <?endif ?>
+
+    <?define ProductVersion="1.0.9" ?>
+    <?define Manufacturer="DW"?>
+    <?define ProductPath="..\build\products\$(var.Configuration)\"?>
+    
+	<Product Id="*" 
+            Name="$(var.ProductName) $(var.ProductVersion)" 
+            Language="1033" 
+            Version="$(var.ProductVersion)" 
+            Manufacturer="$(var.Manufacturer)" 
+            UpgradeCode="d72d346e-e6f7-4c23-85c6-1c42b3175599">
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-		<MediaTemplate />
+        <MediaTemplate EmbedCab="yes" />
 
-		<Feature Id="ProductFeature" Title="MtApi5Installer" Level="1">
-			<ComponentGroupRef Id="ProductComponents" />
-		</Feature>
+        <Feature Id="MtApi5" Title="$(var.ProductName)" Level="1">
+            <ComponentGroupRef Id="MtApi5Components"/>
+        </Feature>
+
+        <Feature Id="MT5Connector" Title="MT5 Connector" Level="1">
+            <ComponentGroupRef Id="MT5ConnectorComponents"/>
+        </Feature>
+
+        <Property Id="WIXUI_INSTALLDIR">INSTALLFOLDER</Property>
+        <UIRef Id="WixUI_Mondo" />
 	</Product>
 
-	<Fragment>
-		<Directory Id="TARGETDIR" Name="SourceDir">
-			<Directory Id="ProgramFilesFolder">
-				<Directory Id="INSTALLFOLDER" Name="MtApi5Installer" />
-			</Directory>
-		</Directory>
-	</Fragment>
+    <Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="$(var.PlatformProgramFilesFolder)">
+                <Directory Id="INSTALLFOLDER" Name="$(var.ProductName)">
 
-	<Fragment>
-		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-			<!-- TODO: Remove the comments around this Component element and the ComponentRef below in order to add resources to this installer. -->
-			<!-- <Component Id="ProductComponent"> -->
-				<!-- TODO: Insert files, registry keys, and other resources here. -->
-			<!-- </Component> -->
-		</ComponentGroup>
-	</Fragment>
+                    <Directory Id="ExpertFolder" Name="Experts">
+                    </Directory>
+
+                    <Directory Id="GAC" Name="GAC">
+                    </Directory>
+
+                </Directory>
+            </Directory>
+
+            <Directory Id="$(var.PlatformSystemFolder)">
+            </Directory>
+
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="$(var.ProductName)">
+                </Directory>
+            </Directory>
+
+        </Directory>
+    </Fragment>
+
+    <Fragment>
+        <ComponentGroup Id="MtApi5Components">
+
+            <Component Id="MtApi5Dll" Directory="INSTALLFOLDER">
+                <File Id="MtApi5.dll" Name="MtApi5.dll" KeyPath="yes"
+                    Source="$(var.ProductPath)MtApi5.dll" />
+
+                <RegistryKey Root="HKLM"
+                    Key="Software\Microsoft\.NetFramework\v4.0.30319\AssemblyFoldersEx\$(var.ProductName)"
+                    Action="createAndRemoveOnUninstall">
+                    <RegistryValue Type="string" Value="[INSTALLFOLDER]"/>
+                </RegistryKey>
+
+            </Component>
+
+            <Component Id="MTApiServiceDll" Directory="INSTALLFOLDER">
+                <File Id="GAC_MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
+                    src="$(var.ProductPath)MTApiService.dll"/>
+            </Component>
+
+            <Component Id="MtApi5Expert" Directory="ExpertFolder">
+                <File Id="MtApi5.ex5" Name="MtApi5.ex5" KeyPath="yes"
+                      Source="..\mq5\MtApi5.ex5" />
+            </Component>
+
+            <Component Id="AppShortcutConnMgr" Guid="*" Directory="ApplicationProgramsFolder">
+                <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+                <RegistryValue Root="HKCU" Key="Software\$(var.ProductName)" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+            </Component>
+
+        </ComponentGroup>
+
+        <ComponentGroup Id="MT5ConnectorComponents">
+
+            <Component Id="ConnectionProfileRegistryKey" Guid="*" Directory="INSTALLFOLDER">
+                <RegistryKey Root="HKCU"
+                             Key="Software\MtApi\ConnectionProfiles\Local"
+                      Action="createAndRemoveOnUninstall">
+                    <RegistryValue Type="string" Name="Host" Value=""/>
+                    <RegistryValue Type="integer" Name="Port" Value="8222" KeyPath="yes"/>
+                </RegistryKey>
+            </Component>
+
+            <Component Id="MTApiServiceDllGAC" Guid="6CD24D64-7DA1-4015-A5B3-B17C2488998C" Directory="GAC">
+                <File Id="MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
+                    src="$(var.ProductPath)MTApiService.dll" Checksum="yes"
+                    Assembly=".net" AssemblyManifest="MTApiService.dll" Vital="yes" />
+            </Component>
+
+            <Component Id="MT5ConnectorDll" Directory="$(var.PlatformSystemFolder)">
+                <File Id="MT5Connector5.dll" Name="MT5Connector.dll" KeyPath="yes"
+                      Source="$(var.ProductPathNative)MT5Connector.dll" />
+            </Component>
+
+        </ComponentGroup>
+    </Fragment>
 </Wix>
