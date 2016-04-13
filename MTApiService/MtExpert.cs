@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace MTApiService
 {
@@ -10,43 +7,46 @@ namespace MTApiService
         public delegate void MtQuoteHandler(MtExpert expert, MtQuote quote);
 
         #region Properties
-        private MtQuote _Quote;
+        private MtQuote _quote;
         public MtQuote Quote 
         {
             get
             {
                 lock (_locker)
                 {
-                    return _Quote;                         
+                    return _quote;                         
                 }
             }
             set
             {
                 lock(_locker)
                 {
-                    _Quote = value;
+                    _quote = value;
                 }
 
-                if (QuoteChanged != null)
-                {
-                    QuoteChanged(this, value);
-                }                
+                FireOnQuoteChanged(value);
             }
         }
+
         public int Handle { get; private set; }
 
-        private volatile bool _IsEnable = true;
+        private bool _isEnable = true;
         public bool IsEnable
         {
-            get { return _IsEnable; }
-            private set { _IsEnable = value; }
-        }
-
-        private volatile bool _IsCommandExecutor = true;
-        public bool IsCommandExecutor
-        {
-            get { return _IsCommandExecutor; }
-            set { _IsCommandExecutor = value; }
+            get
+            {
+                lock (_locker)
+                {
+                    return _isEnable;
+                }
+            }
+            private set
+            {
+                lock (_locker)
+                {
+                    _isEnable = value;
+                }
+            }
         }
 
         public ICommandManager CommandManager
@@ -55,14 +55,14 @@ namespace MTApiService
             {
                 lock (_locker)
                 {
-                    return mCommandManager;
+                    return _commandManager;
                 }
             }
             set
             {
                 lock (_locker)
                 {
-                    mCommandManager = value;
+                    _commandManager = value;
                 }
             }
         }
@@ -73,51 +73,43 @@ namespace MTApiService
         {
             Quote = quote;
             Handle = handle;
-            mMtHadler = mtHandler;
+            _mtHadler = mtHandler;
         }
 
         public void Deinit()
         {
             IsEnable = false;
-
-            if (Deinited != null)
-            {
-                Deinited(this, EventArgs.Empty);
-            }
+            FireOnDeinited();
         }
 
         public void SendResponse(MtResponse response)
         {
-            MtCommand command = mCommand;
-            mCommand = null;
-
-            ICommandManager commandManager = CommandManager;
-            if (commandManager != null)
-            {
-                commandManager.OnCommandExecuted(this, command, response);
-            }
+            _commandTask.SetResult(response);
+            _commandTask = null;
+            FireOnCommandExecuted();
         }
 
         public int GetCommandType()
         {
-            if (IsCommandExecutor)
+            var commandManager = CommandManager;
+            if (commandManager != null)
             {
-                ICommandManager commandManager = CommandManager;
-                if (mCommandManager != null)
-                {
-                    mCommand = mCommandManager.DequeueCommand();
-                }
+                _commandTask = commandManager.DequeueCommandTask();
             }
 
-            return mCommand != null ? mCommand.CommandType : 0;
+            return _commandTask != null && _commandTask.Command != null ? _commandTask.Command.CommandType : 0;
         }
 
         public object GetCommandParameter(int index)
         {
-            if (mCommand != null && mCommand.Parameters != null 
-                && index >= 0 && index < mCommand.Parameters.Count)
+            if (_commandTask != null)
             {
-                return mCommand.Parameters[index];
+                var command = _commandTask.Command;
+                if (command != null && command.Parameters != null
+                    && index >= 0 && index < command.Parameters.Count)
+                {
+                    return command.Parameters[index];
+                }
             }
 
             return null;
@@ -131,13 +123,39 @@ namespace MTApiService
         }
         #endregion
 
-
         #region Private Methods
         private void SendTickToMetaTrader()
         {
-            if (mMtHadler != null)
+            if (_mtHadler != null)
             {
-                mMtHadler.SendTickToMetaTrader(Handle);
+                _mtHadler.SendTickToMetaTrader(Handle);
+            }
+        }
+
+        private void FireOnQuoteChanged(MtQuote quote)
+        {
+            var handler = QuoteChanged;
+            if (handler != null)
+            {
+                handler(this, quote);
+            }     
+        }
+
+        private void FireOnDeinited()
+        {
+            var handler = Deinited;
+            if (handler != null)
+            {
+                handler(this, EventArgs.Empty);
+            }
+        }
+
+        private void FireOnCommandExecuted()
+        {
+            var handler = CommandExecuted;
+            if (handler != null)
+            {
+                handler(this, EventArgs.Empty);
             }
         }
         #endregion
@@ -145,12 +163,13 @@ namespace MTApiService
         #region Events
         public event EventHandler Deinited;
         public event MtQuoteHandler QuoteChanged;
+        public event EventHandler CommandExecuted;
         #endregion
 
         #region Private Fields
-        private readonly IMetaTraderHandler mMtHadler;
-        private MtCommand mCommand;
-        private ICommandManager mCommandManager;
+        private readonly IMetaTraderHandler _mtHadler;
+        private MtCommandTask _commandTask;
+        private ICommandManager _commandManager;
         private readonly object _locker = new object();
         #endregion
     }

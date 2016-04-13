@@ -59,6 +59,7 @@
     <Compile Include="IMtApiServer.cs" />
     <Compile Include="MtApiProxy.cs" />
     <Compile Include="MtClient.cs" />
+    <Compile Include="MtCommandTask.cs" />
     <Compile Include="MtMqlBookInfo.cs" />
     <Compile Include="MtMqlRates.cs" />
     <Compile Include="MtMqlTick.cs" />

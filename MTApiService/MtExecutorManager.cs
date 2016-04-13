@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 
 namespace MTApiService
 {
-    class MtCommandExecutorManager : ICommandManager
+    internal class MtCommandExecutorManager : ICommandManager
     {
         #region Public Methods
 
@@ -14,8 +11,8 @@ namespace MTApiService
         {
             lock (_locker)
             {
-                mCommandExecutors.Clear();
-                mCommands.Clear();
+                _commandExecutors.Clear();
+                _commandTasks.Clear();
             }
         }
 
@@ -24,25 +21,25 @@ namespace MTApiService
             if (commandExecutor == null)
                 return;
 
+            var notify = false;
             lock (_locker)
             {
-                if (mCommandExecutors.Contains(commandExecutor) == true)
+                if (_commandExecutors.Contains(commandExecutor))
                     return;
 
-                mCommandExecutors.Add(commandExecutor);
-
-                commandExecutor.CommandManager = this;
-
-                if (mCurrentExecutor == null)
+                _commandExecutors.Add(commandExecutor);
+                if (_commandTasks.Count > 0)
                 {
-                    mCurrentExecutor = commandExecutor;
-                    mCurrentExecutor.IsCommandExecutor = true;
-
-                    if (mCommands.Count > 0)
-                    {
-                        mCurrentExecutor.NotifyCommandReady();
-                    }
+                    notify = true;
                 }
+            }
+
+            commandExecutor.CommandExecuted += CommandExecutor_CommandExecuted;
+            commandExecutor.CommandManager = this;
+
+            if (notify)
+            {
+                NotifyCommandReady();
             }
         }
 
@@ -51,80 +48,88 @@ namespace MTApiService
             if (commandExecutor == null)
                 return;
 
+            var notify = false;
             lock (_locker)
             {
-                if (mCommandExecutors.Contains(commandExecutor) == false)
+                if (_commandExecutors.Contains(commandExecutor) == false)
                     return;
 
-                mCommandExecutors.Remove(commandExecutor);
-
-                if (mCurrentExecutor == commandExecutor)
+                _commandExecutors.Remove(commandExecutor);
+                if (_commandTasks.Count > 0)
                 {
-                    mCurrentExecutor.IsCommandExecutor = false;
-                    mCurrentExecutor = mCommandExecutors.Count > 0 ? mCommandExecutors[0] : null;
-
-                    if (mCommands.Count > 0)
-                    {
-                        mCurrentExecutor.NotifyCommandReady();
-                    }
+                    notify = true;
                 }
+            }
+
+            commandExecutor.CommandExecuted -= CommandExecutor_CommandExecuted;
+            commandExecutor.CommandManager = null;
+
+            if (notify)
+            {
+                NotifyCommandReady();
             }
         }
 
-        public void EnqueueCommand(MtCommand command)
+        public void EnqueueCommandTask(MtCommandTask task)
         {
-            if (command == null)
+            if (task == null)
                 return;
 
             lock (_locker)
             {
-                mCommands.Enqueue(command);
-
-                mCurrentExecutor.NotifyCommandReady();
+                _commandTasks.Enqueue(task);                
             }
+
+            NotifyCommandReady();
         }
 
-        public MtCommand DequeueCommand()
+        public MtCommandTask DequeueCommandTask()
         {
             lock (_locker)
             {
-                return mCommands.Count > 0 ? mCommands.Dequeue() : null;
-            }
-        }
-
-        public void OnCommandExecuted(MtExpert expert, MtCommand command, MtResponse response)
-        {
-            if (expert == null)
-                return;
-
-            if (CommandExecuted != null)
-            {
-                CommandExecuted(this, new MtCommandExecuteEventArgs(command, response));
-            }
-
-            lock (_locker)
-            {
-                if (expert == mCurrentExecutor)
-                {
-                    if (mCommands.Count > 0)
-                    {
-                        mCurrentExecutor.NotifyCommandReady();
-                    }
-                }
+                return _commandTasks.Count > 0 ? _commandTasks.Dequeue() : null;
             }
         }
 
         #endregion
 
-        #region Events
-        public event EventHandler<MtCommandExecuteEventArgs> CommandExecuted;
+        #region Private Methods
+        private void NotifyCommandReady()
+        {
+            var commandExecutors = new List<MtExpert>();
+            lock (_locker)
+            {
+                commandExecutors.AddRange(_commandExecutors);
+            }
+
+            foreach (var executor in commandExecutors)
+            {
+                executor.NotifyCommandReady();
+            }
+        }
+
+        private void CommandExecutor_CommandExecuted(object sender, EventArgs e)
+        {
+            var notify = false;
+            lock (_locker)
+            {
+                if (_commandTasks.Count > 0)
+                {
+                    notify = true;
+                }
+            }
+
+            if (notify)
+            {
+                NotifyCommandReady();
+            }
+
+        }
         #endregion
 
         #region Private Fields
-        private MtExpert mCurrentExecutor;
-
-        private List<MtExpert> mCommandExecutors = new List<MtExpert>();
-        private Queue<MtCommand> mCommands = new Queue<MtCommand>();
+        private readonly List<MtExpert> _commandExecutors = new List<MtExpert>();
+        private readonly Queue<MtCommandTask> _commandTasks = new Queue<MtCommandTask>();
 
         private readonly object _locker = new object();
         #endregion

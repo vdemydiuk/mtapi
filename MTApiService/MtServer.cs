@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.ServiceModel;
 using System.Net;
 using System.Diagnostics;
 using System.ServiceModel.Channels;
-using System.Runtime.InteropServices;
 using System.Net.Sockets;
 
 namespace MTApiService
 {
-    class MtServer : IDisposable, IMtApiServer
+    internal class MtServer : IDisposable, IMtApiServer
     {
         #region Constants
         private const int WAIT_RESPONSE_TIME = 40000; // 40 sec
@@ -23,12 +20,7 @@ namespace MTApiService
         public MtServer(int port)
         {
             Port = port;
-            mService = new MtService(this);
-
-            mHosts = new List<ServiceHost>();
-
-            mExecutorManager = new MtCommandExecutorManager();
-            mExecutorManager.CommandExecuted += mExecutorManager_CommandExecuted;
+            _service = new MtService(this);
         }
         #endregion
 
@@ -39,21 +31,18 @@ namespace MTApiService
         #region Public Methods
         public void Start()
         {
-            bool hostsInitialized = InitHosts(Port);
+            var hostsInitialized = InitHosts(Port);
             if (hostsInitialized == false)
-                return;
-
-            lock (mExpertsLocker)
             {
-                mExperts = new List<MtExpert>();    
+                Debug.WriteLine("Start: InitHosts failed. ");
             }
         }
 
         private bool InitHosts(int port)
         {
-            lock (mHostLocker)
+            lock (_hosts)
             {
-                if (mHosts.Count > 0)
+                if (_hosts.Count > 0)
                     return false;
 
                 //init local pipe host
@@ -61,7 +50,7 @@ namespace MTApiService
                 ServiceHost localServiceHost = CreateServiceHost(localUrl, true);
                 if (localServiceHost != null)
                 {
-                    mHosts.Add(localServiceHost);
+                    _hosts.Add(localServiceHost);
                 }
                 
                 //init network hosts
@@ -79,7 +68,7 @@ namespace MTApiService
                                 ServiceHost serviceHost = CreateServiceHost(networkUrl, false);
                                 if (serviceHost != null)
                                 {
-                                    mHosts.Add(serviceHost);
+                                    _hosts.Add(serviceHost);
                                 }
                             }
                         }
@@ -97,8 +86,8 @@ namespace MTApiService
             {
                 try
                 {
-                    serviceHost = new ServiceHost(mService);
-                    Binding binding = CreateConnectionBinding(local);
+                    serviceHost = new ServiceHost(_service);
+                    var binding = CreateConnectionBinding(local);
 
                     serviceHost.AddServiceEndpoint(typeof(IMtApi), binding, serverUrlAdress);
                     serviceHost.Open();
@@ -116,17 +105,17 @@ namespace MTApiService
         {
             if (expert != null)
             {
-                expert.Deinited += new EventHandler(expert_Deinited);
-                expert.QuoteChanged += new MtExpert.MtQuoteHandler(expert_QuoteChanged);
+                expert.Deinited += expert_Deinited;
+                expert.QuoteChanged += expert_QuoteChanged;
 
-                lock (mExpertsLocker)
+                lock (_experts)
                 {
-                    mExperts.Add(expert);
+                    _experts.Add(expert);
                 }
 
-                mExecutorManager.AddCommandExecutor(expert);
+                _executorManager.AddCommandExecutor(expert);
 
-                mService.OnQuoteAdded(expert.Quote);
+                _service.OnQuoteAdded(expert.Quote);
             }
         }
 
@@ -140,31 +129,11 @@ namespace MTApiService
 
             if (command != null)
             {
-                EventWaitHandle responseWaiter = new AutoResetEvent(false);
-
-                lock (mResponseLocker)
-                {
-                    mResponseWaiters[command] = responseWaiter;
-                }
-
-                mExecutorManager.EnqueueCommand(command);
+                var task = new MtCommandTask(command);
+                _executorManager.EnqueueCommandTask(task);
 
                 //wait for execute command in MetaTrader
-                responseWaiter.WaitOne(WAIT_RESPONSE_TIME);
-
-                lock (mResponseLocker)
-                {
-                    if (mResponseWaiters.ContainsKey(command) == true)
-                    {
-                        mResponseWaiters.Remove(command);
-                    }
-
-                    if (mResponses.ContainsKey(command) == true)
-                    {
-                        response = mResponses[command];
-                        mResponses.Remove(command);
-                    }
-                }
+                response = task.WaitResult(WAIT_RESPONSE_TIME);
             }
 
             return response;
@@ -172,9 +141,9 @@ namespace MTApiService
 
         public IEnumerable<MtQuote> GetQuotes()
         {
-            lock (mExpertsLocker)
+            lock (_experts)
             {
-                return (from s in mExperts select s.Quote);
+                return (from s in _experts select s.Quote);
             }
         }
 
@@ -183,23 +152,26 @@ namespace MTApiService
         #region Private Methods
         private void stopTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            int expertsCount = 0;
+            var expertsCount = 0;
 
-            lock (mExpertsLocker)
+            lock (_experts)
             {
-                expertsCount = mExperts.Count();
+                expertsCount = _experts.Count();
             }
 
             if (expertsCount == 0)
             {
-                mService.OnStopServer();
+                _service.OnStopServer();
 
-                stop();
+                Stop();
             }
 
             var stopTimer = sender as System.Timers.Timer;
-            stopTimer.Stop();
-            stopTimer.Elapsed -= stopTimer_Elapsed;
+            if (stopTimer != null)
+            {
+                stopTimer.Stop();
+                stopTimer.Elapsed -= stopTimer_Elapsed;                
+            }
         }
 
         private string CreateConnectionAddress(string host, int port, bool local)
@@ -265,65 +237,62 @@ namespace MTApiService
             return connectionBinding;
         }
 
-        private void stop()
+        private void Stop()
         {
-            mExecutorManager.Stop();
+            _executorManager.Stop();
 
-            lock (mHostLocker)
+            lock (_hosts)
             {
-                if (mHosts.Count == 0)
+                if (_hosts.Count == 0)
                     return;
 
                 try
                 {
-                    foreach (var host in mHosts)
+                    foreach (var host in _hosts)
                     {
                         host.Close();
                     }
                 }
                 catch (TimeoutException)
                 {
-                    foreach (var host in mHosts)
+                    foreach (var host in _hosts)
                     {
                         host.Abort();
                     }
                 }
                 catch (Exception)
                 {
+                    // ignored
                 }
                 finally
                 {
-                    mHosts.Clear();
+                    _hosts.Clear();
                 }
             }
 
-            if (Stopped != null)
-            {
-                Stopped(this, EventArgs.Empty);
-            }
+            FireOnStopped();
         }
 
         private void expert_Deinited(object sender, EventArgs e)
         {
-            MtExpert expert = (MtExpert)sender;
-            int expertsCount = 0;
+            if (sender == null)
+                return;
 
-            lock (mExpertsLocker)
+            var expert = (MtExpert)sender;
+            var expertsCount = 0;
+
+            lock (_experts)
             {
-                mExperts.Remove(expert);
-
-                expertsCount = mExperts.Count();
+                _experts.Remove(expert);
+                expertsCount = _experts.Count();
             }
 
-            mExecutorManager.RemoveCommandExecutor(expert);
+            _executorManager.RemoveCommandExecutor(expert);
 
-            if (expert != null)
-            {
-                expert.Deinited -= expert_Deinited;
-                expert.QuoteChanged -= expert_QuoteChanged;
+            expert.Deinited -= expert_Deinited;
+            expert.QuoteChanged -= expert_QuoteChanged;
 
-                mService.OnQuoteRemoved(expert.Quote);
-            }
+            _service.OnQuoteRemoved(expert.Quote);
 
             if (expertsCount == 0)
             {
@@ -334,28 +303,18 @@ namespace MTApiService
             }
         }
 
-        void mExecutorManager_CommandExecuted(object sender, MtCommandExecuteEventArgs e)
-        {
-            EventWaitHandle responseWaiter = null;
-
-            lock (mResponseLocker)
-            {
-                if (mResponseWaiters.ContainsKey(e.Command) == true)
-                {
-                    responseWaiter = mResponseWaiters[e.Command];
-                    mResponses[e.Command] = e.Response;
-                }
-            }
-
-            if (responseWaiter != null)
-            {
-                responseWaiter.Set();
-            }
-        }
-
         private void expert_QuoteChanged(MtExpert expert, MtQuote quote)
         {
-            mService.QuoteUpdate(quote);
+            _service.QuoteUpdate(quote);
+        }
+
+        private void FireOnStopped()
+        {
+            var handler = Stopped;
+            if (handler != null)
+            {
+                handler(this, EventArgs.Empty);
+            }
         }
 
         #endregion
@@ -367,25 +326,16 @@ namespace MTApiService
         #region IDispose
         public void Dispose()
         {
-            stop();
+            Stop();
         }
 
         #endregion
 
         #region Fields              
-        private readonly MtService mService;
-        private readonly List<ServiceHost> mHosts;        
-
-        private readonly MtCommandExecutorManager mExecutorManager;
-        private List<MtExpert> mExperts;
-
-        private readonly Dictionary<MtCommand, EventWaitHandle> mResponseWaiters = new Dictionary<MtCommand, EventWaitHandle>();
-        private readonly Dictionary<MtCommand, MtResponse> mResponses = new Dictionary<MtCommand, MtResponse>();
-
-        private readonly object mResponseLocker = new object();
-        private readonly object mHostLocker = new object();
-        private readonly object mExpertsLocker = new object();
-        private readonly object mCommandExecutorsLocker = new object();
+        private readonly MtService _service;
+        private readonly List<ServiceHost> _hosts = new List<ServiceHost>();
+        private readonly MtCommandExecutorManager _executorManager = new MtCommandExecutorManager();
+        private readonly List<MtExpert> _experts = new List<MtExpert>();
         #endregion
     }
 }
