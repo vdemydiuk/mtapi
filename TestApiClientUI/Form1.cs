@@ -11,6 +11,7 @@ using System.IO;
 using MtApi;
 using System.Net;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace TestApiClientUI
 {
@@ -32,6 +33,9 @@ namespace TestApiClientUI
             apiClient.ConnectionStateChanged += apiClient_ConnectionStateChanged;
 
             initOrderCommandsGroup();
+
+            comboBox1.SelectedIndex = 0;
+            comboBox2.SelectedIndex = 0;
         }
 
         private void initOrderCommandsGroup()
@@ -62,14 +66,14 @@ namespace TestApiClientUI
             GroupOrderCommands.Add(new PerformCommandHandler(orderType));
         }
 
-        private void RunOnUIThread(Action action)
+        private void RunOnUiThread(Action action)
         {
             this.BeginInvoke(action);
         }
 
         private void apiClient_ConnectionStateChanged(object sender, MtConnectionEventArgs e)
         {
-            RunOnUIThread(() =>
+            RunOnUiThread(() =>
             {
                 toolStripStatusConnection.Text = e.Status.ToString();
             });
@@ -77,11 +81,11 @@ namespace TestApiClientUI
             switch (e.Status)
             {
                 case MtConnectionState.Connected:
-                    RunOnUIThread(onConnected);
+                    RunOnUiThread(onConnected);
                     break;
                 case MtConnectionState.Disconnected:
                 case MtConnectionState.Failed:
-                    RunOnUIThread(onDisconnected);
+                    RunOnUiThread(onDisconnected);
                     break;
             }
         }
@@ -90,7 +94,7 @@ namespace TestApiClientUI
         {
             string instrument = e.Quote.Instrument;
 
-            RunOnUIThread(() =>
+            RunOnUiThread(() =>
             {
                 removeQuote(e.Quote);
             });
@@ -98,7 +102,7 @@ namespace TestApiClientUI
 
         private void apiClient_QuoteAdded(object sender, MtQuoteEventArgs e)
         {
-            RunOnUIThread(() =>
+            RunOnUiThread(() =>
             {
                 addNewQuote(e.Quote);
             });
@@ -217,7 +221,7 @@ namespace TestApiClientUI
         {
             int orderId = apiClient.OrderSend(symbol, command, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, arrow_color);
 
-            RunOnUIThread(() =>
+            RunOnUiThread(() =>
                 {
                     if (orderId >= 0)
                     {
@@ -542,9 +546,12 @@ namespace TestApiClientUI
 
         private void addToLog(string msg)
         {
-            listBoxEventLog.Items.Add(msg);
-            listBoxEventLog.SetSelected(listBoxEventLog.Items.Count - 1, true);
-            listBoxEventLog.SetSelected(listBoxEventLog.Items.Count - 1, false);
+            RunOnUiThread(() =>
+            {
+                listBoxEventLog.Items.Add(msg);
+                listBoxEventLog.SetSelected(listBoxEventLog.Items.Count - 1, true);
+                listBoxEventLog.SetSelected(listBoxEventLog.Items.Count - 1, false);
+            });
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -856,6 +863,118 @@ namespace TestApiClientUI
         {
             var retVal = apiClient.RefreshRates();
             addToLog(string.Format("RefreshRates result: {0}", retVal));
+        }
+
+        private void button15_Click(object sender, EventArgs e)
+        {
+            for (var i = 0; i < 4; i++)
+            {
+                var ticket = i;
+                Task.Factory.StartNew(() =>
+                {
+                    MtOrder order = null;
+                    try
+                    {
+                        order = apiClient.GetOrder(ticket, OrderSelectMode.SELECT_BY_POS, OrderSelectSource.MODE_TRADES);
+                    }
+                    catch (MtConnectionException ex)
+                    {
+                        addToLog("MtExecutionException: " + ex.Message);
+                    }
+                    catch (MtExecutionException ex)
+                    {
+                        addToLog("MtExecutionException: " + ex.Message);
+                    }
+
+                    string result;
+                    if (order != null)
+                    {
+                        result =
+                            string.Format(
+                                "Order: Ticket = {0}, Symbol = {1}, Operation = {2}, OpenPrice = {3}, ClosePrice = {4}, Lots = {5}, Profit = {6}, Comment = {7}, Commission = {8}, MagicNumber = {9}, OpenTime = {10}, CloseTime = {11}",
+                                order.Ticket, order.Symbol, order.Operation, order.OpenPrice, order.ClosePrice, order.Lots, order.Profit, order.Comment, order.Commission, order.MagicNumber, order.OpenTime, order.CloseTime);
+                    }
+                    else
+                    {
+                        result = "Order is null";
+                    }
+
+                    addToLog(result);
+                });
+            }
+        }
+
+        private void button16_Click(object sender, EventArgs e)
+        {
+            var ticket = int.Parse(textBoxIndexTicket.Text);
+            var selectMode = (OrderSelectMode) comboBox1.SelectedIndex;
+            var selectSource = (OrderSelectSource) comboBox2.SelectedIndex;
+
+            MtOrder order = null;
+            try
+            {
+                order = apiClient.GetOrder(ticket, selectMode, selectSource);
+            }
+            catch (MtConnectionException ex)
+            {
+                addToLog("MtExecutionException: " + ex.Message);
+                return;
+            }
+            catch (MtExecutionException ex)
+            {                
+                addToLog("MtExecutionException: " + ex.Message + "; ErrorCode = " + ex.ErrorCode);
+                return;
+            }
+
+            if (order == null)
+            {
+                addToLog("Order is null");
+                return;
+            }
+
+            var result =
+                string.Format(
+                    "Order: Ticket = {0}, Symbol = {1}, Operation = {2}, OpenPrice = {3}, ClosePrice = {4}, Lots = {5}, Profit = {6}, Comment = {7}, Commission = {8}, MagicNumber = {9}, OpenTime = {10}, CloseTime = {11}",
+                    order.Ticket, order.Symbol, order.Operation, order.OpenPrice, order.ClosePrice, order.Lots, order.Profit, order.Comment, order.Commission, order.MagicNumber, order.OpenTime, order.CloseTime);
+            addToLog(result);
+        }
+
+        private void button17_Click(object sender, EventArgs e)
+        {
+            var selectSource = (OrderSelectSource)comboBox2.SelectedIndex;
+
+
+            IEnumerable<MtOrder> orders = null;
+            try
+            {
+                orders = apiClient.GetOrders(selectSource);
+            }
+            catch (MtConnectionException ex)
+            {
+                addToLog("MtExecutionException: " + ex.Message);
+                return;
+            }
+            catch (MtExecutionException ex)
+            {
+                addToLog("MtExecutionException: " + ex.Message + "; ErrorCode = " + ex.ErrorCode);
+                return;
+            }
+
+            if (orders == null)
+            {
+                addToLog("Orders is null");
+                return;
+
+            }
+
+            foreach (var order in orders)
+            {
+                var result =
+                    string.Format(
+                        "Order: Ticket = {0}, Symbol = {1}, Operation = {2}, OpenPrice = {3}, ClosePrice = {4}, Lots = {5}, Profit = {6}, Comment = {7}, Commission = {8}, MagicNumber = {9}, OpenTime = {10}, CloseTime = {11}",
+                        order.Ticket, order.Symbol, order.Operation, order.OpenPrice, order.ClosePrice, order.Lots, order.Profit, order.Comment, order.Commission, order.MagicNumber, order.OpenTime, order.CloseTime);
+                addToLog(result);                
+            }            
         }
     }
 }

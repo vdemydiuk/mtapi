@@ -6,6 +6,10 @@ using MTApiService;
 using System.Drawing;
 using System.Collections;
 using System.Net;
+using System.ServiceModel;
+using MtApi.Requests;
+using MtApi.Responses;
+using Newtonsoft.Json;
 
 namespace MtApi
 {
@@ -344,6 +348,18 @@ namespace MtApi
         public bool OrderCloseAll()
         {
             return sendCommand<bool>(MtCommandType.OrderCloseAll, null);
+        }
+
+        public MtOrder GetOrder(int index, OrderSelectMode select, OrderSelectSource pool)
+        {
+            var response = SendRequest<GetOrderResponse>(new GetOrderRequest { Index = index, Select = (int) select, Pool = (int) pool});
+            return response != null ? response.Order : null;
+        }
+
+        public IEnumerable<MtOrder> GetOrders(OrderSelectSource pool)
+        {
+            var response = SendRequest<GetOrdersResponse>(new GetOrdersRequest { Pool = (int)pool });
+            return response != null ? response.Orders : null;
         }
         #endregion
 
@@ -1308,6 +1324,38 @@ namespace MtApi
                 result = (T)Convert.ChangeType(((MtResponseArrayList)response).Value, typeof(T));
 
             return result;
+        }
+
+        private T SendRequest<T>(RequestBase request) where T : ResponseBase, new()
+        {
+            if (request == null)
+                return default(T);
+
+            var serializer = RequestContainer.CreateNew(request).Serialize();
+            var commandParameters = new ArrayList { serializer };
+
+            MtResponseString res;
+            try
+            {
+                res = (MtResponseString)mClient.SendCommand((int)MtCommandType.MtRequest, commandParameters);
+            }
+            catch (CommunicationException ex)
+            {
+                throw new MtConnectionException(ex.Message, ex);
+            }
+
+            if (res == null)
+            {
+                throw new MtExecutionException(-1, "Response from MetaTrader is null");
+            }
+
+            var response = JsonConvert.DeserializeObject<T>(res.Value);
+            if (response.ErrorCode != 0)
+            {
+                throw new MtExecutionException(response.ErrorCode, response.ErrorMessage);
+            }
+
+            return response;
         }
 
         private void mClient_QuoteUpdated(MTApiService.MtQuote quote)

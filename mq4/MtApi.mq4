@@ -3,6 +3,7 @@
 
 #include <WinUser32.mqh>
 #include <stdlib.mqh>
+#include <json.mqh>
 
 #import "MTConnector.dll"
    bool initExpert(int expertHandle, int port, string symbol, double bid, double ask, string& err);
@@ -40,6 +41,7 @@ string subjectValue;
 string some_textValue;
 string nameValue;
 string prefix_nameValue;
+string requestValue;
 
 int barsCount;
 int priceCount;
@@ -126,17 +128,18 @@ double myAsk;
 
 int preinit()
 {
-   message        = "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111" + "";
-   symbolValue    = "222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222" + "";
-   commentValue   = "333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333" + "";
-   msgValue       = "444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444" + "";
-   captionValue   = "555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555" + "";
-   filenameValue  = "666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666" + "";
-   ftp_pathValue  = "777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777" + "";
-   subjectValue   = "888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888" + "";
-   some_textValue = "999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999" + "";
-   nameValue      = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" + "";
-   prefix_nameValue = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" + "";
+   StringInit(message,200,0);
+   StringInit(symbolValue,200,0);
+   StringInit(commentValue,200,0);
+   StringInit(msgValue,200,0);
+   StringInit(captionValue,200,0);
+   StringInit(filenameValue,200,0);
+   StringInit(ftp_pathValue,200,0);
+   StringInit(subjectValue,200,0);
+   StringInit(some_textValue,200,0);
+   StringInit(nameValue,200,0);
+   StringInit(prefix_nameValue,200,0);
+   StringInit(requestValue, 500, "\0");
 
    return (0);
 }
@@ -232,7 +235,12 @@ int executeCommand()
       return (0);
    }         
    
-   int commandType = pCommandType;     
+   int commandType = pCommandType;       
+   
+   if (commandType > 0)
+   {
+      Print("executeCommand: commnad type = ", commandType);
+   }
    
    switch (commandType) 
    {
@@ -240,6 +248,24 @@ int executeCommand()
       //NoCommand               
       break;
       
+   case 155: //SignalServiceCommand
+   {
+      if (!getStringValue(ExpertHandle, 0, requestValue))
+      {
+         PrintParamError("Signal");
+      }
+      
+      string response = "";
+
+      if (requestValue != "")
+      {
+         Print("executeCommand: incoming signal = ", requestValue);
+         response = OnRequest(requestValue);
+      }
+      
+      sendStringResponse(ExpertHandle, response);      
+   }
+   break;
    case 1: // OrderSend
       if (!getStringValue(ExpertHandle, 0, symbolValue)) 
       {
@@ -3502,7 +3528,7 @@ int executeCommand()
       Print("Unknown command type = ", commandType);
       sendVoidResponse(ExpertHandle);      
       break;
-   }   
+   }     
    
    return (commandType);
 }
@@ -3556,4 +3582,156 @@ bool OrderCloseAll()
    }
    
    return (true);
+}
+
+string CreateErrorResponse(int code, string message)
+{
+   JSONObject *joResponse = new JSONObject();   
+   joResponse.put("ErrorCode", new JSONNumber(code));
+   joResponse.put("ErrorMessage", new JSONString(message));
+   
+   string result = joResponse.toString();   
+   delete joResponse;   
+   return result; 
+}
+
+string CreateSuccessResponse(string responseName, JSONValue* responseBody)
+{
+   JSONObject *joResponse = new JSONObject();
+   joResponse.put("ErrorCode", new JSONNumber(ERR_NO_ERROR));
+      
+   if (responseBody != NULL)
+   {
+      joResponse.put(responseName, responseBody);   
+   }
+   
+   string result = joResponse.toString();   
+   delete joResponse;   
+   return result;
+}
+
+string OnRequest(string json)
+{
+   string response = "";
+
+   JSONParser *parser = new JSONParser();
+   JSONValue *jv = parser.parse(json);
+   
+   if(jv == NULL) 
+   {   
+      Print("OnRequest [ERROR]:" + (string)parser.getErrorCode() + parser.getErrorMessage());
+   }
+   else
+   {
+      if(jv.isObject()) 
+      {
+         JSONObject *jo = jv;
+         int requestType = jo.getInt("RequestType");
+         JSONObject *joRequest = jo.getObject("Request");
+         
+         if (joRequest != NULL)
+         {
+            Print("OnRequest: RequestType = ", requestType);
+         
+            switch(requestType)
+            {
+               case 1: //GetOrder
+                  response = ExecuteRequestGetOrder(joRequest);
+                  break;
+               case 2: //GetOrders
+                  response = ExecuteRequestGetOrders(joRequest);
+                  break;                  
+               default:
+                  Print("OnRequest [WARNING]: Unknown request type ", requestType);
+                  response = CreateErrorResponse(-1, "Unknown request type");
+                  break;
+            }
+         }
+         else
+         {
+            Print("OnRequest [WARNING]: Request field is not defined");
+            response = CreateErrorResponse(-1, "Request field is not defined");
+         }        
+      }
+      
+      delete jv;
+   }   
+   
+   delete parser;
+   
+   Print("OnRequest: Response = ", response);
+   
+   return response;
+}
+
+JSONObject* GetOrderJson(int index, int select, int pool)
+{
+   if (OrderSelect(index, select, pool) == false)
+   {
+      return NULL;
+   }
+
+   int ticket = OrderTicket();
+   string symbol = OrderSymbol();
+   int operation = OrderType();
+   double openPrice = OrderOpenPrice();
+   double closePrice = OrderClosePrice();
+   double lots = OrderLots();
+   double profit = OrderProfit();
+   string comment = OrderComment();
+   double commission = OrderCommission();
+   int magicNumber = OrderMagicNumber();
+   datetime openTime = OrderOpenTime();
+   datetime closeTime = OrderCloseTime();
+   
+   JSONObject *joOrder = new JSONObject();   
+   joOrder.put("Ticket", new JSONNumber(ticket));
+   joOrder.put("Symbol", new JSONString(symbol));
+   joOrder.put("Operation", new JSONNumber(operation));
+   joOrder.put("OpenPrice", new JSONNumber(openPrice));
+   joOrder.put("ClosePrice", new JSONNumber(closePrice));
+   joOrder.put("Lots", new JSONNumber(lots));
+   joOrder.put("Profit", new JSONNumber(profit));
+   joOrder.put("Comment", new JSONString(comment));
+   joOrder.put("Commission", new JSONString(commission));
+   joOrder.put("MagicNumber", new JSONNumber(magicNumber));
+   joOrder.put("Commission", new JSONString(commission));
+   joOrder.put("MagicNumber", new JSONNumber(magicNumber));
+   joOrder.put("MtOpenTime", new JSONNumber(openTime));
+   joOrder.put("MtCloseTime", new JSONNumber(closeTime));
+   
+   return joOrder;
+}
+
+string ExecuteRequestGetOrder(JSONObject *jo)
+{
+   int index = jo.getInt("Index");
+   int select = jo.getInt("Select");
+   int pool = jo.getInt("Pool");
+
+   Print("ExecuteRequestGetOrder: Index = ", index, "; Select = ", select, "; Pool = ", pool);
+   
+   JSONObject* joOrder = GetOrderJson(index, select, pool);
+   if (joOrder == NULL)
+      return CreateErrorResponse(GetLastError(), "GetOrder failed");   
+   return CreateSuccessResponse("Order", joOrder);
+}
+
+string ExecuteRequestGetOrders(JSONObject *jo)
+{
+   int pool = jo.getInt("Pool");
+
+   Print("ExecuteRequestGetOrders: Pool = ", pool);
+   
+   int total=OrdersTotal();
+   JSONArray* joOrders = new JSONArray();
+   for(int pos = 0; pos < total; pos++)
+   {
+      JSONObject* joOrder = GetOrderJson(pos, SELECT_BY_POS, pool);
+      if (joOrder == NULL)
+         return CreateErrorResponse(GetLastError(), "GetOrders failed");     
+      joOrders.put(pos, joOrder);      
+   }
+   
+   return CreateSuccessResponse("Orders", joOrders);
 }

@@ -188,6 +188,9 @@ namespace MtApi
         RefreshRates                        = 150,
         //
         TerminalInfoString                  = 153,
-        SymbolInfoString                    = 154
+        SymbolInfoString                    = 154,
+
+        //Requests
+        MtRequest                             = 155
     }
 }
