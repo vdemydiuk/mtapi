@@ -976,5 +976,10 @@ namespace TestApiClientUI
                 addToLog(result);                
             }            
         }
+
+        private void listBoxEventLog_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            listBoxEventLog.Items.Clear();
+        }
     }
 }

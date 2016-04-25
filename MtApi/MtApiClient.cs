@@ -1346,13 +1346,13 @@ namespace MtApi
 
             if (res == null)
             {
-                throw new MtExecutionException(-1, "Response from MetaTrader is null");
+                throw new MtExecutionException(MtErrorCode.MtApiCustomError, "Response from MetaTrader is null");
             }
 
             var response = JsonConvert.DeserializeObject<T>(res.Value);
             if (response.ErrorCode != 0)
             {
-                throw new MtExecutionException(response.ErrorCode, response.ErrorMessage);
+                throw new MtExecutionException((MtErrorCode)response.ErrorCode, response.ErrorMessage);
             }
 
             return response;

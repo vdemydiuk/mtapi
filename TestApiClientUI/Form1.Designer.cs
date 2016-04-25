@@ -275,6 +275,7 @@
             this.listBoxEventLog.Name = "listBoxEventLog";
             this.listBoxEventLog.Size = new System.Drawing.Size(690, 82);
             this.listBoxEventLog.TabIndex = 14;
+            this.listBoxEventLog.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listBoxEventLog_MouseDoubleClick);
             // 
             // tabControl1
             // 

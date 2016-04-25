@@ -4,12 +4,12 @@ namespace MtApi
 {
     public class MtExecutionException: Exception
     {
-        public MtExecutionException(int errorCode, string message)
+        public MtExecutionException(MtErrorCode errorCode, string message)
             :base(message)
         {
             ErrorCode = errorCode;
         }
 
-        public int ErrorCode { get; private set; }
+        public MtErrorCode ErrorCode { get; private set; }
     }
 }
