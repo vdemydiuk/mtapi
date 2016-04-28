@@ -3627,31 +3627,24 @@ string OnRequest(string json)
       {
          JSONObject *jo = jv;
          int requestType = jo.getInt("RequestType");
-         JSONObject *joRequest = jo.getObject("Request");
-         
-         if (joRequest != NULL)
+
+         Print("OnRequest: RequestType = ", requestType);      
+         switch(requestType)
          {
-            Print("OnRequest: RequestType = ", requestType);
-         
-            switch(requestType)
-            {
-               case 1: //GetOrder
-                  response = ExecuteRequestGetOrder(joRequest);
-                  break;
-               case 2: //GetOrders
-                  response = ExecuteRequestGetOrders(joRequest);
-                  break;                  
-               default:
-                  Print("OnRequest [WARNING]: Unknown request type ", requestType);
-                  response = CreateErrorResponse(-1, "Unknown request type");
-                  break;
-            }
+            case 1: //GetOrder
+               response = ExecuteRequestGetOrder(jo);
+               break;
+            case 2: //GetOrders
+               response = ExecuteRequestGetOrders(jo);
+               break;
+            case 3: //OrderSend
+               response = ExecuteRequestOrderSend(jo);
+               break;
+            default:
+               Print("OnRequest [WARNING]: Unknown request type ", requestType);
+               response = CreateErrorResponse(-1, "Unknown request type");
+               break;
          }
-         else
-         {
-            Print("OnRequest [WARNING]: Request field is not defined");
-            response = CreateErrorResponse(-1, "Request field is not defined");
-         }        
       }
       
       delete jv;
@@ -3734,4 +3727,68 @@ string ExecuteRequestGetOrders(JSONObject *jo)
    }
    
    return CreateSuccessResponse("Orders", joOrders);
+}
+
+bool isLongOperation(int operation)
+{
+   if (operation == OP_BUY || operation == OP_BUYLIMIT || operation == OP_BUYSTOP)
+      return true;
+   return false;
+}
+
+string ExecuteRequestOrderSend(JSONObject *jo)
+{
+   if (jo.getValue("Symbol") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Symbol");
+   if (jo.getValue("Cmd") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Cmd");
+   if (jo.getValue("Volume") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Volume");
+            
+   string symbol = jo.getString("Symbol");
+   int cmd = jo.getInt("Cmd");
+   int volume = jo.getDouble("Volume");  
+   
+   double price;
+  
+   JSONValue *jvPrice = jo.getValue("Price");
+   if (jvPrice != NULL)
+   {
+      price = jvPrice.getDouble();
+      Print("Take price from request ", price);
+   }
+   else
+   {
+      int mode = isLongOperation(cmd) ? MODE_ASK : MODE_BID;
+      price = MarketInfo(symbol, mode);
+      Print("Take price by mode ", mode, " and choosen price ", price);
+   }
+   
+   JSONValue *jvSlippage = jo.getValue("Slippage");
+   double slippage = (jvSlippage != NULL) ? jvSlippage.getDouble() : 1;
+   
+   JSONValue *jvStoploss = jo.getValue("Stoploss");
+   double stoploss = (jvStoploss != NULL) ? jvStoploss.getDouble() : 0;
+   
+   JSONValue *jvTakeprofit = jo.getValue("Takeprofit");
+   double takeprofit = (jvTakeprofit != NULL) ? jvTakeprofit.getDouble() : 0;
+   
+   JSONValue *jvComment = jo.getValue("Comment");
+   string comment = (jvComment != NULL) ? jvComment.getString() : NULL;
+   
+   JSONValue *jvMagic = jo.getValue("Magic");
+   int magic = (jvMagic != NULL) ? jvMagic.getInt() : 0;
+   
+   JSONValue *jvExpiration = jo.getValue("Expiration");
+   int expiration = (jvExpiration != NULL) ? jvExpiration.getInt() : 0;
+     
+   JSONValue *jvArrowColor = jo.getValue("ArrowColor");
+   int arrowcolor = (jvArrowColor != NULL) ? jvArrowColor.getInt() : clrNONE;
+   
+   int ticket = OrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, arrowcolor);
+   if(ticket < 0)
+      return CreateErrorResponse(GetLastError(), "OrderSend failed");
+   
+   JSONValue* jvTicket = new JSONNumber(ticket);
+   return CreateSuccessResponse("Ticket", jvTicket);      
 }

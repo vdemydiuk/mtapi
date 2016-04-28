@@ -78,11 +78,12 @@
     <Compile Include="OrderSelectSource.cs" />
     <Compile Include="Requests\GetOrderRequest.cs" />
     <Compile Include="Requests\GetOrdersRequest.cs" />
+    <Compile Include="Requests\OrderSendRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />
-    <Compile Include="Requests\RequestContainer.cs" />
     <Compile Include="Requests\RequestType.cs" />
     <Compile Include="Responses\GetOrderResponse.cs" />
     <Compile Include="Responses\GetOrdersResponse.cs" />
+    <Compile Include="Responses\OrderSendResponse.cs" />
     <Compile Include="Responses\ResponseBase.cs" />
     <Compile Include="SeriesIdentifier.cs" />
     <Compile Include="TradeOperation.cs" />

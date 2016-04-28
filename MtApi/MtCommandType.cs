@@ -10,9 +10,9 @@ namespace MtApi
         //NoCommand = 0
 
         //trade operations
-        OrderSend                           = 1,
-        OrderSendBuy                        = 1001,
-        OrderSendSell                       = 1002,
+//        OrderSend                           = 1,
+//        OrderSendBuy                        = 1001,
+//        OrderSendSell                       = 1002,
         OrderClose                          = 2,
         OrderCloseByCurrentPrice            = 152,
         OrderCloseBy                        = 3,

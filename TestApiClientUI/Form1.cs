@@ -219,17 +219,25 @@ namespace TestApiClientUI
         private void sendOrder(string symbol, TradeOperation command, double volume, double price, int slippage, double stoploss, double takeprofit
                                 , string comment, int magic, DateTime expiration, Color arrow_color)
         {
-            int orderId = apiClient.OrderSend(symbol, command, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, arrow_color);
 
-            RunOnUiThread(() =>
-                {
-                    if (orderId >= 0)
-                    {
-                        listBoxSendedOrders.Items.Add(orderId);
-                    }
+            int ticket = 0;
+            try
+            {
+                ticket = apiClient.OrderSend(symbol, command, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, arrow_color);
+            }
+            catch (MtConnectionException ex)
+            {
+                addToLog("MtExecutionException: " + ex.Message);
+                return;
+            }
+            catch (MtExecutionException ex)
+            {
+                addToLog("MtExecutionException: " + ex.Message + "; ErrorCode = " + ex.ErrorCode);
+                return;
+            }
 
-                    addToLog(string.Format("Sended order result: ticketId = {0}, volume - {1}", orderId, volume, slippage));
-                });
+            addToLog(string.Format("Sended order result: ticketId = {0}, symbol = {1}, volume = {2}, slippage = {3}", 
+                ticket, symbol, volume, slippage));
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -980,6 +988,64 @@ namespace TestApiClientUI
         private void listBoxEventLog_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             listBoxEventLog.Items.Clear();
+        }
+
+        private void button18_Click(object sender, EventArgs e)
+        {
+            var symbol = textBoxOrderSymbol.Text;
+
+            double volume;
+            double.TryParse(textBoxOrderVolume.Text, out volume);
+
+            var slippage = (int)numericOrderSlippage.Value;
+
+            int ticket = 0;
+            try
+            {
+                ticket = apiClient.OrderSendBuy(symbol, volume, slippage);
+            }
+            catch (MtConnectionException ex)
+            {
+                addToLog("MtExecutionException: " + ex.Message);
+                return;
+            }
+            catch (MtExecutionException ex)
+            {
+                addToLog("MtExecutionException: " + ex.Message + "; ErrorCode = " + ex.ErrorCode);
+                return;
+            }
+
+            addToLog(string.Format("Sended order result: ticketId = {0}, symbol = {1}, volume = {2}, slippage = {3}",
+                ticket, symbol, volume, slippage));
+        }
+
+        private void button19_Click(object sender, EventArgs e)
+        {
+            var symbol = textBoxOrderSymbol.Text;
+
+            double volume;
+            double.TryParse(textBoxOrderVolume.Text, out volume);
+
+            var slippage = (int)numericOrderSlippage.Value;
+
+            int ticket = 0;
+            try
+            {
+                ticket = apiClient.OrderSendSell(symbol, volume, slippage);
+            }
+            catch (MtConnectionException ex)
+            {
+                addToLog("MtExecutionException: " + ex.Message);
+                return;
+            }
+            catch (MtExecutionException ex)
+            {
+                addToLog("MtExecutionException: " + ex.Message + "; ErrorCode = " + ex.ErrorCode);
+                return;
+            }
+
+            addToLog(string.Format("Sended order result: ticketId = {0}, symbol = {1}, volume = {2}, slippage = {3}",
+                ticket, symbol, volume, slippage));
         }
     }
 }

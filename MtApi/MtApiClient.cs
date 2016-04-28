@@ -96,13 +96,30 @@ namespace MtApi
 
         #region Trading functions
 
-        public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
-            , string comment, int magic, DateTime expiration, Color arrow_color)
+        private int InternalOrderSend(string symbol, TradeOperation cmd, double volume, double? price, int? slippage, double? stoploss, double? takeprofit
+            , string comment, int? magic, DateTime? expiration, Color? arrowColor)
         {
-            var commandParameters = new ArrayList { symbol, (int)cmd, volume, price, slippage, stoploss, takeprofit
-                , comment, magic, MtApiTimeConverter.ConvertToMtTime(expiration), MtApiColorConverter.ConvertToMtColor(arrow_color) };
+            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
+            {
+                Symbol = symbol,
+                Cmd = (int)cmd,
+                Volume = volume,
+                Price = price,
+                Slippage = slippage,
+                Stoploss = stoploss,
+                Takeprofit = takeprofit,
+                Comment = comment,
+                Magic = magic,
+                Expiration = expiration.HasValue ? MtApiTimeConverter.ConvertToMtTime(expiration.Value) : default(int?),
+                ArrowColor = arrowColor.HasValue ? MtApiColorConverter.ConvertToMtColor(arrowColor.Value) : default(int?)
+            });
+            return response != null ? response.Ticket : -1;
+        }
 
-            return sendCommand<int>(MtCommandType.OrderSend, commandParameters);
+        public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
+            , string comment, int magic, DateTime expiration, Color arrowColor)
+        {
+            return InternalOrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, arrowColor);
         }
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
@@ -131,9 +148,8 @@ namespace MtApi
         public int OrderSend(string symbol, TradeOperation cmd, double volume, string price, int slippage, double stoploss, double takeprofit)
         {
             double dPrice = 0;
-            if (Double.TryParse(price, out dPrice))
-                return OrderSend(symbol, cmd, volume, dPrice, slippage, stoploss, takeprofit, null, 0, DateTime.MinValue, Color.Empty);
-            return 0;
+            return double.TryParse(price, out dPrice) ? 
+                OrderSend(symbol, cmd, volume, dPrice, slippage, stoploss, takeprofit, null, 0, DateTime.MinValue, Color.Empty) : 0;
         }
 
         public int OrderSendBuy(string symbol, double volume, int slippage)
@@ -158,14 +174,14 @@ namespace MtApi
 
         public int OrderSendBuy(string symbol, double volume, int slippage, double stoploss, double takeprofit, string comment, int magic)
         {
-            var commandParameters = new ArrayList { symbol, volume, slippage, stoploss, takeprofit, comment, magic };
-            return sendCommand<int>(MtCommandType.OrderSendBuy, commandParameters);
+            return InternalOrderSend(symbol, TradeOperation.OP_BUY, volume, null, slippage, stoploss, takeprofit, comment,
+                magic, null, null);
         }
 
         public int OrderSendSell(string symbol, double volume, int slippage, double stoploss, double takeprofit, string comment, int magic)
         {
-            var commandParameters = new ArrayList { symbol, volume, slippage, stoploss, takeprofit, comment, magic };
-            return sendCommand<int>(MtCommandType.OrderSendSell, commandParameters);
+            return InternalOrderSend(symbol, TradeOperation.OP_SELL, volume, null, slippage, stoploss, takeprofit, comment,
+                magic, null, null);
         }
 
         public bool OrderClose(int ticket, double lots, double price, int slippage, Color color)
@@ -1331,7 +1347,11 @@ namespace MtApi
             if (request == null)
                 return default(T);
 
-            var serializer = RequestContainer.CreateNew(request).Serialize();
+            var serializer = JsonConvert.SerializeObject(request, Newtonsoft.Json.Formatting.None,
+                            new JsonSerializerSettings
+                            {
+                                NullValueHandling = NullValueHandling.Ignore
+                            });                
             var commandParameters = new ArrayList { serializer };
 
             MtResponseString res;
