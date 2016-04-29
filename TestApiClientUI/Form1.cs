@@ -969,5 +969,15 @@ namespace TestApiClientUI
 
             AddToLog(string.Format("Close order result: {0}, ticket = {1}", closed, ticket));
         }
+
+        //OrderDelete
+        private async void button21_Click(object sender, EventArgs e)
+        {
+            var ticket = int.Parse(textBoxIndexTicket.Text);
+
+            var deleted = await Execute(() => _apiClient.OrderDelete(ticket));
+
+            AddToLog(string.Format("Delete order result: {0}, ticket = {1}", deleted, ticket));
+        }
     }
 }

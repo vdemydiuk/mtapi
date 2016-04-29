@@ -3422,6 +3422,9 @@ string OnRequest(string json)
             case 5: //OrderCloseBy
                response = ExecuteRequestOrderCloseBy(jo);
                break;
+            case 6:
+               response = ExecuteRequestOrderDelete(jo);
+               break;
             default:
                Print("OnRequest [WARNING]: Unknown request type ", requestType);
                response = CreateErrorResponse(-1, "Unknown request type");
@@ -3644,5 +3647,20 @@ string ExecuteRequestOrderCloseBy(JSONObject *jo)
 
    if (!OrderCloseBy(ticket, opposite, arrowcolor))
       return CreateErrorResponse(GetLastError(), "OrderCloseBy failed");
+   return CreateSuccessResponse("", NULL);   
+}
+
+string ExecuteRequestOrderDelete(JSONObject *jo)
+{
+   if (jo.getValue("Ticket") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Ticket");
+
+   int ticket = jo.getInt("Ticket");
+   
+   JSONValue *jvArrowColor = jo.getValue("ArrowColor");
+   int arrowcolor = (jvArrowColor != NULL) ? jvArrowColor.getInt() : CLR_NONE;
+
+   if (!OrderDelete(ticket, arrowcolor))
+      return CreateErrorResponse(GetLastError(), "OrderDelete failed");
    return CreateSuccessResponse("", NULL);   
 }

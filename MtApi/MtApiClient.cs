@@ -92,6 +92,127 @@ namespace MtApi
         #endregion
 
 
+        #region Deprecated Methods
+        [Obsolete("OrderCloseByCurrentPrice is deprecated, please use OrderClose instead.")]
+        public bool OrderCloseByCurrentPrice(int ticket, int slippage)
+        {
+            return OrderClose(ticket, slippage);
+        }
+
+        [Obsolete("OrderClosePrice is deprecated, please use GetOrder instead.")]
+        public double OrderClosePrice()
+        {
+            return SendCommand<double>(MtCommandType.OrderClosePrice, null);
+        }
+
+        [Obsolete("OrderClosePrice is deprecated, please use GetOrder instead.")]
+        public double OrderClosePrice(int ticket)
+        {
+            var commandParameters = new ArrayList { ticket };
+            double retVal = SendCommand<double>(MtCommandType.OrderClosePriceByTicket, commandParameters);
+
+            return retVal;
+        }
+
+        [Obsolete("OrderCloseTime is deprecated, please use GetOrder instead.")]
+        public DateTime OrderCloseTime()
+        {
+            var commandResponse = SendCommand<int>(MtCommandType.OrderCloseTime, null);
+            return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
+        }
+
+        [Obsolete("OrderComment is deprecated, please use GetOrder instead.")]
+        public string OrderComment()
+        {
+            return SendCommand<string>(MtCommandType.OrderComment, null);
+        }
+
+        [Obsolete("OrderCommission is deprecated, please use GetOrder instead.")]
+        public double OrderCommission()
+        {
+            return SendCommand<double>(MtCommandType.OrderCommission, null);
+        }
+
+        [Obsolete("OrderExpiration is deprecated, please use GetOrder instead.")]
+        public DateTime OrderExpiration()
+        {
+            var commandResponse = SendCommand<int>(MtCommandType.OrderExpiration, null);
+            return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
+        }
+
+        [Obsolete("OrderLots is deprecated, please use GetOrder instead.")]
+        public double OrderLots()
+        {
+            return SendCommand<double>(MtCommandType.OrderLots, null);
+        }
+
+        [Obsolete("OrderMagicNumber is deprecated, please use GetOrder instead.")]
+        public int OrderMagicNumber()
+        {
+            return SendCommand<int>(MtCommandType.OrderMagicNumber, null);
+        }
+
+        [Obsolete("OrderOpenPrice is deprecated, please use GetOrder instead.")]
+        public double OrderOpenPrice()
+        {
+            return SendCommand<double>(MtCommandType.OrderOpenPrice, null);
+        }
+
+        [Obsolete("OrderOpenPrice is deprecated, please use GetOrder instead.")]
+        public double OrderOpenPrice(int ticket)
+        {
+            var commandParameters = new ArrayList { ticket };
+            double retVal = SendCommand<double>(MtCommandType.OrderOpenPriceByTicket, commandParameters);
+
+            return retVal;
+        }
+
+        [Obsolete("OrderOpenTime is deprecated, please use GetOrder instead.")]
+        public DateTime OrderOpenTime()
+        {
+            var commandResponse = SendCommand<int>(MtCommandType.OrderOpenTime, null);
+            return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
+        }
+
+        [Obsolete("OrderProfit is deprecated, please use GetOrder instead.")]
+        public double OrderProfit()
+        {
+            return SendCommand<double>(MtCommandType.OrderProfit, null);
+        }
+
+        [Obsolete("OrderStopLoss is deprecated, please use GetOrder instead.")]
+        public double OrderStopLoss()
+        {
+            return SendCommand<double>(MtCommandType.OrderStopLoss, null);
+        }
+
+        [Obsolete("OrderSymbol is deprecated, please use GetOrder instead.")]
+        public string OrderSymbol()
+        {
+            return SendCommand<string>(MtCommandType.OrderSymbol, null);
+        }
+
+        [Obsolete("OrderTakeProfit is deprecated, please use GetOrder instead.")]
+        public double OrderTakeProfit()
+        {
+            return SendCommand<double>(MtCommandType.OrderTakeProfit, null);
+        }
+
+        [Obsolete("OrderTicket is deprecated, please use GetOrder instead.")]
+        public int OrderTicket()
+        {
+            return SendCommand<int>(MtCommandType.OrderTicket, null);
+        }
+
+        [Obsolete("OrderType is deprecated, please use GetOrder instead.")]
+        public TradeOperation OrderType()
+        {
+            int retVal = SendCommand<int>(MtCommandType.OrderType, null);
+
+            return (TradeOperation)retVal;
+        }
+        #endregion
+
         #region Trading functions
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
@@ -242,12 +363,6 @@ namespace MtApi
             return response != null;
         }
 
-        [Obsolete("OrderCloseByCurrentPrice is deprecated, please use OrderClose instead.")]
-        public bool OrderCloseByCurrentPrice(int ticket, int slippage)
-        {
-            return OrderClose(ticket, slippage);
-        }
-
         public bool OrderCloseBy(int ticket, int opposite, Color color)
         {
             var response = SendRequest<ResponseBase>(new OrderCloseByRequest
@@ -269,60 +384,23 @@ namespace MtApi
             return response != null;
         }
 
-        public double OrderClosePrice()
-        {
-            return SendCommand<double>(MtCommandType.OrderClosePrice, null);
-        }
-
-        public double OrderClosePrice(int ticket)
-        {
-            var commandParameters = new ArrayList { ticket };
-            double retVal = SendCommand<double>(MtCommandType.OrderClosePriceByTicket, commandParameters);
-
-            return retVal;
-        }
-
-        public DateTime OrderCloseTime()
-        {
-            var commandResponse = SendCommand<int>(MtCommandType.OrderCloseTime, null);
-            return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
-        }
-
-        public string OrderComment()
-        {
-            return SendCommand<string>(MtCommandType.OrderComment, null);
-        }
-
-        public double OrderCommission()
-        {
-            return SendCommand<double>(MtCommandType.OrderCommission, null);
-        }
-
         public bool OrderDelete(int ticket, Color color)
         {
-            var commandParameters = new ArrayList { ticket, MtApiColorConverter.ConvertToMtColor(color) };
-            return SendCommand<bool>(MtCommandType.OrderDelete, commandParameters);
+            var response = SendRequest<ResponseBase>(new OrderDeleteRequest
+            {
+                Ticket = ticket,
+                ArrowColor = MtApiColorConverter.ConvertToMtColor(color),
+            });
+            return response != null;
         }
 
         public bool OrderDelete(int ticket)
         {
-            return OrderDelete(ticket, Color.Empty);
-        }
-
-        public DateTime OrderExpiration()
-        {
-            var commandResponse = SendCommand<int>(MtCommandType.OrderExpiration, null); 
-            return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
-        }
-
-        public double OrderLots()
-        {
-            return SendCommand<double>(MtCommandType.OrderLots, null);
-        }
-
-        public int OrderMagicNumber()
-        {
-            return SendCommand<int>(MtCommandType.OrderMagicNumber, null);
+            var response = SendRequest<ResponseBase>(new OrderDeleteRequest
+            {
+                Ticket = ticket,
+            });
+            return response != null;
         }
 
         public bool OrderModify(int ticket, double price, double stoploss, double takeprofit, DateTime expiration, Color arrow_color)
@@ -336,33 +414,9 @@ namespace MtApi
             return OrderModify(ticket, price, stoploss, takeprofit, expiration, Color.Empty);
         }
 
-        public double OrderOpenPrice()
-        {
-            return SendCommand<double>(MtCommandType.OrderOpenPrice, null);
-        }
-
-        public double OrderOpenPrice(int ticket)
-        {
-            var commandParameters = new ArrayList { ticket };
-            double retVal = SendCommand<double>(MtCommandType.OrderOpenPriceByTicket, commandParameters);
-
-            return retVal;
-        }
-
-        public DateTime OrderOpenTime()
-        {
-            var commandResponse = SendCommand<int>(MtCommandType.OrderOpenTime, null);            
-            return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
-        }
-
         public void OrderPrint()
         {
             SendCommand<object>(MtCommandType.OrderPrint, null);
-        }
-
-        public double OrderProfit()
-        {
-            return SendCommand<double>(MtCommandType.OrderProfit, null);
         }
 
         public bool OrderSelect(int index, OrderSelectMode select, OrderSelectSource pool)
@@ -381,11 +435,6 @@ namespace MtApi
             return SendCommand<int>(MtCommandType.OrdersHistoryTotal, null);
         }
 
-        public double OrderStopLoss()
-        {
-            return SendCommand<double>(MtCommandType.OrderStopLoss, null);
-        }
-
         public int OrdersTotal()
         {
             return SendCommand<int>(MtCommandType.OrdersTotal, null);
@@ -394,28 +443,6 @@ namespace MtApi
         public double OrderSwap()
         {
             return  SendCommand<double>(MtCommandType.OrderSwap, null);
-        }
-
-        public string OrderSymbol()
-        {
-            return SendCommand<string>(MtCommandType.OrderSymbol, null);
-        }
-
-        public double OrderTakeProfit()
-        {
-            return  SendCommand<double>(MtCommandType.OrderTakeProfit, null);
-        }
-
-        public int OrderTicket()
-        {
-            return SendCommand<int>(MtCommandType.OrderTicket, null);
-        }
-
-        public TradeOperation OrderType()
-        {
-            int retVal = SendCommand<int>(MtCommandType.OrderType, null);
-
-            return (TradeOperation) retVal;
         }
 
         public bool OrderCloseAll()

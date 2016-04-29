@@ -127,6 +127,7 @@
             this.button15 = new System.Windows.Forms.Button();
             this.textBoxOppositeTicket = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.button21 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -307,6 +308,7 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.button21);
             this.tabPage2.Controls.Add(this.label3);
             this.tabPage2.Controls.Add(this.textBoxOppositeTicket);
             this.tabPage2.Controls.Add(this.button15);
@@ -1216,6 +1218,16 @@
             this.label3.TabIndex = 17;
             this.label3.Text = "Opposite ticket";
             // 
+            // button21
+            // 
+            this.button21.Location = new System.Drawing.Point(216, 264);
+            this.button21.Name = "button21";
+            this.button21.Size = new System.Drawing.Size(75, 23);
+            this.button21.TabIndex = 18;
+            this.button21.Text = "OrderDelete";
+            this.button21.UseVisualStyleBackColor = true;
+            this.button21.Click += new System.EventHandler(this.button21_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1355,6 +1367,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox textBoxOppositeTicket;
         private System.Windows.Forms.Button button15;
+        private System.Windows.Forms.Button button21;
     }
 }
 
