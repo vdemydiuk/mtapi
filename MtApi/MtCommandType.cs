@@ -16,7 +16,7 @@ namespace MtApi
 //        OrderClose                          = 2,
 //        OrderCloseByCurrentPrice            = 152,
 
-        OrderCloseBy                        = 3,
+//        OrderCloseBy                        = 3,
         OrderClosePrice                     = 4,
         OrderClosePriceByTicket             = 1004,
         OrderCloseTime                      = 5,

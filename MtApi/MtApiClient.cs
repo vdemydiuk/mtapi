@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using MTApiService;
 using System.Drawing;
 using System.Collections;
-using System.Net;
 using System.ServiceModel;
 using MtApi.Requests;
 using MtApi.Responses;
@@ -99,7 +97,21 @@ namespace MtApi
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
             , string comment, int magic, DateTime expiration, Color arrowColor)
         {
-            return InternalOrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, arrowColor);
+            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
+            {
+                Symbol = symbol,
+                Cmd = (int)cmd,
+                Volume = volume,
+                Price = price,
+                Slippage = slippage,
+                Stoploss = stoploss,
+                Takeprofit = takeprofit,
+                Comment = comment,
+                Magic = magic,
+                Expiration = MtApiTimeConverter.ConvertToMtTime(expiration),
+                ArrowColor = MtApiColorConverter.ConvertToMtColor(arrowColor)
+            });
+            return response != null ? response.Ticket : -1;
         }
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
@@ -154,51 +166,107 @@ namespace MtApi
 
         public int OrderSendBuy(string symbol, double volume, int slippage, double stoploss, double takeprofit, string comment, int magic)
         {
-            return InternalOrderSend(symbol, TradeOperation.OP_BUY, volume, null, slippage, stoploss, takeprofit, comment,
-                magic, null, null);
+            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
+            {
+                Symbol = symbol,
+                Cmd = (int)TradeOperation.OP_BUY,
+                Volume = volume,
+                Slippage = slippage,
+                Stoploss = stoploss,
+                Takeprofit = takeprofit,
+                Comment = comment,
+                Magic = magic,
+            });
+            return response != null ? response.Ticket : -1;
         }
 
         public int OrderSendSell(string symbol, double volume, int slippage, double stoploss, double takeprofit, string comment, int magic)
         {
-            return InternalOrderSend(symbol, TradeOperation.OP_SELL, volume, null, slippage, stoploss, takeprofit, comment,
-                magic, null, null);
+            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
+            {
+                Symbol = symbol,
+                Cmd = (int)TradeOperation.OP_SELL,
+                Volume = volume,
+                Slippage = slippage,
+                Stoploss = stoploss,
+                Takeprofit = takeprofit,
+                Comment = comment,
+                Magic = magic,
+            });
+            return response != null ? response.Ticket : -1;
         }
 
         public bool OrderClose(int ticket, double lots, double price, int slippage, Color color)
         {
-            return InternalOrderClose(ticket, lots, price, slippage, color);
+            var response = SendRequest<ResponseBase>(new OrderCloseRequest
+            {
+                Ticket = ticket,
+                Lots = lots,
+                Price = price,
+                Slippage = slippage,
+                ArrowColor = MtApiColorConverter.ConvertToMtColor(color)
+            });
+            return response != null;
         }
 
         public bool OrderClose(int ticket, double lots, double price, int slippage)
         {
-            return InternalOrderClose(ticket, lots, price, slippage, null);
+            var response = SendRequest<ResponseBase>(new OrderCloseRequest
+            {
+                Ticket = ticket,
+                Lots = lots,
+                Price = price,
+                Slippage = slippage,
+            });
+            return response != null;
         }
 
         public bool OrderClose(int ticket, double lots, int slippage)
         {
-            return InternalOrderClose(ticket, lots, null, slippage, null);
+            var response = SendRequest<ResponseBase>(new OrderCloseRequest
+            {
+                Ticket = ticket,
+                Lots = lots,
+                Slippage = slippage,
+            });
+            return response != null;
         }
 
         public bool OrderClose(int ticket, int slippage)
         {
-            return InternalOrderClose(ticket, null, null, slippage, null);
+            var response = SendRequest<ResponseBase>(new OrderCloseRequest
+            {
+                Ticket = ticket,
+                Slippage = slippage,
+            });
+            return response != null;
         }
 
         [Obsolete("OrderCloseByCurrentPrice is deprecated, please use OrderClose instead.")]
         public bool OrderCloseByCurrentPrice(int ticket, int slippage)
         {
-            return InternalOrderClose(ticket, null, null, slippage, null);
+            return OrderClose(ticket, slippage);
         }
 
         public bool OrderCloseBy(int ticket, int opposite, Color color)
         {
-            var commandParameters = new ArrayList { ticket, opposite, MtApiColorConverter.ConvertToMtColor(color) };
-            return SendCommand<bool>(MtCommandType.OrderCloseBy, commandParameters);
+            var response = SendRequest<ResponseBase>(new OrderCloseByRequest
+            {
+                Ticket = ticket,
+                Opposite = opposite,
+                ArrowColor = MtApiColorConverter.ConvertToMtColor(color)
+            });
+            return response != null;
         }
 
         public bool OrderCloseBy(int ticket, int opposite)
         {
-            return OrderCloseBy(ticket, opposite, Color.Empty);
+            var response = SendRequest<ResponseBase>(new OrderCloseByRequest
+            {
+                Ticket = ticket,
+                Opposite = opposite,
+            });
+            return response != null;
         }
 
         public double OrderClosePrice()
@@ -1302,45 +1370,17 @@ namespace MtApi
             ConnectionStateChanged.FireEvent(this, new MtConnectionEventArgs(MtConnectionState.Disconnected, "Disconnected"));
         }
 
-        private int InternalOrderSend(string symbol, TradeOperation cmd, double volume, double? price, 
-            int? slippage, double? stoploss, double? takeprofit, string comment, int? magic, DateTime? expiration, Color? arrowColor)
-        {
-            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
-            {
-                Symbol = symbol,
-                Cmd = (int)cmd,
-                Volume = volume,
-                Price = price,
-                Slippage = slippage,
-                Stoploss = stoploss,
-                Takeprofit = takeprofit,
-                Comment = comment,
-                Magic = magic,
-                Expiration = expiration.HasValue ? MtApiTimeConverter.ConvertToMtTime(expiration.Value) : default(int?),
-                ArrowColor = arrowColor.HasValue ? MtApiColorConverter.ConvertToMtColor(arrowColor.Value) : default(int?)
-            });
-            return response != null ? response.Ticket : -1;
-        }
-
-        public bool InternalOrderClose(int ticket, double? lots, double? price, int? slippage, Color? color)
-        {
-            //var commandParameters = new ArrayList { ticket, lots, price, slippage, MtApiColorConverter.ConvertToMtColor(color) };
-            //return SendCommand<bool>(MtCommandType.OrderClose, commandParameters);
-
-            var response = SendRequest<ResponseBase>(new OrderCloseRequest
-            {
-                Ticket = ticket,
-                Lots =  lots,
-                Price = price,
-                Slippage = slippage,
-                ArrowColor = color.HasValue ? MtApiColorConverter.ConvertToMtColor(color.Value) : default(int?)
-            });
-            return response != null;
-        }
-
         private T SendCommand<T>(MtCommandType commandType, ArrayList commandParameters)
         {
-            var response = mClient.SendCommand((int)commandType, commandParameters);
+            MtResponse response;
+            try
+            {
+                response = mClient.SendCommand((int)commandType, commandParameters);
+            }
+            catch (CommunicationException ex)
+            {
+                throw new MtConnectionException(ex.Message, ex);
+            }
 
             T result = default(T);
 

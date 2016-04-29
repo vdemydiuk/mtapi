@@ -7,5 +7,6 @@
         GetOrders       = 2,
         OrderSend       = 3,
         OrderClose      = 4,
+        OrderCloseBy    = 5
     }
 }

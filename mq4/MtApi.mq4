@@ -3419,6 +3419,9 @@ string OnRequest(string json)
             case 4: //OrderClose
                response = ExecuteRequestOrderClose(jo);
                break;
+            case 5: //OrderCloseBy
+               response = ExecuteRequestOrderCloseBy(jo);
+               break;
             default:
                Print("OnRequest [WARNING]: Unknown request type ", requestType);
                response = CreateErrorResponse(-1, "Unknown request type");
@@ -3623,5 +3626,23 @@ string ExecuteRequestOrderClose(JSONObject *jo)
 
    if (!OrderClose(ticket, lots, price, slippage, arrowcolor))
       return CreateErrorResponse(GetLastError(), "OrderClose failed");
+   return CreateSuccessResponse("", NULL);   
+}
+
+string ExecuteRequestOrderCloseBy(JSONObject *jo)
+{
+   if (jo.getValue("Ticket") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Ticket");
+   if (jo.getValue("Opposite") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Opposite");
+
+   int ticket = jo.getInt("Ticket");
+   int opposite = jo.getInt("Opposite");    
+   
+   JSONValue *jvArrowColor = jo.getValue("ArrowColor");
+   int arrowcolor = (jvArrowColor != NULL) ? jvArrowColor.getInt() : CLR_NONE;
+
+   if (!OrderCloseBy(ticket, opposite, arrowcolor))
+      return CreateErrorResponse(GetLastError(), "OrderCloseBy failed");
    return CreateSuccessResponse("", NULL);   
 }

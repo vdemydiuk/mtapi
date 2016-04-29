@@ -48,6 +48,7 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.button20 = new System.Windows.Forms.Button();
             this.button17 = new System.Windows.Forms.Button();
             this.comboBox2 = new System.Windows.Forms.ComboBox();
@@ -123,7 +124,9 @@
             this.tabPage6 = new System.Windows.Forms.TabPage();
             this.button14 = new System.Windows.Forms.Button();
             this.button13 = new System.Windows.Forms.Button();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.button15 = new System.Windows.Forms.Button();
+            this.textBoxOppositeTicket = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -304,6 +307,9 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.label3);
+            this.tabPage2.Controls.Add(this.textBoxOppositeTicket);
+            this.tabPage2.Controls.Add(this.button15);
             this.tabPage2.Controls.Add(this.checkBox1);
             this.tabPage2.Controls.Add(this.button20);
             this.tabPage2.Controls.Add(this.button17);
@@ -327,19 +333,29 @@
             this.tabPage2.Text = "Trade Operations";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Location = new System.Drawing.Point(297, 208);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(205, 17);
+            this.checkBox1.TabIndex = 14;
+            this.checkBox1.Text = "Close order by current price on market";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            // 
             // button20
             // 
-            this.button20.Location = new System.Drawing.Point(216, 185);
+            this.button20.Location = new System.Drawing.Point(216, 202);
             this.button20.Name = "button20";
             this.button20.Size = new System.Drawing.Size(75, 23);
             this.button20.TabIndex = 13;
-            this.button20.Text = "CloseOrder";
+            this.button20.Text = "OrderClose";
             this.button20.UseVisualStyleBackColor = true;
             this.button20.Click += new System.EventHandler(this.button20_Click);
             // 
             // button17
             // 
-            this.button17.Location = new System.Drawing.Point(601, 158);
+            this.button17.Location = new System.Drawing.Point(558, 158);
             this.button17.Name = "button17";
             this.button17.Size = new System.Drawing.Size(75, 23);
             this.button17.TabIndex = 12;
@@ -386,9 +402,9 @@
             this.label21.AutoSize = true;
             this.label21.Location = new System.Drawing.Point(213, 135);
             this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(71, 13);
+            this.label21.Size = new System.Drawing.Size(68, 13);
             this.label21.TabIndex = 8;
-            this.label21.Text = "Index/Ticket:";
+            this.label21.Text = "Index/Ticket";
             // 
             // textBoxIndexTicket
             // 
@@ -1173,15 +1189,32 @@
             this.button13.UseVisualStyleBackColor = true;
             this.button13.Click += new System.EventHandler(this.button13_Click);
             // 
-            // checkBox1
+            // button15
             // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(297, 191);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(205, 17);
-            this.checkBox1.TabIndex = 14;
-            this.checkBox1.Text = "Close order by current price on market";
-            this.checkBox1.UseVisualStyleBackColor = true;
+            this.button15.Location = new System.Drawing.Point(410, 237);
+            this.button15.Name = "button15";
+            this.button15.Size = new System.Drawing.Size(92, 23);
+            this.button15.TabIndex = 15;
+            this.button15.Text = "OrderCloseBy";
+            this.button15.UseVisualStyleBackColor = true;
+            this.button15.Click += new System.EventHandler(this.button15_Click);
+            // 
+            // textBoxOppositeTicket
+            // 
+            this.textBoxOppositeTicket.Location = new System.Drawing.Point(303, 239);
+            this.textBoxOppositeTicket.Name = "textBoxOppositeTicket";
+            this.textBoxOppositeTicket.Size = new System.Drawing.Size(100, 20);
+            this.textBoxOppositeTicket.TabIndex = 16;
+            this.textBoxOppositeTicket.Text = "0";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(219, 242);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(78, 13);
+            this.label3.TabIndex = 17;
+            this.label3.Text = "Opposite ticket";
             // 
             // Form1
             // 
@@ -1319,6 +1352,9 @@
         private System.Windows.Forms.Button button18;
         private System.Windows.Forms.Button button20;
         private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox textBoxOppositeTicket;
+        private System.Windows.Forms.Button button15;
     }
 }
 
