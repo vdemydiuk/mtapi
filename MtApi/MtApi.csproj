@@ -78,6 +78,7 @@
     <Compile Include="OrderSelectSource.cs" />
     <Compile Include="Requests\GetOrderRequest.cs" />
     <Compile Include="Requests\GetOrdersRequest.cs" />
+    <Compile Include="Requests\OrderCloseRequest.cs" />
     <Compile Include="Requests\OrderSendRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />
     <Compile Include="Requests\RequestType.cs" />

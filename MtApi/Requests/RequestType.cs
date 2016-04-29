@@ -5,6 +5,7 @@
         Unknown         = 0,
         GetOrder        = 1,
         GetOrders       = 2,
-        OrderSend       = 3
+        OrderSend       = 3,
+        OrderClose      = 4,
     }
 }

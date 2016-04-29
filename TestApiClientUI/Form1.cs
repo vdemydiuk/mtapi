@@ -17,20 +17,17 @@ namespace TestApiClientUI
 {
     public partial class Form1 : Form
     {
-        delegate void PerformCommandHandler();
-
-        private List<PerformCommandHandler> GroupOrderCommands = new List<PerformCommandHandler>();
-
-        private MtApiClient apiClient = new MtApiClient();
+        private readonly List<Action> _groupOrderCommands = new List<Action>();
+        private readonly MtApiClient _apiClient = new MtApiClient();
 
         public Form1()
         {
             InitializeComponent();
 
-            apiClient.QuoteUpdated += apiClient_QuoteUpdated;
-            apiClient.QuoteAdded += apiClient_QuoteAdded;
-            apiClient.QuoteRemoved += apiClient_QuoteRemoved;
-            apiClient.ConnectionStateChanged += apiClient_ConnectionStateChanged;
+            _apiClient.QuoteUpdated += apiClient_QuoteUpdated;
+            _apiClient.QuoteAdded += apiClient_QuoteAdded;
+            _apiClient.QuoteRemoved += apiClient_QuoteRemoved;
+            _apiClient.ConnectionStateChanged += apiClient_ConnectionStateChanged;
 
             initOrderCommandsGroup();
 
@@ -40,30 +37,30 @@ namespace TestApiClientUI
 
         private void initOrderCommandsGroup()
         {
-            GroupOrderCommands.Add(new PerformCommandHandler(closeOrders));
-            GroupOrderCommands.Add(new PerformCommandHandler(closeOrdersBy));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderClosePrice));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderCloseTime));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderComment));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderCommission));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderDelete));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderExpiration));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderLots));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderMagicNumber));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderModify));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderOpenPrice));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderOpenTime));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderPrint));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderProfit));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderSelect));
-            GroupOrderCommands.Add(new PerformCommandHandler(ordersHistoryTotal));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderStopLoss));
-            GroupOrderCommands.Add(new PerformCommandHandler(ordersTotal));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderSwap));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderSymbol));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderTakeProfit));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderTicket));
-            GroupOrderCommands.Add(new PerformCommandHandler(orderType));
+            _groupOrderCommands.Add(closeOrders);
+            _groupOrderCommands.Add(closeOrdersBy);
+            _groupOrderCommands.Add(orderClosePrice);
+            _groupOrderCommands.Add(orderCloseTime);
+            _groupOrderCommands.Add(orderComment);
+            _groupOrderCommands.Add(orderCommission);
+            _groupOrderCommands.Add(orderDelete);
+            _groupOrderCommands.Add(orderExpiration);
+            _groupOrderCommands.Add(orderLots);
+            _groupOrderCommands.Add(orderMagicNumber);
+            _groupOrderCommands.Add(orderModify);
+            _groupOrderCommands.Add(orderOpenPrice);
+            _groupOrderCommands.Add(orderOpenTime);
+            _groupOrderCommands.Add(orderPrint);
+            _groupOrderCommands.Add(orderProfit);
+            _groupOrderCommands.Add(orderSelect);
+            _groupOrderCommands.Add(ordersHistoryTotal);
+            _groupOrderCommands.Add(orderStopLoss);
+            _groupOrderCommands.Add(ordersTotal);
+            _groupOrderCommands.Add(orderSwap);
+            _groupOrderCommands.Add(orderSymbol);
+            _groupOrderCommands.Add(orderTakeProfit);
+            _groupOrderCommands.Add(orderTicket);
+            _groupOrderCommands.Add(orderType);
         }
 
         private void RunOnUiThread(Action action)
@@ -175,7 +172,7 @@ namespace TestApiClientUI
 
         private void onConnected()
         {
-            var quotes = apiClient.GetQuotes();
+            var quotes = _apiClient.GetQuotes();
 
             if (quotes != null)
             {
@@ -199,21 +196,21 @@ namespace TestApiClientUI
             int.TryParse(textBoxPort.Text, out port);
 
             if (string.IsNullOrEmpty(serverName))
-                apiClient.BeginConnect(port);
+                _apiClient.BeginConnect(port);
             else
-                apiClient.BeginConnect(serverName, port);
+                _apiClient.BeginConnect(serverName, port);
 
             onConnected();
         }
 
         private void buttonDisconnect_Click(object sender, EventArgs e)
         {
-            apiClient.BeginDisconnect();
+            _apiClient.BeginDisconnect();
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            apiClient.BeginDisconnect();
+            _apiClient.BeginDisconnect();
         }
 
         private void sendOrder(string symbol, TradeOperation command, double volume, double price, int slippage, double stoploss, double takeprofit
@@ -223,7 +220,7 @@ namespace TestApiClientUI
             int ticket = 0;
             try
             {
-                ticket = apiClient.OrderSend(symbol, command, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, arrow_color);
+                ticket = _apiClient.OrderSend(symbol, command, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, arrow_color);
             }
             catch (MtConnectionException ex)
             {
@@ -315,7 +312,7 @@ namespace TestApiClientUI
                 foreach (var item in listBoxSendedOrders.SelectedItems)
                 {
                     int orderId = (int)item;
-                    var result = apiClient.OrderClose(orderId, volume, price, slippage);
+                    var result = _apiClient.OrderClose(orderId, volume, price, slippage);
 
                     if (result == true)
                     {
@@ -354,7 +351,7 @@ namespace TestApiClientUI
                         break;
                 }
 
-                var result = apiClient.OrderCloseBy(ticket, opposite, color);
+                var result = _apiClient.OrderCloseBy(ticket, opposite, color);
 
                 addToLog(string.Format("ClosedBy order result: {0},  ticketId = {1}, opposite {2}", result, ticket, opposite));
             }
@@ -362,27 +359,27 @@ namespace TestApiClientUI
 
         private void orderClosePrice()
         {
-            var result = apiClient.OrderClosePrice();
+            var result = _apiClient.OrderClosePrice();
             textBoxOrderPrice.Text = result.ToString();
             addToLog(string.Format("OrderClosePrice result: {0}", result));
         }
 
         private void orderCloseTime()
         {
-            var result = apiClient.OrderCloseTime();
+            var result = _apiClient.OrderCloseTime();
             addToLog(string.Format("OrderCloseTime result: {0}", result));
         }
 
         private void orderComment()
         {
-            var result = apiClient.OrderComment();
+            var result = _apiClient.OrderComment();
             textBoxOrderComment.Text = result.ToString();
             addToLog(string.Format("OrderComment result: {0}", result));
         }
 
         private void orderCommission()
         {
-            var result = apiClient.OrderCommission();
+            var result = _apiClient.OrderCommission();
             addToLog(string.Format("OrderCommission result: {0}", result));
         }
 
@@ -392,7 +389,7 @@ namespace TestApiClientUI
             {
                 int ticket = (int)listBoxSendedOrders.SelectedItems[0];
 
-                var result = apiClient.OrderDelete(ticket);
+                var result = _apiClient.OrderDelete(ticket);
 
                 addToLog(string.Format("Delete order result: {0},  ticketId = {1}", result, ticket));
             }
@@ -400,19 +397,19 @@ namespace TestApiClientUI
 
         private void orderExpiration()
         {
-            var result = apiClient.OrderExpiration();
+            var result = _apiClient.OrderExpiration();
             addToLog(string.Format("Expiration order result: {0}", result));
         }
 
         private void orderLots()
         {
-            var result = apiClient.OrderLots();
+            var result = _apiClient.OrderLots();
             addToLog(string.Format("Lots order result: {0}", result));
         }
 
         private void orderMagicNumber()
         {
-            var result = apiClient.OrderMagicNumber();
+            var result = _apiClient.OrderMagicNumber();
             addToLog(string.Format("MagicNumber order result: {0}", result));
         }
 
@@ -447,7 +444,7 @@ namespace TestApiClientUI
                         break;
                 }
 
-                var result = apiClient.OrderModify(ticket, price, stoploss, takeprofit, expiration, arrow_color);
+                var result = _apiClient.OrderModify(ticket, price, stoploss, takeprofit, expiration, arrow_color);
 
                 addToLog(string.Format("OrderModify result: {0}", result));
             }
@@ -455,24 +452,24 @@ namespace TestApiClientUI
 
         private void orderOpenPrice()
         {
-            var result = apiClient.OrderOpenPrice();
+            var result = _apiClient.OrderOpenPrice();
             addToLog(string.Format("OrderOpenPrice result: {0}", result));            
         }
 
         private void orderOpenTime()
         {
-            var result = apiClient.OrderOpenTime();
+            var result = _apiClient.OrderOpenTime();
             addToLog(string.Format("OpenTime order result: {0}", result));
         }
 
         private void orderPrint()
         {
-            apiClient.OrderPrint();
+            _apiClient.OrderPrint();
         }
 
         private void orderProfit()
         {
-            var result = apiClient.OrderProfit();
+            var result = _apiClient.OrderProfit();
             addToLog(string.Format("Profit order result: {0}", result));
         }
 
@@ -489,7 +486,7 @@ namespace TestApiClientUI
             
             if (ticket >= 0)
             {
-                var result = apiClient.OrderSelect(ticket, OrderSelectMode.SELECT_BY_POS);
+                var result = _apiClient.OrderSelect(ticket, OrderSelectMode.SELECT_BY_POS);
 
                 addToLog(string.Format("OrderSelect result: {0}", result));
             }
@@ -497,59 +494,59 @@ namespace TestApiClientUI
 
         private void ordersHistoryTotal()
         {
-            var result = apiClient.OrdersHistoryTotal();
+            var result = _apiClient.OrdersHistoryTotal();
             addToLog(string.Format("OrdersHistoryTotal result: {0}", result));
         }
 
         private void orderStopLoss()
         {
-            var result = apiClient.OrderStopLoss();
+            var result = _apiClient.OrderStopLoss();
             textBoxOrderStoploss.Text = result.ToString();
             addToLog(string.Format("OrderStopLoss result: {0}", result));
         }
 
         private void ordersTotal()
         {
-            var result = apiClient.OrdersTotal();
+            var result = _apiClient.OrdersTotal();
             addToLog(string.Format("OrdersTotal result: {0}", result));
         }
 
         private void orderSwap()
         {
-            var result = apiClient.OrderSwap();
+            var result = _apiClient.OrderSwap();
             addToLog(string.Format("OrderSwap result: {0}", result));
         }
 
         private void orderSymbol()
         {
-            var result = apiClient.OrderSymbol();
+            var result = _apiClient.OrderSymbol();
             textBoxOrderSymbol.Text = result;
             addToLog(string.Format("OrderSymbol result: {0}", result));
         }
 
         private void orderTakeProfit()
         {
-            var result = apiClient.OrderTakeProfit();
+            var result = _apiClient.OrderTakeProfit();
             textBoxOrderProffit.Text = result.ToString();
             addToLog(string.Format("OrderTakeProfit result: {0}", result));
         }
 
         private void orderTicket()
         {
-            var result = apiClient.OrderTicket();
+            var result = _apiClient.OrderTicket();
             addToLog(string.Format("OrderTicket result: {0}", result));
         }
 
         private void orderType()
         {
-            var result = apiClient.OrderType();
+            var result = _apiClient.OrderType();
             comboBoxOrderCommand.SelectedIndex = (int)result;
             addToLog(string.Format("OrderType result: {0}", result));
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            GroupOrderCommands[comboBoxSelectedCommand.SelectedIndex]();
+            _groupOrderCommands[comboBoxSelectedCommand.SelectedIndex]();
         }
 
         private void addToLog(string msg)
@@ -568,79 +565,79 @@ namespace TestApiClientUI
             {
                 case 0:
                     {
-                        var result = apiClient.GetLastError();
+                        var result = _apiClient.GetLastError();
                         addToLog(string.Format("GetLastError result: {0}", result));
                     }
                     break;
                 case 1:
                     {
-                        var result = apiClient.IsConnected();
+                        var result = _apiClient.IsConnected();
                         addToLog(string.Format("IsConnected result: {0}", result));
                     }
                     break;
                 case 2:
                     {
-                        var result = apiClient.IsDemo();
+                        var result = _apiClient.IsDemo();
                         addToLog(string.Format("IsDemo result: {0}", result));
                     }
                     break;
                 case 3:
                     {
-                        var result = apiClient.IsDllsAllowed();
+                        var result = _apiClient.IsDllsAllowed();
                         addToLog(string.Format("IsDllsAllowed result: {0}", result));
                     }                    
                     break;
                 case 4:
                     {
-                        var result = apiClient.IsExpertEnabled();
+                        var result = _apiClient.IsExpertEnabled();
                         addToLog(string.Format("IsExpertEnabled result: {0}", result));
                     }                    
                     break;
                 case 5:
                     {
-                        var result = apiClient.IsLibrariesAllowed();
+                        var result = _apiClient.IsLibrariesAllowed();
                         addToLog(string.Format("IsLibrariesAllowed result: {0}", result));
                     }                    
                     break;
                 case 6:
                     {
-                        var result = apiClient.IsOptimization();
+                        var result = _apiClient.IsOptimization();
                         addToLog(string.Format("IsOptimization result: {0}", result));
                     }                    
                     break;
                 case 7:
                     {
-                        var result = apiClient.IsStopped();
+                        var result = _apiClient.IsStopped();
                         addToLog(string.Format("IsStopped result: {0}", result));
                     }                    
                     break;
                 case 8:
                     {
-                        var result = apiClient.IsTesting();
+                        var result = _apiClient.IsTesting();
                         addToLog(string.Format("IsTesting result: {0}", result));
                     }
                     break;
                 case 9:
                     {
-                        var result = apiClient.IsTradeAllowed();
+                        var result = _apiClient.IsTradeAllowed();
                         addToLog(string.Format("IsTradeAllowed result: {0}", result));
                     }                    
                     break;
                 case 10:
                     {
-                        var result = apiClient.IsTradeContextBusy();
+                        var result = _apiClient.IsTradeContextBusy();
                         addToLog(string.Format("IsTradeContextBusy result: {0}", result));
                     }                    
                     break;
                 case 11:
                     {
-                        var result = apiClient.IsVisualMode();
+                        var result = _apiClient.IsVisualMode();
                         addToLog(string.Format("IsVisualMode result: {0}", result));
                     }                    
                     break;
                 case 12:
                     {
-                        var result = apiClient.UninitializeReason();
+                        var result = _apiClient.UninitializeReason();
                         addToLog(string.Format("UninitializeReason result: {0}", result));
                     }                    
                     break;
@@ -648,7 +645,7 @@ namespace TestApiClientUI
                     {
                         int errorCode = -1;
                         int.TryParse(textBoxErrorCode.Text, out errorCode);
-                        var result = apiClient.ErrorDescription(errorCode);
+                        var result = _apiClient.ErrorDescription(errorCode);
                         addToLog(string.Format("ErrorDescription result: {0}", result));
                     }                    
                     break;
@@ -661,97 +658,97 @@ namespace TestApiClientUI
             {
                 case 0:
                     {
-                        var result = apiClient.AccountBalance();
+                        var result = _apiClient.AccountBalance();
                         addToLog(string.Format("AccountBalance result: {0}", result));
                     }
                     break;
                 case 1:
                     {
-                        var result = apiClient.AccountCredit();
+                        var result = _apiClient.AccountCredit();
                         addToLog(string.Format("AccountCredit result: {0}", result));
                     }
                     break;
                 case 2:
                     {
-                        var result = apiClient.AccountCompany();
+                        var result = _apiClient.AccountCompany();
                         addToLog(string.Format("AccountCompany result: {0}", result));
                     }
                     break;
                 case 3:
                     {
-                        var result = apiClient.AccountCurrency();
+                        var result = _apiClient.AccountCurrency();
                         addToLog(string.Format("AccountCurrency result: {0}", result));
                     }
                     break;
                 case 4:
                     {
-                        var result = apiClient.AccountEquity();
+                        var result = _apiClient.AccountEquity();
                         addToLog(string.Format("AccountEquity result: {0}", result));
                     }
                     break;
                 case 5:
                     {
-                        var result = apiClient.AccountFreeMargin();
+                        var result = _apiClient.AccountFreeMargin();
                         addToLog(string.Format("AccountFreeMargin result: {0}", result));
                     }
                     break;
                 case 6:
                     {
-                        var result = apiClient.AccountFreeMarginCheck(textBoxAccountInfoSymbol.Text, (TradeOperation)comboBoxAccountInfoCmd.SelectedIndex, int.Parse(textBoxAccountInfoVolume.Text));
+                        var result = _apiClient.AccountFreeMarginCheck(textBoxAccountInfoSymbol.Text, (TradeOperation)comboBoxAccountInfoCmd.SelectedIndex, int.Parse(textBoxAccountInfoVolume.Text));
                         addToLog(string.Format("AccountFreeMarginCheck result: {0}", result));
                     }
                     break;
                 case 7:
                     {
-                        var result = apiClient.AccountFreeMarginMode();
+                        var result = _apiClient.AccountFreeMarginMode();
                         addToLog(string.Format("AccountFreeMarginMode result: {0}", result));
                     }
                     break;
                 case 8:
                     {
-                        var result = apiClient.AccountLeverage();
+                        var result = _apiClient.AccountLeverage();
                         addToLog(string.Format("AccountLeverage result: {0}", result));
                     }
                     break;
                 case 9:
                     {
-                        var result = apiClient.AccountMargin();
+                        var result = _apiClient.AccountMargin();
                         addToLog(string.Format("AccountMargin result: {0}", result));
                     }
                     break;
                 case 10:
                     {
-                        var result = apiClient.AccountName();
+                        var result = _apiClient.AccountName();
                         addToLog(string.Format("AccountName result: {0}", result));
                     }
                     break;
                 case 11:
                     {
-                        var result = apiClient.AccountNumber();
+                        var result = _apiClient.AccountNumber();
                         addToLog(string.Format("AccountNumber result: {0}", result));
                     }
                     break;
                 case 12:
                     {
-                        var result = apiClient.AccountProfit();
+                        var result = _apiClient.AccountProfit();
                         addToLog(string.Format("AccountProfit result: {0}", result));
                     }
                     break;
                 case 13:
                     {
-                        var result = apiClient.AccountServer();
+                        var result = _apiClient.AccountServer();
                         addToLog(string.Format("AccountServer result: {0}", result));
                     }
                     break;
                 case 14:
                     {
-                        var result = apiClient.AccountStopoutLevel();
+                        var result = _apiClient.AccountStopoutLevel();
                         addToLog(string.Format("AccountStopoutLevel result: {0}", result));
                     }
                     break;
                 case 15:
                     {
-                        var result = apiClient.AccountStopoutMode();
+                        var result = _apiClient.AccountStopoutMode();
                         addToLog(string.Format("AccountStopoutMode result: {0}", result));
                     }
                     break;
@@ -763,7 +760,7 @@ namespace TestApiClientUI
             if (listBoxMarketInfo.SelectedIndex < 0)
                 return;
 
-            var result = apiClient.MarketInfo(txtMarketInfoSymbol.Text, (MarketInfoModeType)listBoxMarketInfo.SelectedIndex);
+            var result = _apiClient.MarketInfo(txtMarketInfoSymbol.Text, (MarketInfoModeType)listBoxMarketInfo.SelectedIndex);
             addToLog(string.Format("MarketInfo result: {0}", result));
         }
 
@@ -779,11 +776,11 @@ namespace TestApiClientUI
 
             //for (int i = 0; i < COUNT; i++)
             //{
-            //    var price = apiClient.iOpen(symbol, ChartPeriod.PERIOD_M1, i);
+            //    var price = _apiClient.iOpen(symbol, ChartPeriod.PERIOD_M1, i);
             //    openPriceList.Add(price);
             //}
 
-            var prices = apiClient.iCloseArray(symbol, ChartPeriod.PERIOD_M1);
+            var prices = _apiClient.iCloseArray(symbol, ChartPeriod.PERIOD_M1);
 
             openPriceList = new List<double>(prices);
 
@@ -803,14 +800,14 @@ namespace TestApiClientUI
         private void button7_Click(object sender, EventArgs e)
         {
             string symbol = textBoxSelectedSymbol.Text;
-            var barCount = apiClient.iBars(symbol, ChartPeriod.PERIOD_M1);
+            var barCount = _apiClient.iBars(symbol, ChartPeriod.PERIOD_M1);
             textBoxTimeframesCount.Text = barCount.ToString();
         }
 
         private void button8_Click(object sender, EventArgs e)
         {
             string symbol = textBoxSelectedSymbol.Text;
-            var prices = apiClient.iHighArray(symbol, ChartPeriod.PERIOD_M1);
+            var prices = _apiClient.iHighArray(symbol, ChartPeriod.PERIOD_M1);
             var items = new List<double>(prices);
             listBoxProceHistory.DataSource = items;
         }
@@ -818,7 +815,7 @@ namespace TestApiClientUI
         private void button9_Click(object sender, EventArgs e)
         {
             string symbol = textBoxSelectedSymbol.Text;
-            var prices = apiClient.iLowArray(symbol, ChartPeriod.PERIOD_M1);
+            var prices = _apiClient.iLowArray(symbol, ChartPeriod.PERIOD_M1);
             var items = new List<double>(prices);
             listBoxProceHistory.DataSource = items;
         }
@@ -826,7 +823,7 @@ namespace TestApiClientUI
         private void button10_Click(object sender, EventArgs e)
         {
             string symbol = textBoxSelectedSymbol.Text;
-            var prices = apiClient.iOpenArray(symbol, ChartPeriod.PERIOD_M1);
+            var prices = _apiClient.iOpenArray(symbol, ChartPeriod.PERIOD_M1);
             var items = new List<double>(prices);
             listBoxProceHistory.DataSource = items;
         }
@@ -834,7 +831,7 @@ namespace TestApiClientUI
         private void button11_Click(object sender, EventArgs e)
         {
             string symbol = textBoxSelectedSymbol.Text;
-            var prices = apiClient.iVolumeArray(symbol, ChartPeriod.PERIOD_M1);
+            var prices = _apiClient.iVolumeArray(symbol, ChartPeriod.PERIOD_M1);
             var items = new List<double>(prices);
             listBoxProceHistory.DataSource = items;
         }
@@ -842,7 +839,7 @@ namespace TestApiClientUI
         private void button12_Click(object sender, EventArgs e)
         {
             string symbol = textBoxSelectedSymbol.Text;
-            var times = apiClient.iTimeArray(symbol, ChartPeriod.PERIOD_M1);
+            var times = _apiClient.iTimeArray(symbol, ChartPeriod.PERIOD_M1);
             var items = new List<DateTime>(times);
             listBoxProceHistory.DataSource = items;
         }
@@ -851,138 +848,26 @@ namespace TestApiClientUI
         {
             string symbol = textBoxSelectedSymbol.Text;
             int[] param = {11, 12, 13};
-            var retVal = apiClient.iCustom(symbol, (int)ChartPeriod.PERIOD_H1, "Zigzag", param, 1, 0);
+            var retVal = _apiClient.iCustom(symbol, (int)ChartPeriod.PERIOD_H1, "Zigzag", param, 1, 0);
             addToLog(string.Format("ICustom result: {0}", retVal));
         }
 
         private void button13_Click(object sender, EventArgs e)
         {
-            var retVal = apiClient.TimeCurrent();
+            var retVal = _apiClient.TimeCurrent();
             addToLog(string.Format("TimeCurrent result: {0}", retVal));
         }
 
         private void button14_Click(object sender, EventArgs e)
         {
-            var retVal = apiClient.TimeLocal();
+            var retVal = _apiClient.TimeLocal();
             addToLog(string.Format("TimeLocal result: {0}", retVal));
         }
 
         private void buttonRefreshRates_Click(object sender, EventArgs e)
         {
-            var retVal = apiClient.RefreshRates();
+            var retVal = _apiClient.RefreshRates();
             addToLog(string.Format("RefreshRates result: {0}", retVal));
-        }
-
-        private void button15_Click(object sender, EventArgs e)
-        {
-            for (var i = 0; i < 4; i++)
-            {
-                var ticket = i;
-                Task.Factory.StartNew(() =>
-                {
-                    MtOrder order = null;
-                    try
-                    {
-                        order = apiClient.GetOrder(ticket, OrderSelectMode.SELECT_BY_POS, OrderSelectSource.MODE_TRADES);
-                    }
-                    catch (MtConnectionException ex)
-                    {
-                        addToLog("MtExecutionException: " + ex.Message);
-                    }
-                    catch (MtExecutionException ex)
-                    {
-                        addToLog("MtExecutionException: " + ex.Message);
-                    }
-
-                    string result;
-                    if (order != null)
-                    {
-                        result =
-                            string.Format(
-                                "Order: Ticket = {0}, Symbol = {1}, Operation = {2}, OpenPrice = {3}, ClosePrice = {4}, Lots = {5}, Profit = {6}, Comment = {7}, Commission = {8}, MagicNumber = {9}, OpenTime = {10}, CloseTime = {11}",
-                                order.Ticket, order.Symbol, order.Operation, order.OpenPrice, order.ClosePrice, order.Lots, order.Profit, order.Comment, order.Commission, order.MagicNumber, order.OpenTime, order.CloseTime);
-                    }
-                    else
-                    {
-                        result = "Order is null";
-                    }
-
-                    addToLog(result);
-                });
-            }
-        }
-
-        private void button16_Click(object sender, EventArgs e)
-        {
-            var ticket = int.Parse(textBoxIndexTicket.Text);
-            var selectMode = (OrderSelectMode) comboBox1.SelectedIndex;
-            var selectSource = (OrderSelectSource) comboBox2.SelectedIndex;
-
-            MtOrder order = null;
-            try
-            {
-                order = apiClient.GetOrder(ticket, selectMode, selectSource);
-            }
-            catch (MtConnectionException ex)
-            {
-                addToLog("MtExecutionException: " + ex.Message);
-                return;
-            }
-            catch (MtExecutionException ex)
-            {                
-                addToLog("MtExecutionException: " + ex.Message + "; ErrorCode = " + ex.ErrorCode);
-                return;
-            }
-
-            if (order == null)
-            {
-                addToLog("Order is null");
-                return;
-            }
-
-            var result =
-                string.Format(
-                    "Order: Ticket = {0}, Symbol = {1}, Operation = {2}, OpenPrice = {3}, ClosePrice = {4}, Lots = {5}, Profit = {6}, Comment = {7}, Commission = {8}, MagicNumber = {9}, OpenTime = {10}, CloseTime = {11}",
-                    order.Ticket, order.Symbol, order.Operation, order.OpenPrice, order.ClosePrice, order.Lots, order.Profit, order.Comment, order.Commission, order.MagicNumber, order.OpenTime, order.CloseTime);
-            addToLog(result);
-        }
-
-        private void button17_Click(object sender, EventArgs e)
-        {
-            var selectSource = (OrderSelectSource)comboBox2.SelectedIndex;
-
-
-            IEnumerable<MtOrder> orders = null;
-            try
-            {
-                orders = apiClient.GetOrders(selectSource);
-            }
-            catch (MtConnectionException ex)
-            {
-                addToLog("MtExecutionException: " + ex.Message);
-                return;
-            }
-            catch (MtExecutionException ex)
-            {
-                addToLog("MtExecutionException: " + ex.Message + "; ErrorCode = " + ex.ErrorCode);
-                return;
-            }
-
-            if (orders == null)
-            {
-                addToLog("Orders is null");
-                return;
-
-            }
-
-            foreach (var order in orders)
-            {
-                var result =
-                    string.Format(
-                        "Order: Ticket = {0}, Symbol = {1}, Operation = {2}, OpenPrice = {3}, ClosePrice = {4}, Lots = {5}, Profit = {6}, Comment = {7}, Commission = {8}, MagicNumber = {9}, OpenTime = {10}, CloseTime = {11}",
-                        order.Ticket, order.Symbol, order.Operation, order.OpenPrice, order.ClosePrice, order.Lots, order.Profit, order.Comment, order.Commission, order.MagicNumber, order.OpenTime, order.CloseTime);
-                addToLog(result);                
-            }            
         }
 
         private void listBoxEventLog_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -990,6 +875,66 @@ namespace TestApiClientUI
             listBoxEventLog.Items.Clear();
         }
 
+        private TResult Execute<TResult>(Func<TResult> func)
+        {
+            var result = default(TResult);
+            try
+            {
+                result = func();
+            }
+            catch (MtConnectionException ex)
+            {
+                addToLog("MtExecutionException: " + ex.Message);
+            }
+            catch (MtExecutionException ex)
+            {
+                addToLog("MtExecutionException: " + ex.Message + "; ErrorCode = " + ex.ErrorCode);
+            }
+
+            return result;
+        }
+
+        //GetOrder
+        private void button16_Click(object sender, EventArgs e)
+        {
+            var ticket = int.Parse(textBoxIndexTicket.Text);
+            var selectMode = (OrderSelectMode) comboBox1.SelectedIndex;
+            var selectSource = (OrderSelectSource) comboBox2.SelectedIndex;
+
+            var order = Execute(() => _apiClient.GetOrder(ticket, selectMode, selectSource));
+
+            if (order != null)
+            {
+                var result =
+                    string.Format(
+                        "Order: Ticket = {0}, Symbol = {1}, Operation = {2}, OpenPrice = {3}, ClosePrice = {4}, Lots = {5}, Profit = {6}, Comment = {7}, Commission = {8}, MagicNumber = {9}, OpenTime = {10}, CloseTime = {11}",
+                        order.Ticket, order.Symbol, order.Operation, order.OpenPrice, order.ClosePrice, order.Lots, order.Profit, order.Comment, order.Commission, order.MagicNumber, order.OpenTime, order.CloseTime);
+                addToLog(result);                
+            }
+        }
+
+        //GetOrders
+        private void button17_Click(object sender, EventArgs e)
+        {
+            var selectSource = (OrderSelectSource)comboBox2.SelectedIndex;
+
+
+            var orders = Execute(() => _apiClient.GetOrders(selectSource)); ;
+
+            if (orders != null)
+            {
+                foreach (var order in orders)
+                {
+                    var result =
+                        string.Format(
+                            "Order: Ticket = {0}, Symbol = {1}, Operation = {2}, OpenPrice = {3}, ClosePrice = {4}, Lots = {5}, Profit = {6}, Comment = {7}, Commission = {8}, MagicNumber = {9}, OpenTime = {10}, CloseTime = {11}",
+                            order.Ticket, order.Symbol, order.Operation, order.OpenPrice, order.ClosePrice, order.Lots, order.Profit, order.Comment, order.Commission, order.MagicNumber, order.OpenTime, order.CloseTime);
+                    addToLog(result);
+                }
+            }
+        }
+
+        //OrderSendBuy
         private void button18_Click(object sender, EventArgs e)
         {
             var symbol = textBoxOrderSymbol.Text;
@@ -999,26 +944,13 @@ namespace TestApiClientUI
 
             var slippage = (int)numericOrderSlippage.Value;
 
-            int ticket = 0;
-            try
-            {
-                ticket = apiClient.OrderSendBuy(symbol, volume, slippage);
-            }
-            catch (MtConnectionException ex)
-            {
-                addToLog("MtExecutionException: " + ex.Message);
-                return;
-            }
-            catch (MtExecutionException ex)
-            {
-                addToLog("MtExecutionException: " + ex.Message + "; ErrorCode = " + ex.ErrorCode);
-                return;
-            }
+            var ticket = Execute(() => _apiClient.OrderSendBuy(symbol, volume, slippage));
 
             addToLog(string.Format("Sended order result: ticketId = {0}, symbol = {1}, volume = {2}, slippage = {3}",
                 ticket, symbol, volume, slippage));
         }
 
+        //OrderSendSell
         private void button19_Click(object sender, EventArgs e)
         {
             var symbol = textBoxOrderSymbol.Text;
@@ -1028,24 +960,35 @@ namespace TestApiClientUI
 
             var slippage = (int)numericOrderSlippage.Value;
 
-            int ticket = 0;
-            try
-            {
-                ticket = apiClient.OrderSendSell(symbol, volume, slippage);
-            }
-            catch (MtConnectionException ex)
-            {
-                addToLog("MtExecutionException: " + ex.Message);
-                return;
-            }
-            catch (MtExecutionException ex)
-            {
-                addToLog("MtExecutionException: " + ex.Message + "; ErrorCode = " + ex.ErrorCode);
-                return;
-            }
+            var ticket = Execute(() => _apiClient.OrderSendSell(symbol, volume, slippage));
 
             addToLog(string.Format("Sended order result: ticketId = {0}, symbol = {1}, volume = {2}, slippage = {3}",
                 ticket, symbol, volume, slippage));
+        }
+
+        //OrderClose
+        private void button20_Click(object sender, EventArgs e)
+        {
+            var ticket = int.Parse(textBoxIndexTicket.Text);
+            var slippage = (int)numericOrderSlippage.Value;
+
+            var closed = false;
+
+            if (checkBox1.Checked)
+            {
+                closed = Execute(() => _apiClient.OrderClose(ticket, slippage));   
+            }
+            else
+            {
+                double volume;
+                double.TryParse(textBoxOrderVolume.Text, out volume);
+
+                double price;
+                double.TryParse(textBoxOrderPrice.Text, out price);
+                closed = Execute(() => _apiClient.OrderClose(ticket, volume, price, slippage));   
+            }
+
+            addToLog(string.Format("Close order result: {0}, ticket = {1}", closed, ticket));
         }
     }
 }

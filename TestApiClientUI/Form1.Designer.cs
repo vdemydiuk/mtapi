@@ -48,6 +48,7 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.button20 = new System.Windows.Forms.Button();
             this.button17 = new System.Windows.Forms.Button();
             this.comboBox2 = new System.Windows.Forms.ComboBox();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
@@ -60,6 +61,8 @@
             this.listBoxClosedOrders = new System.Windows.Forms.ListBox();
             this.button2 = new System.Windows.Forms.Button();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.button19 = new System.Windows.Forms.Button();
+            this.button18 = new System.Windows.Forms.Button();
             this.comboBoxOrderColor = new System.Windows.Forms.ComboBox();
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.textBoxOrderMagic = new System.Windows.Forms.TextBox();
@@ -118,11 +121,9 @@
             this.button6 = new System.Windows.Forms.Button();
             this.listBoxProceHistory = new System.Windows.Forms.ListBox();
             this.tabPage6 = new System.Windows.Forms.TabPage();
-            this.button15 = new System.Windows.Forms.Button();
             this.button14 = new System.Windows.Forms.Button();
             this.button13 = new System.Windows.Forms.Button();
-            this.button18 = new System.Windows.Forms.Button();
-            this.button19 = new System.Windows.Forms.Button();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -303,6 +304,8 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.checkBox1);
+            this.tabPage2.Controls.Add(this.button20);
             this.tabPage2.Controls.Add(this.button17);
             this.tabPage2.Controls.Add(this.comboBox2);
             this.tabPage2.Controls.Add(this.comboBox1);
@@ -324,9 +327,19 @@
             this.tabPage2.Text = "Trade Operations";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // button20
+            // 
+            this.button20.Location = new System.Drawing.Point(216, 185);
+            this.button20.Name = "button20";
+            this.button20.Size = new System.Drawing.Size(75, 23);
+            this.button20.TabIndex = 13;
+            this.button20.Text = "CloseOrder";
+            this.button20.UseVisualStyleBackColor = true;
+            this.button20.Click += new System.EventHandler(this.button20_Click);
+            // 
             // button17
             // 
-            this.button17.Location = new System.Drawing.Point(601, 290);
+            this.button17.Location = new System.Drawing.Point(601, 158);
             this.button17.Name = "button17";
             this.button17.Size = new System.Drawing.Size(75, 23);
             this.button17.TabIndex = 12;
@@ -341,7 +354,7 @@
             this.comboBox2.Items.AddRange(new object[] {
             "MODE_TRADES",
             "MODE_HISTORY"});
-            this.comboBox2.Location = new System.Drawing.Point(481, 261);
+            this.comboBox2.Location = new System.Drawing.Point(341, 158);
             this.comboBox2.Name = "comboBox2";
             this.comboBox2.Size = new System.Drawing.Size(114, 21);
             this.comboBox2.TabIndex = 11;
@@ -353,14 +366,14 @@
             this.comboBox1.Items.AddRange(new object[] {
             "SELECT_BY_POS",
             "SELECT_BY_TICKET"});
-            this.comboBox1.Location = new System.Drawing.Point(356, 261);
+            this.comboBox1.Location = new System.Drawing.Point(216, 158);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(119, 21);
             this.comboBox1.TabIndex = 10;
             // 
             // button16
             // 
-            this.button16.Location = new System.Drawing.Point(601, 261);
+            this.button16.Location = new System.Drawing.Point(461, 158);
             this.button16.Name = "button16";
             this.button16.Size = new System.Drawing.Size(75, 23);
             this.button16.TabIndex = 9;
@@ -371,7 +384,7 @@
             // label21
             // 
             this.label21.AutoSize = true;
-            this.label21.Location = new System.Drawing.Point(213, 264);
+            this.label21.Location = new System.Drawing.Point(213, 135);
             this.label21.Name = "label21";
             this.label21.Size = new System.Drawing.Size(71, 13);
             this.label21.TabIndex = 8;
@@ -379,9 +392,9 @@
             // 
             // textBoxIndexTicket
             // 
-            this.textBoxIndexTicket.Location = new System.Drawing.Point(290, 261);
+            this.textBoxIndexTicket.Location = new System.Drawing.Point(290, 132);
             this.textBoxIndexTicket.Name = "textBoxIndexTicket";
-            this.textBoxIndexTicket.Size = new System.Drawing.Size(60, 20);
+            this.textBoxIndexTicket.Size = new System.Drawing.Size(109, 20);
             this.textBoxIndexTicket.TabIndex = 7;
             this.textBoxIndexTicket.Text = "0";
             // 
@@ -413,7 +426,7 @@
             "OrderTakeProfit",
             "OrderTicket",
             "OrderType"});
-            this.comboBoxSelectedCommand.Location = new System.Drawing.Point(216, 292);
+            this.comboBoxSelectedCommand.Location = new System.Drawing.Point(213, 344);
             this.comboBoxSelectedCommand.Name = "comboBoxSelectedCommand";
             this.comboBoxSelectedCommand.Size = new System.Drawing.Size(121, 21);
             this.comboBoxSelectedCommand.TabIndex = 6;
@@ -430,7 +443,7 @@
             // label16
             // 
             this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(213, 135);
+            this.label16.Location = new System.Drawing.Point(210, 69);
             this.label16.Name = "label16";
             this.label16.Size = new System.Drawing.Size(42, 13);
             this.label16.TabIndex = 4;
@@ -441,14 +454,14 @@
             this.listBoxClosedOrders.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.listBoxClosedOrders.FormattingEnabled = true;
-            this.listBoxClosedOrders.Location = new System.Drawing.Point(213, 151);
+            this.listBoxClosedOrders.Location = new System.Drawing.Point(213, 85);
             this.listBoxClosedOrders.Name = "listBoxClosedOrders";
-            this.listBoxClosedOrders.Size = new System.Drawing.Size(463, 108);
+            this.listBoxClosedOrders.Size = new System.Drawing.Size(463, 43);
             this.listBoxClosedOrders.TabIndex = 5;
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(343, 292);
+            this.button2.Location = new System.Drawing.Point(356, 342);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(87, 23);
             this.button2.TabIndex = 2;
@@ -489,6 +502,26 @@
             this.groupBox3.TabIndex = 5;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Send Order";
+            // 
+            // button19
+            // 
+            this.button19.Location = new System.Drawing.Point(87, 336);
+            this.button19.Name = "button19";
+            this.button19.Size = new System.Drawing.Size(75, 23);
+            this.button19.TabIndex = 15;
+            this.button19.Text = "Sell";
+            this.button19.UseVisualStyleBackColor = true;
+            this.button19.Click += new System.EventHandler(this.button19_Click);
+            // 
+            // button18
+            // 
+            this.button18.Location = new System.Drawing.Point(6, 336);
+            this.button18.Name = "button18";
+            this.button18.Size = new System.Drawing.Size(75, 23);
+            this.button18.TabIndex = 14;
+            this.button18.Text = "Buy";
+            this.button18.UseVisualStyleBackColor = true;
+            this.button18.Click += new System.EventHandler(this.button18_Click);
             // 
             // comboBoxOrderColor
             // 
@@ -708,7 +741,7 @@
             this.listBoxSendedOrders.Location = new System.Drawing.Point(213, 23);
             this.listBoxSendedOrders.Name = "listBoxSendedOrders";
             this.listBoxSendedOrders.SelectionMode = System.Windows.Forms.SelectionMode.MultiSimple;
-            this.listBoxSendedOrders.Size = new System.Drawing.Size(463, 121);
+            this.listBoxSendedOrders.Size = new System.Drawing.Size(463, 43);
             this.listBoxSendedOrders.TabIndex = 1;
             // 
             // tabPage1
@@ -721,7 +754,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(682, 362);
+            this.tabPage1.Size = new System.Drawing.Size(682, 377);
             this.tabPage1.TabIndex = 2;
             this.tabPage1.Text = "Check Status";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -799,7 +832,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(682, 362);
+            this.tabPage3.Size = new System.Drawing.Size(682, 377);
             this.tabPage3.TabIndex = 3;
             this.tabPage3.Text = "Account Information";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -910,7 +943,7 @@
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(682, 362);
+            this.tabPage4.Size = new System.Drawing.Size(682, 377);
             this.tabPage4.TabIndex = 4;
             this.tabPage4.Text = "MarketInfo";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -992,7 +1025,7 @@
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(682, 362);
+            this.tabPage5.Size = new System.Drawing.Size(682, 377);
             this.tabPage5.TabIndex = 5;
             this.tabPage5.Text = "Timeframes";
             this.tabPage5.UseVisualStyleBackColor = true;
@@ -1110,26 +1143,15 @@
             // 
             // tabPage6
             // 
-            this.tabPage6.Controls.Add(this.button15);
             this.tabPage6.Controls.Add(this.button14);
             this.tabPage6.Controls.Add(this.button13);
             this.tabPage6.Location = new System.Drawing.Point(4, 22);
             this.tabPage6.Name = "tabPage6";
             this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage6.Size = new System.Drawing.Size(682, 362);
+            this.tabPage6.Size = new System.Drawing.Size(682, 377);
             this.tabPage6.TabIndex = 6;
             this.tabPage6.Text = "Client Terminal";
             this.tabPage6.UseVisualStyleBackColor = true;
-            // 
-            // button15
-            // 
-            this.button15.Location = new System.Drawing.Point(223, 184);
-            this.button15.Name = "button15";
-            this.button15.Size = new System.Drawing.Size(75, 23);
-            this.button15.TabIndex = 2;
-            this.button15.Text = "button15";
-            this.button15.UseVisualStyleBackColor = true;
-            this.button15.Click += new System.EventHandler(this.button15_Click);
             // 
             // button14
             // 
@@ -1151,25 +1173,15 @@
             this.button13.UseVisualStyleBackColor = true;
             this.button13.Click += new System.EventHandler(this.button13_Click);
             // 
-            // button18
+            // checkBox1
             // 
-            this.button18.Location = new System.Drawing.Point(6, 336);
-            this.button18.Name = "button18";
-            this.button18.Size = new System.Drawing.Size(75, 23);
-            this.button18.TabIndex = 14;
-            this.button18.Text = "Buy";
-            this.button18.UseVisualStyleBackColor = true;
-            this.button18.Click += new System.EventHandler(this.button18_Click);
-            // 
-            // button19
-            // 
-            this.button19.Location = new System.Drawing.Point(87, 336);
-            this.button19.Name = "button19";
-            this.button19.Size = new System.Drawing.Size(75, 23);
-            this.button19.TabIndex = 15;
-            this.button19.Text = "Sell";
-            this.button19.UseVisualStyleBackColor = true;
-            this.button19.Click += new System.EventHandler(this.button19_Click);
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Location = new System.Drawing.Point(297, 191);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(205, 17);
+            this.checkBox1.TabIndex = 14;
+            this.checkBox1.Text = "Close order by current price on market";
+            this.checkBox1.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -1298,7 +1310,6 @@
         private System.Windows.Forms.Button button13;
         private System.Windows.Forms.Button button14;
         private System.Windows.Forms.Button buttonRefreshRates;
-        private System.Windows.Forms.Button button15;
         private System.Windows.Forms.Button button16;
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.ComboBox comboBox2;
@@ -1306,6 +1317,8 @@
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.Button button19;
         private System.Windows.Forms.Button button18;
+        private System.Windows.Forms.Button button20;
+        private System.Windows.Forms.CheckBox checkBox1;
     }
 }
 

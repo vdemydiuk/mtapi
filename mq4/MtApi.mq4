@@ -248,213 +248,23 @@ int executeCommand()
       //NoCommand               
       break;
       
-   case 155: //SignalServiceCommand
+   case 155: //Request
    {
       if (!getStringValue(ExpertHandle, 0, requestValue))
       {
-         PrintParamError("Signal");
+         PrintParamError("Request");
       }
       
       string response = "";
 
       if (requestValue != "")
       {
-         Print("executeCommand: incoming signal = ", requestValue);
+         Print("executeCommand: incoming request = ", requestValue);
          response = OnRequest(requestValue);
       }
       
       sendStringResponse(ExpertHandle, response);      
    }
-   break;
-   case 1: // OrderSend
-      if (!getStringValue(ExpertHandle, 0, symbolValue)) 
-      {
-         PrintParamError("symbol");
-      }
-      
-      if (!getIntValue(ExpertHandle, 1, cmdValue))
-      {
-         PrintParamError("cmd");
-      }
-               
-      if (!getDoubleValue(ExpertHandle, 2, volumeValue))
-      {
-         PrintParamError("volume");      
-      }
-      
-      if (!getDoubleValue(ExpertHandle, 3, priceValue))
-      {
-         PrintParamError("price");   
-      }
-      
-      if (!getIntValue(ExpertHandle, 4, slippageValue))
-      {
-         PrintParamError("slippage");        
-      }
-      
-      if (!getDoubleValue(ExpertHandle, 5, stoplossValue))
-      {
-         PrintParamError("stoploss"); 
-      }
-
-      if (!getDoubleValue(ExpertHandle, 6, takeprofitValue))
-      {
-         PrintParamError("takeprofit");
-      }
-      
-      if (!getStringValue(ExpertHandle, 7, commentValue)) 
-      {
-         PrintParamError("comment");
-      }
-      
-      if (!getIntValue(ExpertHandle, 8, magicValue))
-      {
-         PrintParamError("magic");
-      }
-      
-      if (!getIntValue(ExpertHandle, 9, expirationValue))
-      {
-         PrintParamError("expiration");
-      }
-      
-      if (!getIntValue(ExpertHandle, 10, arrow_colorValue))
-      {
-         PrintParamError("arrow_color");  
-      }
-      
-      if (!sendIntResponse(ExpertHandle, OrderSend(symbolValue, cmdValue, volumeValue, priceValue
-                                       , slippageValue, stoplossValue, takeprofitValue
-                                       , commentValue, magicValue, expirationValue, arrow_colorValue))) 
-      {
-         PrintResponseError("OrderSend");
-      }         
-      
-      break;   
-      
-   case 1001: // OrderSendBuy
-      if (!getStringValue(ExpertHandle, 0, symbolValue)) 
-      {
-         PrintParamError("symbol");
-      }
-               
-      if (!getDoubleValue(ExpertHandle, 1, volumeValue))
-      {
-         PrintParamError("volume");      
-      }
-           
-      if (!getIntValue(ExpertHandle, 2, slippageValue))
-      {
-         PrintParamError("slippage");        
-      }
-      
-      if (!getDoubleValue(ExpertHandle, 3, stoplossValue))
-      {
-         PrintParamError("stoploss"); 
-      }
-
-      if (!getDoubleValue(ExpertHandle, 4, takeprofitValue))
-      {
-         PrintParamError("takeprofit");
-      }
-      
-      if (!getStringValue(ExpertHandle, 5, commentValue)) 
-      {
-         PrintParamError("comment");
-      }
-      
-      if (!getIntValue(ExpertHandle, 6, magicValue))
-      {
-         PrintParamError("magic");
-      }
-      
-      priceValue = MarketInfo(symbolValue, MODE_ASK);
-         
-      if (!sendIntResponse(ExpertHandle, OrderSend(symbolValue, OP_BUY, volumeValue, priceValue
-                                       , slippageValue, stoplossValue, takeprofitValue
-                                       , commentValue, magicValue)))
-      {
-         PrintResponseError("OrderSend");
-      }         
-      
-      break;
-      
-   case 1002: // OrderSendSell
-      if (!getStringValue(ExpertHandle, 0, symbolValue)) 
-      {
-         PrintParamError("symbol");
-      }
-               
-      if (!getDoubleValue(ExpertHandle, 1, volumeValue))
-      {
-         PrintParamError("volume");      
-      }
-           
-      if (!getIntValue(ExpertHandle, 2, slippageValue))
-      {
-         PrintParamError("slippage");        
-      }
-      
-      if (!getDoubleValue(ExpertHandle, 3, stoplossValue))
-      {
-         PrintParamError("stoploss"); 
-      }
-
-      if (!getDoubleValue(ExpertHandle, 4, takeprofitValue))
-      {
-         PrintParamError("takeprofit");
-      }
-      
-      if (!getStringValue(ExpertHandle, 5, commentValue)) 
-      {
-         PrintParamError("comment");
-      }
-      
-      if (!getIntValue(ExpertHandle, 6, magicValue))
-      {
-         PrintParamError("magic");
-      }
-            
-      priceValue = MarketInfo(symbolValue, MODE_BID);
-         
-      if (!sendIntResponse(ExpertHandle, OrderSend(symbolValue, OP_SELL, volumeValue, priceValue
-                                       , slippageValue, stoplossValue, takeprofitValue
-                                       , commentValue, magicValue))) 
-      {
-         PrintResponseError("OrderSend");
-      }         
-      
-      break;     
-            
-   case 2: // OrderClose
-      if (!getIntValue(ExpertHandle, 0, ticketValue)) 
-      {
-         PrintParamError("ticket");
-      }
-      
-      if (!getDoubleValue(ExpertHandle, 1, lotsValue))
-      {
-         PrintParamError("lots");
-      }
-               
-      if (!getDoubleValue(ExpertHandle, 2, priceValue))
-      {
-         PrintParamError("price");
-      }
-              
-      if (!getIntValue(ExpertHandle, 3, slippageValue))
-      {
-         PrintParamError("slippage");       
-      }
-      
-      if (!getIntValue(ExpertHandle, 4, colorValue))
-      {
-         PrintParamError("color");    
-      }
-
-      if (!sendBooleanResponse(ExpertHandle, OrderClose(ticketValue, lotsValue, priceValue, slippageValue, colorValue))) 
-      {
-         PrintResponseError("OrderClose");
-      }               
    break;
       
    case 151: //OrderCloseAll
@@ -462,40 +272,7 @@ int executeCommand()
       {
          PrintResponseError("OrderCloseAll");
       }    
-   break;
-   
-   case 152: //OrderCloseByCurrentPrice
-      if (!getIntValue(ExpertHandle, 0, ticketValue)) 
-      {
-         PrintParamError("ticket");
-      }
-
-      if (!getIntValue(ExpertHandle, 1, slippageValue))
-      {
-         PrintParamError("slippage");       
-      }
-      
-      lotsValue = 0;
-      if (OrderSelect(ticketValue, SELECT_BY_TICKET))
-      {
-         symbolValue = OrderSymbol();
-         lotsValue = OrderLots();
-         if (OrderType() == OP_SELL)
-         {
-            priceValue = MarketInfo(symbolValue, MODE_ASK);     
-         }
-         else
-         {
-            priceValue = MarketInfo(symbolValue, MODE_BID);      
-         }
-      }
-
-      if (!sendBooleanResponse(ExpertHandle, OrderClose(ticketValue, lotsValue, priceValue, slippageValue))) 
-      {
-         PrintResponseError("OrderClose");
-      }
-   break;
-      
+   break;    
       
    case 3: // OrderCloseBy
       if (!getIntValue(ExpertHandle, 0, ticketValue)) 
@@ -3567,14 +3344,13 @@ bool OrderCloseAll()
    {
       if (OrderSelect(i, SELECT_BY_POS))
       {
-         int type = OrderType();
-   
+         int type = OrderType();   
          switch(type)
          {
             //Close opened long positions
             case OP_BUY: OrderClose( OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_BID), 5, Red );
                break;      
-         //Close opened short positions
+            //Close opened short positions
             case OP_SELL: OrderClose( OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_ASK), 5, Red );
                break;
          }      
@@ -3639,6 +3415,9 @@ string OnRequest(string json)
                break;
             case 3: //OrderSend
                response = ExecuteRequestOrderSend(jo);
+               break;
+            case 4: //OrderClose
+               response = ExecuteRequestOrderClose(jo);
                break;
             default:
                Print("OnRequest [WARNING]: Unknown request type ", requestType);
@@ -3755,13 +3534,11 @@ string ExecuteRequestOrderSend(JSONObject *jo)
    if (jvPrice != NULL)
    {
       price = jvPrice.getDouble();
-      Print("Take price from request ", price);
    }
    else
    {
       int mode = isLongOperation(cmd) ? MODE_ASK : MODE_BID;
       price = MarketInfo(symbol, mode);
-      Print("Take price by mode ", mode, " and choosen price ", price);
    }
    
    JSONValue *jvSlippage = jo.getValue("Slippage");
@@ -3791,4 +3568,60 @@ string ExecuteRequestOrderSend(JSONObject *jo)
    
    JSONValue* jvTicket = new JSONNumber(ticket);
    return CreateSuccessResponse("Ticket", jvTicket);      
+}
+
+string ExecuteRequestOrderClose(JSONObject *jo)
+{
+   if (jo.getValue("Ticket") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Ticket");
+
+   int ticket = jo.getInt("Ticket");
+   
+   double price;  
+   JSONValue *jvPrice = jo.getValue("Price");
+   if (jvPrice != NULL)
+   {
+      price = jvPrice.getDouble();
+   }
+   else
+   {
+      if (OrderSelect(ticket, SELECT_BY_TICKET))
+      {
+         string symbol = OrderSymbol();
+         int mode = isLongOperation(OrderType()) ? MODE_BID : MODE_ASK;
+         price = MarketInfo(symbol, mode);
+      }
+      else
+      {
+         return CreateErrorResponse(-1, "Failed select order to get current price");
+      }     
+   }
+   
+   double lots;
+   JSONValue *jvLots = jo.getValue("Lots");
+   if (jvLots != NULL)
+   {
+      lots = jvLots.getDouble();
+   }
+   else
+   {
+      if (OrderSelect(ticket, SELECT_BY_TICKET))
+      {
+         lots = OrderLots();
+      }
+      else
+      {
+         return CreateErrorResponse(-1, "Failed select order to get lots of order");
+      }     
+   }
+   
+   JSONValue *jvSlippage = jo.getValue("Slippage");
+   double slippage = (jvSlippage != NULL) ? jvSlippage.getDouble() : 1;
+   
+   JSONValue *jvArrowColor = jo.getValue("ArrowColor");
+   int arrowcolor = (jvArrowColor != NULL) ? jvArrowColor.getInt() : clrNONE;
+
+   if (!OrderClose(ticket, lots, price, slippage, arrowcolor))
+      return CreateErrorResponse(GetLastError(), "OrderClose failed");
+   return CreateSuccessResponse("", NULL);   
 }
