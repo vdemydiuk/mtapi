@@ -3461,6 +3461,7 @@ JSONObject* GetOrderJson(int index, int select, int pool)
    int magicNumber = OrderMagicNumber();
    datetime openTime = OrderOpenTime();
    datetime closeTime = OrderCloseTime();
+   double swap = OrderSwap();
    
    JSONObject *joOrder = new JSONObject();   
    joOrder.put("Ticket", new JSONNumber(ticket));
@@ -3477,6 +3478,7 @@ JSONObject* GetOrderJson(int index, int select, int pool)
    joOrder.put("MagicNumber", new JSONNumber(magicNumber));
    joOrder.put("MtOpenTime", new JSONNumber(openTime));
    joOrder.put("MtCloseTime", new JSONNumber(closeTime));
+   joOrder.put("Swap", new JSONNumber(swap));
    
    return joOrder;
 }

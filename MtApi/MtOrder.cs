@@ -16,6 +16,7 @@ namespace MtApi
         public string Comment { get; set; }
         public double Commission { get; set; }
         public int MagicNumber { get; set; }
+        public double Swap { get; set; }
 
         public DateTime OpenTime
         {

@@ -211,6 +211,12 @@ namespace MtApi
 
             return (TradeOperation)retVal;
         }
+
+        [Obsolete("OrderSwap is deprecated, please use GetOrder instead.")]
+        public double OrderSwap()
+        {
+            return SendCommand<double>(MtCommandType.OrderSwap, null);
+        }
         #endregion
 
         #region Trading functions
@@ -438,11 +444,6 @@ namespace MtApi
         public int OrdersTotal()
         {
             return SendCommand<int>(MtCommandType.OrdersTotal, null);
-        }
-
-        public double OrderSwap()
-        {
-            return  SendCommand<double>(MtCommandType.OrderSwap, null);
         }
 
         public bool OrderCloseAll()
