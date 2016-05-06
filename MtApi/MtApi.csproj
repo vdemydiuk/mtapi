@@ -81,6 +81,7 @@
     <Compile Include="Requests\OrderCloseByRequest.cs" />
     <Compile Include="Requests\OrderCloseRequest.cs" />
     <Compile Include="Requests\OrderDeleteRequest.cs" />
+    <Compile Include="Requests\OrderModifyRequest.cs" />
     <Compile Include="Requests\OrderSendRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />
     <Compile Include="Requests\RequestType.cs" />

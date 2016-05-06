@@ -17,6 +17,7 @@ namespace MtApi
         public double Commission { get; set; }
         public int MagicNumber { get; set; }
         public double Swap { get; set; }
+        public int MtExpiration { get; set; }
 
         public DateTime OpenTime
         {
@@ -26,6 +27,11 @@ namespace MtApi
         public DateTime CloseTime
         {
             get { return MtApiTimeConverter.ConvertFromMtTime(MtCloseTime); }
+        }
+
+        public DateTime Expiration
+        {
+            get { return MtApiTimeConverter.ConvertFromMtTime(MtExpiration); }
         }
     }
 }

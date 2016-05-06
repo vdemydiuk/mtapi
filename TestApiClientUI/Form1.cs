@@ -57,7 +57,10 @@ namespace TestApiClientUI
 
         private void RunOnUiThread(Action action)
         {
-            this.BeginInvoke(action);
+            if (!IsDisposed)
+            {
+                this.BeginInvoke(action);   
+            }
         }
 
         private void apiClient_ConnectionStateChanged(object sender, MtConnectionEventArgs e)
@@ -875,8 +878,8 @@ namespace TestApiClientUI
             {
                 var result =
                     string.Format(
-                        "Order: Ticket = {0}, Symbol = {1}, Operation = {2}, OpenPrice = {3}, ClosePrice = {4}, Lots = {5}, Profit = {6}, Comment = {7}, Commission = {8}, MagicNumber = {9}, OpenTime = {10}, CloseTime = {11}, Swap = {12}",
-                        order.Ticket, order.Symbol, order.Operation, order.OpenPrice, order.ClosePrice, order.Lots, order.Profit, order.Comment, order.Commission, order.MagicNumber, order.OpenTime, order.CloseTime, order.Swap);
+                        "Order: Ticket = {0}, Symbol = {1}, Operation = {2}, OpenPrice = {3}, ClosePrice = {4}, Lots = {5}, Profit = {6}, Comment = {7}, Commission = {8}, MagicNumber = {9}, OpenTime = {10}, CloseTime = {11}, Swap = {12}, Expiration = {13}",
+                        order.Ticket, order.Symbol, order.Operation, order.OpenPrice, order.ClosePrice, order.Lots, order.Profit, order.Comment, order.Commission, order.MagicNumber, order.OpenTime, order.CloseTime, order.Swap, order.Expiration);
                 AddToLog(result);                
             }
         }
@@ -895,8 +898,8 @@ namespace TestApiClientUI
                 {
                     var result =
                         string.Format(
-                            "Order: Ticket = {0}, Symbol = {1}, Operation = {2}, OpenPrice = {3}, ClosePrice = {4}, Lots = {5}, Profit = {6}, Comment = {7}, Commission = {8}, MagicNumber = {9}, OpenTime = {10}, CloseTime = {11}, Swap = {12}",
-                            order.Ticket, order.Symbol, order.Operation, order.OpenPrice, order.ClosePrice, order.Lots, order.Profit, order.Comment, order.Commission, order.MagicNumber, order.OpenTime, order.CloseTime, order.Swap);
+                            "Order: Ticket = {0}, Symbol = {1}, Operation = {2}, OpenPrice = {3}, ClosePrice = {4}, Lots = {5}, Profit = {6}, Comment = {7}, Commission = {8}, MagicNumber = {9}, OpenTime = {10}, CloseTime = {11}, Swap = {12}, Expiration = {13}",
+                            order.Ticket, order.Symbol, order.Operation, order.OpenPrice, order.ClosePrice, order.Lots, order.Profit, order.Comment, order.Commission, order.MagicNumber, order.OpenTime, order.CloseTime, order.Swap, order.Expiration);
                     AddToLog(result);
                 }
             }
@@ -978,6 +981,26 @@ namespace TestApiClientUI
             var deleted = await Execute(() => _apiClient.OrderDelete(ticket));
 
             AddToLog(string.Format("Delete order result: {0}, ticket = {1}", deleted, ticket));
+        }
+
+        private async void button22_Click(object sender, EventArgs e)
+        {
+            var ticket = int.Parse(textBoxIndexTicket.Text);
+
+            double price;
+            double.TryParse(textBoxOrderPrice.Text, out price);
+
+            double stoploss;
+            double.TryParse(textBoxOrderStoploss.Text, out stoploss);
+
+            double takeprofit;
+            double.TryParse(textBoxOrderProffit.Text, out takeprofit);
+
+            var expiration = DateTime.MinValue;
+
+            var modified = await Execute(() => _apiClient.OrderModify(ticket, price, stoploss, takeprofit, expiration));
+
+            AddToLog(string.Format("Modify order result: {0}, ticket = {1}", modified, ticket));
         }
     }
 }

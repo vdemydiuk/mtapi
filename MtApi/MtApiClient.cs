@@ -28,11 +28,11 @@ namespace MtApi
 
         public MtApiClient()
         {
-            mClient.QuoteAdded +=new MtClient.MtQuoteHandler(mClient_QuoteAdded);
-            mClient.QuoteRemoved += new MtClient.MtQuoteHandler(mClient_QuoteRemoved);
-            mClient.QuoteUpdated += new MtClient.MtQuoteHandler(mClient_QuoteUpdated);
-            mClient.ServerDisconnected += new EventHandler(mClient_ServerDisconnected);
-            mClient.ServerFailed += new EventHandler(mClient_ServerFailed);
+            _client.QuoteAdded +=new MtClient.MtQuoteHandler(mClient_QuoteAdded);
+            _client.QuoteRemoved += new MtClient.MtQuoteHandler(mClient_QuoteRemoved);
+            _client.QuoteUpdated += new MtClient.MtQuoteHandler(mClient_QuoteUpdated);
+            _client.ServerDisconnected += new EventHandler(mClient_ServerDisconnected);
+            _client.ServerFailed += new EventHandler(mClient_ServerFailed);
         }
         #endregion
 
@@ -79,16 +79,26 @@ namespace MtApi
         ///</summary>
         public IEnumerable<MtQuote> GetQuotes()
         {
-            var quotes = mClient.GetQuotes();
+            var quotes = _client.GetQuotes();
             return quotes != null ? (from q in quotes select q.Parse()) : null;
         }
         #endregion
 
         #region Properties        
+
         ///<summary>
         ///Connection status of MetaTrader API.
         ///</summary>
-        public MtConnectionState ConnectionState { get; private set; }
+        public MtConnectionState ConnectionState
+        {
+            get
+            {
+                lock (_locker)
+                {
+                    return _connectionState;
+                }
+            }
+        }
         #endregion
 
 
@@ -411,13 +421,29 @@ namespace MtApi
 
         public bool OrderModify(int ticket, double price, double stoploss, double takeprofit, DateTime expiration, Color arrow_color)
         {
-            var commandParameters = new ArrayList { ticket, price, stoploss, takeprofit, MtApiTimeConverter.ConvertToMtTime(expiration), MtApiColorConverter.ConvertToMtColor(arrow_color) };
-            return SendCommand<bool>(MtCommandType.OrderModify, commandParameters);
+            var response = SendRequest<ResponseBase>(new OrderModifyRequest
+            {
+                Ticket = ticket,
+                Price = price,
+                Stoploss = stoploss,
+                Takeprofit = takeprofit,
+                Expiration = MtApiTimeConverter.ConvertToMtTime(expiration),
+                ArrowColor = MtApiColorConverter.ConvertToMtColor(arrow_color)
+            });
+            return response != null;
         }
 
         public bool OrderModify(int ticket, double price, double stoploss, double takeprofit, DateTime expiration)
         {
-            return OrderModify(ticket, price, stoploss, takeprofit, expiration, Color.Empty);
+            var response = SendRequest<ResponseBase>(new OrderModifyRequest
+            {
+                Ticket = ticket,
+                Price = price,
+                Stoploss = stoploss,
+                Takeprofit = takeprofit,
+                Expiration = MtApiTimeConverter.ConvertToMtTime(expiration),
+            });
+            return response != null;
         }
 
         public void OrderPrint()
@@ -1342,60 +1368,64 @@ namespace MtApi
         #region Private Methods
         private void Connect(string host, int port)
         {
-            ConnectionState = MtConnectionState.Connecting;
-            ConnectionStateChanged.FireEvent(this
-                , new MtConnectionEventArgs(MtConnectionState.Connecting, "Connecting to " + host + ":" + port));
+            UpdateConnectionState(MtConnectionState.Connecting, string.Format("Connecting to {0}:{1}", host, port));
 
             try
             {
-                mClient.Open(host, port);
-                mClient.Connect();
+                _client.Open(host, port);
+                _client.Connect();
             }
             catch (Exception e)
             {
-                ConnectionState = MtConnectionState.Failed;
-                ConnectionStateChanged.FireEvent(this
-                    , new MtConnectionEventArgs(MtConnectionState.Failed, "Failed connection to " + host + ":" + port + ". " + e.Message));
+                UpdateConnectionState(MtConnectionState.Failed, string.Format("Failed connection to {0}:{1}. {2}", host, port, e.Message));
                 return;
             }
 
-            ConnectionState = MtConnectionState.Connected;
-            ConnectionStateChanged.FireEvent(this
-                , new MtConnectionEventArgs(MtConnectionState.Connected, "Connected  to " + host + ":" + port));
+            UpdateConnectionState(MtConnectionState.Connected, string.Format("Connected  to  {0}:{1}", host, port));
         }
 
         private void Connect(int port)
         {
-            ConnectionState = MtConnectionState.Connecting;
-            ConnectionStateChanged.FireEvent(this
-                , new MtConnectionEventArgs(MtConnectionState.Connecting, "Connecting to 'localhost':" + port));
+            UpdateConnectionState(MtConnectionState.Connecting, string.Format("Connecting to 'localhost':{0}", port));
 
             try
             {
-                mClient.Open(port);
-                mClient.Connect();
+                _client.Open(port);
+                _client.Connect();
             }
             catch (Exception e)
             {
-                ConnectionState = MtConnectionState.Failed;
-                ConnectionStateChanged.FireEvent(this
-                    , new MtConnectionEventArgs(MtConnectionState.Failed, "Failed connection  to 'localhost':" + port + ". " + e.Message));
-
+                UpdateConnectionState(MtConnectionState.Failed, string.Format("Failed connection  to 'localhost':{0}. {1}", port, e.Message));
                 return;
             }
 
-            ConnectionState = MtConnectionState.Connected;
-            ConnectionStateChanged.FireEvent(this
-                , new MtConnectionEventArgs(MtConnectionState.Connected, "Connected to 'localhost':" + port));
+            UpdateConnectionState(MtConnectionState.Connected, string.Format("Connected to 'localhost':{0}", port));
         }
 
         private void Disconnect()
         {
-            mClient.Disconnect();
-            mClient.Close();
+            _client.Disconnect();
+            _client.Close();
 
-            ConnectionState = MtConnectionState.Disconnected;
-            ConnectionStateChanged.FireEvent(this, new MtConnectionEventArgs(MtConnectionState.Disconnected, "Disconnected"));
+            UpdateConnectionState(MtConnectionState.Disconnected, "Disconnected");
+        }
+
+        private void UpdateConnectionState(MtConnectionState state, string message)
+        {
+            var changed = false;
+            lock (_locker)
+            {
+                if (_connectionState != state)
+                {
+                    _connectionState = state;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                ConnectionStateChanged.FireEvent(this, new MtConnectionEventArgs(state, message));                
+            }
         }
 
         private T SendCommand<T>(MtCommandType commandType, ArrayList commandParameters)
@@ -1403,7 +1433,7 @@ namespace MtApi
             MtResponse response;
             try
             {
-                response = mClient.SendCommand((int)commandType, commandParameters);
+                response = _client.SendCommand((int)commandType, commandParameters);
             }
             catch (CommunicationException ex)
             {
@@ -1451,7 +1481,7 @@ namespace MtApi
             MtResponseString res;
             try
             {
-                res = (MtResponseString)mClient.SendCommand((int)MtCommandType.MtRequest, commandParameters);
+                res = (MtResponseString)_client.SendCommand((int)MtCommandType.MtRequest, commandParameters);
             }
             catch (CommunicationException ex)
             {
@@ -1482,16 +1512,12 @@ namespace MtApi
 
         private void mClient_ServerDisconnected(object sender, EventArgs e)
         {
-            ConnectionState = MtConnectionState.Disconnected;
-            ConnectionStateChanged.FireEvent(this
-                , new MtConnectionEventArgs(MtConnectionState.Disconnected, "MtApi is disconnected"));
+            UpdateConnectionState(MtConnectionState.Disconnected, "MtApi is disconnected");
         }
 
         private void mClient_ServerFailed(object sender, EventArgs e)
         {
-            ConnectionState = MtConnectionState.Failed;
-            ConnectionStateChanged.FireEvent(this
-                , new MtConnectionEventArgs(MtConnectionState.Failed, "Failed connection with MtApi"));
+            UpdateConnectionState(MtConnectionState.Failed, "Failed connection with MtApi");
         }
 
         private void mClient_QuoteRemoved(MTApiService.MtQuote quote)
@@ -1513,7 +1539,9 @@ namespace MtApi
         #endregion
 
         #region Private Fields
-        private readonly MtClient mClient = new MtClient();
+        private readonly MtClient _client = new MtClient();
+        private readonly object _locker = new object();
+        private MtConnectionState _connectionState = MtConnectionState.Disconnected;
         #endregion
     }
 }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
 using System.Diagnostics;
 using System.Collections;
 using System.ServiceModel;
@@ -13,7 +11,6 @@ namespace MTApiService
     {
         private static string SERVICE_NAME = "MtApiService";
 
-//        public delegate void MtInstrumentsChangedHandler(string addedInstrument, string removedInstrument);
         public delegate void MtQuoteHandler(MtQuote quote);
 
         #region Public Methods
@@ -21,29 +18,34 @@ namespace MTApiService
         {
             Debug.WriteLine("[INFO] MtClient::Open");
 
-            if (string.IsNullOrEmpty(host) == true)
-                throw new ArgumentNullException("host", "host is null or epmty");
+            if (string.IsNullOrEmpty(host))
+                throw new ArgumentNullException("host", "host is null or empty");
 
             if (port < 0 || port > 65536)
                 throw new ArgumentOutOfRangeException("port", "port value is invalid");
 
-            string urlService = string.Format("net.tcp://{0}:{1}/{2}", host, port, SERVICE_NAME);
+            var urlService = string.Format("net.tcp://{0}:{1}/{2}", host, port, SERVICE_NAME);
 
             lock (mClientLocker)
             {
                 if (mProxy != null)
                     return;
 
-                var bind = new NetTcpBinding(SecurityMode.None);
-                bind.MaxReceivedMessageSize = 2147483647;
-                bind.MaxBufferSize = 2147483647;
+                var bind = new NetTcpBinding(SecurityMode.None)
+                {
+                    MaxReceivedMessageSize = 2147483647,
+                    MaxBufferSize = 2147483647,
+                    MaxBufferPoolSize = 2147483647,
+                    ReaderQuotas =
+                    {
+                        MaxArrayLength = 2147483647,
+                        MaxBytesPerRead = 2147483647,
+                        MaxDepth = 2147483647,
+                        MaxStringContentLength = 2147483647,
+                        MaxNameTableCharCount = 2147483647
+                    }
+                };
                 // Commented next statement since it is not required
-                bind.MaxBufferPoolSize = 2147483647;
-                bind.ReaderQuotas.MaxArrayLength = 2147483647;
-                bind.ReaderQuotas.MaxBytesPerRead = 2147483647;
-                bind.ReaderQuotas.MaxDepth = 2147483647;
-                bind.ReaderQuotas.MaxStringContentLength = 2147483647;
-                bind.ReaderQuotas.MaxNameTableCharCount = 2147483647;
 
                 mProxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
                 mProxy.Faulted += mProxy_Faulted;
@@ -55,23 +57,28 @@ namespace MTApiService
             if (port < 0 || port > 65536)
                 throw new ArgumentOutOfRangeException("port", "port value is invalid");
 
-            string urlService = "net.pipe://localhost/" + SERVICE_NAME + "_" + port.ToString();
+            var urlService = string.Format("net.pipe://localhost/{0}_{1}", SERVICE_NAME, port);
 
             lock (mClientLocker)
             {
                 if (mProxy != null)
                     return;
 
-                var bind = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None);
-                bind.MaxReceivedMessageSize = 2147483647;
-                bind.MaxBufferSize = 2147483647;
+                var bind = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None)
+                {
+                    MaxReceivedMessageSize = 2147483647,
+                    MaxBufferSize = 2147483647,
+                    MaxBufferPoolSize = 2147483647,
+                    ReaderQuotas =
+                    {
+                        MaxArrayLength = 2147483647,
+                        MaxBytesPerRead = 2147483647,
+                        MaxDepth = 2147483647,
+                        MaxStringContentLength = 2147483647,
+                        MaxNameTableCharCount = 2147483647
+                    }
+                };
                 // Commented next statement since it is not required
-                bind.MaxBufferPoolSize = 2147483647;
-                bind.ReaderQuotas.MaxArrayLength = 2147483647;
-                bind.ReaderQuotas.MaxBytesPerRead = 2147483647;
-                bind.ReaderQuotas.MaxDepth = 2147483647;
-                bind.ReaderQuotas.MaxStringContentLength = 2147483647;
-                bind.ReaderQuotas.MaxNameTableCharCount = 2147483647;
 
                 mProxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
                 mProxy.Faulted += mProxy_Faulted;

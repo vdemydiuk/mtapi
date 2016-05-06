@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ServiceModel;
-using System.Diagnostics;
 using System.Threading;
 
 namespace MTApiService
@@ -23,7 +20,8 @@ namespace MTApiService
         [OperationContract]
         IEnumerable<MtQuote> GetQuotes();
     }
-   
+
+    [ServiceContract]
     public interface IMtApiCallback
     {
         [OperationContract(IsOneWay = true)]

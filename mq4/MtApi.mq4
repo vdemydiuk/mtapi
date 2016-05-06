@@ -3422,9 +3422,12 @@ string OnRequest(string json)
             case 5: //OrderCloseBy
                response = ExecuteRequestOrderCloseBy(jo);
                break;
-            case 6:
+            case 6: //OrderDelete
                response = ExecuteRequestOrderDelete(jo);
                break;
+            case 7: //OrderModify
+               response = ExecuteRequestOrderModify(jo);
+               break;               
             default:
                Print("OnRequest [WARNING]: Unknown request type ", requestType);
                response = CreateErrorResponse(-1, "Unknown request type");
@@ -3462,6 +3465,7 @@ JSONObject* GetOrderJson(int index, int select, int pool)
    datetime openTime = OrderOpenTime();
    datetime closeTime = OrderCloseTime();
    double swap = OrderSwap();
+   datetime expiration = OrderExpiration();
    
    JSONObject *joOrder = new JSONObject();   
    joOrder.put("Ticket", new JSONNumber(ticket));
@@ -3479,6 +3483,7 @@ JSONObject* GetOrderJson(int index, int select, int pool)
    joOrder.put("MtOpenTime", new JSONNumber(openTime));
    joOrder.put("MtCloseTime", new JSONNumber(closeTime));
    joOrder.put("Swap", new JSONNumber(swap));
+   joOrder.put("MtExpiration", new JSONNumber(expiration));
    
    return joOrder;
 }
@@ -3664,5 +3669,32 @@ string ExecuteRequestOrderDelete(JSONObject *jo)
 
    if (!OrderDelete(ticket, arrowcolor))
       return CreateErrorResponse(GetLastError(), "OrderDelete failed");
+   return CreateSuccessResponse("", NULL);   
+}
+
+string ExecuteRequestOrderModify(JSONObject *jo)
+{
+   if (jo.getValue("Ticket") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Ticket");
+   if (jo.getValue("Price") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Price");
+   if (jo.getValue("Stoploss") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Stoploss");
+   if (jo.getValue("Takeprofit") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Takeprofit");
+   if (jo.getValue("Expiration") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Expiration");         
+      
+   int ticket = jo.getInt("Ticket");
+   double price = jo.getDouble("Price");
+   double stoploss = jo.getDouble("Stoploss");
+   double takeprofit = jo.getDouble("Takeprofit");
+   int expiration = jo.getInt("Expiration");
+   
+   JSONValue *jvArrowColor = jo.getValue("ArrowColor");
+   int arrowcolor = (jvArrowColor != NULL) ? jvArrowColor.getInt() : CLR_NONE;   
+   
+   if (!OrderModify(ticket, price, stoploss, takeprofit, expiration, arrowcolor))
+      return CreateErrorResponse(GetLastError(), "OrderModify failed");
    return CreateSuccessResponse("", NULL);   
 }
