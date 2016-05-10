@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Fragment Id="CustomActions">
+        <CustomAction Id="CopyEx4" Script="vbscript">
+            <![CDATA[
+                MsgBox("Test")
+            ]]>
+        </CustomAction>
+
+        <Binary Id="InstallEx4File" SourceFile="$(var.MtApiSetupActions.TargetDir)$(var.MtApiSetupActions.TargetName).CA.dll"/>
+        <CustomAction Id="InstallEx4FileAction" BinaryKey="InstallEx4File" DllEntry="InstallEx4File" Execute="immediate" Return="check"/>
+    </Fragment>
+</Wix>
