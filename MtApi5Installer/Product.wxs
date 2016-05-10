@@ -2,12 +2,12 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <?if $(var.Platform) = x64 ?>
         <?define ProductName="MtApi5_x64" ?>
-        <?define ProductPathNative="..\build\products\$(var.Configuration)\"?>
+        <?define ProductPathNative="..\build\products\$(var.Configuration)\x64\"?>
         <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
         <?define PlatformSystemFolder = "System64Folder" ?>    
     <?else ?>
         <?define ProductName="MtApi5" ?>
-        <?define ProductPathNative="..\build\products\$(var.Configuration)\x64\"?>
+        <?define ProductPathNative="..\build\products\$(var.Configuration)\"?>
         <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
         <?define PlatformSystemFolder = "SystemFolder" ?>
     <?endif ?>
