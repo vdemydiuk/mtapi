@@ -70,6 +70,10 @@ ipch/
 *.sdf
 *.cachefile
 
+# Visual Studio 2015 files
+*.VC.opendb
+*.VC.db
+
 # Visual Studio profiler
 *.psess
 *.vsp

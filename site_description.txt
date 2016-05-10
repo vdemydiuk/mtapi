@@ -1,4 +1,0 @@
-TraderAppsMarket
-
-Provides an application programming interface for .Net applications to remote control MetaTrader 4 terminal via TCP/IP.
-This API support most MQL fuctions.

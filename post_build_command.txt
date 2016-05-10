@@ -1,1 +1,0 @@
-copy $(TargetPath) $(SolutionDir)..\AutoTrade\MT5Broker\libs\$(TargetFileName)
