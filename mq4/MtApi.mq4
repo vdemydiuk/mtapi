@@ -3539,7 +3539,7 @@ string ExecuteRequestOrderSend(JSONObject *jo)
             
    string symbol = jo.getString("Symbol");
    int cmd = jo.getInt("Cmd");
-   int volume = jo.getDouble("Volume");  
+   double volume = jo.getDouble("Volume");  
    
    double price;
   
