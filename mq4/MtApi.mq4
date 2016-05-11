@@ -3507,8 +3507,9 @@ string ExecuteRequestGetOrders(JSONObject *jo)
    int pool = jo.getInt("Pool");
 
    Print("ExecuteRequestGetOrders: Pool = ", pool);
+      
+   int total = (pool == MODE_HISTORY) ? OrdersHistoryTotal() : OrdersTotal();
    
-   int total=OrdersTotal();
    JSONArray* joOrders = new JSONArray();
    for(int pos = 0; pos < total; pos++)
    {
