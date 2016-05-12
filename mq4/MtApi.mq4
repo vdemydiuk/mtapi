@@ -1,5 +1,7 @@
 #property copyright "Vyacheslav Demidyuk"
-#property link      "DW"
+#property link      "http://mtapi4.net/"
+#property version   "1.1"
+#property description "MtApi connection expert"
 
 #include <WinUser32.mqh>
 #include <stdlib.mqh>
@@ -125,6 +127,94 @@ double doubleValuesArray[];
 
 double myBid;
 double myAsk;
+
+class MtOrder
+{
+public:
+   int getTicket() { return _ticket; }
+   string getSymbol() { return _symbol; }
+   int getOperation() { return _operation; }
+   double getOpenPrice() { return _openPrice; }
+   double getClosePrice() { return _closePrice; }
+   double getLots() { return _lots; }
+   double getProfit() { return _profit; }
+   string getComment() { return _comment; }
+   double getCommission() { return _commission; }
+   int getMagicNumber() { return _magicNumber; }
+   datetime getOpenTime() { return _openTime; }
+   datetime getCloseTime() { return _closeTime; }
+   double getSwap() { return _swap; }
+   datetime getExpiration() { return _expiration; }
+   
+   static bool isLong(int operation)
+   {
+      if (operation == OP_BUY || operation == OP_BUYLIMIT || operation == OP_BUYSTOP)
+         return true;
+      return false;
+   }
+   
+   JSONObject* CreateJson()
+   {
+      JSONObject *jo = new JSONObject();   
+      jo.put("Ticket", new JSONNumber(_ticket));
+      jo.put("Symbol", new JSONString(_symbol));
+      jo.put("Operation", new JSONNumber(_operation));
+      jo.put("OpenPrice", new JSONNumber(_openPrice));
+      jo.put("ClosePrice", new JSONNumber(_closePrice));
+      jo.put("Lots", new JSONNumber(_lots));
+      jo.put("Profit", new JSONNumber(_profit));
+      jo.put("Comment", new JSONString(_comment));
+      jo.put("Commission", new JSONString(_commission));
+      jo.put("MagicNumber", new JSONNumber(_magicNumber));
+      jo.put("Commission", new JSONString(_commission));
+      jo.put("MagicNumber", new JSONNumber(_magicNumber));
+      jo.put("MtOpenTime", new JSONNumber(_openTime));
+      jo.put("MtCloseTime", new JSONNumber(_closeTime));
+      jo.put("Swap", new JSONNumber(_swap));
+      jo.put("MtExpiration", new JSONNumber(_expiration));
+      
+      return jo;
+   }
+         
+   static MtOrder* LoadOrder(int index, int select, int pool)
+   {
+      MtOrder* order = NULL;
+      if (OrderSelect(index, select, pool))
+      {
+         order = new MtOrder();
+         order._ticket = OrderTicket();
+         order._operation = OrderType();
+         order._openPrice = OrderOpenPrice();
+         order._closePrice = OrderClosePrice();
+         order._lots = OrderLots();
+         order._profit = OrderProfit();
+         order._comment = OrderComment();
+         order._commission = OrderCommission();
+         order._magicNumber = OrderMagicNumber();
+         order._openTime = OrderOpenTime();
+         order._closeTime = OrderCloseTime();
+         order._swap = OrderSwap();
+         order._expiration = OrderExpiration();
+      }
+      return order;
+   }         
+         
+private:
+   int _ticket;
+   string _symbol;
+   int _operation;
+   double _openPrice;
+   double _closePrice;
+   double _lots;
+   double _profit;
+   string _comment;
+   double _commission;
+   int _magicNumber;
+   datetime _openTime;
+   datetime _closeTime;
+   double _swap;
+   datetime _expiration;
+};
 
 int preinit()
 {
@@ -3448,88 +3538,53 @@ string OnRequest(string json)
    return response;
 }
 
-JSONObject* GetOrderJson(int index, int select, int pool)
-{
-   if (OrderSelect(index, select, pool) == false)
-   {
-      return NULL;
-   }
-
-   int ticket = OrderTicket();
-   string symbol = OrderSymbol();
-   int operation = OrderType();
-   double openPrice = OrderOpenPrice();
-   double closePrice = OrderClosePrice();
-   double lots = OrderLots();
-   double profit = OrderProfit();
-   string comment = OrderComment();
-   double commission = OrderCommission();
-   int magicNumber = OrderMagicNumber();
-   datetime openTime = OrderOpenTime();
-   datetime closeTime = OrderCloseTime();
-   double swap = OrderSwap();
-   datetime expiration = OrderExpiration();
-   
-   JSONObject *joOrder = new JSONObject();   
-   joOrder.put("Ticket", new JSONNumber(ticket));
-   joOrder.put("Symbol", new JSONString(symbol));
-   joOrder.put("Operation", new JSONNumber(operation));
-   joOrder.put("OpenPrice", new JSONNumber(openPrice));
-   joOrder.put("ClosePrice", new JSONNumber(closePrice));
-   joOrder.put("Lots", new JSONNumber(lots));
-   joOrder.put("Profit", new JSONNumber(profit));
-   joOrder.put("Comment", new JSONString(comment));
-   joOrder.put("Commission", new JSONString(commission));
-   joOrder.put("MagicNumber", new JSONNumber(magicNumber));
-   joOrder.put("Commission", new JSONString(commission));
-   joOrder.put("MagicNumber", new JSONNumber(magicNumber));
-   joOrder.put("MtOpenTime", new JSONNumber(openTime));
-   joOrder.put("MtCloseTime", new JSONNumber(closeTime));
-   joOrder.put("Swap", new JSONNumber(swap));
-   joOrder.put("MtExpiration", new JSONNumber(expiration));
-   
-   return joOrder;
-}
-
 string ExecuteRequest_GetOrder(JSONObject *jo)
 {
+   if (jo.getValue("Index") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Index");
+   if (jo.getValue("Select") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Select");
+   if (jo.getValue("Pool") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Pool");
+
    int index = jo.getInt("Index");
    int select = jo.getInt("Select");
    int pool = jo.getInt("Pool");
-
-   Print("ExecuteRequestGetOrder: Index = ", index, "; Select = ", select, "; Pool = ", pool);
    
-   JSONObject* joOrder = GetOrderJson(index, select, pool);
-   if (joOrder == NULL)
+   MtOrder* order = MtOrder::LoadOrder(index, select, pool);
+   if (order == NULL)
       return CreateErrorResponse(GetLastError(), "GetOrder failed");   
-   return CreateSuccessResponse("Order", joOrder);
+
+   string response = CreateSuccessResponse("Order", order.CreateJson());
+   delete order;
+        
+   return response;
 }
 
 string ExecuteRequest_GetOrders(JSONObject *jo)
 {
-   int pool = jo.getInt("Pool");
+   if (jo.getValue("Pool") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Pool");
 
-   Print("ExecuteRequestGetOrders: Pool = ", pool);
+   int pool = jo.getInt("Pool");
       
    int total = (pool == MODE_HISTORY) ? OrdersHistoryTotal() : OrdersTotal();
    
    JSONArray* joOrders = new JSONArray();
-   for(int pos = 0; pos < 10000; pos++)
+   for(int pos = 0; pos < total; pos++)
    {
-      JSONObject* joOrder = GetOrderJson(0, SELECT_BY_POS, pool);
-      if (joOrder == NULL)
-         return CreateErrorResponse(GetLastError(), "GetOrders failed");     
-      joOrders.put(pos, joOrder);      
+      MtOrder* order = MtOrder::LoadOrder(pos, SELECT_BY_POS, pool);
+      if (order == NULL)
+      {
+         delete joOrders;
+         return CreateErrorResponse(GetLastError(), "GetOrders failed");                  
+      }
+      
+      joOrders.put(pos, order.CreateJson());
+      delete order; 
    }
    
    return CreateSuccessResponse("Orders", joOrders);
-}
-
-bool isLongOperation(int operation)
-{
-   if (operation == OP_BUY || operation == OP_BUYLIMIT || operation == OP_BUYSTOP)
-      return true;
-   return false;
 }
 
 string ExecuteRequest_OrderSend(JSONObject *jo)
@@ -3554,7 +3609,7 @@ string ExecuteRequest_OrderSend(JSONObject *jo)
    }
    else
    {
-      int mode = isLongOperation(cmd) ? MODE_ASK : MODE_BID;
+      int mode = MtOrder::isLong(cmd) ? MODE_ASK : MODE_BID;
       price = MarketInfo(symbol, mode);
    }
    
@@ -3605,7 +3660,7 @@ string ExecuteRequest_OrderClose(JSONObject *jo)
       if (OrderSelect(ticket, SELECT_BY_TICKET))
       {
          string symbol = OrderSymbol();
-         int mode = isLongOperation(OrderType()) ? MODE_BID : MODE_ASK;
+         int mode = MtOrder::isLong(OrderType()) ? MODE_BID : MODE_ASK;
          price = MarketInfo(symbol, mode);
       }
       else

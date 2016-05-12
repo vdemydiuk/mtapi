@@ -1010,15 +1010,6 @@ namespace MtApi
 
         public double iCustom(string symbol, int timeframe, string name, double[] parameters, int mode, int shift)
         {
-            //var commandParameters = new ArrayList { symbol, timeframe, name };
-            //int arraySize = parameters != null ? parameters.Length : 0;
-            //commandParameters.Add(arraySize);
-            //commandParameters.AddRange(parameters);
-            //commandParameters.Add(mode);
-            //commandParameters.Add(shift);
-
-            //return SendCommand<double>(MtCommandType.iCustom_d, commandParameters);
-
             var response = SendRequest<ICustomResponse>(new ICustomRequest
             {
                 Symbol = symbol,

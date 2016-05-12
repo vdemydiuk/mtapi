@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using MtApi;
 using System.Threading.Tasks;
-using System.Collections;
+using System.Linq;
 
 namespace TestApiClientUI
 {
@@ -885,7 +885,7 @@ namespace TestApiClientUI
 
             var orders = await Execute(() => _apiClient.GetOrders(selectSource)); ;
 
-            if (orders != null)
+            if (orders != null && orders.Count() > 0)
             {
                 foreach (var order in orders)
                 {
@@ -895,6 +895,10 @@ namespace TestApiClientUI
                             order.Ticket, order.Symbol, order.Operation, order.OpenPrice, order.ClosePrice, order.Lots, order.Profit, order.Comment, order.Commission, order.MagicNumber, order.OpenTime, order.CloseTime, order.Swap, order.Expiration);
                     AddToLog(result);
                 }
+            }
+            else
+            {
+                AddToLog("GetOrders: 0 orders");
             }
         }
 
