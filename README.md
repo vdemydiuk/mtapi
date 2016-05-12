@@ -20,7 +20,7 @@ To build solution you need to update sign key file in MtApiService project:
 To make api for MetaTrader4 use MtApiInstaller and for MetaTrader5 use MtApi5Installer.
 All installers will be placed in folder "[root]\build\installers\" and all *.dll files will be placed in "[root]\build\products\".
 MQL files have been build to ex4 and stored into folders "mq4" for MetaTrader and "mq5" for MetaTrader5. They are ready to using in terminals.
-If you change source code of MQL expert you need to recompile it with MetaEditor.
+If you change source code of MQL expert you have to recompile it with MetaEditor. In this case you need to copy files "hash.mqh" and "json.mqh" to MetaEditor include folder.
 
 # Home website
 Please visit http://mtapi4.net
