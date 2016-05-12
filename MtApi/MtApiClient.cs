@@ -995,29 +995,54 @@ namespace MtApi
 
         public double iCustom(string symbol, int timeframe, string name, int[] parameters, int mode, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, name };
-            int arraySize = parameters != null ? parameters.Length : 0;
-            commandParameters.Add(arraySize);
-            if (arraySize > 0)
+            var response = SendRequest<ICustomResponse>(new ICustomRequest
             {
-                commandParameters.AddRange(parameters);
-            }
-            commandParameters.Add(mode);
-            commandParameters.Add(shift);
-
-            return SendCommand<double>(MtCommandType.iCustom, commandParameters);
+                Symbol = symbol,
+                Timeframe = timeframe,
+                Name = name,
+                Mode = mode,
+                Shift = shift,
+                Params = new ArrayList(parameters),
+                ParamsType = ICustomRequest.ParametersType.Int
+            });
+            return response != null ? response.Value : double.NaN;
         }
 
         public double iCustom(string symbol, int timeframe, string name, double[] parameters, int mode, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, name };
-            int arraySize = parameters != null ? parameters.Length : 0;
-            commandParameters.Add(arraySize);
-            commandParameters.AddRange(parameters);
-            commandParameters.Add(mode);
-            commandParameters.Add(shift);
+            //var commandParameters = new ArrayList { symbol, timeframe, name };
+            //int arraySize = parameters != null ? parameters.Length : 0;
+            //commandParameters.Add(arraySize);
+            //commandParameters.AddRange(parameters);
+            //commandParameters.Add(mode);
+            //commandParameters.Add(shift);
 
-            return SendCommand<double>(MtCommandType.iCustom_d, commandParameters);
+            //return SendCommand<double>(MtCommandType.iCustom_d, commandParameters);
+
+            var response = SendRequest<ICustomResponse>(new ICustomRequest
+            {
+                Symbol = symbol,
+                Timeframe = timeframe,
+                Name = name,
+                Mode = mode,
+                Shift = shift,
+                Params = new ArrayList(parameters),
+                ParamsType = ICustomRequest.ParametersType.Double
+            });
+            return response != null ? response.Value : double.NaN;
+        }
+
+        public double iCustom(string symbol, int timeframe, string name, int mode, int shift)
+        {
+            var response = SendRequest<ICustomResponse>(new ICustomRequest
+            {
+                Symbol = symbol,
+                Timeframe = timeframe,
+                Name = name,
+                Mode = mode,
+                Shift = shift
+            });
+            return response != null ? response.Value : double.NaN;
         }
 
         public double iDeMarker(string symbol, int timeframe, int period, int shift)

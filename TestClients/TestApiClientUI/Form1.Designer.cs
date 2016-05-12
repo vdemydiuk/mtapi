@@ -48,6 +48,11 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.button22 = new System.Windows.Forms.Button();
+            this.button21 = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
+            this.textBoxOppositeTicket = new System.Windows.Forms.TextBox();
+            this.button15 = new System.Windows.Forms.Button();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.button20 = new System.Windows.Forms.Button();
             this.button17 = new System.Windows.Forms.Button();
@@ -109,7 +114,6 @@
             this.button5 = new System.Windows.Forms.Button();
             this.listBoxMarketInfo = new System.Windows.Forms.ListBox();
             this.tabPage5 = new System.Windows.Forms.TabPage();
-            this.iCustomBtn = new System.Windows.Forms.Button();
             this.button12 = new System.Windows.Forms.Button();
             this.button11 = new System.Windows.Forms.Button();
             this.button10 = new System.Windows.Forms.Button();
@@ -124,11 +128,9 @@
             this.tabPage6 = new System.Windows.Forms.TabPage();
             this.button14 = new System.Windows.Forms.Button();
             this.button13 = new System.Windows.Forms.Button();
-            this.button15 = new System.Windows.Forms.Button();
-            this.textBoxOppositeTicket = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.button21 = new System.Windows.Forms.Button();
-            this.button22 = new System.Windows.Forms.Button();
+            this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.iCustomBtn = new System.Windows.Forms.Button();
+            this.button23 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -141,6 +143,7 @@
             this.tabPage4.SuspendLayout();
             this.tabPage5.SuspendLayout();
             this.tabPage6.SuspendLayout();
+            this.tabPage7.SuspendLayout();
             this.SuspendLayout();
             // 
             // textBoxServerName
@@ -301,6 +304,7 @@
             this.tabControl1.Controls.Add(this.tabPage4);
             this.tabControl1.Controls.Add(this.tabPage5);
             this.tabControl1.Controls.Add(this.tabPage6);
+            this.tabControl1.Controls.Add(this.tabPage7);
             this.tabControl1.Location = new System.Drawing.Point(12, 147);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -336,6 +340,53 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Trade Operations";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // button22
+            // 
+            this.button22.Location = new System.Drawing.Point(216, 293);
+            this.button22.Name = "button22";
+            this.button22.Size = new System.Drawing.Size(75, 23);
+            this.button22.TabIndex = 19;
+            this.button22.Text = "OrderModify";
+            this.button22.UseVisualStyleBackColor = true;
+            this.button22.Click += new System.EventHandler(this.button22_Click);
+            // 
+            // button21
+            // 
+            this.button21.Location = new System.Drawing.Point(216, 264);
+            this.button21.Name = "button21";
+            this.button21.Size = new System.Drawing.Size(75, 23);
+            this.button21.TabIndex = 18;
+            this.button21.Text = "OrderDelete";
+            this.button21.UseVisualStyleBackColor = true;
+            this.button21.Click += new System.EventHandler(this.button21_Click);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(219, 242);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(78, 13);
+            this.label3.TabIndex = 17;
+            this.label3.Text = "Opposite ticket";
+            // 
+            // textBoxOppositeTicket
+            // 
+            this.textBoxOppositeTicket.Location = new System.Drawing.Point(303, 239);
+            this.textBoxOppositeTicket.Name = "textBoxOppositeTicket";
+            this.textBoxOppositeTicket.Size = new System.Drawing.Size(100, 20);
+            this.textBoxOppositeTicket.TabIndex = 16;
+            this.textBoxOppositeTicket.Text = "0";
+            // 
+            // button15
+            // 
+            this.button15.Location = new System.Drawing.Point(410, 237);
+            this.button15.Name = "button15";
+            this.button15.Size = new System.Drawing.Size(92, 23);
+            this.button15.TabIndex = 15;
+            this.button15.Text = "OrderCloseBy";
+            this.button15.UseVisualStyleBackColor = true;
+            this.button15.Click += new System.EventHandler(this.button15_Click);
             // 
             // checkBox1
             // 
@@ -1030,7 +1081,6 @@
             // 
             // tabPage5
             // 
-            this.tabPage5.Controls.Add(this.iCustomBtn);
             this.tabPage5.Controls.Add(this.button12);
             this.tabPage5.Controls.Add(this.button11);
             this.tabPage5.Controls.Add(this.button10);
@@ -1049,16 +1099,6 @@
             this.tabPage5.TabIndex = 5;
             this.tabPage5.Text = "Timeframes";
             this.tabPage5.UseVisualStyleBackColor = true;
-            // 
-            // iCustomBtn
-            // 
-            this.iCustomBtn.Location = new System.Drawing.Point(341, 215);
-            this.iCustomBtn.Name = "iCustomBtn";
-            this.iCustomBtn.Size = new System.Drawing.Size(75, 23);
-            this.iCustomBtn.TabIndex = 14;
-            this.iCustomBtn.Text = "ICustom";
-            this.iCustomBtn.UseVisualStyleBackColor = true;
-            this.iCustomBtn.Click += new System.EventHandler(this.iCustomBtn_Click);
             // 
             // button12
             // 
@@ -1193,52 +1233,37 @@
             this.button13.UseVisualStyleBackColor = true;
             this.button13.Click += new System.EventHandler(this.button13_Click);
             // 
-            // button15
+            // tabPage7
             // 
-            this.button15.Location = new System.Drawing.Point(410, 237);
-            this.button15.Name = "button15";
-            this.button15.Size = new System.Drawing.Size(92, 23);
-            this.button15.TabIndex = 15;
-            this.button15.Text = "OrderCloseBy";
-            this.button15.UseVisualStyleBackColor = true;
-            this.button15.Click += new System.EventHandler(this.button15_Click);
+            this.tabPage7.Controls.Add(this.button23);
+            this.tabPage7.Controls.Add(this.iCustomBtn);
+            this.tabPage7.Location = new System.Drawing.Point(4, 22);
+            this.tabPage7.Name = "tabPage7";
+            this.tabPage7.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage7.Size = new System.Drawing.Size(682, 377);
+            this.tabPage7.TabIndex = 7;
+            this.tabPage7.Text = "Technical Indicators";
+            this.tabPage7.UseVisualStyleBackColor = true;
             // 
-            // textBoxOppositeTicket
+            // iCustomBtn
             // 
-            this.textBoxOppositeTicket.Location = new System.Drawing.Point(303, 239);
-            this.textBoxOppositeTicket.Name = "textBoxOppositeTicket";
-            this.textBoxOppositeTicket.Size = new System.Drawing.Size(100, 20);
-            this.textBoxOppositeTicket.TabIndex = 16;
-            this.textBoxOppositeTicket.Text = "0";
+            this.iCustomBtn.Location = new System.Drawing.Point(6, 6);
+            this.iCustomBtn.Name = "iCustomBtn";
+            this.iCustomBtn.Size = new System.Drawing.Size(107, 23);
+            this.iCustomBtn.TabIndex = 15;
+            this.iCustomBtn.Text = "iCustom (ZigZag)";
+            this.iCustomBtn.UseVisualStyleBackColor = true;
+            this.iCustomBtn.Click += new System.EventHandler(this.iCustomBtn_Click);
             // 
-            // label3
+            // button23
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(219, 242);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(78, 13);
-            this.label3.TabIndex = 17;
-            this.label3.Text = "Opposite ticket";
-            // 
-            // button21
-            // 
-            this.button21.Location = new System.Drawing.Point(216, 264);
-            this.button21.Name = "button21";
-            this.button21.Size = new System.Drawing.Size(75, 23);
-            this.button21.TabIndex = 18;
-            this.button21.Text = "OrderDelete";
-            this.button21.UseVisualStyleBackColor = true;
-            this.button21.Click += new System.EventHandler(this.button21_Click);
-            // 
-            // button22
-            // 
-            this.button22.Location = new System.Drawing.Point(216, 293);
-            this.button22.Name = "button22";
-            this.button22.Size = new System.Drawing.Size(75, 23);
-            this.button22.TabIndex = 19;
-            this.button22.Text = "OrderModify";
-            this.button22.UseVisualStyleBackColor = true;
-            this.button22.Click += new System.EventHandler(this.button22_Click);
+            this.button23.Location = new System.Drawing.Point(6, 35);
+            this.button23.Name = "button23";
+            this.button23.Size = new System.Drawing.Size(107, 23);
+            this.button23.TabIndex = 16;
+            this.button23.Text = "iCustom (Parabolic)";
+            this.button23.UseVisualStyleBackColor = true;
+            this.button23.Click += new System.EventHandler(this.button23_Click);
             // 
             // Form1
             // 
@@ -1274,6 +1299,7 @@
             this.tabPage5.ResumeLayout(false);
             this.tabPage5.PerformLayout();
             this.tabPage6.ResumeLayout(false);
+            this.tabPage7.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1362,7 +1388,6 @@
         private System.Windows.Forms.Button button11;
         private System.Windows.Forms.Button button12;
         private System.Windows.Forms.ColumnHeader colFeedCount;
-        private System.Windows.Forms.Button iCustomBtn;
         private System.Windows.Forms.TabPage tabPage6;
         private System.Windows.Forms.Button button13;
         private System.Windows.Forms.Button button14;
@@ -1381,6 +1406,9 @@
         private System.Windows.Forms.Button button15;
         private System.Windows.Forms.Button button21;
         private System.Windows.Forms.Button button22;
+        private System.Windows.Forms.TabPage tabPage7;
+        private System.Windows.Forms.Button iCustomBtn;
+        private System.Windows.Forms.Button button23;
     }
 }
 

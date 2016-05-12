@@ -3408,25 +3408,28 @@ string OnRequest(string json)
          switch(requestType)
          {
             case 1: //GetOrder
-               response = ExecuteRequestGetOrder(jo);
+               response = ExecuteRequest_GetOrder(jo);
                break;
             case 2: //GetOrders
-               response = ExecuteRequestGetOrders(jo);
+               response = ExecuteRequest_GetOrders(jo);
                break;
             case 3: //OrderSend
-               response = ExecuteRequestOrderSend(jo);
+               response = ExecuteRequest_OrderSend(jo);
                break;
             case 4: //OrderClose
-               response = ExecuteRequestOrderClose(jo);
+               response = ExecuteRequest_OrderClose(jo);
                break;
             case 5: //OrderCloseBy
-               response = ExecuteRequestOrderCloseBy(jo);
+               response = ExecuteRequest_OrderCloseBy(jo);
                break;
             case 6: //OrderDelete
-               response = ExecuteRequestOrderDelete(jo);
+               response = ExecuteRequest_OrderDelete(jo);
                break;
             case 7: //OrderModify
-               response = ExecuteRequestOrderModify(jo);
+               response = ExecuteRequest_OrderModify(jo);
+               break;
+            case 8: //iCustom
+               response = ExecuteRequest_iCustom(jo);
                break;               
             default:
                Print("OnRequest [WARNING]: Unknown request type ", requestType);
@@ -3488,7 +3491,7 @@ JSONObject* GetOrderJson(int index, int select, int pool)
    return joOrder;
 }
 
-string ExecuteRequestGetOrder(JSONObject *jo)
+string ExecuteRequest_GetOrder(JSONObject *jo)
 {
    int index = jo.getInt("Index");
    int select = jo.getInt("Select");
@@ -3502,7 +3505,7 @@ string ExecuteRequestGetOrder(JSONObject *jo)
    return CreateSuccessResponse("Order", joOrder);
 }
 
-string ExecuteRequestGetOrders(JSONObject *jo)
+string ExecuteRequest_GetOrders(JSONObject *jo)
 {
    int pool = jo.getInt("Pool");
 
@@ -3511,9 +3514,9 @@ string ExecuteRequestGetOrders(JSONObject *jo)
    int total = (pool == MODE_HISTORY) ? OrdersHistoryTotal() : OrdersTotal();
    
    JSONArray* joOrders = new JSONArray();
-   for(int pos = 0; pos < total; pos++)
+   for(int pos = 0; pos < 10000; pos++)
    {
-      JSONObject* joOrder = GetOrderJson(pos, SELECT_BY_POS, pool);
+      JSONObject* joOrder = GetOrderJson(0, SELECT_BY_POS, pool);
       if (joOrder == NULL)
          return CreateErrorResponse(GetLastError(), "GetOrders failed");     
       joOrders.put(pos, joOrder);      
@@ -3529,7 +3532,7 @@ bool isLongOperation(int operation)
    return false;
 }
 
-string ExecuteRequestOrderSend(JSONObject *jo)
+string ExecuteRequest_OrderSend(JSONObject *jo)
 {
    if (jo.getValue("Symbol") == NULL)
       return CreateErrorResponse(-1, "Undefinded mandatory parameter Symbol");
@@ -3584,7 +3587,7 @@ string ExecuteRequestOrderSend(JSONObject *jo)
    return CreateSuccessResponse("Ticket", jvTicket);      
 }
 
-string ExecuteRequestOrderClose(JSONObject *jo)
+string ExecuteRequest_OrderClose(JSONObject *jo)
 {
    if (jo.getValue("Ticket") == NULL)
       return CreateErrorResponse(-1, "Undefinded mandatory parameter Ticket");
@@ -3640,7 +3643,7 @@ string ExecuteRequestOrderClose(JSONObject *jo)
    return CreateSuccessResponse("", NULL);   
 }
 
-string ExecuteRequestOrderCloseBy(JSONObject *jo)
+string ExecuteRequest_OrderCloseBy(JSONObject *jo)
 {
    if (jo.getValue("Ticket") == NULL)
       return CreateErrorResponse(-1, "Undefinded mandatory parameter Ticket");
@@ -3658,7 +3661,7 @@ string ExecuteRequestOrderCloseBy(JSONObject *jo)
    return CreateSuccessResponse("", NULL);   
 }
 
-string ExecuteRequestOrderDelete(JSONObject *jo)
+string ExecuteRequest_OrderDelete(JSONObject *jo)
 {
    if (jo.getValue("Ticket") == NULL)
       return CreateErrorResponse(-1, "Undefinded mandatory parameter Ticket");
@@ -3673,7 +3676,7 @@ string ExecuteRequestOrderDelete(JSONObject *jo)
    return CreateSuccessResponse("", NULL);   
 }
 
-string ExecuteRequestOrderModify(JSONObject *jo)
+string ExecuteRequest_OrderModify(JSONObject *jo)
 {
    if (jo.getValue("Ticket") == NULL)
       return CreateErrorResponse(-1, "Undefinded mandatory parameter Ticket");
@@ -3698,4 +3701,115 @@ string ExecuteRequestOrderModify(JSONObject *jo)
    if (!OrderModify(ticket, price, stoploss, takeprofit, expiration, arrowcolor))
       return CreateErrorResponse(GetLastError(), "OrderModify failed");
    return CreateSuccessResponse("", NULL);   
+}
+
+string ExecuteRequest_iCustom(JSONObject *jo)
+{
+   if (jo.getValue("Symbol") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Symbol");
+   if (jo.getValue("Timeframe") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Timeframe");
+   if (jo.getValue("Name") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Name");
+   if (jo.getValue("Mode") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Mode");
+   if (jo.getValue("Shift") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Shift");         
+   
+   string symbol = jo.getString("Symbol");   
+   int timeframe = jo.getInt("Timeframe");
+   string name = jo.getString("Name");
+   int mode = jo.getInt("Mode");
+   int shift = jo.getInt("Shift");
+   
+   if (jo.getValue("Params") == NULL)
+   {
+      result = iCustom(symbol, timeframe, name, mode, shift);
+   }
+   else 
+   {
+      JSONArray *jaParams = jo.getArray("Params");
+      int size = jaParams.size();
+
+      if (size < 0 || size > 10)
+         return CreateErrorResponse(-1, "Parameter's count is out of range.");
+
+      if (jo.getValue("ParamsType") == NULL)
+         return CreateErrorResponse(-1, "Undefinded mandatory parameter ParamsType");         
+         
+      int paramsType =  jo.getInt("ParamsType");
+      switch (paramsType)
+      {
+      case 0: //Int
+      {
+         int intParams[];
+         ArrayResize(intParams, size);
+         for (int i = 0; i < size; i++)
+         {
+            intParams[i] = jaParams.getInt(i);
+         }
+         result = iCustomT(symbol, timeframe, name, intParams, size, mode, shift);
+      }
+      break;
+      case 1: //Double
+      {
+         int doubleParams[];
+         ArrayResize(doubleParams, size);
+         result = iCustomT(symbol, timeframe, name, doubleParams, size, mode, shift);
+      }
+      break;
+      case 2: //String
+      {
+         string stringParams[];
+         ArrayResize(stringParams, size);
+         result = iCustomT(symbol, timeframe, name, stringParams, size, mode, shift);
+      }
+      break;
+      case 3: //Boolean
+      {
+         string boolParams[];
+         ArrayResize(boolParams, size);
+         result = iCustomT(symbol, timeframe, name, boolParams, size, mode, shift);      
+      }
+      break;
+      default:
+         return CreateErrorResponse(-1, "Unsupported type of iCustom parameters.");
+      break;
+      }
+   }
+
+   return CreateSuccessResponse("Value", new JSONNumber(result));  
+}
+
+template<typename T>
+double iCustomT(string symbol, int timeframe, string name, T &p[], int count, int mode, int shift)
+{
+   switch(count)
+   {
+   case 0:
+      return iCustom(symbol, timeframe, name, mode, shift);
+      break;
+   case 1:
+      return iCustom(symbol, timeframe, name, p[0], mode, shift);
+   case 2:
+      return iCustom(symbol, timeframe, name, p[0], p[1], mode, shift);
+   case 3:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], mode, shift);
+   case 4:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3], mode, shift);
+   case 5:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3], p[4], mode, shift);
+   case 6:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3], p[4], p[5], mode, shift);
+   case 7:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3], p[4], p[5], p[6], mode, shift);
+   case 8:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], mode, shift);
+   case 9:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], mode, shift);
+   case 10:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], mode, shift);
+   default:
+         return 0;
+   }
 }

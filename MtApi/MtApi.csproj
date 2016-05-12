@@ -78,6 +78,7 @@
     <Compile Include="OrderSelectSource.cs" />
     <Compile Include="Requests\GetOrderRequest.cs" />
     <Compile Include="Requests\GetOrdersRequest.cs" />
+    <Compile Include="Requests\ICustomRequest.cs" />
     <Compile Include="Requests\OrderCloseByRequest.cs" />
     <Compile Include="Requests\OrderCloseRequest.cs" />
     <Compile Include="Requests\OrderDeleteRequest.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="Requests\RequestType.cs" />
     <Compile Include="Responses\GetOrderResponse.cs" />
     <Compile Include="Responses\GetOrdersResponse.cs" />
+    <Compile Include="Responses\ICustomResponse.cs" />
     <Compile Include="Responses\OrderSendResponse.cs" />
     <Compile Include="Responses\ResponseBase.cs" />
     <Compile Include="SeriesIdentifier.cs" />

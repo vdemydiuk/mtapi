@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using MtApi;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace TestApiClientUI
 {
@@ -765,14 +766,6 @@ namespace TestApiClientUI
             listBoxProceHistory.DataSource = items;
         }
 
-        private void iCustomBtn_Click(object sender, EventArgs e)
-        {
-            string symbol = textBoxSelectedSymbol.Text;
-            int[] param = {11, 12, 13};
-            var retVal = _apiClient.iCustom(symbol, (int)ChartPeriod.PERIOD_H1, "Zigzag", param, 1, 0);
-            AddToLog(string.Format("ICustom result: {0}", retVal));
-        }
-
         private void button13_Click(object sender, EventArgs e)
         {
             var retVal = _apiClient.TimeCurrent();
@@ -1001,6 +994,31 @@ namespace TestApiClientUI
             var modified = await Execute(() => _apiClient.OrderModify(ticket, price, stoploss, takeprofit, expiration));
 
             AddToLog(string.Format("Modify order result: {0}, ticket = {1}", modified, ticket));
+        }
+
+        //iCustom
+        private async void iCustomBtn_Click(object sender, EventArgs e)
+        {
+            string symbol = "EURUSD";
+            var timeframe = ChartPeriod.PERIOD_H1;
+            string name = "ZigZag";
+            int[] parameters = { 12, 5, 4 };
+            int mode = 0;
+            int shift = 0;
+            var retVal = await Execute(() => _apiClient.iCustom(symbol, (int)timeframe, name, parameters, mode, shift));
+            AddToLog(string.Format("ICustom result: {0}", retVal));
+        }
+
+        private async void button23_Click(object sender, EventArgs e)
+        {
+            string symbol = "EURUSD";
+            var timeframe = ChartPeriod.PERIOD_H1;
+            string name = "Parabolic";
+            double[] parameters = { 0.02, 0.2 };
+            int mode = 0;
+            int shift = 1;
+            var retVal = await Execute(() => _apiClient.iCustom(symbol, (int)timeframe, name, parameters, mode, shift));
+            AddToLog(string.Format("ICustom result: {0}", retVal));
         }
     }
 }

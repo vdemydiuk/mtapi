@@ -9,6 +9,7 @@
         OrderClose      = 4,
         OrderCloseBy    = 5,
         OrderDelete     = 6,
-        OrderModify     = 7
+        OrderModify     = 7,
+        iCustom         = 8
     }
 }
