@@ -980,6 +980,7 @@ namespace TestApiClientUI
             AddToLog(string.Format("Delete order result: {0}, ticket = {1}", deleted, ticket));
         }
 
+        //OrderModify
         private async void button22_Click(object sender, EventArgs e)
         {
             var ticket = int.Parse(textBoxIndexTicket.Text);
@@ -995,12 +996,26 @@ namespace TestApiClientUI
 
             var expiration = DateTime.MinValue;
 
-            var modified = await Execute(() => _apiClient.OrderModify(ticket, price, stoploss, takeprofit, expiration));
+            Color color = new Color();
+            switch (comboBoxOrderColor.SelectedIndex)
+            {
+                case 0:
+                    color = Color.Green;
+                    break;
+                case 1:
+                    color = Color.Blue;
+                    break;
+                case 2:
+                    color = Color.Red;
+                    break;
+            }
+
+            var modified = await Execute(() => _apiClient.OrderModify(ticket, price, stoploss, takeprofit, expiration, color));
 
             AddToLog(string.Format("Modify order result: {0}, ticket = {1}", modified, ticket));
         }
 
-        //iCustom
+        //iCustom (ZigZag)
         private async void iCustomBtn_Click(object sender, EventArgs e)
         {
             string symbol = "EURUSD";
@@ -1013,6 +1028,7 @@ namespace TestApiClientUI
             AddToLog(string.Format("ICustom result: {0}", retVal));
         }
 
+        //iCustom (Parabolic)
         private async void button23_Click(object sender, EventArgs e)
         {
             string symbol = "EURUSD";
