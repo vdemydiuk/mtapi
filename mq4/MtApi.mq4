@@ -1,6 +1,6 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      "http://mtapi4.net/"
-#property version   "1.1"
+#property version   "1.2"
 #property description "MtApi connection expert"
 
 #include <WinUser32.mqh>
