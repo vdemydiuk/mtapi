@@ -72,14 +72,18 @@
                     Action="createAndRemoveOnUninstall">
                   <RegistryValue Type="string" Value="[INSTALLFOLDER]"/>
                 </RegistryKey>
-
             </Component>
 
-            <Component Id="MTApiServiceDll" Directory="INSTALLFOLDER">
+            <!--<Component Id="MTApiServiceDll" Directory="INSTALLFOLDER">
                 <File Id="GAC_MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
                     src="$(var.ProductPath)MTApiService.dll"/>
+            </Component>-->
+          
+            <Component Id="NewtonsoftJsondll" Directory="INSTALLFOLDER">
+                <File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" KeyPath="yes"
+                    src="$(var.ProductPath)Newtonsoft.Json.dll"/>
             </Component>
-
+          
             <Component Id="MtApiExpert" Directory="ExpertFolder">
                 <File Id="MtApi.ex4" Name="MtApi.ex4" KeyPath="yes"
                     Source="..\mq4\MtApi.ex4" />
