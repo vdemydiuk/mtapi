@@ -183,6 +183,7 @@ public:
       {
          order = new MtOrder();
          order._ticket = OrderTicket();
+         order._symbol = OrderSymbol();
          order._operation = OrderType();
          order._openPrice = OrderOpenPrice();
          order._closePrice = OrderClosePrice();
