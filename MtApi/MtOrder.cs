@@ -18,6 +18,8 @@ namespace MtApi
         public int MagicNumber { get; set; }
         public double Swap { get; set; }
         public int MtExpiration { get; set; }
+        public double TakeProfit { get; set; }
+        public double StopLoss { get; set; }
 
         public DateTime OpenTime
         {

@@ -129,8 +129,8 @@
             this.button14 = new System.Windows.Forms.Button();
             this.button13 = new System.Windows.Forms.Button();
             this.tabPage7 = new System.Windows.Forms.TabPage();
-            this.iCustomBtn = new System.Windows.Forms.Button();
             this.button23 = new System.Windows.Forms.Button();
+            this.iCustomBtn = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -282,6 +282,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.listBoxEventLog.ContextMenuStrip = this.contextMenuStrip1;
             this.listBoxEventLog.FormattingEnabled = true;
+            this.listBoxEventLog.HorizontalScrollbar = true;
             this.listBoxEventLog.Location = new System.Drawing.Point(12, 556);
             this.listBoxEventLog.Name = "listBoxEventLog";
             this.listBoxEventLog.Size = new System.Drawing.Size(690, 95);
@@ -1245,16 +1246,6 @@
             this.tabPage7.Text = "Technical Indicators";
             this.tabPage7.UseVisualStyleBackColor = true;
             // 
-            // iCustomBtn
-            // 
-            this.iCustomBtn.Location = new System.Drawing.Point(6, 6);
-            this.iCustomBtn.Name = "iCustomBtn";
-            this.iCustomBtn.Size = new System.Drawing.Size(107, 23);
-            this.iCustomBtn.TabIndex = 15;
-            this.iCustomBtn.Text = "iCustom (ZigZag)";
-            this.iCustomBtn.UseVisualStyleBackColor = true;
-            this.iCustomBtn.Click += new System.EventHandler(this.iCustomBtn_Click);
-            // 
             // button23
             // 
             this.button23.Location = new System.Drawing.Point(6, 35);
@@ -1264,6 +1255,16 @@
             this.button23.Text = "iCustom (Parabolic)";
             this.button23.UseVisualStyleBackColor = true;
             this.button23.Click += new System.EventHandler(this.button23_Click);
+            // 
+            // iCustomBtn
+            // 
+            this.iCustomBtn.Location = new System.Drawing.Point(6, 6);
+            this.iCustomBtn.Name = "iCustomBtn";
+            this.iCustomBtn.Size = new System.Drawing.Size(107, 23);
+            this.iCustomBtn.TabIndex = 15;
+            this.iCustomBtn.Text = "iCustom (ZigZag)";
+            this.iCustomBtn.UseVisualStyleBackColor = true;
+            this.iCustomBtn.Click += new System.EventHandler(this.iCustomBtn_Click);
             // 
             // Form1
             // 

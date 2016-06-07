@@ -1,6 +1,6 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      "http://mtapi4.net/"
-#property version   "1.2"
+#property version   "1.3"
 #property description "MtApi connection expert"
 
 #include <WinUser32.mqh>
@@ -145,6 +145,8 @@ public:
    datetime getCloseTime() { return _closeTime; }
    double getSwap() { return _swap; }
    datetime getExpiration() { return _expiration; }
+   double getTakeProfit() { return _takeProfit; }
+   double getStopLoss() { return _stopLoss; }
    
    static bool isLong(int operation)
    {
@@ -172,7 +174,8 @@ public:
       jo.put("MtCloseTime", new JSONNumber(_closeTime));
       jo.put("Swap", new JSONNumber(_swap));
       jo.put("MtExpiration", new JSONNumber(_expiration));
-      
+      jo.put("TakeProfit", new JSONNumber(_takeProfit));
+      jo.put("StopLoss", new JSONNumber(_stopLoss));
       return jo;
    }
          
@@ -196,6 +199,8 @@ public:
          order._closeTime = OrderCloseTime();
          order._swap = OrderSwap();
          order._expiration = OrderExpiration();
+         order._takeProfit = OrderTakeProfit();
+         order._stopLoss = OrderStopLoss();
       }
       return order;
    }         
@@ -215,6 +220,8 @@ private:
    datetime _closeTime;
    double _swap;
    datetime _expiration;
+   double _takeProfit;
+   double _stopLoss;
 };
 
 int preinit()
