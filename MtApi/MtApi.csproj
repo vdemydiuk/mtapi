@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="ChartPeriod.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="MqlRates.cs" />
     <Compile Include="MtConnectionEventArgs.cs" />
     <Compile Include="MtConnectionException.cs" />
     <Compile Include="MtConnectionState.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="MtApiColorConverter.cs" />
     <Compile Include="OrderSelectMode.cs" />
     <Compile Include="OrderSelectSource.cs" />
+    <Compile Include="Requests\CopyRatesRequest.cs" />
     <Compile Include="Requests\GetOrderRequest.cs" />
     <Compile Include="Requests\GetOrdersRequest.cs" />
     <Compile Include="Requests\ICustomRequest.cs" />
@@ -86,6 +88,7 @@
     <Compile Include="Requests\OrderSendRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />
     <Compile Include="Requests\RequestType.cs" />
+    <Compile Include="Responses\CopyRatesResponse.cs" />
     <Compile Include="Responses\GetOrderResponse.cs" />
     <Compile Include="Responses\GetOrdersResponse.cs" />
     <Compile Include="Responses\ICustomResponse.cs" />

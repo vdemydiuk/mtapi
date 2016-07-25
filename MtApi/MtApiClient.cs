@@ -16,6 +16,7 @@ namespace MtApi
     public sealed class MtApiClient
     {
         private const int DoubleArrayLimit = 64800;
+        private volatile bool IsBacktestingMode = false;
 
         #region MetaTrader Constants
 
@@ -1365,6 +1366,47 @@ namespace MtApi
             return SendCommand<bool>(MtCommandType.RefreshRates, null);
         }
 
+        public List<MqlRates> CopyRates(string symbol_name, ENUM_TIMEFRAMES timeframe, int start_pos, int count)
+        {
+            var response = SendRequest<CopyRatesResponse>(new CopyRates1Request
+            {
+                SymbolName = symbol_name,
+                Timeframe = timeframe,
+                StartPos = start_pos,
+                Count = count
+            });
+            return response != null ? response.Rates : null;
+        }
+
+        public List<MqlRates> CopyRates(string symbol_name, ENUM_TIMEFRAMES timeframe, DateTime start_time, int count)
+        {
+            var response = SendRequest<CopyRatesResponse>(new CopyRates2Request
+            {
+                SymbolName = symbol_name,
+                Timeframe = timeframe,
+                StartTime = MtApiTimeConverter.ConvertToMtTime(start_time),
+                Count = count
+            });
+            return response != null ? response.Rates : null;
+        }
+
+        public List<MqlRates> CopyRates(string symbol_name, ENUM_TIMEFRAMES timeframe, DateTime start_time, DateTime stop_time)
+        {
+            var response = SendRequest<CopyRatesResponse>(new CopyRates3Request
+            {
+                SymbolName = symbol_name,
+                Timeframe = timeframe,
+                StartTime = MtApiTimeConverter.ConvertToMtTime(start_time),
+                StopTime = MtApiTimeConverter.ConvertToMtTime(stop_time)
+            });
+            return response != null ? response.Rates : null;
+        }
+
+        private void BaBacktestingReady()
+        {
+            SendCommand<object>(MtCommandType.BacktestingReady, null);
+        }
+
         #endregion
 
         #region Checkup
@@ -1385,7 +1427,6 @@ namespace MtApi
         private void Connect(string host, int port)
         {
             UpdateConnectionState(MtConnectionState.Connecting, string.Format("Connecting to {0}:{1}", host, port));
-
             try
             {
                 _client.Open(host, port);
@@ -1396,14 +1437,13 @@ namespace MtApi
                 UpdateConnectionState(MtConnectionState.Failed, string.Format("Failed connection to {0}:{1}. {2}", host, port, e.Message));
                 return;
             }
-
             UpdateConnectionState(MtConnectionState.Connected, string.Format("Connected  to  {0}:{1}", host, port));
+            OnConnected();
         }
 
         private void Connect(int port)
         {
             UpdateConnectionState(MtConnectionState.Connecting, string.Format("Connecting to 'localhost':{0}", port));
-
             try
             {
                 _client.Open(port);
@@ -1414,8 +1454,17 @@ namespace MtApi
                 UpdateConnectionState(MtConnectionState.Failed, string.Format("Failed connection  to 'localhost':{0}. {1}", port, e.Message));
                 return;
             }
-
             UpdateConnectionState(MtConnectionState.Connected, string.Format("Connected to 'localhost':{0}", port));
+            OnConnected();
+        }
+
+        private void OnConnected()
+        {
+            IsBacktestingMode = IsTesting();
+            if (IsBacktestingMode)
+            {                
+                BaBacktestingReady();
+            }
         }
 
         private void Disconnect()
@@ -1440,7 +1489,8 @@ namespace MtApi
 
             if (changed)
             {
-                ConnectionStateChanged.FireEvent(this, new MtConnectionEventArgs(state, message));                
+                var handler = ConnectionStateChanged;
+                handler?.BeginInvoke(this, new MtConnectionEventArgs(state, message), (a) => handler.EndInvoke(a), null);
             }
         }
 
@@ -1522,7 +1572,15 @@ namespace MtApi
         {
             if (quote != null)
             {
-                QuoteUpdated.FireEvent(this, quote.Instrument, quote.Bid, quote.Ask);
+                var handler = QuoteUpdated;
+                if (IsBacktestingMode)
+                {
+                    handler?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
+                }                    
+                else
+                {
+                    handler?.BeginInvoke(this, quote.Instrument, quote.Bid, quote.Ask, (a) => handler.EndInvoke(a), null);
+                }                
             }
         }
 
@@ -1538,12 +1596,14 @@ namespace MtApi
 
         private void mClient_QuoteRemoved(MTApiService.MtQuote quote)
         {
-            QuoteRemoved.FireEvent(this, new MtQuoteEventArgs(quote.Parse()));
+            var handler = QuoteRemoved;
+            handler?.BeginInvoke(this, new MtQuoteEventArgs(quote.Parse()), (a) => handler.EndInvoke(a), null);
         }
 
         private void mClient_QuoteAdded(MTApiService.MtQuote quote)
         {
-            QuoteAdded.FireEvent(this, new MtQuoteEventArgs(quote.Parse()));
+            var handler = QuoteAdded;
+            handler?.BeginInvoke(this, new MtQuoteEventArgs(quote.Parse()), (a) => handler.EndInvoke(a), null);
         }
         #endregion
 

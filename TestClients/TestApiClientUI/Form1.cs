@@ -17,6 +17,8 @@ namespace TestApiClientUI
         {
             InitializeComponent();
 
+            comboBox3.DataSource = Enum.GetNames(typeof(ENUM_TIMEFRAMES));
+
             _apiClient.QuoteUpdated += apiClient_QuoteUpdated;
             _apiClient.QuoteAdded += apiClient_QuoteAdded;
             _apiClient.QuoteRemoved += apiClient_QuoteRemoved;
@@ -85,26 +87,24 @@ namespace TestApiClientUI
 
         private void apiClient_QuoteRemoved(object sender, MtQuoteEventArgs e)
         {
-            RunOnUiThread(() =>
-            {
-                RemoveQuote(e.Quote);
-            });
+            RunOnUiThread(() => RemoveQuote(e.Quote) );
         }
 
         private void apiClient_QuoteAdded(object sender, MtQuoteEventArgs e)
         {
-            RunOnUiThread(() =>
-            {
-                AddNewQuote(e.Quote);
-            });
+            RunOnUiThread(() => AddNewQuote(e.Quote));
         }
+
+        private volatile bool IsUiQuoteUpdateReady = true;
 
         private void apiClient_QuoteUpdated(object sender, string symbol, double bid, double ask)
         {
-            this.BeginInvoke((Action)(() =>
+            Console.WriteLine("Quote: Symbol = {0}, Bid = {1}, Ask = {2}", symbol, bid, ask);
+            //if UI of quite is busy we are skipping this update
+            if (IsUiQuoteUpdateReady)
             {
-                ChangeQuote(symbol, bid, ask);
-            }));
+                RunOnUiThread(() => ChangeQuote(symbol, bid, ask));
+            }
         }
 
         private void AddNewQuote(MtQuote quote)
@@ -153,6 +153,7 @@ namespace TestApiClientUI
 
         private void ChangeQuote(string symbol, double bid, double ask)
         {
+            IsUiQuoteUpdateReady = false;
             if (string.IsNullOrEmpty(symbol) == false)
             {
                 if (listViewQuotes.Items.ContainsKey(symbol) == true)
@@ -162,6 +163,7 @@ namespace TestApiClientUI
                     item.SubItems[2].Text = ask.ToString();
                 }
             }
+            IsUiQuoteUpdateReady = true;
         }
 
         private void OnConnected()
@@ -1039,6 +1041,94 @@ namespace TestApiClientUI
             int shift = 1;
             var retVal = await Execute(() => _apiClient.iCustom(symbol, (int)timeframe, name, parameters, mode, shift));
             AddToLog(string.Format("ICustom result: {0}", retVal));
+        }
+
+        private async void button24_Click(object sender, EventArgs e)
+        {
+            string symbol = textBoxSelectedSymbol.Text;
+            ENUM_TIMEFRAMES timeframes;
+            Enum.TryParse<ENUM_TIMEFRAMES>(comboBox3.SelectedValue.ToString(), out timeframes);
+
+            int startPos = Convert.ToInt32(numericUpDown1.Value);
+            int count = Convert.ToInt32(numericUpDown2.Value);
+
+            var rates = await Execute(() => _apiClient.CopyRates(symbol, timeframes, startPos, count));
+
+            if (rates != null)
+            {
+                foreach (var r in rates)
+                {
+                    var result = string.Format("Rate: Time = {0}, Open = {1}, High = {2}, Low = {3}, Close = {4}, TickVolume = {5}, Spread = {6}, RealVolume = {7}",
+                        r.Time, r.Open, r.High, r.Low, r.Close, r.TickVolume, r.Spread, r.RealVolume);
+                    AddToLog(result);
+                }
+            }
+            else
+            {
+                AddToLog("CopyRates: 0 rates");
+            }
+        }
+
+        private async void button25_Click(object sender, EventArgs e)
+        {
+            string symbol = textBoxSelectedSymbol.Text;
+            ENUM_TIMEFRAMES timeframes;
+            Enum.TryParse<ENUM_TIMEFRAMES>(comboBox3.SelectedValue.ToString(), out timeframes);
+
+            DateTime startTime = dateTimePicker1.Value;
+            int count = Convert.ToInt32(numericUpDown2.Value);
+
+            var rates = await Execute(() => _apiClient.CopyRates(symbol, timeframes, startTime, count));
+
+            if (rates != null)
+            {
+                foreach (var r in rates)
+                {
+                    var result = string.Format("Rate: Time = {0}, Open = {1}, High = {2}, Low = {3}, Close = {4}, TickVolume = {5}, Spread = {6}, RealVolume = {7}",
+                        r.Time, r.Open, r.High, r.Low, r.Close, r.TickVolume, r.Spread, r.RealVolume);
+                    AddToLog(result);
+                }
+            }
+            else
+            {
+                AddToLog("CopyRates: 0 rates");
+            }
+        }
+
+        private async void button26_Click(object sender, EventArgs e)
+        {
+            string symbol = textBoxSelectedSymbol.Text;
+            ENUM_TIMEFRAMES timeframes;
+            Enum.TryParse<ENUM_TIMEFRAMES>(comboBox3.SelectedValue.ToString(), out timeframes);
+
+            DateTime startTime = dateTimePicker1.Value;
+            DateTime stopTime = dateTimePicker1.Value;
+
+            var rates = await Execute(() => _apiClient.CopyRates(symbol, timeframes, startTime, stopTime));
+
+            if (rates != null)
+            {
+                foreach (var r in rates)
+                {
+                    var result = string.Format("Rate: Time = {0}, Open = {1}, High = {2}, Low = {3}, Close = {4}, TickVolume = {5}, Spread = {6}, RealVolume = {7}",
+                        r.Time, r.Open, r.High, r.Low, r.Close, r.TickVolume, r.Spread, r.RealVolume);
+                    AddToLog(result);
+                }
+            }
+            else
+            {
+                AddToLog("CopyRates: 0 rates");
+            }
+        }
+
+        private void button27_Click(object sender, EventArgs e)
+        {
+            var msg = textBoxPrint.Text;
+            if (!string.IsNullOrEmpty(msg))
+            {
+                _apiClient.Print(msg);
+                AddToLog(string.Format("Print executed"));
+            }
         }
     }
 }

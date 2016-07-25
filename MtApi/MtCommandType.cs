@@ -192,6 +192,9 @@ namespace MtApi
         SymbolInfoString                    = 154,
 
         //Requests
-        MtRequest                             = 155
+        MtRequest                           = 155,
+
+        //Backtesting
+        BacktestingReady                    = 156
     }
 }

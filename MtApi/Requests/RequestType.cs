@@ -10,6 +10,7 @@
         OrderCloseBy    = 5,
         OrderDelete     = 6,
         OrderModify     = 7,
-        iCustom         = 8
+        iCustom         = 8,
+        CopyRates       = 9
     }
 }
