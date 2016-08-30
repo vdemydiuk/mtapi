@@ -107,6 +107,7 @@ namespace MTApiService
             {
                 expert.Deinited += expert_Deinited;
                 expert.QuoteChanged += expert_QuoteChanged;
+                expert.OnMtEvent += Expert_OnMtEvent;
 
                 lock (_experts)
                 {
@@ -308,13 +309,14 @@ namespace MTApiService
             _service.QuoteUpdate(quote);
         }
 
+        private void Expert_OnMtEvent(object sender, MtEventArgs e)
+        {
+            _service.OnMtEvent(e.Event);
+        }
+
         private void FireOnStopped()
         {
-            var handler = Stopped;
-            if (handler != null)
-            {
-                handler(this, EventArgs.Empty);
-            }
+            Stopped?.Invoke(this, EventArgs.Empty);
         }
 
         #endregion

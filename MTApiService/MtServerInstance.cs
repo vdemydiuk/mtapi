@@ -101,6 +101,24 @@ namespace MTApiService
             Debug.WriteLine("MtApiServerInstance::SendQuote: finish.");
         }
 
+        public void SendEvent(int expertHandle, int eventType, string payload)
+        {
+            Debug.WriteLine("MtApiServerInstance::SendEvent called. eventType = {0}, payload = {1}", eventType, payload);
+
+            MtExpert expert = null;
+            lock (mExpertsDictionary)
+            {
+                expert = mExpertsDictionary[expertHandle];
+            }
+
+            if (expert != null)
+            {
+                expert.SendEvent(new MtEvent(eventType, payload));
+            }
+
+            Debug.WriteLine("MtApiServerInstance::SendEvent: finished");
+        }
+
         public void SendResponse(int expertHandle, MtResponse response)
         {
             Debug.WriteLine("MtApiServerInstance::SendResponse: id = {0}, response = {1}", expertHandle, response);

@@ -66,10 +66,12 @@
     <Compile Include="MtConnectionState.cs" />
     <Compile Include="MtCommandType.cs" />
     <Compile Include="MtErrorCode.cs" />
+    <Compile Include="MtEventTypes.cs" />
     <Compile Include="MtExecutionException.cs" />
     <Compile Include="MtOrder.cs" />
     <Compile Include="MtQuote.cs" />
     <Compile Include="MtQuoteEventArgs.cs" />
+    <Compile Include="MtTimeBar.cs" />
     <Compile Include="MtTypes.cs" />
     <Compile Include="PriceConstantsType.cs" />
     <Compile Include="MarketInfoModeType.cs" />
@@ -95,6 +97,7 @@
     <Compile Include="Responses\OrderSendResponse.cs" />
     <Compile Include="Responses\ResponseBase.cs" />
     <Compile Include="SeriesIdentifier.cs" />
+    <Compile Include="TimeBarArgs.cs" />
     <Compile Include="TradeOperation.cs" />
     <Compile Include="MtApiTimeConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

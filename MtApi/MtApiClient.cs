@@ -29,11 +29,12 @@ namespace MtApi
 
         public MtApiClient()
         {
-            _client.QuoteAdded +=new MtClient.MtQuoteHandler(mClient_QuoteAdded);
-            _client.QuoteRemoved += new MtClient.MtQuoteHandler(mClient_QuoteRemoved);
-            _client.QuoteUpdated += new MtClient.MtQuoteHandler(mClient_QuoteUpdated);
-            _client.ServerDisconnected += new EventHandler(mClient_ServerDisconnected);
-            _client.ServerFailed += new EventHandler(mClient_ServerFailed);
+            _client.QuoteAdded += mClient_QuoteAdded;
+            _client.QuoteRemoved += mClient_QuoteRemoved;
+            _client.QuoteUpdated += mClient_QuoteUpdated;
+            _client.ServerDisconnected += mClient_ServerDisconnected;
+            _client.ServerFailed += mClient_ServerFailed;
+            _client.MtEventReceived += _client_MtEventReceived;
         }
         #endregion
 
@@ -81,7 +82,7 @@ namespace MtApi
         public IEnumerable<MtQuote> GetQuotes()
         {
             var quotes = _client.GetQuotes();
-            return quotes != null ? (from q in quotes select q.Parse()) : null;
+            return quotes != null ? (from q in quotes select q.Convert()) : null;
         }
         #endregion
 
@@ -1597,14 +1598,35 @@ namespace MtApi
         private void mClient_QuoteRemoved(MTApiService.MtQuote quote)
         {
             var handler = QuoteRemoved;
-            handler?.BeginInvoke(this, new MtQuoteEventArgs(quote.Parse()), (a) => handler.EndInvoke(a), null);
+            handler?.BeginInvoke(this, new MtQuoteEventArgs(quote.Convert()), (a) => handler.EndInvoke(a), null);
         }
 
         private void mClient_QuoteAdded(MTApiService.MtQuote quote)
         {
             var handler = QuoteAdded;
-            handler?.BeginInvoke(this, new MtQuoteEventArgs(quote.Parse()), (a) => handler.EndInvoke(a), null);
+            handler?.BeginInvoke(this, new MtQuoteEventArgs(quote.Convert()), (a) => handler.EndInvoke(a), null);
         }
+
+        private void _client_MtEventReceived(object sender, MtEventArgs e)
+        {
+            MtEventTypes eventType = (MtEventTypes) e.Event.EventType;
+
+            switch(eventType)
+            {
+                case MtEventTypes.LastTimeBar:
+                    {
+                        FireOnLastTimeBar(JsonConvert.DeserializeObject<MtTimeBar>(e.Event.Payload));
+                    }
+                    break;
+            }
+        }
+
+        private void FireOnLastTimeBar(MtTimeBar timeBar)
+        {
+            var handler = OnLastTimeBar;
+            handler?.BeginInvoke(this, new TimeBarArgs(timeBar), (a) => handler.EndInvoke(a), null);
+        }
+
         #endregion
 
         #region Events
@@ -1612,6 +1634,7 @@ namespace MtApi
         public event EventHandler<MtQuoteEventArgs> QuoteAdded;
         public event EventHandler<MtQuoteEventArgs> QuoteRemoved;
         public event EventHandler<MtConnectionEventArgs> ConnectionStateChanged;
+        public event EventHandler<TimeBarArgs> OnLastTimeBar;
         #endregion
 
         #region Private Fields

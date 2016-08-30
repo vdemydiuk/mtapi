@@ -23,6 +23,7 @@ namespace TestApiClientUI
             _apiClient.QuoteAdded += apiClient_QuoteAdded;
             _apiClient.QuoteRemoved += apiClient_QuoteRemoved;
             _apiClient.ConnectionStateChanged += apiClient_ConnectionStateChanged;
+            _apiClient.OnLastTimeBar += _apiClient_OnLastTimeBar;
 
             initOrderCommandsGroup();
 
@@ -93,6 +94,14 @@ namespace TestApiClientUI
         private void apiClient_QuoteAdded(object sender, MtQuoteEventArgs e)
         {
             RunOnUiThread(() => AddNewQuote(e.Quote));
+        }
+
+        private void _apiClient_OnLastTimeBar(object sender, TimeBarArgs e)
+        {
+            string msg = string.Format("TimeBar: Symbol = {0}, OpenTime = {1}, CloseTime = {2}, Open = {3}, Close = {4}, High = {5}, Low = {6}",
+                e.TimeBar.Symbol, e.TimeBar.OpenTime, e.TimeBar.CloseTime, e.TimeBar.Open, e.TimeBar.Close, e.TimeBar.High, e.TimeBar.Low);
+            Console.WriteLine(msg);
+            AddToLog(msg);
         }
 
         private volatile bool IsUiQuoteUpdateReady = true;

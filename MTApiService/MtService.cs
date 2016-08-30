@@ -35,6 +35,9 @@ namespace MTApiService
 
         [OperationContract(IsOneWay = true)]
         void OnQuoteRemoved(MtQuote quote);
+
+        [OperationContract(IsOneWay = true)]
+        void OnMtEvent(MtEvent ntEvent);
     }
 
     [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple,
@@ -123,170 +126,73 @@ namespace MTApiService
         #region Public Methods
         public void OnStopServer()
         {
-            try
-            {
-                mClientsLocker.AcquireReaderLock(2000);
-
-                try
-                {
-                    foreach (var callback in mClientCallbacks)
-                    {
-                        try
-                        {
-                            callback.OnServerStopped();
-                        }
-                        catch (Exception)
-                        {
-                        }
-                    }
-                }
-                finally
-                {
-                    mClientsLocker.ReleaseReaderLock();
-                }
-            }
-            catch (ApplicationException)
-            {
-            }
+            ExecuteCallbackAction(a => a.OnServerStopped());
         }
 
         public void QuoteUpdate(MtQuote quote)
         {
-            try
-            {
-                mClientsLocker.AcquireReaderLock(200);
-
-                List<IMtApiCallback> crashedClientsCallback = null;
-
-                try
-                {
-                    foreach (var callback in mClientCallbacks)
-                    {
-                        try
-                        {
-                            callback.OnQuoteUpdate(quote);
-                        }
-                        catch (Exception)
-                        {
-                            if (crashedClientsCallback == null)
-                                crashedClientsCallback = new List<IMtApiCallback>();
-
-                            crashedClientsCallback.Add(callback);
-                        }
-                    }
-                }
-                finally
-                {
-                    mClientsLocker.ReleaseReaderLock();
-                }
-
-                removeCrashedClientCallbacks(crashedClientsCallback);
-            }
-            catch (ApplicationException)
-            {
-            }
+            ExecuteCallbackAction(a => a.OnQuoteUpdate(quote));
         }
 
         public void OnQuoteAdded(MtQuote quote)
         {
-            try
-            {
-                mClientsLocker.AcquireReaderLock(2000);
-
-                List<IMtApiCallback> crashedClientsCallback = null;
-
-                try
-                {
-                    foreach (var callback in mClientCallbacks)
-                    {
-                        try
-                        {
-                            callback.OnQuoteAdded(quote);
-                        }
-                        catch (Exception)
-                        {
-                            if (crashedClientsCallback == null)
-                                crashedClientsCallback = new List<IMtApiCallback>();
-
-                            crashedClientsCallback.Add(callback);
-                        }
-                    }
-                }
-                finally
-                {
-                    mClientsLocker.ReleaseReaderLock();
-                }
-
-                removeCrashedClientCallbacks(crashedClientsCallback);
-            }
-            catch (ApplicationException)
-            {
-            }
+            ExecuteCallbackAction(a => a.OnQuoteAdded(quote));
         }
 
         public void OnQuoteRemoved(MtQuote quote)
         {
-            try
-            {
-                mClientsLocker.AcquireReaderLock(2000);
+            ExecuteCallbackAction(a => a.OnQuoteRemoved(quote));
+        }
 
-                List<IMtApiCallback> crashedClientsCallback = null;
-
-                try
-                {
-                    foreach (var callback in mClientCallbacks)
-                    {
-                        try
-                        {
-                            callback.OnQuoteRemoved(quote);
-                        }
-                        catch (Exception)
-                        {
-                            if (crashedClientsCallback == null)
-                                crashedClientsCallback = new List<IMtApiCallback>();
-
-                            crashedClientsCallback.Add(callback);
-                        }
-                    }
-                }
-                finally
-                {
-                    mClientsLocker.ReleaseReaderLock();
-                }
-
-                removeCrashedClientCallbacks(crashedClientsCallback);
-            }
-            catch (ApplicationException)
-            {
-            }
+        public void OnMtEvent(MtEvent mtEvent)
+        {
+            ExecuteCallbackAction(a => a.OnMtEvent(mtEvent));
         }
         #endregion
 
         #region Private Methods
 
-        private void removeCrashedClientCallbacks(List<IMtApiCallback> crashedClientCallbacks)
+        private void ExecuteCallbackAction(Action<IMtApiCallback> action)
         {
-            if (crashedClientCallbacks != null)
+            try
             {
+                mClientsLocker.AcquireReaderLock(2000);
+
+                List<IMtApiCallback> crashedClientCallbacks = null;
+
                 try
                 {
-                    mClientsLocker.AcquireWriterLock(200);
+                    foreach (var callback in mClientCallbacks)
+                    {
+                        try
+                        {
+                            action(callback);
+                        }
+                        catch (Exception)
+                        {
+                            if (crashedClientCallbacks == null)
+                                crashedClientCallbacks = new List<IMtApiCallback>();
 
-                    try
+                            crashedClientCallbacks.Add(callback);
+                        }
+                    }
+
+                    if (crashedClientCallbacks != null)
                     {
                         foreach (var crashedCallback in crashedClientCallbacks)
                         {
                             mClientCallbacks.Remove(crashedCallback);
                         }
                     }
-                    finally
-                    {
-                        mClientsLocker.ReleaseWriterLock();
-                    }
                 }
-                catch (ApplicationException)
+                finally
                 {
+                    mClientsLocker.ReleaseReaderLock();
                 }
+            }
+            catch (ApplicationException)
+            {
+                //TODO: add logging
             }
         }
 

@@ -66,6 +66,7 @@ namespace MTApiService
                 }
             }
         }
+
         #endregion
 
         #region Public Methods
@@ -114,6 +115,11 @@ namespace MTApiService
 
             return null;
         }
+
+        public void SendEvent(MtEvent mtEvent)
+        {
+            FireOnMtEvent(mtEvent);
+        }
         #endregion
 
         #region IMtCommandExecutor
@@ -134,29 +140,22 @@ namespace MTApiService
 
         private void FireOnQuoteChanged(MtQuote quote)
         {
-            var handler = QuoteChanged;
-            if (handler != null)
-            {
-                handler(this, quote);
-            }     
+            QuoteChanged?.Invoke(this, quote);
         }
 
         private void FireOnDeinited()
         {
-            var handler = Deinited;
-            if (handler != null)
-            {
-                handler(this, EventArgs.Empty);
-            }
+            Deinited?.Invoke(this, EventArgs.Empty);
         }
 
         private void FireOnCommandExecuted()
         {
-            var handler = CommandExecuted;
-            if (handler != null)
-            {
-                handler(this, EventArgs.Empty);
-            }
+            CommandExecuted?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void FireOnMtEvent(MtEvent mtEvent)
+        {
+            OnMtEvent?.Invoke(this, new MtEventArgs(mtEvent));
         }
         #endregion
 
@@ -164,6 +163,7 @@ namespace MTApiService
         public event EventHandler Deinited;
         public event MtQuoteHandler QuoteChanged;
         public event EventHandler CommandExecuted;
+        public event EventHandler<MtEventArgs> OnMtEvent;
         #endregion
 
         #region Private Fields

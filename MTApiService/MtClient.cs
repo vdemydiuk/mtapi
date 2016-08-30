@@ -224,20 +224,14 @@ namespace MTApiService
         {
             Debug.WriteLine("[INFO] MtClient::OnQuoteAdded");
 
-            if (QuoteAdded != null)
-            {
-                QuoteAdded(quote);
-            }
+            QuoteAdded?.Invoke(quote);
         }
 
         public void OnQuoteRemoved(MtQuote quote)
         {
             Debug.WriteLine("[INFO] MtClient::OnQuoteRemoved");
 
-            if (QuoteRemoved != null)
-            {
-                QuoteRemoved(quote);
-            }
+            QuoteRemoved?.Invoke(quote);
         }
 
         public void OnServerStopped()
@@ -246,10 +240,13 @@ namespace MTApiService
 
             Close();
 
-            if (ServerDisconnected != null)
-            {
-                ServerDisconnected(this, EventArgs.Empty);
-            }
+            ServerDisconnected?.Invoke(this, EventArgs.Empty);
+        }
+
+
+        public void OnMtEvent(MtEvent mtEvent)
+        {
+            MtEventReceived?.Invoke(this, new MtEventArgs(mtEvent));
         }
 
         #endregion
@@ -301,6 +298,7 @@ namespace MTApiService
         public event MtQuoteHandler QuoteUpdated;
         public event EventHandler ServerDisconnected;
         public event EventHandler ServerFailed;
+        public event EventHandler<MtEventArgs> MtEventReceived;
         #endregion
 
         #region Fields

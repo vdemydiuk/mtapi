@@ -3,6 +3,7 @@ LIBRARY MTConnector
 EXPORTS initExpert
         deinitExpert
         updateQuote
+		sendEvent
 		sendIntResponse
 		sendBooleanResponse
 		sendDoubleResponse

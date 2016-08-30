@@ -71,6 +71,22 @@ int _stdcall updateQuote(int expertHandle, wchar_t* symbol, double bid, double a
 	return 1;
 }
 
+
+int _stdcall sendEvent(int expertHandle, int eventType, wchar_t* payload, wchar_t* err)
+{
+    try
+    {
+        MtServerInstance::GetInstance()->SendEvent(expertHandle, eventType, gcnew String(payload));
+    }
+    catch (Exception^ e)
+    {
+        convertSystemString(err, e->Message);
+        Debug::WriteLine("[ERROR] MTConnector:updateTimeBar(): " + e->Message);
+        return 0;
+    }
+    return 1;
+}
+
 int _stdcall sendIntResponse(int expertHandle, int response)
 {
 	try
