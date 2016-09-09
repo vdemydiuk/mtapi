@@ -485,10 +485,10 @@ namespace MtApi
             return response != null ? response.Order : null;
         }
 
-        public IEnumerable<MtOrder> GetOrders(OrderSelectSource pool)
+        public List<MtOrder> GetOrders(OrderSelectSource pool)
         {
             var response = SendRequest<GetOrdersResponse>(new GetOrdersRequest { Pool = (int)pool });
-            return response != null ? response.Orders : null;
+            return response != null ? response.Orders : new List<MtOrder>();
         }
         #endregion
 
@@ -1490,8 +1490,7 @@ namespace MtApi
 
             if (changed)
             {
-                var handler = ConnectionStateChanged;
-                handler?.BeginInvoke(this, new MtConnectionEventArgs(state, message), (a) => handler.EndInvoke(a), null);
+                ConnectionStateChanged.FireEventAsync(this, new MtConnectionEventArgs(state, message));
             }
         }
 
@@ -1573,14 +1572,13 @@ namespace MtApi
         {
             if (quote != null)
             {
-                var handler = QuoteUpdated;
                 if (IsBacktestingMode)
                 {
-                    handler?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
+                    QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
                 }                    
                 else
                 {
-                    handler?.BeginInvoke(this, quote.Instrument, quote.Bid, quote.Ask, (a) => handler.EndInvoke(a), null);
+                    QuoteUpdated.FireEventAsync(this, quote.Instrument, quote.Bid, quote.Ask);
                 }                
             }
         }
@@ -1597,14 +1595,12 @@ namespace MtApi
 
         private void mClient_QuoteRemoved(MTApiService.MtQuote quote)
         {
-            var handler = QuoteRemoved;
-            handler?.BeginInvoke(this, new MtQuoteEventArgs(quote.Convert()), (a) => handler.EndInvoke(a), null);
+            QuoteRemoved.FireEventAsync(this, new MtQuoteEventArgs(quote.Convert()));
         }
 
         private void mClient_QuoteAdded(MTApiService.MtQuote quote)
         {
-            var handler = QuoteAdded;
-            handler?.BeginInvoke(this, new MtQuoteEventArgs(quote.Convert()), (a) => handler.EndInvoke(a), null);
+            QuoteAdded.FireEventAsync(this, new MtQuoteEventArgs(quote.Convert()));
         }
 
         private void _client_MtEventReceived(object sender, MtEventArgs e)
@@ -1623,8 +1619,7 @@ namespace MtApi
 
         private void FireOnLastTimeBar(MtTimeBar timeBar)
         {
-            var handler = OnLastTimeBar;
-            handler?.BeginInvoke(this, new TimeBarArgs(timeBar), (a) => handler.EndInvoke(a), null);
+            OnLastTimeBar.FireEventAsync(this, new TimeBarArgs(timeBar));
         }
 
         #endregion

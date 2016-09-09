@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using MtApi;
 using System.Threading.Tasks;
 using System.Linq;
+using MtApi.Monitors;
 
 namespace TestApiClientUI
 {
@@ -12,6 +13,8 @@ namespace TestApiClientUI
     {
         private readonly List<Action> _groupOrderCommands = new List<Action>();
         private readonly MtApiClient _apiClient = new MtApiClient();
+        private readonly TimerTradeMonitor _timerTradeMonitor;
+        private readonly TimeframeTradeMonitor _timeframeTradeMonitor;
 
         public Form1()
         {
@@ -29,6 +32,13 @@ namespace TestApiClientUI
 
             comboBox1.SelectedIndex = 0;
             comboBox2.SelectedIndex = 0;
+
+            _timerTradeMonitor = new TimerTradeMonitor(_apiClient);
+            _timerTradeMonitor.Interval = 1000; // 1 sec
+            _timerTradeMonitor.AvailabilityOrdersChanged += _tradeMonitor_AvailabilityOrdersChanged;
+
+            _timeframeTradeMonitor = new TimeframeTradeMonitor(_apiClient);
+            _timeframeTradeMonitor.AvailabilityOrdersChanged += _tradeMonitor_AvailabilityOrdersChanged;
         }
 
         private void initOrderCommandsGroup()
@@ -200,16 +210,20 @@ namespace TestApiClientUI
             int port;
             int.TryParse(textBoxPort.Text, out port);
 
+            _timerTradeMonitor.Start();
+            _timeframeTradeMonitor.Start();
+
             if (string.IsNullOrEmpty(serverName))
                 _apiClient.BeginConnect(port);
             else
                 _apiClient.BeginConnect(serverName, port);
-
-            OnConnected();
         }
 
         private void buttonDisconnect_Click(object sender, EventArgs e)
         {
+            _timerTradeMonitor.Stop();
+            _timeframeTradeMonitor.Stop();
+
             _apiClient.BeginDisconnect();
         }
 
@@ -1052,6 +1066,7 @@ namespace TestApiClientUI
             AddToLog(string.Format("ICustom result: {0}", retVal));
         }
 
+        //CopyRates
         private async void button24_Click(object sender, EventArgs e)
         {
             string symbol = textBoxSelectedSymbol.Text;
@@ -1078,6 +1093,7 @@ namespace TestApiClientUI
             }
         }
 
+        //CopyRates
         private async void button25_Click(object sender, EventArgs e)
         {
             string symbol = textBoxSelectedSymbol.Text;
@@ -1104,6 +1120,7 @@ namespace TestApiClientUI
             }
         }
 
+        //CopyRates
         private async void button26_Click(object sender, EventArgs e)
         {
             string symbol = textBoxSelectedSymbol.Text;
@@ -1130,6 +1147,7 @@ namespace TestApiClientUI
             }
         }
 
+        //Print
         private void button27_Click(object sender, EventArgs e)
         {
             var msg = textBoxPrint.Text;
@@ -1139,5 +1157,19 @@ namespace TestApiClientUI
                 AddToLog(string.Format("Print executed"));
             }
         }
+
+        private void _tradeMonitor_AvailabilityOrdersChanged(object sender, AvailabilityOrdersEventArgs e)
+        {
+            if (e.Opened != null)
+            {
+                AddToLog($"{sender.GetType()}: Opened orders - {string.Join(", ", e.Opened.Select(o => o.Ticket).ToList())}");
+            }
+
+            if (e.Closed != null)
+            {
+                AddToLog($"{sender.GetType()}: Closed orders - {string.Join(", ", e.Closed.Select(o => o.Ticket).ToList())}");
+            }
+        }
+
     }
 }

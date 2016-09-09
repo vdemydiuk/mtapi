@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="ChartPeriod.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="Monitors\AvailabilityOrdersEventArgs.cs" />
     <Compile Include="MqlRates.cs" />
     <Compile Include="MtConnectionEventArgs.cs" />
     <Compile Include="MtConnectionException.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="MtQuoteEventArgs.cs" />
     <Compile Include="MtTimeBar.cs" />
     <Compile Include="MtTypes.cs" />
+    <Compile Include="Monitors\TradeMonitor.cs" />
     <Compile Include="PriceConstantsType.cs" />
     <Compile Include="MarketInfoModeType.cs" />
     <Compile Include="MtApiClient.cs" />
@@ -98,6 +100,8 @@
     <Compile Include="Responses\ResponseBase.cs" />
     <Compile Include="SeriesIdentifier.cs" />
     <Compile Include="TimeBarArgs.cs" />
+    <Compile Include="Monitors\TimeframeTradeMonitor.cs" />
+    <Compile Include="Monitors\TimerTradeMonitor.cs" />
     <Compile Include="TradeOperation.cs" />
     <Compile Include="MtApiTimeConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
