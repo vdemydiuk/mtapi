@@ -475,6 +475,17 @@ namespace MtApi5
         {
             return sendCommand<bool>(Mt5CommandType.OrderCloseAll, null);
         }
+
+        ///<summary>
+        ///Closes a position with the specified ticket.
+        ///</summary>
+        ///<param name="ticket">Ticket of the closed position.</param>
+        public bool PositionClose(int ticket)
+        {
+            var commandParameters = new ArrayList { ticket};
+
+            return sendCommand<bool>(Mt5CommandType.PositionClose, commandParameters);
+        }
         #endregion
 
         #region Account Information functions
