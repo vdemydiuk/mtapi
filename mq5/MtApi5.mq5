@@ -227,12 +227,14 @@ int executeCommand()
       sendBooleanResponse(ExpertHandle, retVal);  
    }
    break;
-   case 64: //PositionCloseBy
-   {
-      ulong ticket;
-      getULongValue(ExpertHandle, 0, ticket);
-      
-      sendBooleanResponse(ExpertHandle, PositionClose(ticket));
+   case 64: //PositionClose
+   {      
+      int ticket;
+      CTrade trade;
+
+      getIntValue(ExpertHandle, 0, ticket);      
+             
+      sendBooleanResponse(ExpertHandle, trade.PositionClose(ticket));
    }
    break;
       
