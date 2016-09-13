@@ -227,6 +227,14 @@ int executeCommand()
       sendBooleanResponse(ExpertHandle, retVal);  
    }
    break;
+   case 64: //PositionCloseBy
+   {
+      ulong ticket;
+      getULongValue(ExpertHandle, 0, ticket);
+      
+      sendBooleanResponse(ExpertHandle, PositionClose(ticket));
+   }
+   break;
       
    case 2: // OrderCalcMargin
    {
