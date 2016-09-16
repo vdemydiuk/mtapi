@@ -227,6 +227,16 @@ int executeCommand()
       sendBooleanResponse(ExpertHandle, retVal);  
    }
    break;
+   case 64: //PositionClose
+   {      
+      int ticket;
+      CTrade trade;
+
+      getIntValue(ExpertHandle, 0, ticket);      
+             
+      sendBooleanResponse(ExpertHandle, trade.PositionClose(ticket));
+   }
+   break;
       
    case 2: // OrderCalcMargin
    {
