@@ -34,7 +34,7 @@ namespace TestApiClientUI
             comboBox2.SelectedIndex = 0;
 
             _timerTradeMonitor = new TimerTradeMonitor(_apiClient);
-            _timerTradeMonitor.Interval = 1000; // 1 sec
+            _timerTradeMonitor.Interval = 10000; // 10 sec
             _timerTradeMonitor.AvailabilityOrdersChanged += _tradeMonitor_AvailabilityOrdersChanged;
 
             _timeframeTradeMonitor = new TimeframeTradeMonitor(_apiClient);
