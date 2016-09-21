@@ -67,6 +67,7 @@
     <Compile Include="MtConnectionState.cs" />
     <Compile Include="MtCommandType.cs" />
     <Compile Include="MtErrorCode.cs" />
+    <Compile Include="MtErrorStatus.cs" />
     <Compile Include="MtEventTypes.cs" />
     <Compile Include="MtExecutionException.cs" />
     <Compile Include="MtOrder.cs" />
