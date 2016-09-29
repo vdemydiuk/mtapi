@@ -664,6 +664,12 @@ namespace MtApi
             var commandParameters = new ArrayList { pos, selected };
             return SendCommand<string>(MtCommandType.SymbolName, commandParameters);
         }
+
+        public bool SymbolSelect(string name, bool select)
+        {
+            var commandParameters = new ArrayList { name, select };
+            return SendCommand<bool>(MtCommandType.SymbolSelect, commandParameters);
+        }
         #endregion
 
         #region Common Function
