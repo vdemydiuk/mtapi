@@ -658,6 +658,12 @@ namespace MtApi
             var commandParameters = new ArrayList { selected };
             return SendCommand<int>(MtCommandType.SymbolsTotal, commandParameters);
         }
+
+        public string SymbolName(int pos, bool selected)
+        {
+            var commandParameters = new ArrayList { pos, selected };
+            return SendCommand<string>(MtCommandType.SymbolName, commandParameters);
+        }
         #endregion
 
         #region Common Function
