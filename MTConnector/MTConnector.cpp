@@ -256,3 +256,18 @@ int _stdcall getStringValue(int expertHandle, int paramIndex, wchar_t* res)
 	}
 	return 1;
 }
+
+int _stdcall getBooleanValue(int expertHandle, int paramIndex, int* res)
+{
+	try
+	{
+		bool val = (bool)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+		*res = val == true ? 1 : 0;
+	}
+	catch (Exception^ e)
+	{
+		Debug::WriteLine("[ERROR] MT5Connector:getBooleanValue(): " + e->Message);
+		return 0;
+	}
+	return 1;
+}
