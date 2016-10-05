@@ -3,6 +3,8 @@
 
 #include <Trade\SymbolInfo.mqh>
 #include <trade/trade.mqh>
+#property version   "1.1"
+#property description "MtApi (MT5) connection expert"
 
 #import "MT5Connector.dll"
    bool initExpert(int expertHandle, int port, string symbol, double bid, double ask, string& err);
@@ -32,8 +34,6 @@
    bool getDoubleValue(int expertHandle, int paramIndex, double& res);
    bool getStringValue(int expertHandle, int paramIndex, string& res);
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res);
-   
-//   void verify(bool isDemo, string accountName, long accountNumber);   
 #import
 
 input int Port = 8228;
@@ -45,9 +45,6 @@ bool isCrashed = false;
 
 string symbolValue;
 string commentValue;
-
-double myBid;
-double myAsk;
 
 string PARAM_SEPARATOR = ";";
 
@@ -69,9 +66,9 @@ void OnTick()
 
 int preinit()
 {
-   message        = "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111" + "";
-   symbolValue    = "222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222" + "";
-   commentValue   = "333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333" + "";
+   StringInit(message, 1000, 0);
+   StringInit(symbolValue, 1000, 0);
+   StringInit(commentValue, 1000, 0);
 
    return (0);
 }
@@ -86,9 +83,7 @@ bool IsDemo()
 
 int init() 
 {
-   preinit();
-   
-//   verify(IsDemo(), AccountInfoString(ACCOUNT_NAME), AccountInfoInteger(ACCOUNT_LOGIN));
+   preinit();  
 
    if (TerminalInfoInteger(TERMINAL_DLLS_ALLOWED) == false) 
    {
@@ -110,17 +105,14 @@ int init()
       return (1);
    }
 
-   long chartID= ChartID();
-   ExpertHandle = ChartGetInteger(chartID, CHART_WINDOW_HANDLE);
+   long chartID = ChartID();
+   ExpertHandle = (int) ChartGetInteger(chartID, CHART_WINDOW_HANDLE);
    
    MqlTick last_tick;
    SymbolInfoTick(Symbol(),last_tick);
    double Bid = last_tick.bid;
    double Ask = last_tick.ask;
    
-   myBid = Bid;
-   myAsk = Ask;
-
    if (!initExpert(ExpertHandle, Port, Symbol(), Bid, Ask, message))
    {
        MessageBox(message, "MtApi", 0);
@@ -154,41 +146,31 @@ int deinit()
 
 int start() 
 {
-   if (isCrashed == 0) 
-   {   
-      MqlTick last_tick;
-      SymbolInfoTick(Symbol(),last_tick);
-      double Bid = last_tick.bid;
-      double Ask = last_tick.ask;
+   MqlTick last_tick;
+   SymbolInfoTick(Symbol(),last_tick);
+   double Bid = last_tick.bid;
+   double Ask = last_tick.ask;
    
-      if (executeCommand() != 0)
-      {  
-         CSymbolInfo mysymbol;
-         mysymbol.Name (_Symbol);
-         mysymbol.RefreshRates();
-
-         Bid = mysymbol.Bid();
-         Ask =  mysymbol.Ask();
-                           
-         if (myBid == Bid && myAsk == Ask)
-         {         
-            return (0);
-         }
-      }      
-      
-      if (!updateQuote(ExpertHandle, Symbol(), Bid, Ask, message)) 
-      {
-         MessageBox(message, "MtApi", 0);
-         isCrashed = true;
-         return (1);
-      }
-      
-      myBid = Bid;
-      myAsk = Ask;
+   if (!updateQuote(ExpertHandle, Symbol(), Bid, Ask, message)) 
+   {
+      Print("updateQuote: [ERROR] ", message);
    }
 
    return (0);
 }
+
+void OnTimer()
+{
+   while(true)
+   {
+      int executedCommand = executeCommand();
+      if (executedCommand == 0)
+      {   
+         return;
+      }
+   }
+}
+
 
 int executeCommand()
 {
