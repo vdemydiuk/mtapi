@@ -72,6 +72,7 @@
     <Compile Include="MtOrder.cs" />
     <Compile Include="MtQuote.cs" />
     <Compile Include="MtQuoteEventArgs.cs" />
+    <Compile Include="MtSession.cs" />
     <Compile Include="MtTimeBar.cs" />
     <Compile Include="MtTypes.cs" />
     <Compile Include="Monitors\TradeMonitor.cs" />
@@ -90,6 +91,7 @@
     <Compile Include="Requests\OrderDeleteRequest.cs" />
     <Compile Include="Requests\OrderModifyRequest.cs" />
     <Compile Include="Requests\OrderSendRequest.cs" />
+    <Compile Include="Requests\SessionRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />
     <Compile Include="Requests\RequestType.cs" />
     <Compile Include="Responses\CopyRatesResponse.cs" />
@@ -97,6 +99,7 @@
     <Compile Include="Responses\GetOrdersResponse.cs" />
     <Compile Include="Responses\ICustomResponse.cs" />
     <Compile Include="Responses\OrderSendResponse.cs" />
+    <Compile Include="Responses\SessionResponce.cs" />
     <Compile Include="Responses\ResponseBase.cs" />
     <Compile Include="SeriesIdentifier.cs" />
     <Compile Include="TimeBarArgs.cs" />
