@@ -9,16 +9,16 @@ using namespace MTApiService;
 ref class MT5Handler: IMetaTraderHandler
 {
 public:
-	MT5Handler()
-	{
-		msgId = WM_USER + 4096;
-	}
+    MT5Handler()
+    {
+        msgId = WM_TIMER;
+    }
 
-	virtual void SendTickToMetaTrader(int handle)
-	{
-		PostMessage((HWND)handle, msgId, 0x00000011, 0);
-	}
+    virtual void SendTickToMetaTrader(int handle)
+    {
+        PostMessage((HWND)handle, msgId, 0, 0);
+    }
 
 private:
-	unsigned int msgId;
+    unsigned int msgId;
 };
