@@ -355,7 +355,7 @@
                 </Grid>
             </TabItem>
             
-            <TabItem Header=" Market Info">
+            <TabItem Header="Market Info">
                 <WrapPanel VerticalAlignment="Top" Margin="5">
                     <Button Command="{Binding SymbolsTotalCommand}" Content="SymbolsTotal" Margin="2"/>
                     <Button Command="{Binding SymbolNameCommand}" Content="SymbolName" Margin="2"/>
@@ -370,6 +370,12 @@
                     <Button Command="{Binding MarketBookAddCommand}" Content="MarketBookAdd" Margin="2"/>
                     <Button Command="{Binding MarketBookReleaseCommand}" Content="MarketBookRelease" Margin="2"/>
                     <Button Command="{Binding MarketBookGetCommand}" Content="MarketBookGet" Margin="2"/>                    
+                </WrapPanel>
+            </TabItem>
+
+            <TabItem Header="CTrade">
+                <WrapPanel VerticalAlignment="Top" Margin="5">
+                    <Button Command="{Binding PositionOpenCommand}" Content="PositionOpen" Margin="2"/>
                 </WrapPanel>
             </TabItem>
         </TabControl>

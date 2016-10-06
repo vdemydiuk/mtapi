@@ -30,11 +30,11 @@ namespace MtApi5
         {
             ConnectionState = Mt5ConnectionState.Disconnected;
 
-            mClient.QuoteAdded += new MtClient.MtQuoteHandler(mClient_QuoteAdded);
-            mClient.QuoteRemoved += new MtClient.MtQuoteHandler(mClient_QuoteRemoved);
-            mClient.QuoteUpdated += new MtClient.MtQuoteHandler(mClient_QuoteUpdated);
-            mClient.ServerDisconnected += new EventHandler(mClient_ServerDisconnected);
-            mClient.ServerFailed += new EventHandler(mClient_ServerFailed);
+            _client.QuoteAdded += mClient_QuoteAdded;
+            _client.QuoteRemoved += mClient_QuoteRemoved;
+            _client.QuoteUpdated += mClient_QuoteUpdated;
+            _client.ServerDisconnected += mClient_ServerDisconnected;
+            _client.ServerFailed += mClient_ServerFailed;
         }
 
         ///<summary>
@@ -79,7 +79,7 @@ namespace MtApi5
         ///</summary>
         public IEnumerable<Mt5Quote> GetQuotes()
         {
-            var quotes = mClient.GetQuotes();
+            var quotes = _client.GetQuotes();
             return quotes != null ? (from q in quotes select q.Parse()) : null;
         }
 
@@ -470,7 +470,6 @@ namespace MtApi5
         ///<summary>
         ///Close all open positions. 
         ///</summary>
-        ///<param name="ticket">OrderCloseAll</param>
         public bool OrderCloseAll()
         {
             return sendCommand<bool>(Mt5CommandType.OrderCloseAll, null);
@@ -485,6 +484,24 @@ namespace MtApi5
             var commandParameters = new ArrayList { ticket};
 
             return sendCommand<bool>(Mt5CommandType.PositionClose, commandParameters);
+        }
+
+        /// <summary>
+        /// Opens a position with the specified parameters.
+        /// </summary>
+        /// <param name="symbol">symbol</param>
+        /// <param name="orderType">order type to open position </param>
+        /// <param name="volume">position volume</param>
+        /// <param name="price">execution price</param>
+        /// <param name="sl">Stop Loss price</param>
+        /// <param name="tp">Take Profit price</param>
+        /// <param name="comment">comment</param>
+        /// <returns>true - successful check of the basic structures, otherwise - false.</returns>
+        public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, string comment = "")
+        {
+            var commandParameters = new ArrayList { symbol, (int) orderType, volume, price, sl, tp, comment };
+
+            return sendCommand<bool>(Mt5CommandType.PositionOpen, commandParameters);
         }
         #endregion
 
@@ -1384,8 +1401,8 @@ namespace MtApi5
 
             try
             {
-                mClient.Open(host, port);
-                mClient.Connect();
+                _client.Open(host, port);
+                _client.Connect();
             }
             catch (Exception e)
             {
@@ -1408,8 +1425,8 @@ namespace MtApi5
 
             try
             {
-                mClient.Open(port);
-                mClient.Connect();
+                _client.Open(port);
+                _client.Connect();
             }
             catch (Exception e)
             {
@@ -1427,8 +1444,8 @@ namespace MtApi5
 
         private void Disconnect()
         {
-            mClient.Disconnect();
-            mClient.Close();
+            _client.Disconnect();
+            _client.Close();
 
             ConnectionState = Mt5ConnectionState.Disconnected;
             ConnectionStateChanged.FireEvent(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Disconnected, "Disconnected"));
@@ -1436,7 +1453,7 @@ namespace MtApi5
 
         private T sendCommand<T>(Mt5CommandType commandType, ArrayList commandParameters)
         {
-            var response = mClient.SendCommand((int)commandType, commandParameters);
+            var response = _client.SendCommand((int)commandType, commandParameters);
 
             if (response is MtResponseDouble)
                 return (T)Convert.ChangeType(((MtResponseDouble)response).Value, typeof(T));
@@ -1484,10 +1501,7 @@ namespace MtApi5
         {
             if (quote != null)
             {
-                if (QuoteUpdated != null)
-                {
-                    QuoteUpdated(this, quote.Instrument, quote.Bid, quote.Ask);
-                }
+                QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
             }
         }
 
@@ -1518,7 +1532,7 @@ namespace MtApi5
         #endregion
 
         #region Private Fields
-        private readonly MtClient mClient = new MtClient();
+        private readonly MtClient _client = new MtClient();
         #endregion
     }
 }

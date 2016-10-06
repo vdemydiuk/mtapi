@@ -178,8 +178,14 @@ int executeCommand()
 
    if (!getCommandType(ExpertHandle, commandType))
    {
+      Print("[ERROR] getCommandType");
       return (0);
-   }            
+   }
+   
+   if (commandType > 0)
+   {
+      Print("executeCommand: commnad type = ", commandType);
+   }
   
    switch (commandType) 
    {
@@ -209,6 +215,7 @@ int executeCommand()
       sendBooleanResponse(ExpertHandle, retVal);  
    }
    break;
+
    case 64: //PositionClose
    {      
       int ticket;
@@ -219,7 +226,7 @@ int executeCommand()
       sendBooleanResponse(ExpertHandle, trade.PositionClose(ticket));
    }
    break;
-      
+         
    case 2: // OrderCalcMargin
    {
       ENUM_ORDER_TYPE action;
@@ -1591,6 +1598,38 @@ int executeCommand()
       {
          sendVoidResponse(ExpertHandle);
       }
+   }
+   break;
+   
+   case 65: //PositionOpen
+   {      
+      string symbol;
+      StringInit(symbol, 50, 0);
+      ENUM_ORDER_TYPE order_type;
+      double volume;
+      double price;
+      double sl;
+      double tp;
+      string comment;
+      StringInit(comment, 1000, 0);
+            
+      getStringValue(ExpertHandle, 0, symbol);
+      int order_type_int = 0;
+      getIntValue(ExpertHandle, 1, order_type_int);
+      order_type = (ENUM_ORDER_TYPE) order_type_int;
+      getDoubleValue(ExpertHandle, 2, volume);
+      getDoubleValue(ExpertHandle, 3, price);
+      getDoubleValue(ExpertHandle, 4, sl);
+      getDoubleValue(ExpertHandle, 5, tp);
+      getStringValue(ExpertHandle, 6, comment);
+      
+      PrintFormat("command PositionOpen: symbol = %s, order_type = %d, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
+         symbol, order_type, volume, price, sl, tp, comment);
+      
+      CTrade trade;             
+      bool result = trade.PositionOpen(symbol, order_type, volume, price, sl, tp, comment);
+      sendBooleanResponse(ExpertHandle, result);
+      Print("command PositionOpen: result = ", result);
    }
    break;     
 

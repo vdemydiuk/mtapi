@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Input;
 using System.ComponentModel;
 using System.Windows;
 using MtApi5;
 using System.Collections.ObjectModel;
+using System.Globalization;
 
 namespace MtApi5TestClient
 {
@@ -43,93 +41,83 @@ namespace MtApi5TestClient
         public DelegateCommand SymbolInfoTickCommand { get; private set; }
         public DelegateCommand SymbolInfoSessionQuoteCommand { get; private set; }
         public DelegateCommand SymbolInfoSessionTradeCommand { get; private set; }
-        public DelegateCommand MarketBookAddCommand { get; private set; }   
+        public DelegateCommand MarketBookAddCommand { get; private set; }
         public DelegateCommand MarketBookReleaseCommand { get; private set; }
-        public DelegateCommand MarketBookGetCommand { get; private set; }          
+        public DelegateCommand MarketBookGetCommand { get; private set; }
+
+        public DelegateCommand PositionOpenCommand { get; private set; }
         #endregion
 
         #region Properties
-        private Mt5ConnectionState _ConnectionState;
+        private Mt5ConnectionState _connectionState;
         public Mt5ConnectionState ConnectionState
         {
-            get { return _ConnectionState; }
+            get { return _connectionState; }
             set
             {
-                _ConnectionState = value;
+                _connectionState = value;
                 OnPropertyChanged("ConnectionState");
             }
         }
 
-        private string _ConnectionMessage;
+        private string _connectionMessage;
         public string ConnectionMessage
         {
-            get { return _ConnectionMessage; }
+            get { return _connectionMessage; }
             set
             {
-                _ConnectionMessage = value;
+                _connectionMessage = value;
                 OnPropertyChanged("ConnectionMessage");
             }
         }
 
-        private string _Host;
+        private string _host;
         public string Host
         {
-            get { return _Host; }
+            get { return _host; }
             set
             {
-                _Host = value;
+                _host = value;
                 OnPropertyChanged("Host");
             }
         }
 
-        private int _Port;
+        private int _port;
         public int Port
         {
-            get { return _Port; }
+            get { return _port; }
             set
             {
-                _Port = value;
+                _port = value;
                 OnPropertyChanged("Port");
             }
         }
 
-        private ObservableCollection<QuoteViewModel> _Quotes = new ObservableCollection<QuoteViewModel>();
-        public ObservableCollection<QuoteViewModel> Quotes
-        {
-            get { return _Quotes; }
-        }
+        public ObservableCollection<QuoteViewModel> Quotes { get; } = new ObservableCollection<QuoteViewModel>();
 
-        private QuoteViewModel _SelectedQuote;
+        private QuoteViewModel _selectedQuote;
         public QuoteViewModel SelectedQuote 
         {
-            get { return _SelectedQuote; }
+            get { return _selectedQuote; }
             set
             {
-                _SelectedQuote = value;
+                _selectedQuote = value;
                 OnPropertyChanged("SelectedQuote");
                 OnSelectedQuoteChanged();
             }
         }
 
-        private ObservableCollection<string> _History = new ObservableCollection<string>();
-        public ObservableCollection<string> History
-        {
-            get { return _History; }
-        }
+        public ObservableCollection<string> History { get; } = new ObservableCollection<string>();
 
-        private ObservableCollection<MqlTradeRequestViewModel> _TradeRequests = new ObservableCollection<MqlTradeRequestViewModel>();
-        public ObservableCollection<MqlTradeRequestViewModel> TradeRequests
-        {
-            get { return _TradeRequests; }
-        }
+        public ObservableCollection<MqlTradeRequestViewModel> TradeRequests { get; } = new ObservableCollection<MqlTradeRequestViewModel>();
 
-        private MqlTradeRequestViewModel _TradeRequest;
+        private MqlTradeRequestViewModel _tradeRequest;
         public MqlTradeRequestViewModel TradeRequest
         {
-            get { return _TradeRequest; }
+            get { return _tradeRequest; }
             set
             {
-                _TradeRequest = value;
+                _tradeRequest = value;
                 OnPropertyChanged("TradeRequest");
             }
         }
@@ -140,27 +128,24 @@ namespace MtApi5TestClient
 
         public TimeSeriesValueViewModel TimeSeriesValues { get; set; }
 
-        private ObservableCollection<string> _TimeSeriesResults = new ObservableCollection<string>();
-        public ObservableCollection<string> TimeSeriesResults
-        {
-            get { return _TimeSeriesResults; }
-        }
+        public ObservableCollection<string> TimeSeriesResults { get; } = new ObservableCollection<string>();
+
         #endregion
 
         #region Public Methods
         public ViewModel()
         {
             // Init MtApi client
-            mMtApiClient = new MtApi5Client();
+            _mtApiClient = new MtApi5Client();
 
-            mMtApiClient.ConnectionStateChanged += new EventHandler<Mt5ConnectionEventArgs>(mMtApiClient_ConnectionStateChanged);
-            mMtApiClient.QuoteAdded += new EventHandler<Mt5QuoteEventArgs>(mMtApiClient_QuoteAdded);
-            mMtApiClient.QuoteRemoved += new EventHandler<Mt5QuoteEventArgs>(mMtApiClient_QuoteRemoved);
-            mMtApiClient.QuoteUpdated += new MtApi5Client.QuoteHandler(mMtApiClient_QuoteUpdated);
+            _mtApiClient.ConnectionStateChanged += mMtApiClient_ConnectionStateChanged;
+            _mtApiClient.QuoteAdded += mMtApiClient_QuoteAdded;
+            _mtApiClient.QuoteRemoved += mMtApiClient_QuoteRemoved;
+            _mtApiClient.QuoteUpdated += mMtApiClient_QuoteUpdated;
 
             _quotesMap = new Dictionary<string, QuoteViewModel>();
 
-            ConnectionState = mMtApiClient.ConnectionState;
+            ConnectionState = _mtApiClient.ConnectionState;
             ConnectionMessage = "Disconnected";
             Port = 8228; //default local port
 
@@ -174,13 +159,12 @@ namespace MtApi5TestClient
 
             TradeRequest = new MqlTradeRequestViewModel(request);
 
-            TimeSeriesValues = new TimeSeriesValueViewModel();
-            TimeSeriesValues.Count = 100;
+            TimeSeriesValues = new TimeSeriesValueViewModel { Count = 100 };
         }
 
         public void Close()
         {
-            mMtApiClient.BeginDisconnect();
+            _mtApiClient.BeginDisconnect();
         }
 
         #endregion
@@ -222,7 +206,9 @@ namespace MtApi5TestClient
             SymbolInfoSessionTradeCommand = new DelegateCommand(ExecuteSymbolInfoSessionTrade);
             MarketBookAddCommand = new DelegateCommand(ExecuteMarketBookAdd);   
             MarketBookReleaseCommand = new DelegateCommand(ExecuteMarketBookRelease);
-            MarketBookGetCommand = new DelegateCommand(ExecuteMarketBookGet);               
+            MarketBookGetCommand = new DelegateCommand(ExecuteMarketBookGet);
+
+            PositionOpenCommand = new DelegateCommand(ExecutePositionOpen);
         }
 
         private bool CanExecuteConnect(object o)
@@ -234,11 +220,11 @@ namespace MtApi5TestClient
         {
             if (string.IsNullOrEmpty(Host))
             {
-                mMtApiClient.BeginConnect(Port);
+                _mtApiClient.BeginConnect(Port);
             }
             else
             {
-                mMtApiClient.BeginConnect(Host, Port);
+                _mtApiClient.BeginConnect(Host, Port);
             }            
         }
 
@@ -249,7 +235,7 @@ namespace MtApi5TestClient
 
         private void ExecuteDisconnect(object o)
         {
-            mMtApiClient.BeginDisconnect();
+            _mtApiClient.BeginDisconnect();
         }
 
         private void ExecuteOrderSend(object o)
@@ -257,11 +243,11 @@ namespace MtApi5TestClient
             var request = TradeRequest.GetMqlTradeRequest();
 
             MqlTradeResult result;
-            bool retVal = mMtApiClient.OrderSend(request, out result);
+            var retVal = _mtApiClient.OrderSend(request, out result);
 
             string historyItem;
 
-            if (retVal == true)
+            if (retVal)
             {
                 historyItem = "OrderSend successed. " + MqlTradeResultToString(result);
             }
@@ -275,25 +261,25 @@ namespace MtApi5TestClient
 
         private void ExecuteAccountInfoDouble(object o)
         {
-            var result = mMtApiClient.AccountInfoDouble(AccountInfoDoublePropertyId);
+            var result = _mtApiClient.AccountInfoDouble(AccountInfoDoublePropertyId);
 
-            var historyItem = string.Format("AccountInfoDouble: property_id = {0}; result = {1}", AccountInfoDoublePropertyId, result);
+            var historyItem = $"AccountInfoDouble: property_id = {AccountInfoDoublePropertyId}; result = {result}";
             History.Add(historyItem);
         }
 
         private void ExecuteAccountInfoInteger(object o)
         {
-            var result = mMtApiClient.AccountInfoInteger(AccountInfoIntegerPropertyId);
+            var result = _mtApiClient.AccountInfoInteger(AccountInfoIntegerPropertyId);
 
-            var historyItem = string.Format("AccountInfoInteger: property_id = {0}; result = {1}", AccountInfoDoublePropertyId, result);
+            var historyItem = $"AccountInfoInteger: property_id = {AccountInfoDoublePropertyId}; result = {result}";
             History.Add(historyItem);
         }
 
         private void ExecuteAccountInfoString(object o)
         {
-            var result = mMtApiClient.AccountInfoString(AccountInfoStringPropertyId);
+            var result = _mtApiClient.AccountInfoString(AccountInfoStringPropertyId);
 
-            var historyItem = string.Format("AccountInfoString: property_id = {0}; result = {1}", AccountInfoDoublePropertyId, result);
+            var historyItem = $"AccountInfoString: property_id = {AccountInfoDoublePropertyId}; result = {result}";
             History.Add(historyItem);
         }
 
@@ -304,12 +290,12 @@ namespace MtApi5TestClient
                 TimeSeriesResults.Clear();
 
                 DateTime[] timesArray;
-                var count = mMtApiClient.CopyTime(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out timesArray);
+                var count = _mtApiClient.CopyTime(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out timesArray);
                 if (count > 0)
                 {
                     foreach (var time in timesArray)
                     {
-                        TimeSeriesResults.Add(time.ToString());
+                        TimeSeriesResults.Add(time.ToString(CultureInfo.CurrentCulture));
                     }
 
                     History.Add("CopyTime success");
@@ -324,12 +310,12 @@ namespace MtApi5TestClient
                 TimeSeriesResults.Clear();
 
                 double[] opensArray;
-                var count = mMtApiClient.CopyOpen(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out opensArray);
+                var count = _mtApiClient.CopyOpen(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out opensArray);
                 if (count > 0)
                 {
                     foreach (var open in opensArray)
                     {
-                        TimeSeriesResults.Add(open.ToString());
+                        TimeSeriesResults.Add(open.ToString(CultureInfo.CurrentCulture));
                     }
 
                     History.Add("CopyOpen success");
@@ -344,12 +330,12 @@ namespace MtApi5TestClient
                 TimeSeriesResults.Clear();
 
                 double[] array;
-                var count = mMtApiClient.CopyHigh(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                var count = _mtApiClient.CopyHigh(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
                 if (count > 0)
                 {
                     foreach (var value in array)
                     {
-                        TimeSeriesResults.Add(value.ToString());
+                        TimeSeriesResults.Add(value.ToString(CultureInfo.CurrentCulture));
                     }
 
                     History.Add("CopyHigh success");
@@ -364,12 +350,12 @@ namespace MtApi5TestClient
                 TimeSeriesResults.Clear();
 
                 double[] array;
-                var count = mMtApiClient.CopyLow(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                var count = _mtApiClient.CopyLow(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
                 if (count > 0)
                 {
                     foreach (var value in array)
                     {
-                        TimeSeriesResults.Add(value.ToString());
+                        TimeSeriesResults.Add(value.ToString(CultureInfo.CurrentCulture));
                     }
 
                     History.Add("CopyLow success");
@@ -384,12 +370,12 @@ namespace MtApi5TestClient
                 TimeSeriesResults.Clear();
 
                 double[] array;
-                var count = mMtApiClient.CopyClose(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                var count = _mtApiClient.CopyClose(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
                 if (count > 0)
                 {
                     foreach (var value in array)
                     {
-                        TimeSeriesResults.Add(value.ToString());
+                        TimeSeriesResults.Add(value.ToString(CultureInfo.CurrentCulture));
                     }
 
                     History.Add("CopyClose success");
@@ -404,13 +390,13 @@ namespace MtApi5TestClient
                 TimeSeriesResults.Clear();
 
                 MqlRates[] ratesArray;
-                var count = mMtApiClient.CopyRates(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out ratesArray);
+                var count = _mtApiClient.CopyRates(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out ratesArray);
                 if (count > 0)
                 {
                     foreach (var rates in ratesArray)
                     {
-                        TimeSeriesResults.Add(string.Format("time={0}; open={1}; high={2}; low={3}; close={4}; tick_volume={5}; spread={6}; real_volume={7}",
-                            rates.time, rates.open, rates.high, rates.low, rates.close, rates.tick_volume, rates.spread, rates.tick_volume));
+                        TimeSeriesResults.Add(
+                            $"time={rates.time}; open={rates.open}; high={rates.high}; low={rates.low}; close={rates.close}; tick_volume={rates.tick_volume}; spread={rates.spread}; real_volume={rates.tick_volume}");
                     }
 
                     History.Add("CopyRates success");
@@ -425,7 +411,7 @@ namespace MtApi5TestClient
                 TimeSeriesResults.Clear();
 
                 long[] array;
-                var count = mMtApiClient.CopyTickVolume(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                var count = _mtApiClient.CopyTickVolume(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
                 if (count > 0)
                 {
                     foreach (var value in array)
@@ -445,7 +431,7 @@ namespace MtApi5TestClient
                 TimeSeriesResults.Clear();
 
                 long[] array;
-                var count = mMtApiClient.CopyRealVolume(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                var count = _mtApiClient.CopyRealVolume(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
                 if (count > 0)
                 {
                     foreach (var value in array)
@@ -465,7 +451,7 @@ namespace MtApi5TestClient
                 TimeSeriesResults.Clear();
 
                 int[] array;
-                var count = mMtApiClient.CopySpread(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                var count = _mtApiClient.CopySpread(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
                 if (count > 0)
                 {
                     foreach (var value in array)
@@ -480,60 +466,60 @@ namespace MtApi5TestClient
 
         private void ExecuteSymbolsTotal(object o)
         {
-            var selectedCount = mMtApiClient.SymbolsTotal(true);
-            History.Add("SymbolsTotal(true) success, result = " + selectedCount.ToString());
+            var selectedCount = _mtApiClient.SymbolsTotal(true);
+            History.Add($"SymbolsTotal(true) success, result = {selectedCount}");
 
-            var commonCount = mMtApiClient.SymbolsTotal(false);
-            History.Add("SymbolsTotal(false) success, result = " + selectedCount.ToString());
+            var commonCount = _mtApiClient.SymbolsTotal(false);
+            History.Add($"SymbolsTotal(false) success, result = {commonCount}");
         }
 
         private void ExecuteSymbolName(object o)
         {
-            var selectedSymbol = mMtApiClient.SymbolName(5, true);
+            var selectedSymbol = _mtApiClient.SymbolName(5, true);
             History.Add("SymbolName(5, true) success, result = " + selectedSymbol);
 
-            var commonSymbol = mMtApiClient.SymbolName(5, false);
+            var commonSymbol = _mtApiClient.SymbolName(5, false);
             History.Add("SymbolName(5, false) success, result = " + commonSymbol);
 
         }
 
         private void ExecuteSymbolSelect(object o)
         {
-            var retVal = mMtApiClient.SymbolSelect("AUDJPY", true);
+            var retVal = _mtApiClient.SymbolSelect("AUDJPY", true);
             History.Add("SymbolSelect(AUDJPY, true) success, result = " + retVal);
 
-            //var retVal1 = mMtApiClient.SymbolSelect("AUDJPY", false);
+            //var retVal1 = _mtApiClient.SymbolSelect("AUDJPY", false);
             //History.Add("SymbolSelect(AUDJPY, false) success, result = " + retVal1);
         }
 
         private void ExecuteSymbolIsSynchronized(object o)
         {
-            var retVal = mMtApiClient.SymbolIsSynchronized("EURUSD");
+            var retVal = _mtApiClient.SymbolIsSynchronized("EURUSD");
             History.Add("SymbolIsSynchronized(EURUSD) success, result = " + retVal);
         }
 
         private void ExecuteSymbolInfoDouble(object o)
         {
-            var retVal = mMtApiClient.SymbolInfoDouble("EURUSD", ENUM_SYMBOL_INFO_DOUBLE.SYMBOL_BID);
+            var retVal = _mtApiClient.SymbolInfoDouble("EURUSD", ENUM_SYMBOL_INFO_DOUBLE.SYMBOL_BID);
             History.Add("SymbolInfoDouble(EURUSD, ENUM_SYMBOL_INFO_DOUBLE.SYMBOL_BID) success, result = " + retVal);
         }
 
         private void ExecuteSymbolInfoInteger(object o)
         {
-            var retVal = mMtApiClient.SymbolInfoInteger("EURUSD", ENUM_SYMBOL_INFO_INTEGER.SYMBOL_SPREAD);
+            var retVal = _mtApiClient.SymbolInfoInteger("EURUSD", ENUM_SYMBOL_INFO_INTEGER.SYMBOL_SPREAD);
             History.Add("SymbolInfoInteger(EURUSD, ENUM_SYMBOL_INFO_INTEGER.SYMBOL_SPREAD) success, result = " + retVal);
         }
 
         private void ExecuteSymbolInfoString(object o)
         {
-            var retVal = mMtApiClient.SymbolInfoString("EURUSD", ENUM_SYMBOL_INFO_STRING.SYMBOL_DESCRIPTION);
+            var retVal = _mtApiClient.SymbolInfoString("EURUSD", ENUM_SYMBOL_INFO_STRING.SYMBOL_DESCRIPTION);
             History.Add("SymbolInfoString(EURUSD, ENUM_SYMBOL_INFO_STRING.SYMBOL_DESCRIPTION) success, result = " + retVal);
         }
 
         private void ExecuteSymbolInfoTick(object o)
         {
             MqlTick tick;
-            var retVal = mMtApiClient.SymbolInfoTick("EURUSD", out tick);
+            var retVal = _mtApiClient.SymbolInfoTick("EURUSD", out tick);
             History.Add("SymbolInfoTick(EURUSD) success, result = " + retVal);
             History.Add("SymbolInfoTick(EURUSD) tick.time = " + tick.time);
             History.Add("SymbolInfoTick(EURUSD) tick.bid = " + tick.bid);
@@ -546,7 +532,7 @@ namespace MtApi5TestClient
         {
             DateTime from;
             DateTime to;
-            var retVal = mMtApiClient.SymbolInfoSessionQuote("EURUSD", ENUM_DAY_OF_WEEK.MONDAY, 0, out from, out to);
+            var retVal = _mtApiClient.SymbolInfoSessionQuote("EURUSD", ENUM_DAY_OF_WEEK.MONDAY, 0, out from, out to);
             History.Add("SymbolInfoSessionQuote(EURUSD) success, result = " + retVal);
             History.Add("SymbolInfoSessionQuote(EURUSD) from = " + from);
             History.Add("SymbolInfoSessionQuote(EURUSD) to = " + to);
@@ -556,7 +542,7 @@ namespace MtApi5TestClient
         {
             DateTime from;
             DateTime to;
-            var retVal = mMtApiClient.SymbolInfoSessionTrade("EURUSD", ENUM_DAY_OF_WEEK.MONDAY, 0, out from, out to);
+            var retVal = _mtApiClient.SymbolInfoSessionTrade("EURUSD", ENUM_DAY_OF_WEEK.MONDAY, 0, out from, out to);
             History.Add("SymbolInfoSessionTrade(EURUSD) success, result = " + retVal);
             History.Add("SymbolInfoSessionTrade(EURUSD) from = " + from);
             History.Add("SymbolInfoSessionTrade(EURUSD) to = " + to);
@@ -564,55 +550,63 @@ namespace MtApi5TestClient
 
         private void ExecuteMarketBookAdd(object o)
         {
-            var retVal = mMtApiClient.MarketBookAdd("CHFJPY");
+            var retVal = _mtApiClient.MarketBookAdd("CHFJPY");
             History.Add("MarketBookAdd(CHFJPY) success, result = " + retVal);
         }
 
         private void ExecuteMarketBookRelease(object o)
         {
-            var retVal = mMtApiClient.MarketBookRelease("CHFJPY");
+            var retVal = _mtApiClient.MarketBookRelease("CHFJPY");
             History.Add("MarketBookRelease(CHFJPY) success, result = " + retVal);
         }
 
         private void ExecuteMarketBookGet(object o)
         {
             MqlBookInfo[] book;
-            var retVal = mMtApiClient.MarketBookGet("EURUSD", out book);
+            var retVal = _mtApiClient.MarketBookGet("EURUSD", out book);
+
             History.Add("MarketBookGet(EURUSD) success, result = " + retVal);
-            if (retVal == true && book != null)
+
+            if (retVal && book != null)
             {
                 for (int i = 0; i < book.Length; i++)
                 {
-                    History.Add(String.Format("MarketBookGet: book[{0}].price = {1}", i, book[i].price));
-                    History.Add(String.Format("MarketBookGet: book[{0}].price = {1}", i, book[i].volume));
-                    History.Add(String.Format("MarketBookGet: book[{0}].price = {1}", i, book[i].type));
+                    History.Add($"MarketBookGet: book[{i}].price = {book[i].price}");
+                    History.Add($"MarketBookGet: book[{i}].price = {book[i].volume}");
+                    History.Add($"MarketBookGet: book[{i}].price = {book[i].type}");
                 }
             }
         }
 
-        private void runOnUIThread(Action action)
+        private void ExecutePositionOpen(object obj)
         {
-            if (Application.Current != null)
-            {
-                Application.Current.Dispatcher.Invoke(action);
-            }            
+            const string symbol = "EURUSD";
+            const ENUM_ORDER_TYPE orderType = ENUM_ORDER_TYPE.ORDER_TYPE_BUY;
+            const double volume = 0.1;
+            const double price = 1.013;
+            const double sl = 1.00;
+            const double tp = 1.020;
+            const string comment = "Test PositionOpen";
+
+            var retVal = _mtApiClient.PositionOpen(symbol, orderType, volume, price, sl, tp, comment);
+            History.Add("PositionOpen: symbol EURUSD result = " + retVal);
         }
 
-        private void runOnUIThread<T>(Action<T> action, params Object[] args)
+        private static void RunOnUiThread(Action action)
         {
-            if (Application.Current != null)
-            {
-                Application.Current.Dispatcher.Invoke(action, args);
-            }            
+            Application.Current?.Dispatcher.Invoke(action);
         }
 
-        private object mLocker = new object();
+        private static void RunOnUiThread<T>(Action<T> action, params object[] args)
+        {
+            Application.Current?.Dispatcher.Invoke(action, args);
+        }
 
         private void mMtApiClient_QuoteUpdated(object sender, string symbol, double bid, double ask)
         {
             if (string.IsNullOrEmpty(symbol) == false)
             {
-                if (_quotesMap.ContainsKey(symbol) == true)
+                if (_quotesMap.ContainsKey(symbol))
                 {
                     var qvm = _quotesMap[symbol];
                     qvm.Bid = bid;
@@ -635,12 +629,12 @@ namespace MtApi5TestClient
 
         private void mMtApiClient_QuoteRemoved(object sender, Mt5QuoteEventArgs e)
         {
-            runOnUIThread<Mt5Quote>(RemoveQuote, e.Quote);
+            RunOnUiThread<Mt5Quote>(RemoveQuote, e.Quote);
         }
 
         private void mMtApiClient_QuoteAdded(object sender, Mt5QuoteEventArgs e)
         {
-            runOnUIThread<Mt5Quote>(AddQuote, e.Quote);
+            RunOnUiThread<Mt5Quote>(AddQuote, e.Quote);
         }
 
         private void mMtApiClient_ConnectionStateChanged(object sender, Mt5ConnectionEventArgs e)
@@ -648,16 +642,16 @@ namespace MtApi5TestClient
             ConnectionState = e.Status;
             ConnectionMessage = e.ConnectionMessage;
 
-            runOnUIThread(ConnectCommand.RaiseCanExecuteChanged);
-            runOnUIThread(DisconnectCommand.RaiseCanExecuteChanged);
+            RunOnUiThread(ConnectCommand.RaiseCanExecuteChanged);
+            RunOnUiThread(DisconnectCommand.RaiseCanExecuteChanged);
 
             switch (e.Status)
             {
                 case Mt5ConnectionState.Connected:
-                    runOnUIThread(OnConnected);
+                    RunOnUiThread(OnConnected);
                     break;
                 case Mt5ConnectionState.Disconnected:
-                    runOnUIThread(OnDisconnected);
+                    RunOnUiThread(OnDisconnected);
                     break;
             }
         }
@@ -667,7 +661,7 @@ namespace MtApi5TestClient
             if (quote == null)
                 return;
 
-            QuoteViewModel qvm = null;
+            QuoteViewModel qvm;
 
             if (_quotesMap.ContainsKey(quote.Instrument) == false)
             {
@@ -677,7 +671,7 @@ namespace MtApi5TestClient
             }
             else
             {
-                qvm = _quotesMap[quote.Instrument];                
+                qvm = _quotesMap[quote.Instrument];
             }
 
             qvm.FeedCount++;
@@ -690,7 +684,7 @@ namespace MtApi5TestClient
             if (quote == null)
                 return;
 
-            if (_quotesMap.ContainsKey(quote.Instrument) == true)
+            if (_quotesMap.ContainsKey(quote.Instrument))
             {
                 var qvm = _quotesMap[quote.Instrument];
                 qvm.FeedCount--;
@@ -705,7 +699,7 @@ namespace MtApi5TestClient
 
         private void OnConnected()
         {
-            var quotes = mMtApiClient.GetQuotes();
+            var quotes = _mtApiClient.GetQuotes();
             if (quotes != null)
             {
                 foreach (var quote in quotes)
@@ -751,15 +745,14 @@ namespace MtApi5TestClient
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
 
         #region Private Fields
-        private readonly MtApi5Client mMtApiClient;
+        private readonly MtApi5Client _mtApiClient;
 
-        private Dictionary<string, QuoteViewModel> _quotesMap;        
+        private readonly Dictionary<string, QuoteViewModel> _quotesMap;
         #endregion
     }
 }

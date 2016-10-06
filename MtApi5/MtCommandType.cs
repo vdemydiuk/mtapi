@@ -101,6 +101,9 @@ namespace MtApi5
         MarketBookRelease                   = 61,
         MarketBookGet                       = 62,
         OrderCloseAll                       = 63,
-        PositionClose                       = 64
+
+        //CTrade
+        PositionClose                       = 64,
+        PositionOpen                        = 65
     }
 }
