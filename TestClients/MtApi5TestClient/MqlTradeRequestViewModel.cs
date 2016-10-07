@@ -39,7 +39,7 @@ namespace MtApi5TestClient
             }
         }
 
-        public uint Order
+        public ulong Order
         {
             get { return TradeRequest.Order; }
             set
