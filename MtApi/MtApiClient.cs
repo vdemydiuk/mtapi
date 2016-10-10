@@ -1403,11 +1403,6 @@ namespace MtApi
             return response != null ? response.Rates : null;
         }
 
-        private void BaBacktestingReady()
-        {
-            SendCommand<object>(MtCommandType.BacktestingReady, null);
-        }
-
         #endregion
 
         #region Checkup
@@ -1464,7 +1459,7 @@ namespace MtApi
             IsBacktestingMode = IsTesting();
             if (IsBacktestingMode)
             {                
-                BaBacktestingReady();
+                BacktestingReady();
             }
         }
 
@@ -1622,6 +1617,10 @@ namespace MtApi
             OnLastTimeBar.FireEventAsync(this, new TimeBarArgs(timeBar));
         }
 
+        private void BacktestingReady()
+        {
+            SendCommand<object>(MtCommandType.BacktestingReady, null);
+        }
         #endregion
 
         #region Events

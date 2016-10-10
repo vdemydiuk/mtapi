@@ -43,6 +43,8 @@ int ExpertHandle;
 string message;
 bool isCrashed = false;
 
+bool IsRemoteReadyForTesting = false;
+
 string symbolValue;
 string commentValue;
 
@@ -52,6 +54,12 @@ int OnInit()
 {
    int result = init();  
    return (result);
+}
+
+double OnTester()
+{
+    Print("OnTester");
+    return 0;
 }
 
 void OnDeinit(const int reason)
@@ -79,6 +87,12 @@ bool IsDemo()
       return(true);
    else
       return(false);
+}
+
+bool IsTesting()
+{  
+   bool isTesting = MQLInfoInteger(MQL_TESTER);
+   return isTesting;
 }
 
 int init() 
@@ -125,6 +139,27 @@ int init()
       isCrashed = true;
       return (1);
    }
+   
+   PrintFormat("Expert Handle = %d", ExpertHandle);
+   
+   //--- Backtesting mode
+   if (IsTesting())
+   {      
+      Print("Waiting on remote client...");
+      //wait for command (BacktestingReady) from remote side to be ready for work
+      while(!IsRemoteReadyForTesting)
+      {
+         executeCommand();
+         
+         //This section uses a while loop to simulate Sleep() during Backtest.
+         unsigned int viSleepUntilTick = GetTickCount() + 100; //100 milliseconds
+         while(GetTickCount() < viSleepUntilTick) 
+         {
+            //Do absolutely nothing. Just loop until the desired tick is reached.
+         }
+      }
+   }
+   //--- 
 
    return (0);
 }
@@ -139,6 +174,7 @@ int deinit()
          isCrashed = true;
          return (1);
       }
+      Print("Wxpert was deinitialized.");
    }
    
    return (0);
@@ -1631,7 +1667,28 @@ int executeCommand()
       sendBooleanResponse(ExpertHandle, result);
       Print("command PositionOpen: result = ", result);
    }
-   break;     
+   break;
+   
+   case 66: //BacktestingReady
+   {
+      if (IsTesting())
+      {
+         Print("Remote client is ready for backteting");
+         IsRemoteReadyForTesting = true;
+         sendBooleanResponse(ExpertHandle, true);
+      }
+      else
+      {
+         sendBooleanResponse(ExpertHandle, false);
+      }
+   }
+   break; 
+
+   case 67: //IsTesting
+   {
+      sendBooleanResponse(ExpertHandle, IsTesting());
+   }
+   break;
 
    default:
       Print("Unknown command type = ", commandType);

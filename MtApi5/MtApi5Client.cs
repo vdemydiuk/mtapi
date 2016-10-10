@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using MTApiService;
 using System.Collections;
 
@@ -24,6 +23,12 @@ namespace MtApi5
         private const char PARAM_SEPARATOR = ';';
 
         public delegate void QuoteHandler(object sender, string symbol, double bid, double ask);
+
+
+        #region Private Fields
+        private readonly MtClient _client = new MtClient();
+        private volatile bool _isBacktestingMode = false;
+        #endregion
 
         #region Public Methods
         public MtApi5Client()
@@ -83,6 +88,14 @@ namespace MtApi5
             return quotes != null ? (from q in quotes select q.Parse()) : null;
         }
 
+        ///<summary>
+        ///Checks if the Expert Advisor runs in the testing mode..
+        ///</summary>
+        public bool IsTesting()
+        {
+            return SendCommand<bool>(Mt5CommandType.IsTesting, null);
+        }
+
         #region Trading functions
 
         ///<summary>
@@ -105,7 +118,7 @@ namespace MtApi5
 
             var commandParameters = request.ToArrayList();
 
-            string strResult = sendCommand<string>(Mt5CommandType.OrderSend, commandParameters);
+            var strResult = SendCommand<string>(Mt5CommandType.OrderSend, commandParameters);
 
             return strResult.ParseResult(PARAM_SEPARATOR, out result); 
         }
@@ -129,7 +142,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { (int)action, symbol, volume, price };
 
-            string strResult = sendCommand<string>(Mt5CommandType.OrderCalcMargin, commandParameters);
+            var strResult = SendCommand<string>(Mt5CommandType.OrderCalcMargin, commandParameters);
 
             return strResult.ParseResult(PARAM_SEPARATOR, out margin);
         }
@@ -154,7 +167,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { (int)action, symbol, volume, price_open, price_close };
 
-            string strResult = sendCommand<string>(Mt5CommandType.OrderCalcProfit, commandParameters);
+            var strResult = SendCommand<string>(Mt5CommandType.OrderCalcProfit, commandParameters);
 
             return strResult.ParseResult(PARAM_SEPARATOR, out profit);
         }
@@ -181,7 +194,7 @@ namespace MtApi5
 
             var commandParameters = request.ToArrayList();
 
-            string strResult = sendCommand<string>(Mt5CommandType.OrderSend, commandParameters);
+            var strResult = SendCommand<string>(Mt5CommandType.OrderSend, commandParameters);
 
             return strResult.ParseResult(PARAM_SEPARATOR, out result); 
         }
@@ -191,7 +204,7 @@ namespace MtApi5
         ///</summary>
         public int PositionsTotal()
         {
-            return sendCommand<int>(Mt5CommandType.PositionsTotal, null);
+            return SendCommand<int>(Mt5CommandType.PositionsTotal, null);
         }
 
         ///<summary>
@@ -202,7 +215,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { index };
 
-            return sendCommand<string>(Mt5CommandType.PositionGetSymbol, commandParameters);
+            return SendCommand<string>(Mt5CommandType.PositionGetSymbol, commandParameters);
         }
 
         ///<summary>
@@ -213,7 +226,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol };
 
-            return sendCommand<bool>(Mt5CommandType.PositionSelect, commandParameters);
+            return SendCommand<bool>(Mt5CommandType.PositionSelect, commandParameters);
         }
 
         ///<summary>
@@ -224,7 +237,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { (int)property_id };
 
-            return sendCommand<double>(Mt5CommandType.PositionGetDouble, commandParameters);
+            return SendCommand<double>(Mt5CommandType.PositionGetDouble, commandParameters);
         }
 
         ///<summary>
@@ -235,7 +248,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { (int)property_id };
 
-            return sendCommand<long>(Mt5CommandType.PositionGetInteger, commandParameters);
+            return SendCommand<long>(Mt5CommandType.PositionGetInteger, commandParameters);
         }
 
         ///<summary>
@@ -246,7 +259,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { (int)property_id };
 
-            return sendCommand<string>(Mt5CommandType.PositionGetString, commandParameters);
+            return SendCommand<string>(Mt5CommandType.PositionGetString, commandParameters);
         }
 
         ///<summary>
@@ -254,7 +267,7 @@ namespace MtApi5
         ///</summary>
         public int OrdersTotal()
         {
-            return sendCommand<int>(Mt5CommandType.OrdersTotal, null);
+            return SendCommand<int>(Mt5CommandType.OrdersTotal, null);
         }
 
         ///<summary>
@@ -265,7 +278,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { index };
 
-            return sendCommand<ulong>(Mt5CommandType.OrderGetTicket, commandParameters);
+            return SendCommand<ulong>(Mt5CommandType.OrderGetTicket, commandParameters);
         }
 
         ///<summary>
@@ -276,7 +289,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { ticket };
 
-            return sendCommand<bool>(Mt5CommandType.OrderSelect, commandParameters);
+            return SendCommand<bool>(Mt5CommandType.OrderSelect, commandParameters);
         }
 
         ///<summary>
@@ -287,7 +300,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { (int)property_id };
 
-            return sendCommand<double>(Mt5CommandType.OrderGetDouble, commandParameters);
+            return SendCommand<double>(Mt5CommandType.OrderGetDouble, commandParameters);
         }
 
         ///<summary>
@@ -298,7 +311,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { (int)property_id };
 
-            return sendCommand<long>(Mt5CommandType.OrderGetInteger, commandParameters);
+            return SendCommand<long>(Mt5CommandType.OrderGetInteger, commandParameters);
         }
 
         ///<summary>
@@ -309,7 +322,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { (int)property_id };
 
-            return sendCommand<string>(Mt5CommandType.OrderGetString, commandParameters);
+            return SendCommand<string>(Mt5CommandType.OrderGetString, commandParameters);
         }
 
         ///<summary>
@@ -321,7 +334,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { Mt5TimeConverter.ConvertToMtTime(from_date), Mt5TimeConverter.ConvertToMtTime(to_date) };
 
-            return sendCommand<bool>(Mt5CommandType.HistorySelect, commandParameters);
+            return SendCommand<bool>(Mt5CommandType.HistorySelect, commandParameters);
         }
 
         ///<summary>
@@ -332,7 +345,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { position_id };
 
-            return sendCommand<bool>(Mt5CommandType.HistorySelectByPosition, commandParameters);
+            return SendCommand<bool>(Mt5CommandType.HistorySelectByPosition, commandParameters);
         }
 
         ///<summary>
@@ -343,7 +356,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { ticket };
 
-            return sendCommand<bool>(Mt5CommandType.HistoryOrderSelect, commandParameters);
+            return SendCommand<bool>(Mt5CommandType.HistoryOrderSelect, commandParameters);
         }
 
         ///<summary>
@@ -351,7 +364,7 @@ namespace MtApi5
         ///</summary>
         public int HistoryOrdersTotal()
         {
-            return sendCommand<int>(Mt5CommandType.HistoryOrdersTotal, null);
+            return SendCommand<int>(Mt5CommandType.HistoryOrdersTotal, null);
         }
 
         ///<summary>
@@ -362,7 +375,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { index };
 
-            return sendCommand<ulong>(Mt5CommandType.HistoryOrderGetTicket, commandParameters);
+            return SendCommand<ulong>(Mt5CommandType.HistoryOrderGetTicket, commandParameters);
         }
 
         ///<summary>
@@ -374,7 +387,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { ticket_number, (int)property_id };
 
-            return sendCommand<double>(Mt5CommandType.HistoryOrderGetDouble, commandParameters);
+            return SendCommand<double>(Mt5CommandType.HistoryOrderGetDouble, commandParameters);
         }
 
         ///<summary>
@@ -386,7 +399,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { ticket_number, (int)property_id };
 
-            return sendCommand<long>(Mt5CommandType.HistoryOrderGetInteger, commandParameters);
+            return SendCommand<long>(Mt5CommandType.HistoryOrderGetInteger, commandParameters);
         }
 
         ///<summary>
@@ -398,7 +411,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { ticket_number, (int)property_id };
 
-            return sendCommand<string>(Mt5CommandType.HistoryOrderGetString, commandParameters);
+            return SendCommand<string>(Mt5CommandType.HistoryOrderGetString, commandParameters);
         }
 
         ///<summary>
@@ -409,7 +422,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { ticket };
 
-            return sendCommand<bool>(Mt5CommandType.HistoryDealSelect, commandParameters);
+            return SendCommand<bool>(Mt5CommandType.HistoryDealSelect, commandParameters);
         }
 
         ///<summary>
@@ -417,7 +430,7 @@ namespace MtApi5
         ///</summary>
         public int HistoryDealsTotal()
         {
-            return sendCommand<int>(Mt5CommandType.HistoryDealsTotal, null);
+            return SendCommand<int>(Mt5CommandType.HistoryDealsTotal, null);
         }
 
         ///<summary>
@@ -428,7 +441,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { index };
 
-            return sendCommand<ulong>(Mt5CommandType.HistoryDealGetTicket, commandParameters);
+            return SendCommand<ulong>(Mt5CommandType.HistoryDealGetTicket, commandParameters);
         }
 
         ///<summary>
@@ -440,7 +453,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { ticket_number, property_id };
 
-            return sendCommand<double>(Mt5CommandType.HistoryDealGetDouble, commandParameters);
+            return SendCommand<double>(Mt5CommandType.HistoryDealGetDouble, commandParameters);
         }
 
         ///<summary>
@@ -452,7 +465,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { ticket_number, property_id };
 
-            return sendCommand<long>(Mt5CommandType.HistoryDealGetInteger, commandParameters);
+            return SendCommand<long>(Mt5CommandType.HistoryDealGetInteger, commandParameters);
         }
 
         ///<summary>
@@ -464,7 +477,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { ticket_number, property_id };
 
-            return sendCommand<string>(Mt5CommandType.HistoryDealGetString, commandParameters);
+            return SendCommand<string>(Mt5CommandType.HistoryDealGetString, commandParameters);
         }
 
         ///<summary>
@@ -472,7 +485,7 @@ namespace MtApi5
         ///</summary>
         public bool OrderCloseAll()
         {
-            return sendCommand<bool>(Mt5CommandType.OrderCloseAll, null);
+            return SendCommand<bool>(Mt5CommandType.OrderCloseAll, null);
         }
 
         ///<summary>
@@ -483,7 +496,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { ticket};
 
-            return sendCommand<bool>(Mt5CommandType.PositionClose, commandParameters);
+            return SendCommand<bool>(Mt5CommandType.PositionClose, commandParameters);
         }
 
         /// <summary>
@@ -501,7 +514,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol, (int) orderType, volume, price, sl, tp, comment };
 
-            return sendCommand<bool>(Mt5CommandType.PositionOpen, commandParameters);
+            return SendCommand<bool>(Mt5CommandType.PositionOpen, commandParameters);
         }
         #endregion
 
@@ -515,7 +528,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { (int)property_id };
 
-            return sendCommand<double>(Mt5CommandType.AccountInfoDouble, commandParameters);
+            return SendCommand<double>(Mt5CommandType.AccountInfoDouble, commandParameters);
         }
 
         ///<summary>
@@ -526,7 +539,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { (int)property_id };
 
-            return sendCommand<long>(Mt5CommandType.AccountInfoInteger, commandParameters);
+            return SendCommand<long>(Mt5CommandType.AccountInfoInteger, commandParameters);
         }
 
         ///<summary>
@@ -537,7 +550,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { (int)property_id };
 
-            return sendCommand<string>(Mt5CommandType.AccountInfoString, commandParameters);
+            return SendCommand<string>(Mt5CommandType.AccountInfoString, commandParameters);
         }
         #endregion
 
@@ -552,7 +565,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, (int)prop_id };
 
-            return sendCommand<int>(Mt5CommandType.SeriesInfoInteger, commandParameters);
+            return SendCommand<int>(Mt5CommandType.SeriesInfoInteger, commandParameters);
         }
 
         ///<summary>
@@ -564,7 +577,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe };
 
-            return sendCommand<int>(Mt5CommandType.Bars, commandParameters);
+            return SendCommand<int>(Mt5CommandType.Bars, commandParameters);
         }
 
         ///<summary>
@@ -578,7 +591,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), Mt5TimeConverter.ConvertToMtTime(stop_time) };
 
-            return sendCommand<int>(Mt5CommandType.Bars2, commandParameters);
+            return SendCommand<int>(Mt5CommandType.Bars2, commandParameters);
         }
 
         ///<summary>
@@ -589,7 +602,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { indicator_handle };
 
-            return sendCommand<int>(Mt5CommandType.BarsCalculated, commandParameters);
+            return SendCommand<int>(Mt5CommandType.BarsCalculated, commandParameters);
         }
 
         ///<summary>
@@ -603,8 +616,8 @@ namespace MtApi5
         public int CopyBuffer(int indicator_handle, int buffer_num, int start_pos, int count, out double[] buffer)
         {
             var commandParameters = new ArrayList { indicator_handle, buffer_num, start_pos, count };
-            buffer = sendCommand<double[]>(Mt5CommandType.CopyBuffer, commandParameters);
-            return buffer != null ? buffer.Length : 0;
+            buffer = SendCommand<double[]>(Mt5CommandType.CopyBuffer, commandParameters);
+            return buffer?.Length ?? 0;
         }
 
         ///<summary>
@@ -618,8 +631,8 @@ namespace MtApi5
         public int CopyBuffer(int indicator_handle, int buffer_num, DateTime start_time, int count, out double[] buffer)
         {
             var commandParameters = new ArrayList { indicator_handle, buffer_num, Mt5TimeConverter.ConvertToMtTime(start_time), count };
-            buffer = sendCommand<double[]>(Mt5CommandType.CopyBuffer1, commandParameters);
-            return buffer != null ? buffer.Length : 0;
+            buffer = SendCommand<double[]>(Mt5CommandType.CopyBuffer1, commandParameters);
+            return buffer?.Length ?? 0;
         }
 
         ///<summary>
@@ -633,8 +646,8 @@ namespace MtApi5
         public int CopyBuffer(int indicator_handle, int buffer_num, DateTime start_time, DateTime stop_time, out double[] buffer)
         {
             var commandParameters = new ArrayList { indicator_handle, buffer_num, Mt5TimeConverter.ConvertToMtTime(start_time), Mt5TimeConverter.ConvertToMtTime(stop_time) };
-            buffer = sendCommand<double[]>(Mt5CommandType.CopyBuffer1, commandParameters);
-            return buffer != null ? buffer.Length : 0;
+            buffer = SendCommand<double[]>(Mt5CommandType.CopyBuffer1, commandParameters);
+            return buffer?.Length ?? 0;
         }
 
         ///<summary>
@@ -651,7 +664,7 @@ namespace MtApi5
 
             rates_array = null;
 
-            var retVal = sendCommand<MtMqlRates[]>(Mt5CommandType.CopyRates, commandParameters);
+            var retVal = SendCommand<MtMqlRates[]>(Mt5CommandType.CopyRates, commandParameters);
             if (retVal != null)
             {
                 rates_array = new MqlRates[retVal.Length];
@@ -668,7 +681,7 @@ namespace MtApi5
                 }
             }
 
-            return rates_array != null ? rates_array.Length : 0;
+            return rates_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -685,7 +698,7 @@ namespace MtApi5
 
             rates_array = null;
 
-            var retVal = sendCommand<MtMqlRates[]>(Mt5CommandType.CopyRates1, commandParameters);
+            var retVal = SendCommand<MtMqlRates[]>(Mt5CommandType.CopyRates1, commandParameters);
             if (retVal != null)
             {
                 rates_array = new MqlRates[retVal.Length];
@@ -702,7 +715,7 @@ namespace MtApi5
                 }
             }
 
-            return rates_array != null ? rates_array.Length : 0;
+            return rates_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -719,7 +732,7 @@ namespace MtApi5
 
             rates_array = null;
 
-            var retVal = sendCommand<MtMqlRates[]>(Mt5CommandType.CopyRates2, commandParameters);
+            var retVal = SendCommand<MtMqlRates[]>(Mt5CommandType.CopyRates2, commandParameters);
             if (retVal != null)
             {
                 rates_array = new MqlRates[retVal.Length];
@@ -736,7 +749,7 @@ namespace MtApi5
                 }
             }
 
-            return rates_array != null ? rates_array.Length : 0;
+            return rates_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -753,7 +766,7 @@ namespace MtApi5
 
             time_array = null;
 
-            var retVal = sendCommand<long[]>(Mt5CommandType.CopyTime, commandParameters);
+            var retVal = SendCommand<long[]>(Mt5CommandType.CopyTime, commandParameters);
             if (retVal != null)
             {
                 time_array = new DateTime[retVal.Length];
@@ -763,7 +776,7 @@ namespace MtApi5
                 }
             }
 
-            return time_array != null ? time_array.Length : 0;
+            return time_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -780,7 +793,7 @@ namespace MtApi5
 
             time_array = null;
 
-            var retVal = sendCommand<long[]>(Mt5CommandType.CopyTime1, commandParameters);
+            var retVal = SendCommand<long[]>(Mt5CommandType.CopyTime1, commandParameters);
             if (retVal != null)
             {
                 time_array = new DateTime[retVal.Length];
@@ -790,7 +803,7 @@ namespace MtApi5
                 }
             }
 
-            return time_array != null ? time_array.Length : 0;
+            return time_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -807,7 +820,7 @@ namespace MtApi5
 
             time_array = null;
 
-            var retVal = sendCommand<long[]>(Mt5CommandType.CopyTime2, commandParameters);
+            var retVal = SendCommand<long[]>(Mt5CommandType.CopyTime2, commandParameters);
             if (retVal != null)
             {
                 time_array = new DateTime[retVal.Length];
@@ -817,7 +830,7 @@ namespace MtApi5
                 }
             }
 
-            return time_array != null ? time_array.Length : 0;
+            return time_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -832,9 +845,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, start_pos, count };
 
-            open_array = sendCommand<double[]>(Mt5CommandType.CopyOpen, commandParameters);
+            open_array = SendCommand<double[]>(Mt5CommandType.CopyOpen, commandParameters);
 
-            return open_array != null ? open_array.Length : 0;
+            return open_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -849,9 +862,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), count };
 
-            open_array = sendCommand<double[]>(Mt5CommandType.CopyOpen1, commandParameters);
+            open_array = SendCommand<double[]>(Mt5CommandType.CopyOpen1, commandParameters);
 
-            return open_array != null ? open_array.Length : 0;
+            return open_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -866,9 +879,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), Mt5TimeConverter.ConvertToMtTime(stop_time) };
 
-            open_array = sendCommand<double[]>(Mt5CommandType.CopyOpen2, commandParameters);
+            open_array = SendCommand<double[]>(Mt5CommandType.CopyOpen2, commandParameters);
 
-            return open_array != null ? open_array.Length : 0;
+            return open_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -883,9 +896,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, start_pos, count };
 
-            high_array = sendCommand<double[]>(Mt5CommandType.CopyHigh, commandParameters);
+            high_array = SendCommand<double[]>(Mt5CommandType.CopyHigh, commandParameters);
 
-            return high_array != null ? high_array.Length : 0;
+            return high_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -900,9 +913,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), count };
 
-            high_array = sendCommand<double[]>(Mt5CommandType.CopyHigh1, commandParameters);
+            high_array = SendCommand<double[]>(Mt5CommandType.CopyHigh1, commandParameters);
 
-            return high_array != null ? high_array.Length : 0;
+            return high_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -917,9 +930,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), Mt5TimeConverter.ConvertToMtTime(stop_time) };
 
-            high_array = sendCommand<double[]>(Mt5CommandType.CopyHigh2, commandParameters);
+            high_array = SendCommand<double[]>(Mt5CommandType.CopyHigh2, commandParameters);
 
-            return high_array != null ? high_array.Length : 0;
+            return high_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -934,9 +947,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, start_pos, count };
 
-            low_array = sendCommand<double[]>(Mt5CommandType.CopyLow, commandParameters);
+            low_array = SendCommand<double[]>(Mt5CommandType.CopyLow, commandParameters);
 
-            return low_array != null ? low_array.Length : 0;
+            return low_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -951,9 +964,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), count };
 
-            low_array = sendCommand<double[]>(Mt5CommandType.CopyLow1, commandParameters);
+            low_array = SendCommand<double[]>(Mt5CommandType.CopyLow1, commandParameters);
 
-            return low_array != null ? low_array.Length : 0;
+            return low_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -968,9 +981,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), Mt5TimeConverter.ConvertToMtTime(stop_time) };
 
-            low_array = sendCommand<double[]>(Mt5CommandType.CopyLow2, commandParameters);
+            low_array = SendCommand<double[]>(Mt5CommandType.CopyLow2, commandParameters);
 
-            return low_array != null ? low_array.Length : 0;
+            return low_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -985,9 +998,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, start_pos, count };
 
-            close_array = sendCommand<double[]>(Mt5CommandType.CopyClose, commandParameters);
+            close_array = SendCommand<double[]>(Mt5CommandType.CopyClose, commandParameters);
 
-            return close_array != null ? close_array.Length : 0;
+            return close_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -1002,9 +1015,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), count };
 
-            close_array = sendCommand<double[]>(Mt5CommandType.CopyClose1, commandParameters);
+            close_array = SendCommand<double[]>(Mt5CommandType.CopyClose1, commandParameters);
 
-            return close_array != null ? close_array.Length : 0;
+            return close_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -1019,9 +1032,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), Mt5TimeConverter.ConvertToMtTime(stop_time) };
 
-            close_array = sendCommand<double[]>(Mt5CommandType.CopyClose2, commandParameters);
+            close_array = SendCommand<double[]>(Mt5CommandType.CopyClose2, commandParameters);
 
-            return close_array != null ? close_array.Length : 0;
+            return close_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -1036,9 +1049,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, start_pos, count };
 
-            volume_array = sendCommand<long[]>(Mt5CommandType.CopyTickVolume, commandParameters);
+            volume_array = SendCommand<long[]>(Mt5CommandType.CopyTickVolume, commandParameters);
 
-            return volume_array != null ? volume_array.Length : 0;
+            return volume_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -1053,9 +1066,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), count };
 
-            volume_array = sendCommand<long[]>(Mt5CommandType.CopyTickVolume1, commandParameters);
+            volume_array = SendCommand<long[]>(Mt5CommandType.CopyTickVolume1, commandParameters);
 
-            return volume_array != null ? volume_array.Length : 0;
+            return volume_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -1070,9 +1083,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), Mt5TimeConverter.ConvertToMtTime(stop_time) };
 
-            volume_array = sendCommand<long[]>(Mt5CommandType.CopyTickVolume2, commandParameters);
+            volume_array = SendCommand<long[]>(Mt5CommandType.CopyTickVolume2, commandParameters);
 
-            return volume_array != null ? volume_array.Length : 0;
+            return volume_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -1087,9 +1100,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, start_pos, count };
 
-            volume_array = sendCommand<long[]>(Mt5CommandType.CopyRealVolume, commandParameters);
+            volume_array = SendCommand<long[]>(Mt5CommandType.CopyRealVolume, commandParameters);
 
-            return volume_array != null ? volume_array.Length : 0;
+            return volume_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -1104,9 +1117,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), count };
 
-            volume_array = sendCommand<long[]>(Mt5CommandType.CopyRealVolume1, commandParameters);
+            volume_array = SendCommand<long[]>(Mt5CommandType.CopyRealVolume1, commandParameters);
 
-            return volume_array != null ? volume_array.Length : 0;
+            return volume_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -1121,9 +1134,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), Mt5TimeConverter.ConvertToMtTime(stop_time) };
 
-            volume_array = sendCommand<long[]>(Mt5CommandType.CopyRealVolume2, commandParameters);
+            volume_array = SendCommand<long[]>(Mt5CommandType.CopyRealVolume2, commandParameters);
 
-            return volume_array != null ? volume_array.Length : 0;
+            return volume_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -1138,9 +1151,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, start_pos, count };
 
-            spread_array = sendCommand<int[]>(Mt5CommandType.CopySpread, commandParameters);
+            spread_array = SendCommand<int[]>(Mt5CommandType.CopySpread, commandParameters);
 
-            return spread_array != null ? spread_array.Length : 0;
+            return spread_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -1155,9 +1168,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), count };
 
-            spread_array = sendCommand<int[]>(Mt5CommandType.CopySpread1, commandParameters);
+            spread_array = SendCommand<int[]>(Mt5CommandType.CopySpread1, commandParameters);
 
-            return spread_array != null ? spread_array.Length : 0;
+            return spread_array?.Length ?? 0;
         }
 
         ///<summary>
@@ -1172,9 +1185,9 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { symbol_name, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(start_time), Mt5TimeConverter.ConvertToMtTime(stop_time) };
 
-            spread_array = sendCommand<int[]>(Mt5CommandType.CopySpread2, commandParameters);
+            spread_array = SendCommand<int[]>(Mt5CommandType.CopySpread2, commandParameters);
 
-            return spread_array != null ? spread_array.Length : 0;
+            return spread_array?.Length ?? 0;
         }
         #endregion
 
@@ -1184,12 +1197,11 @@ namespace MtApi5
         ///Returns the number of available (selected in Market Watch or all) symbols.
         ///</summary>
         ///<param name="selected">Request mode. Can be true or false.</param>
-
         public int SymbolsTotal(bool selected)
         {
             var commandParameters = new ArrayList { selected };
 
-            return sendCommand<int>(Mt5CommandType.SymbolsTotal, commandParameters);
+            return SendCommand<int>(Mt5CommandType.SymbolsTotal, commandParameters);
         }
 
         ///<summary>
@@ -1197,12 +1209,11 @@ namespace MtApi5
         ///</summary>
         ///<param name="pos">Order number of a symbol.</param>
         ///<param name="selected">Request mode. If the value is true, the symbol is taken from the list of symbols selected in MarketWatch. If the value is false, the symbol is taken from the general list.</param>
-
         public string SymbolName(int pos, bool selected)
         {
             var commandParameters = new ArrayList { pos, selected };
 
-            return sendCommand<string>(Mt5CommandType.SymbolName, commandParameters);
+            return SendCommand<string>(Mt5CommandType.SymbolName, commandParameters);
         }
 
         ///<summary>
@@ -1210,24 +1221,22 @@ namespace MtApi5
         ///</summary>
         ///<param name="name">Symbol name.</param>
         ///<param name="selected">Switch. If the value is false, a symbol should be removed from MarketWatch, otherwise a symbol should be selected in this window. A symbol can't be removed if the symbol chart is open, or there are open positions for this symbol.</param>
-
         public bool SymbolSelect(string name, bool selected)
         {
             var commandParameters = new ArrayList { name, selected };
 
-            return sendCommand<bool>(Mt5CommandType.SymbolSelect, commandParameters);
+            return SendCommand<bool>(Mt5CommandType.SymbolSelect, commandParameters);
         }
 
         ///<summary>
         ///The function checks whether data of a selected symbol in the terminal are synchronized with data on the trade server.
         ///</summary>
         ///<param name="name">Symbol name.</param>
-
         public bool SymbolIsSynchronized(string name)
         {
             var commandParameters = new ArrayList { name };
 
-            return sendCommand<bool>(Mt5CommandType.SymbolIsSynchronized, commandParameters);
+            return SendCommand<bool>(Mt5CommandType.SymbolIsSynchronized, commandParameters);
         }
 
         ///<summary>
@@ -1235,12 +1244,11 @@ namespace MtApi5
         ///</summary>
         ///<param name="name">Symbol name.</param>
         ///<param name="prop_id">Identifier of a symbol property.</param>
-
         public double SymbolInfoDouble(string name, ENUM_SYMBOL_INFO_DOUBLE prop_id)
         {
             var commandParameters = new ArrayList { name, (int)prop_id };
 
-            return sendCommand<double>(Mt5CommandType.SymbolInfoDouble, commandParameters);
+            return SendCommand<double>(Mt5CommandType.SymbolInfoDouble, commandParameters);
         }
 
         ///<summary>
@@ -1248,12 +1256,11 @@ namespace MtApi5
         ///</summary>
         ///<param name="name">Symbol name.</param>
         ///<param name="prop_id">Identifier of a symbol property.</param>
-
         public long SymbolInfoInteger(string name, ENUM_SYMBOL_INFO_INTEGER prop_id)
         {
             var commandParameters = new ArrayList { name, (int)prop_id };
 
-            return sendCommand<long>(Mt5CommandType.SymbolInfoInteger, commandParameters);
+            return SendCommand<long>(Mt5CommandType.SymbolInfoInteger, commandParameters);
         }
 
         ///<summary>
@@ -1261,12 +1268,11 @@ namespace MtApi5
         ///</summary>
         ///<param name="name">Symbol name.</param>
         ///<param name="prop_id">Identifier of a symbol property.</param>
-
         public string SymbolInfoString(string name, ENUM_SYMBOL_INFO_STRING prop_id)
         {
             var commandParameters = new ArrayList { name, (int)prop_id };
 
-            return sendCommand<string>(Mt5CommandType.SymbolInfoString, commandParameters);
+            return SendCommand<string>(Mt5CommandType.SymbolInfoString, commandParameters);
         }
 
 
@@ -1274,14 +1280,13 @@ namespace MtApi5
         ///The function returns current prices of a specified symbol in a variable of the MqlTick type.
         ///The function returns true if successful, otherwise returns false.
         ///</summary>
-        ///<param name="name">Symbol name.</param>
-        ///<param name="prop_id"> Link to the structure of the MqlTick type, to which the current prices and time of the last price update will be placed.</param>
-
+        ///<param name="symbol">Symbol name.</param>
+        ///<param name="tick"> Link to the structure of the MqlTick type, to which the current prices and time of the last price update will be placed.</param>
         public bool SymbolInfoTick(string symbol, out MqlTick  tick)
         {
             var commandParameters = new ArrayList { symbol };
 
-            var retVal = sendCommand<MtMqlTick>(Mt5CommandType.SymbolInfoTick, commandParameters);
+            var retVal = SendCommand<MtMqlTick>(Mt5CommandType.SymbolInfoTick, commandParameters);
 
             tick = null;
             if (retVal != null)
@@ -1305,7 +1310,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { name, (int)day_of_week, session_index };
 
-            string strResult = sendCommand<string>(Mt5CommandType.SymbolInfoSessionQuote, commandParameters);
+            string strResult = SendCommand<string>(Mt5CommandType.SymbolInfoSessionQuote, commandParameters);
 
             return strResult.ParseResult(PARAM_SEPARATOR, out from, out to); 
         }
@@ -1322,7 +1327,7 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { name, (int)day_of_week, session_index };
 
-            string strResult = sendCommand<string>(Mt5CommandType.SymbolInfoSessionTrade, commandParameters);
+            string strResult = SendCommand<string>(Mt5CommandType.SymbolInfoSessionTrade, commandParameters);
 
             return strResult.ParseResult(PARAM_SEPARATOR, out from, out to);
         }
@@ -1330,44 +1335,44 @@ namespace MtApi5
         ///<summary>
         ///Provides opening of Depth of Market for a selected symbol, and subscribes for receiving notifications of the DOM changes.
         ///</summary>
-        ///<param name="name">Symbol name.</param>
+        ///<param name="symbol">Symbol name.</param>
         public bool MarketBookAdd(string symbol)
         {
             var commandParameters = new ArrayList { symbol };
 
-            return sendCommand<bool>(Mt5CommandType.MarketBookAdd, commandParameters);
+            return SendCommand<bool>(Mt5CommandType.MarketBookAdd, commandParameters);
         }
 
         ///<summary>
         ///Provides closing of Depth of Market for a selected symbol, and cancels the subscription for receiving notifications of the DOM changes.
         ///</summary>
-        ///<param name="name">Symbol name.</param>
+        ///<param name="symbol">Symbol name.</param>
         public bool MarketBookRelease(string symbol)
         {
             var commandParameters = new ArrayList { symbol };
 
-            return sendCommand<bool>(Mt5CommandType.MarketBookRelease, commandParameters);
+            return SendCommand<bool>(Mt5CommandType.MarketBookRelease, commandParameters);
         }
 
         ///<summary>
         ///Returns a structure array MqlBookInfo containing records of the Depth of Market of a specified symbol.
         ///</summary>
-        ///<param name="name">Symbol name.</param>
+        ///<param name="symbol">Symbol name.</param>
         ///<param name="book">Reference to an array of Depth of Market records.</param>        
         public bool MarketBookGet(string symbol, out MqlBookInfo[] book)
         {
             var commandParameters = new ArrayList { symbol };
 
-            var retVal = sendCommand<MtMqlBookInfo[]>(Mt5CommandType.MarketBookGet, commandParameters);
+            var retVal = SendCommand<MtMqlBookInfo[]>(Mt5CommandType.MarketBookGet, commandParameters);
 
             book = null; 
             if (retVal != null)
             {
                 book = new MqlBookInfo[retVal.Length];
 
-                for (int i = 0; i < retVal.Length; i++)
+                foreach (var t in retVal)
                 {
-                    book[0] = new MqlBookInfo((ENUM_BOOK_TYPE)retVal[i].type, retVal[i].price, retVal[i].volume);                        
+                    book[0] = new MqlBookInfo((ENUM_BOOK_TYPE)t.type, t.price, t.volume);
                 }
             }
 
@@ -1415,6 +1420,8 @@ namespace MtApi5
             ConnectionState = Mt5ConnectionState.Connected;
             ConnectionStateChanged.FireEvent(this
                 , new Mt5ConnectionEventArgs(Mt5ConnectionState.Connected, "Connected  to " + host + ":" + port));
+
+            OnConnected();
         }
 
         private void Connect(int port)
@@ -1440,6 +1447,8 @@ namespace MtApi5
             ConnectionState = Mt5ConnectionState.Connected;
             ConnectionStateChanged.FireEvent(this
                 , new Mt5ConnectionEventArgs(Mt5ConnectionState.Connected, "Connected to 'localhost':" + port));
+
+            OnConnected();
         }
 
         private void Disconnect()
@@ -1451,7 +1460,7 @@ namespace MtApi5
             ConnectionStateChanged.FireEvent(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Disconnected, "Disconnected"));
         }
 
-        private T sendCommand<T>(Mt5CommandType commandType, ArrayList commandParameters)
+        private T SendCommand<T>(Mt5CommandType commandType, ArrayList commandParameters)
         {
             var response = _client.SendCommand((int)commandType, commandParameters);
 
@@ -1529,10 +1538,19 @@ namespace MtApi5
             QuoteAdded.FireEvent(this, new Mt5QuoteEventArgs(quote.Parse()));
         }
 
-        #endregion
+        private void OnConnected()
+        {
+            _isBacktestingMode = IsTesting();
+            if (_isBacktestingMode)
+            {
+                BacktestingReady();
+            }
+        }
 
-        #region Private Fields
-        private readonly MtClient _client = new MtClient();
+        private void BacktestingReady()
+        {
+            SendCommand<object>(Mt5CommandType.BacktestingReady, null);
+        }
         #endregion
     }
 }
