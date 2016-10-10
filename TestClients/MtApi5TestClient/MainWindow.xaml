@@ -316,9 +316,9 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBox Grid.Row="0" Text="symbol_name"/>
+                        <TextBox Grid.Row="0" Text="symbolName"/>
                         <TextBox Grid.Row="1" Text="timeframe"/>
-                        <TextBox Grid.Row="2" Text="start_pos"/>
+                        <TextBox Grid.Row="2" Text="startPos"/>
                         <TextBox Grid.Row="3" Text="count"/>
                         <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding TimeSeriesValues.SymbolValue}"/>
                         <ComboBox Grid.Row="1" Grid.Column="1" 

@@ -9,9 +9,14 @@ namespace MTApiService
     [CallbackBehavior(UseSynchronizationContext = false)]
     public class MtClient: IMtApiCallback, IDisposable
     {
-        private static string SERVICE_NAME = "MtApiService";
+        private const string ServiceName = "MtApiService";
 
         public delegate void MtQuoteHandler(MtQuote quote);
+
+        #region Fields
+        private MtApiProxy _proxy;
+        private bool _isConnected;
+        #endregion
 
         #region Public Methods
         public void Open(string host, int port)
@@ -19,87 +24,78 @@ namespace MTApiService
             Debug.WriteLine("[INFO] MtClient::Open");
 
             if (string.IsNullOrEmpty(host))
-                throw new ArgumentNullException("host", "host is null or empty");
+                throw new ArgumentNullException(nameof(host), "host is null or empty");
 
             if (port < 0 || port > 65536)
-                throw new ArgumentOutOfRangeException("port", "port value is invalid");
+                throw new ArgumentOutOfRangeException(nameof(port), "port value is invalid");
 
-            var urlService = string.Format("net.tcp://{0}:{1}/{2}", host, port, SERVICE_NAME);
+            var urlService = $"net.tcp://{host}:{port}/{ServiceName}";
 
-            lock (mClientLocker)
+            if (_proxy != null)
+                return;
+
+            var bind = new NetTcpBinding(SecurityMode.None)
             {
-                if (mProxy != null)
-                    return;
-
-                var bind = new NetTcpBinding(SecurityMode.None)
+                MaxReceivedMessageSize = 2147483647,
+                MaxBufferSize = 2147483647,
+                MaxBufferPoolSize = 2147483647,
+                ReaderQuotas =
                 {
-                    MaxReceivedMessageSize = 2147483647,
-                    MaxBufferSize = 2147483647,
-                    MaxBufferPoolSize = 2147483647,
-                    ReaderQuotas =
-                    {
-                        MaxArrayLength = 2147483647,
-                        MaxBytesPerRead = 2147483647,
-                        MaxDepth = 2147483647,
-                        MaxStringContentLength = 2147483647,
-                        MaxNameTableCharCount = 2147483647
-                    }
-                };
-                // Commented next statement since it is not required
+                    MaxArrayLength = 2147483647,
+                    MaxBytesPerRead = 2147483647,
+                    MaxDepth = 2147483647,
+                    MaxStringContentLength = 2147483647,
+                    MaxNameTableCharCount = 2147483647
+                }
+            };
+            // Commented next statement since it is not required
 
-                mProxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
-                mProxy.Faulted += mProxy_Faulted;
-            }
+            _proxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
+            _proxy.Faulted += ProxyFaulted;
         }
 
         public void Open(int port)
         {
             if (port < 0 || port > 65536)
-                throw new ArgumentOutOfRangeException("port", "port value is invalid");
+                throw new ArgumentOutOfRangeException(nameof(port), "port value is invalid");
 
-            var urlService = string.Format("net.pipe://localhost/{0}_{1}", SERVICE_NAME, port);
+            var urlService = $"net.pipe://localhost/{ServiceName}_{port}";
 
-            lock (mClientLocker)
+            if (_proxy != null)
+                return;
+
+            var bind = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None)
             {
-                if (mProxy != null)
-                    return;
-
-                var bind = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None)
+                MaxReceivedMessageSize = 2147483647,
+                MaxBufferSize = 2147483647,
+                MaxBufferPoolSize = 2147483647,
+                ReaderQuotas =
                 {
-                    MaxReceivedMessageSize = 2147483647,
-                    MaxBufferSize = 2147483647,
-                    MaxBufferPoolSize = 2147483647,
-                    ReaderQuotas =
-                    {
-                        MaxArrayLength = 2147483647,
-                        MaxBytesPerRead = 2147483647,
-                        MaxDepth = 2147483647,
-                        MaxStringContentLength = 2147483647,
-                        MaxNameTableCharCount = 2147483647
-                    }
-                };
-                // Commented next statement since it is not required
+                    MaxArrayLength = 2147483647,
+                    MaxBytesPerRead = 2147483647,
+                    MaxDepth = 2147483647,
+                    MaxStringContentLength = 2147483647,
+                    MaxNameTableCharCount = 2147483647
+                }
+            };
+            // Commented next statement since it is not required
 
-                mProxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
-                mProxy.Faulted += mProxy_Faulted;
-            }
+            _proxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
+            _proxy.Faulted += ProxyFaulted;
         }
 
         public void Close()
         {
             Debug.WriteLine("[INFO] MtClient::Close");
 
-            lock (mClientLocker)
+            if (_proxy != null)
             {
-                if (mProxy != null)
-                {
-                    mProxy.Faulted -= mProxy_Faulted;
-                    mProxy.Dispose();
-                    mProxy = null;
-                }
-
-                mIsConnected = false;
+                _proxy.Faulted -= ProxyFaulted;
+                _proxy.Dispose();
+                _proxy = null;
             }
+
+            _isConnected = false;
         }
 
         public void Connect()
@@ -108,16 +104,13 @@ namespace MTApiService
 
             try
             {
-                lock (mClientLocker)
-                {
-                    if (mProxy != null && mIsConnected == true)
-                        return;
+                if (_proxy != null && _isConnected)
+                    return;
 
-                    mIsConnected = mProxy.Connect();
+                _isConnected = _proxy.Connect();
 
-                    if (mIsConnected == false)
-                        throw new Exception("Connected failed");
-                }
+                if (_isConnected == false)
+                    throw new Exception("Connected failed");
             }
             catch (Exception ex)
             {
@@ -125,7 +118,7 @@ namespace MTApiService
 
                 Close();
 
-                throw new CommunicationException(string.Format("Connection failed to service"));
+                throw new CommunicationException("Connection failed to service");
             }
         }
 
@@ -135,13 +128,9 @@ namespace MTApiService
 
             try
             {
-                lock (mClientLocker)
-                {
-                    mIsConnected = false;
+                _isConnected = false;
 
-                    if (mProxy != null)
-                        mProxy.Disconnect();
-                }
+                _proxy?.Disconnect();
             }
             catch (Exception ex)
             {
@@ -159,11 +148,8 @@ namespace MTApiService
 
             try
             {
-                lock (mClientLocker)
-                {
-                    if (mProxy != null && mIsConnected == true)
-                        result = mProxy.SendCommand(new MtCommand(commandType, commandParameters));
-                }
+                if (_proxy != null && _isConnected)
+                    result = _proxy.SendCommand(new MtCommand(commandType, commandParameters));
             }
             catch (Exception ex)
             {
@@ -185,11 +171,8 @@ namespace MTApiService
 
             try
             {
-                lock (mClientLocker)
-                {
-                    if (mProxy != null && mIsConnected == true)
-                        result = mProxy.GetQuotes();
-                }
+                if (_proxy != null && _isConnected)
+                    result = _proxy.GetQuotes();
             }
             catch (Exception ex)
             {
@@ -209,15 +192,11 @@ namespace MTApiService
 
         public void OnQuoteUpdate(MtQuote quote)
         {
-            if (quote != null)
-            {                
-                if (QuoteUpdated != null)
-                {
-                    QuoteUpdated(quote);
-                }
+            if (quote == null) return;
 
-                Debug.WriteLine("[INFO] MtClient::OnQuoteUpdate: " + quote);
-            }
+            QuoteUpdated?.Invoke(quote);
+
+            Debug.WriteLine("[INFO] MtClient::OnQuoteUpdate: " + quote);
         }
 
         public void OnQuoteAdded(MtQuote quote)
@@ -252,31 +231,19 @@ namespace MTApiService
         #endregion
 
         #region Properties
-        public bool IsConnected 
-        {
-            get
-            {
-                lock (mClientLocker)
-                {
-                    return mProxy.State == CommunicationState.Opened && mIsConnected == true;
-                }
-            }
-        }
+        public bool IsConnected => _proxy.State == CommunicationState.Opened && _isConnected;
 
         #endregion
 
         #region Private Methods
 
-        void mProxy_Faulted(object sender, EventArgs e)
+        private void ProxyFaulted(object sender, EventArgs e)
         {
-            Debug.WriteLine("[INFO] MtClient::mProxy_Faulted");
+            Debug.WriteLine("[INFO] MtClient::ProxyFaulted");
 
             Close();
 
-            if (ServerFailed != null)
-            {
-                ServerFailed(this, EventArgs.Empty);
-            }
+            ServerFailed?.Invoke(this, EventArgs.Empty);
         }
 
         #endregion
@@ -299,12 +266,6 @@ namespace MTApiService
         public event EventHandler ServerDisconnected;
         public event EventHandler ServerFailed;
         public event EventHandler<MtEventArgs> MtEventReceived;
-        #endregion
-
-        #region Fields
-        private readonly object mClientLocker = new object();
-        private MtApiProxy mProxy = null;
-        private bool mIsConnected = false;
         #endregion
     }
 }
