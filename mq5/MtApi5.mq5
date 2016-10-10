@@ -143,21 +143,24 @@ int init()
    PrintFormat("Expert Handle = %d", ExpertHandle);
    
    //--- Backtesting mode
-   if (IsTesting())
-   {      
-      Print("Waiting on remote client...");
-      //wait for command (BacktestingReady) from remote side to be ready for work
-      while(!IsRemoteReadyForTesting)
-      {
-         executeCommand();
-         
-         //This section uses a while loop to simulate Sleep() during Backtest.
-         unsigned int viSleepUntilTick = GetTickCount() + 100; //100 milliseconds
-         while(GetTickCount() < viSleepUntilTick) 
-         {
-            //Do absolutely nothing. Just loop until the desired tick is reached.
-         }
-      }
+   if (false)
+   {
+       if (IsTesting())
+       {      
+          Print("Waiting on remote client...");
+          //wait for command (BacktestingReady) from remote side to be ready for work
+          while(!IsRemoteReadyForTesting)
+          {
+             executeCommand();
+             
+             //This section uses a while loop to simulate Sleep() during Backtest.
+             unsigned int viSleepUntilTick = GetTickCount() + 100; //100 milliseconds
+             while(GetTickCount() < viSleepUntilTick) 
+             {
+                //Do absolutely nothing. Just loop until the desired tick is reached.
+             }
+          }
+       }
    }
    //--- 
 

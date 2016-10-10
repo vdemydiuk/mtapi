@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MTApiService;
 using System.Collections;
+using System.ServiceModel;
 
 namespace MtApi5
 {
@@ -617,7 +618,11 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { indicator_handle, buffer_num, start_pos, count };
             buffer = SendCommand<double[]>(Mt5CommandType.CopyBuffer, commandParameters);
+<<<<<<< Updated upstream
             return buffer?.Length ?? 0;
+=======
+            return buffer != null ? buffer.Length : 0;
+>>>>>>> Stashed changes
         }
 
         ///<summary>
@@ -632,7 +637,11 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { indicator_handle, buffer_num, Mt5TimeConverter.ConvertToMtTime(start_time), count };
             buffer = SendCommand<double[]>(Mt5CommandType.CopyBuffer1, commandParameters);
+<<<<<<< Updated upstream
             return buffer?.Length ?? 0;
+=======
+            return buffer != null ? buffer.Length : 0;
+>>>>>>> Stashed changes
         }
 
         ///<summary>
@@ -647,7 +656,11 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { indicator_handle, buffer_num, Mt5TimeConverter.ConvertToMtTime(start_time), Mt5TimeConverter.ConvertToMtTime(stop_time) };
             buffer = SendCommand<double[]>(Mt5CommandType.CopyBuffer1, commandParameters);
+<<<<<<< Updated upstream
             return buffer?.Length ?? 0;
+=======
+            return buffer != null ? buffer.Length : 0;
+>>>>>>> Stashed changes
         }
 
         ///<summary>
@@ -1462,7 +1475,15 @@ namespace MtApi5
 
         private T SendCommand<T>(Mt5CommandType commandType, ArrayList commandParameters)
         {
-            var response = _client.SendCommand((int)commandType, commandParameters);
+            MtResponse response;
+            try
+            {
+                response = _client.SendCommand((int)commandType, commandParameters);
+            }
+            catch (CommunicationException ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
 
             if (response is MtResponseDouble)
                 return (T)Convert.ChangeType(((MtResponseDouble)response).Value, typeof(T));
