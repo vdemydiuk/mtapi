@@ -1492,50 +1492,8 @@ namespace MtApi5
                 throw new Exception(ex.Message, ex);
             }
 
-            var responseValue = GetResponseValue(response);
+            var responseValue = response.GetValue();
             return responseValue != null ? (T) responseValue : default(T);
-        }
-
-        private static object GetResponseValue(MtResponse response)
-        {
-            var doubleValue = (response as MtResponseDouble)?.Value;
-            if (doubleValue != null) return doubleValue;
-
-            var intValue = (response as MtResponseInt)?.Value;
-            if (intValue != null) return intValue;
-
-            var longValue = (response as MtResponseLong)?.Value;
-            if (longValue != null) return longValue;
-
-            var ulongValue = (response as MtResponseULong)?.Value;
-            if (ulongValue != null) return ulongValue;
-
-            var boolValue = (response as MtResponseBool)?.Value;
-            if (boolValue != null) return boolValue;
-
-            var stringValue = (response as MtResponseString)?.Value;
-            if (stringValue != null) return stringValue;
-
-            var doubleArrayValue = (response as MtResponseDoubleArray)?.Value;
-            if (doubleArrayValue != null) return doubleArrayValue;
-
-            var intArrayValue = (response as MtResponseIntArray)?.Value;
-            if (intArrayValue != null) return intArrayValue;
-
-            var longArrayValue = (response as MtResponseLongArray)?.Value;
-            if (longArrayValue != null) return longArrayValue;
-
-            var arrayListValue = (response as MtResponseArrayList)?.Value;
-            if (arrayListValue != null) return arrayListValue;
-
-            var mqlRatesArrayValue = (response as MtResponseMqlRatesArray)?.Value;
-            if (mqlRatesArrayValue != null) return mqlRatesArrayValue;
-
-            var mqlTickValue = (response as MtResponseMqlTick)?.Value;
-            if (mqlTickValue != null) return mqlTickValue;
-
-            var mqlBookInfoArrayValue = (response as MtResponseMqlBookInfoArray)?.Value;
-            return mqlBookInfoArrayValue;
         }
 
         private void mClient_QuoteUpdated(MtQuote quote)
