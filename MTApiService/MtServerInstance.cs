@@ -74,7 +74,7 @@ namespace MTApiService
 
         public void DeinitExpert(int expertHandle)
         {
-            Log.InfoFormat("DeinitExpert: begin. symbol = {0}", expertHandle);
+            Log.InfoFormat("DeinitExpert: begin. expertHandle = {0}", expertHandle);
 
             MtExpert expert = null;
 

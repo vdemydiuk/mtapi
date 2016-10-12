@@ -12,11 +12,9 @@ MTApiService is common engine communication project of the API for MT4 and MT5.
 MTApiService library should be placed in Windows GAC (Global Assembly Cache). Installers in the project will copied it to GAC automatically.
 
 # How to build solution
-The project is supported by Visual Studio 2015. It also requires WIX Tools (http://wixtoolset.org/).
-To build solution you need to update sign key file in MtApiService project: 
-- open properties of MTApiService project;
-- go to tab Signing and select item MtApiKey.pfx;
-- input password "MtApiService".
+The project is supported by Visual Studio 2015.
+It also requires WIX Tools (http://wixtoolset.org/).
+
 To make api for MetaTrader4 use MtApiInstaller and for MetaTrader5 use MtApi5Installer. 
 All installers will be placed in folder "[root]\build\installers\" and all *.dll files will be placed in "[root]\build\products\".
 MQL files have been build to ex4 and stored into folders "mq4" for MetaTrader and "mq5" for MetaTrader5. They are ready to using in terminals.
