@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Collections;
 using System.ServiceModel;
 using System.Collections.Generic;
+using log4net;
 
 namespace MTApiService
 {
@@ -14,6 +14,8 @@ namespace MTApiService
         public delegate void MtQuoteHandler(MtQuote quote);
 
         #region Fields
+        private static readonly ILog Log = LogManager.GetLogger(typeof(MtClient));
+
         private MtApiProxy _proxy;
         private bool _isConnected;
         #endregion
@@ -21,7 +23,7 @@ namespace MTApiService
         #region Public Methods
         public void Open(string host, int port)
         {
-            Debug.WriteLine("[INFO] MtClient::Open");
+            Log.DebugFormat("Open: begin. host = {0}, port = {1}", host, port);
 
             if (string.IsNullOrEmpty(host))
                 throw new ArgumentNullException(nameof(host), "host is null or empty");
@@ -32,7 +34,10 @@ namespace MTApiService
             var urlService = $"net.tcp://{host}:{port}/{ServiceName}";
 
             if (_proxy != null)
+            {
+                Log.Warn("Open: end. _proxy is not null.");
                 return;
+            }
 
             var bind = new NetTcpBinding(SecurityMode.None)
             {
@@ -52,17 +57,24 @@ namespace MTApiService
 
             _proxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
             _proxy.Faulted += ProxyFaulted;
+
+            Log.Debug("Open: end.");
         }
 
         public void Open(int port)
         {
+            Log.DebugFormat("Open: begin. port = {0}", port);
+
             if (port < 0 || port > 65536)
                 throw new ArgumentOutOfRangeException(nameof(port), "port value is invalid");
 
             var urlService = $"net.pipe://localhost/{ServiceName}_{port}";
 
             if (_proxy != null)
+            {
+                Log.Warn("Open: end. _proxy is not null.");
                 return;
+            }
 
             var bind = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None)
             {
@@ -82,11 +94,13 @@ namespace MTApiService
 
             _proxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
             _proxy.Faulted += ProxyFaulted;
+
+            Log.Debug("Open: end.");
         }
 
         public void Close()
         {
-            Debug.WriteLine("[INFO] MtClient::Close");
+            Log.Debug("Close: begin.");
 
             if (_proxy != null)
             {
@@ -96,35 +110,52 @@ namespace MTApiService
             }
 
             _isConnected = false;
+
+            Log.Debug("Close: end.");
         }
 
+        /// <exception cref="CommunicationException">Thrown when connection failed</exception>
         public void Connect()
         {
-            Debug.WriteLine("[INFO] MtClient::Connect");
+            Log.Debug("Connect: begin.");
+
+            if (_proxy == null)
+            {
+                Log.Error("Connect: _proxy is not defined.");
+                throw new CommunicationException("Connection failed to service. Proxy is not defined (needs to call Open)");
+            }
+
+            if (_isConnected)
+            {
+                Log.Warn("Connected: end. Client is already connected.");
+                return;
+            }
 
             try
             {
-                if (_proxy != null && _isConnected)
-                    return;
-
                 _isConnected = _proxy.Connect();
-
-                if (_isConnected == false)
-                    throw new Exception("Connected failed");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("[ERROR] MtClient::Connect: {0}", ex.Message);
+                Log.ErrorFormat("Connect: Exception - {0}", ex.Message);
 
                 Close();
 
-                throw new CommunicationException("Connection failed to service");
+                throw new CommunicationException($"Connection failed to service. {ex.Message}");
             }
+
+            if (_isConnected == false)
+            {
+                Log.Error("Connect: end. Connection failed.");
+                throw new CommunicationException("Connection failed");
+            }
+
+            Log.Debug("Connect: end.");
         }
 
         public void Disconnect()
         {
-            Debug.WriteLine("[INFO] MtClient::Disconnect");
+            Log.Debug("Disconnect: begin.");
 
             try
             {
@@ -134,26 +165,40 @@ namespace MTApiService
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("[ERROR] MtClient::Disconnect: {0}", ex.Message);
+                Log.ErrorFormat("Disconnect: Exception - {0}", ex.Message);
 
                 Close();
             }
+
+            Log.Debug("Disconnect: end.");
         }
 
-        public MtResponse SendCommand(int commandType, ArrayList commandParameters)
+        /// <exception cref="CommunicationException">Thrown when connection failed</exception>
+        public MtResponse SendCommand(int commandType, ArrayList parameters)
         {
-            Debug.WriteLine("[INFO] MtClient::SendCommand: commandType = {0}", commandType);
+            Log.DebugFormat("SendCommand: begin. commandType = {0}, parameters count = {1}", commandType, parameters?.Count);
 
-            MtResponse result = null;
+            MtResponse result;
+
+            if (_proxy == null)
+            {
+                Log.Error("SendCommand: Proxy is not defined.");
+                throw new CommunicationException("Proxy is not defined.");
+            }
+
+            if (_isConnected == false)
+            {
+                Log.Error("SendCommand: Client is not connected.");
+                throw new CommunicationException("Client is not connected.");
+            }
 
             try
             {
-                if (_proxy != null && _isConnected)
-                    result = _proxy.SendCommand(new MtCommand(commandType, commandParameters));
+                result = _proxy.SendCommand(new MtCommand(commandType, parameters));
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("[ERROR] MtClient::SendCommand: {0}", ex.Message);
+                Log.ErrorFormat("SendCommand: Exception - {0}", ex.Message);
 
                 Close();
 
@@ -163,27 +208,41 @@ namespace MTApiService
             return result;
         }
 
+        /// <exception cref="CommunicationException">Thrown when connection failed</exception>
         public IEnumerable<MtQuote> GetQuotes()
         {
-            Debug.WriteLine("[INFO] MtClient::GetQuotes");
+            Log.Debug("GetQuotes: begin.");
 
-            IEnumerable<MtQuote> result = null;
+            if (_proxy == null)
+            {
+                Log.Warn("GetQuotes: end. _proxy is not defined.");
+                return null;
+            }
+
+            if (_isConnected == false)
+            {
+                Log.Warn("GetQuotes: end. Client is not connected.");
+                return null;
+            }
+
+            List<MtQuote> result;
 
             try
             {
-                if (_proxy != null && _isConnected)
-                    result = _proxy.GetQuotes();
+                result = _proxy.GetQuotes();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("[ERROR] MtClient::GetQuotes: {0}", ex.Message);
+                Log.ErrorFormat("GetQuotes: Exception - {0}", ex.Message);
 
                 Close();
 
-                throw new CommunicationException("Service connection failed");
+                throw new CommunicationException($"Service connection failed! {ex.Message}");
             }
 
-            return result;;
+            Log.DebugFormat("GetQuotes: end. quotes count = {0}", result?.Count);
+
+            return result;
         }
 
         #endregion
@@ -192,40 +251,51 @@ namespace MTApiService
 
         public void OnQuoteUpdate(MtQuote quote)
         {
+            Log.DebugFormat("OnQuoteUpdate: begin. quote = {0}", quote);
+
             if (quote == null) return;
 
             QuoteUpdated?.Invoke(quote);
 
-            Debug.WriteLine("[INFO] MtClient::OnQuoteUpdate: " + quote);
+            Log.Debug("OnQuoteUpdate: end.");
         }
 
         public void OnQuoteAdded(MtQuote quote)
         {
-            Debug.WriteLine("[INFO] MtClient::OnQuoteAdded");
+            Log.DebugFormat("OnQuoteAdded: begin. quote = {0}", quote);
 
             QuoteAdded?.Invoke(quote);
+
+            Log.Debug("OnQuoteAdded: end.");
         }
 
         public void OnQuoteRemoved(MtQuote quote)
         {
-            Debug.WriteLine("[INFO] MtClient::OnQuoteRemoved");
+            Log.DebugFormat("OnQuoteRemoved: begin. quote = {0}", quote);
 
             QuoteRemoved?.Invoke(quote);
+
+            Log.Debug("OnQuoteRemoved: end.");
         }
 
         public void OnServerStopped()
         {
-            Debug.WriteLine("[INFO] MtClient::OnServerStopped");
+            Log.Debug("OnServerStopped: begin.");
 
             Close();
-
             ServerDisconnected?.Invoke(this, EventArgs.Empty);
+
+            Log.Debug("OnServerStopped: end.");
         }
 
 
         public void OnMtEvent(MtEvent mtEvent)
         {
+            Log.DebugFormat("OnMtEvent: begin. event = {0}", mtEvent);
+
             MtEventReceived?.Invoke(this, new MtEventArgs(mtEvent));
+
+            Log.Debug("OnMtEvent: end.");
         }
 
         #endregion
@@ -239,11 +309,12 @@ namespace MTApiService
 
         private void ProxyFaulted(object sender, EventArgs e)
         {
-            Debug.WriteLine("[INFO] MtClient::ProxyFaulted");
+            Log.Debug("ProxyFaulted: begin.");
 
             Close();
-
             ServerFailed?.Invoke(this, EventArgs.Empty);
+
+            Log.Debug("ProxyFaulted: end.");
         }
 
         #endregion
@@ -252,9 +323,11 @@ namespace MTApiService
 
         public void Dispose()
         {
-            Debug.WriteLine("[INFO] MtClient::Dispose");
+            Log.Debug("Dispose: begin.");
 
             Close();
+
+            Log.Debug("Dispose: end.");
         }
 
         #endregion

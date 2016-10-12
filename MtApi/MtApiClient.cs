@@ -22,6 +22,8 @@ namespace MtApi
         //Special constant
         public const int NULL = 0;
         public const int EMPTY = -1;
+
+        private const string LogProfileName = "MtApiClient";
         #endregion
 
         #region Private Fields
@@ -34,6 +36,8 @@ namespace MtApi
 
         public MtApiClient()
         {
+            LogConfigurator.Setup(LogProfileName);
+
             _client.QuoteAdded += _client_QuoteAdded;
             _client.QuoteRemoved += _client_QuoteRemoved;
             _client.QuoteUpdated += _client_QuoteUpdated;

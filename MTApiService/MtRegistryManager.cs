@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.Win32;
 using System.Diagnostics;
 
@@ -9,12 +7,12 @@ namespace MTApiService
 {
     public class MtRegistryManager
     {
-        private const string SOFTWARE = "Software";
-        private const string APP_NAME = "MtApi";
-        private const string PROFILES_REGKEY = "ConnectionProfiles";
-        private const string HOST_REGVALUE_NAME = "Host";
-        private const string PORT_REGVALUE_NAME = "Port";
-        private const string SIGNATURE_REGVALUE_NAME = "MtSignature";
+        private const string Software = "Software";
+        private const string AppName = "MtApi";
+        private const string ProfilesRegkey = "ConnectionProfiles";
+        private const string HostRegvalueName = "Host";
+        private const string PortRegvalueName = "Port";
+        private const string SignatureRegvalueName = "MtSignature";
 
         #region Public Methods
         public static IEnumerable<MtConnectionProfile> LoadConnectionProfiles()
@@ -53,12 +51,12 @@ namespace MTApiService
 
             string signature = null;
 
-            var softwareRegKey = Registry.CurrentUser.OpenSubKey(SOFTWARE, true);
+            var softwareRegKey = Registry.CurrentUser.OpenSubKey(Software, true);
             if (softwareRegKey != null)
             {
                 using (softwareRegKey)
                 {
-                    var appRegKey = softwareRegKey.OpenSubKey(APP_NAME, true);
+                    var appRegKey = softwareRegKey.OpenSubKey(AppName, true);
                     if (appRegKey != null)
                     {
                         using (appRegKey)
@@ -73,7 +71,7 @@ namespace MTApiService
                                     {
                                         using (numberKey)
                                         {
-                                            signature = numberKey.GetValue(SIGNATURE_REGVALUE_NAME).ToString();
+                                            signature = numberKey.GetValue(SignatureRegvalueName).ToString();
                                         }
                                     }
                                 }
@@ -94,7 +92,7 @@ namespace MTApiService
                 return null;
             }
 
-            RegistryKey softwareRgKey = Registry.CurrentUser.OpenSubKey(SOFTWARE, true);
+            var softwareRgKey = Registry.CurrentUser.OpenSubKey(Software, true);
 
             if (softwareRgKey == null)
                 return null;
@@ -105,35 +103,33 @@ namespace MTApiService
             {
 
                 //app name
-                var appRegKey = softwareRgKey.OpenSubKey(APP_NAME, true);
-                if (appRegKey == null)
+                var appRegKey = softwareRgKey.OpenSubKey(AppName, true) ?? softwareRgKey.CreateSubKey(AppName);
+
+                if (appRegKey != null)
                 {
-                    appRegKey = softwareRgKey.CreateSubKey(APP_NAME);
-                }
-
-                using (appRegKey)
-                {
-                    //account name
-                    var accountKey = appRegKey.OpenSubKey(accountName, true);
-                    if (accountKey == null)
+                    using (appRegKey)
                     {
-                        accountKey = appRegKey.CreateSubKey(accountName);
-                    }
+                        //account name
+                        var accountKey = appRegKey.OpenSubKey(accountName, true) ?? appRegKey.CreateSubKey(accountName);
 
-                    using (accountKey)
-                    {
-                        //account number
-                        var numberKey = accountKey.OpenSubKey(accountNumber, true);
-                        if (numberKey == null)
+                        if (accountKey != null)
                         {
-                            numberKey = accountKey.CreateSubKey(accountNumber);
-                        }
+                            using (accountKey)
+                            {
+                                //account number
+                                var numberKey = accountKey.OpenSubKey(accountNumber, true) ??
+                                                accountKey.CreateSubKey(accountNumber);
 
-                        using (numberKey)
-                        {
-                            numberKey.SetValue(SIGNATURE_REGVALUE_NAME, signature);
+                                if (numberKey != null)
+                                {
+                                    using (numberKey)
+                                    {
+                                        numberKey.SetValue(SignatureRegvalueName, signature);
 
-                            retVal = numberKey.ToString();
+                                        retVal = numberKey.ToString();
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -142,20 +138,19 @@ namespace MTApiService
             return retVal;
         }
 
-        public static bool ExportKey(string RegKey, string SavePath)
+        public static bool ExportKey(string regKey, string savePath)
         {
-            string path = "\"" + SavePath + "\"";
-            string key = "\"" + RegKey + "\"";
+            var path = $"\"{savePath}\"";
+            var key = $"\"{regKey}\"";
 
-            Process proc = new Process();
+            var proc = new Process();
             try
             {
                 proc.StartInfo.FileName = "regedit.exe";
                 proc.StartInfo.UseShellExecute = false;
                 proc = Process.Start("regedit.exe", "/e " + path + " " + key + "");
 
-                if (proc != null) 
-                    proc.WaitForExit();
+                proc?.WaitForExit();
             }
             catch(Exception)
             {
@@ -163,8 +158,7 @@ namespace MTApiService
             }
             finally
             {
-                if (proc != null) 
-                    proc.Dispose();
+                proc?.Dispose();
             }
 
             return true;
@@ -177,33 +171,38 @@ namespace MTApiService
         {
             List<MtConnectionProfile> profiles = null;
 
-            var softwareRegKey = Registry.CurrentUser.OpenSubKey(SOFTWARE, true);
+            var softwareRegKey = Registry.CurrentUser.OpenSubKey(Software, true);
             if (softwareRegKey != null)
             {
                 using (softwareRegKey)
                 {
-                    var appRegKey = softwareRegKey.OpenSubKey(APP_NAME, true);
+                    var appRegKey = softwareRegKey.OpenSubKey(AppName, true);
                     if (appRegKey != null)
                     {
                         using (appRegKey)
                         {
-                            var profilesRegKey = appRegKey.OpenSubKey(PROFILES_REGKEY, true);
+                            var profilesRegKey = appRegKey.OpenSubKey(ProfilesRegkey, true);
                             if (profilesRegKey != null)
                             {
                                 using (profilesRegKey)
                                 {
                                     profiles = new List<MtConnectionProfile>();
 
-                                    foreach (string profileNameKey in profilesRegKey.GetSubKeyNames())
+                                    foreach (var profileNameKey in profilesRegKey.GetSubKeyNames())
                                     {
-                                        using (RegistryKey tempKey = profilesRegKey.OpenSubKey(profileNameKey))
+                                        var tempKey = profilesRegKey.OpenSubKey(profileNameKey);
+                                        if (tempKey != null)
                                         {
-                                            var profile = new MtConnectionProfile(profileNameKey);
+                                            using (tempKey)
+                                            {
+                                                var profile = new MtConnectionProfile(profileNameKey)
+                                                {
+                                                    Host = tempKey.GetValue(HostRegvalueName).ToString(),
+                                                    Port = (int) tempKey.GetValue(PortRegvalueName)
+                                                };
 
-                                            profile.Host = tempKey.GetValue(HOST_REGVALUE_NAME).ToString();
-                                            profile.Port = (int)tempKey.GetValue(PORT_REGVALUE_NAME);
-
-                                            profiles.Add(profile);
+                                                profiles.Add(profile);
+                                            }
                                         }
                                     }
                                 }
@@ -220,27 +219,33 @@ namespace MTApiService
         {
             MtConnectionProfile profile = null;
 
-            var softwareRegKey = Registry.CurrentUser.OpenSubKey(SOFTWARE, true);
+            var softwareRegKey = Registry.CurrentUser.OpenSubKey(Software, true);
             if (softwareRegKey != null)
             {
                 using (softwareRegKey)
                 {
-                    var appRegKey = softwareRegKey.OpenSubKey(APP_NAME, true);
+                    var appRegKey = softwareRegKey.OpenSubKey(AppName, true);
                     if (appRegKey != null)
                     {
                         using (appRegKey)
                         {
-                            var profilesRegKey = appRegKey.OpenSubKey(PROFILES_REGKEY, true);
+                            var profilesRegKey = appRegKey.OpenSubKey(ProfilesRegkey, true);
                             if (profilesRegKey != null)
                             {
                                 using (profilesRegKey)
                                 {
-                                    using (RegistryKey tempKey = profilesRegKey.OpenSubKey(profileName))
+                                    var tempKey = profilesRegKey.OpenSubKey(profileName);
+                                    if (tempKey != null)
                                     {
-                                        profile = new MtConnectionProfile(profileName);
+                                        using (tempKey)
+                                        {
+                                            profile = new MtConnectionProfile(profileName)
+                                            {
+                                                Host = tempKey.GetValue(HostRegvalueName).ToString(),
+                                                Port = (int) tempKey.GetValue(PortRegvalueName)
+                                            };
 
-                                        profile.Host = tempKey.GetValue(HOST_REGVALUE_NAME).ToString();
-                                        profile.Port = (int)tempKey.GetValue(PORT_REGVALUE_NAME);
+                                        }
                                     }
                                 }
                             }
@@ -254,7 +259,7 @@ namespace MTApiService
 
         private static void SaveConnectionProfileToRegistry(MtConnectionProfile profile)
         {
-            RegistryKey softwareRgKey = Registry.CurrentUser.OpenSubKey(SOFTWARE, true);
+            var softwareRgKey = Registry.CurrentUser.OpenSubKey(Software, true);
 
             if (softwareRgKey == null)
                 return;
@@ -262,29 +267,30 @@ namespace MTApiService
             using (softwareRgKey)
             {
                 //app name
-                var appRegKey = softwareRgKey.OpenSubKey(APP_NAME, true);
-                if (appRegKey == null)
+                var appRegKey = softwareRgKey.OpenSubKey(AppName, true) ?? softwareRgKey.CreateSubKey(AppName);
+
+                if (appRegKey != null)
                 {
-                    appRegKey = softwareRgKey.CreateSubKey(APP_NAME);
-                }
-
-                using (appRegKey)
-                {
-                    //ConnectionProfiles key
-                    var profilesRegKey = appRegKey.OpenSubKey(PROFILES_REGKEY, true);
-                    if (profilesRegKey == null)
+                    using (appRegKey)
                     {
-                        profilesRegKey = appRegKey.CreateSubKey(PROFILES_REGKEY);
-                    }
+                        //ConnectionProfiles key
+                        var profilesRegKey = appRegKey.OpenSubKey(ProfilesRegkey, true) ??
+                                             appRegKey.CreateSubKey(ProfilesRegkey);
 
-                    using (profilesRegKey)
-                    {
-                        var profileKey = profilesRegKey.CreateSubKey(profile.Name);
-
-                        using (profileKey)
+                        if (profilesRegKey != null)
                         {
-                            profileKey.SetValue(HOST_REGVALUE_NAME, profile.Host);
-                            profileKey.SetValue(PORT_REGVALUE_NAME, profile.Port);
+                            using (profilesRegKey)
+                            {
+                                var profileKey = profilesRegKey.CreateSubKey(profile.Name);
+                                if (profileKey != null)
+                                {
+                                    using (profileKey)
+                                    {
+                                        profileKey.SetValue(HostRegvalueName, profile.Host);
+                                        profileKey.SetValue(PortRegvalueName, profile.Port);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -293,19 +299,19 @@ namespace MTApiService
 
         private static void DeleteConnectionProfileFromRegistry(string profileName)
         {
-            var softwareRegKey = Registry.CurrentUser.OpenSubKey(SOFTWARE, true);
+            var softwareRegKey = Registry.CurrentUser.OpenSubKey(Software, true);
             if (softwareRegKey == null)
                 return;
 
             using (softwareRegKey)
             {
-                var appRegKey = softwareRegKey.OpenSubKey(APP_NAME, true);
+                var appRegKey = softwareRegKey.OpenSubKey(AppName, true);
                 if (appRegKey == null)
                     return;
 
                 using (appRegKey)
                 {
-                    var profilesRegKey = appRegKey.OpenSubKey(PROFILES_REGKEY, true);
+                    var profilesRegKey = appRegKey.OpenSubKey(ProfilesRegkey, true);
                     if (profilesRegKey == null)
                         return;
 

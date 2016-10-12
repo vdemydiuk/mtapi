@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Runtime.Serialization;
 
 namespace MTApiService
@@ -10,34 +7,34 @@ namespace MTApiService
     public class MtMqlTradeRequest
     {
         [DataMember]
-        public int Action { get; set; }           
+        public int Action { get; set; }
         [DataMember]
-        public uint Magic { get; set; }           
+        public uint Magic { get; set; }
         [DataMember]
-        public uint Order { get; set; }           
+        public uint Order { get; set; }
         [DataMember]
-        public string Symbol { get; set; }        
+        public string Symbol { get; set; }
         [DataMember]
-        public double Volume { get; set; }             
+        public double Volume { get; set; }
         [DataMember]
-        public double Price { get; set; }              
+        public double Price { get; set; }
         [DataMember]
-        public double Stoplimit { get; set; }          
+        public double Stoplimit { get; set; }
         [DataMember]
-        public double Sl { get; set; }                 
+        public double Sl { get; set; }
         [DataMember]
-        public double Tp { get; set; }                 
+        public double Tp { get; set; }
         [DataMember]
-        public uint Deviation { get; set; }            
+        public uint Deviation { get; set; }
         [DataMember]
-        public int Type { get; set; }                  
+        public int Type { get; set; }
         [DataMember]
-        public int Type_filling { get; set; }        
+        public int Type_filling { get; set; }
         [DataMember]
-        public int Type_time { get; set; }           
+        public int Type_time { get; set; }
         [DataMember]
-        public DateTime Expiration { get; set; }     
+        public DateTime Expiration { get; set; }
         [DataMember]
-        public string Comment { get; set; }          
+        public string Comment { get; set; }
     }
 }

@@ -1,30 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ServiceModel;
-using System.Net;
-using System.Diagnostics;
+using log4net;
 
 namespace MTApiService
 {
     public class MtServerInstance
     {
-        #region Init_Instance
+        #region Fields
+        private const string LogProfileName = "MtApiService";
 
-        static readonly MtServerInstance mInstance = new MtServerInstance();
+        private static readonly ILog Log = LogManager.GetLogger(typeof(MtServerInstance));
+        private static readonly MtServerInstance Instance = new MtServerInstance();
+
+        private readonly Dictionary<int, MtServer> _servers = new Dictionary<int, MtServer>();
+        private readonly Dictionary<int, MtExpert> _experts = new Dictionary<int, MtExpert>();
+        #endregion
+
+        #region Init Instance
 
         private MtServerInstance()
-        {            
+        {
+            LogConfigurator.Setup(LogProfileName);
         }
         
         static MtServerInstance() 
-        { 
-        }  
+        {
+        }
 
         public static MtServerInstance GetInstance()
         {
-            return mInstance;
+            return Instance;
         }
 
         #endregion
@@ -33,20 +38,23 @@ namespace MTApiService
         #region Public Methods
         public void InitExpert(int expertHandle, int port, string symbol, double bid, double ask, IMetaTraderHandler mtHandler)
         {
-            Debug.WriteLine("MtApiServerInstance::InitExpert: symbol = {0}, expertHandle = {1}, port = {2}", symbol, expertHandle, port);
+            if (mtHandler == null)
+                throw new ArgumentNullException(nameof(mtHandler));
 
-            MtServer server = null;
-            lock (mServersDictionary)
+            Log.InfoFormat("InitExpert: begin. symbol = {0}, expertHandle = {1}, port = {2}", symbol, expertHandle, port);
+
+            MtServer server;
+            lock (_servers)
             {
-                if (mServersDictionary.ContainsKey(port))
+                if (_servers.ContainsKey(port))
                 {
-                    server = mServersDictionary[port];
+                    server = _servers[port];
                 }
                 else
                 {
                     server = new MtServer(port);
-                    server.Stopped += new EventHandler(server_Stopped);
-                    mServersDictionary[port] = server;
+                    server.Stopped += server_Stopped;
+                    _servers[port] = server;
 
                     server.Start();
                 }
@@ -54,137 +62,172 @@ namespace MTApiService
 
             var expert = new MtExpert(expertHandle, new MtQuote(symbol, bid, ask), mtHandler);
 
-            lock (mExpertsDictionary)
+            lock (_experts)
             {
-                mExpertsDictionary[expert.Handle] = expert;
+                _experts[expert.Handle] = expert;
             }
 
             server.AddExpert(expert);
+
+            Log.Info("InitExpert: end");
         }
 
         public void DeinitExpert(int expertHandle)
         {
-            Debug.WriteLine("MtApiServerInstance::DeinitExpert: expertHandle = {0}", expertHandle);
+            Log.InfoFormat("DeinitExpert: begin. symbol = {0}", expertHandle);
 
             MtExpert expert = null;
 
-            lock (mExpertsDictionary)
+            lock (_experts)
             {
-                if (mExpertsDictionary.ContainsKey(expertHandle) == true)
+                if (_experts.ContainsKey(expertHandle))
                 {
-                    expert = mExpertsDictionary[expertHandle];
-                    mExpertsDictionary.Remove(expertHandle);
+                    expert = _experts[expertHandle];
+                    _experts.Remove(expertHandle);
                 }
             }
 
             if (expert != null)
             {
                 expert.Deinit();
-            }            
+            }
+            else
+            {
+                Log.WarnFormat("DeinitExpert: expert with id {0} has not been found.", expertHandle);
+            }
+
+            Log.Info("DeinitExpert: end");
         }
 
         public void SendQuote(int expertHandle, string symbol, double bid, double ask)
         {
-            Debug.WriteLine("MtApiServerInstance::SendQuote: enter. symbol = {0}, bid = {1}, ask = {2}", symbol, bid, ask);
+            Log.DebugFormat("SendQuote: begin. symbol = {0}, bid = {1}, ask = {2}", symbol, bid, ask);
 
-            MtExpert expert = null;
-            lock (mExpertsDictionary)
+            MtExpert expert;
+            lock (_experts)
             {
-                expert = mExpertsDictionary[expertHandle];
+                expert = _experts[expertHandle];
             }
 
             if (expert != null)
             {
                 expert.Quote = new MtQuote(symbol, bid, ask);
             }
+            else
+            {
+                Log.WarnFormat("SendQuote: expert with id {0} has not been found.", expertHandle);
+            }
 
-            Debug.WriteLine("MtApiServerInstance::SendQuote: finish.");
+            Log.Debug("SendQuote: end");
         }
 
         public void SendEvent(int expertHandle, int eventType, string payload)
         {
-            Debug.WriteLine("MtApiServerInstance::SendEvent called. eventType = {0}, payload = {1}", eventType, payload);
+            Log.DebugFormat("SendEvent: begin. eventType = {0}, payload = {1}", eventType, payload);
 
-            MtExpert expert = null;
-            lock (mExpertsDictionary)
+            MtExpert expert;
+            lock (_experts)
             {
-                expert = mExpertsDictionary[expertHandle];
+                expert = _experts[expertHandle];
             }
 
             if (expert != null)
             {
                 expert.SendEvent(new MtEvent(eventType, payload));
             }
+            else
+            {
+                Log.WarnFormat("SendEvent: expert with id {0} has not been found.", expertHandle);
+            }
 
-            Debug.WriteLine("MtApiServerInstance::SendEvent: finished");
+            Log.Debug("SendEvent: end");
         }
 
         public void SendResponse(int expertHandle, MtResponse response)
         {
-            Debug.WriteLine("MtApiServerInstance::SendResponse: id = {0}, response = {1}", expertHandle, response);
+            Log.DebugFormat("SendResponse: begin. id = {0}, response = {1}", expertHandle, response);
 
-            MtExpert expert = null;
-            lock (mExpertsDictionary)
+            MtExpert expert;
+            lock (_experts)
             {
-                expert = mExpertsDictionary[expertHandle];
+                expert = _experts[expertHandle];
             }
 
             if (expert != null)
             {
                 expert.SendResponse(response);
             }
+            else
+            {
+                Log.WarnFormat("SendResponse: expert with id {0} has not been found.", expertHandle);
+            }
 
-            Debug.WriteLine("MtApiServerInstance::SendResponse: finish");
+            Log.Debug("SendResponse: end");
         }
 
         public int GetCommandType(int expertHandle)
         {
-            Debug.WriteLine("MtApiServerInstance::GetCommandType: expertHandle = {0}", expertHandle);
+            Log.DebugFormat("GetCommandType: begin. expertHandle = {0}", expertHandle);
 
-            MtExpert expert = null;
-            lock (mExpertsDictionary)
+            MtExpert expert;
+            lock (_experts)
             {
-                expert = mExpertsDictionary[expertHandle];
+                expert = _experts[expertHandle];
             }
 
-            return (expert != null) ? expert.GetCommandType() : 0;
+            if (expert == null)
+            {
+                Log.WarnFormat("GetCommandType: expert with id {0} has not been found.", expertHandle);
+            }
+
+            var retval = expert?.GetCommandType() ?? 0;
+
+            Log.DebugFormat("GetCommandType: end. retval = {0}", retval);
+
+            return retval;
         }
 
         public object GetCommandParameter(int expertHandle, int index)
         {
-            Debug.WriteLine("MtApiServerInstance::GetCommandParameter: expertHandle = {0}, index = {1}", expertHandle, index);
+            Log.DebugFormat("GetCommandParameter: begin. expertHandle = {0}, index = {1}", expertHandle, index);
 
-            MtExpert expert = null;
-            lock (mExpertsDictionary)
+            MtExpert expert;
+            lock (_experts)
             {
-                expert = mExpertsDictionary[expertHandle];
+                expert = _experts[expertHandle];
             }
 
-            return (expert != null) ? expert.GetCommandParameter(index) : null;
+            if (expert == null)
+            {
+                Log.WarnFormat("GetCommandParameter: expert with id {0} has not been found.", expertHandle);
+            }
+
+            var retval = expert?.GetCommandParameter(index);
+
+            Log.DebugFormat("GetCommandParameter: end. retval = {0}", retval);
+
+            return retval;
         }
         #endregion
 
         #region Private Methods
         private void server_Stopped(object sender, EventArgs e)
         {
-            MtServer server = (MtServer)sender;
+            var server = (MtServer)sender;
             server.Stopped -= server_Stopped;
 
             var port = server.Port;
-            lock (mServersDictionary)
+
+            Log.InfoFormat("server_Stopped: port = {0}", port);
+
+            lock (_servers)
             {
-                if (mServersDictionary.ContainsKey(port))
+                if (_servers.ContainsKey(port))
                 {
-                    mServersDictionary.Remove(port);
+                    _servers.Remove(port);
                 }
             }
         }
-        #endregion
-
-        #region Fields
-        private readonly MtRegistryManager mConnectionManager = new MtRegistryManager();
-        private readonly Dictionary<int, MtServer> mServersDictionary = new Dictionary<int, MtServer>();
-        private readonly Dictionary<int, MtExpert> mExpertsDictionary = new Dictionary<int, MtExpert>();
         #endregion
     }
 }

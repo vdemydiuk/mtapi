@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace MTApiService
 {
     public interface IMtApiServer
     {
         MtResponse SendCommand(MtCommand command);
-        IEnumerable<MtQuote> GetQuotes();
+        List<MtQuote> GetQuotes();
     }
 }

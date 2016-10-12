@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
-using System.ServiceModel;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 using System.Collections;
 
 namespace MTApiService
@@ -22,5 +18,9 @@ namespace MTApiService
         [DataMember]
         public ArrayList Parameters { get; private set; }
 
+        public override string ToString()
+        {
+            return $"CommandType = {CommandType}";
+        }
     }
 }

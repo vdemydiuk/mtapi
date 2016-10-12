@@ -22,6 +22,7 @@ namespace MtApi5
         #endregion
 
         private const char ParamSeparator = ';';
+        private const string LogProfileName = "MtApi5Client";
 
         public delegate void QuoteHandler(object sender, string symbol, double bid, double ask);
 
@@ -34,6 +35,8 @@ namespace MtApi5
         #region Public Methods
         public MtApi5Client()
         {
+            LogConfigurator.Setup(LogProfileName);
+
             ConnectionState = Mt5ConnectionState.Disconnected;
 
             _client.QuoteAdded += mClient_QuoteAdded;
@@ -1492,7 +1495,7 @@ namespace MtApi5
                 throw new Exception(ex.Message, ex);
             }
 
-            var responseValue = response.GetValue();
+            var responseValue = response?.GetValue();
             return responseValue != null ? (T) responseValue : default(T);
         }
 
