@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mtapi5="clr-namespace:MtApi5;assembly=MtApi5"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:mtApi5TestClient="clr-namespace:MtApi5TestClient"
         Title="MainWindow" Height="700" Width="650"
         Closing="Window_Closing">
     <Window.Resources>
@@ -381,7 +382,7 @@
         </TabControl>
 
         <Expander Grid.Row="2" Header="History" IsExpanded="True">
-            <ListBox Height="200" ItemsSource="{Binding History}"/>
+            <ListBox mtApi5TestClient:ListBoxBehavior.ScrollOnNewItem="true" Height="200" ItemsSource="{Binding History}"/>
         </Expander>
 
         <StatusBar Grid.Row="3">

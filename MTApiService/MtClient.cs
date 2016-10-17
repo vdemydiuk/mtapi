@@ -180,16 +180,16 @@ namespace MTApiService
 
             MtResponse result;
 
-            if (_proxy == null)
-            {
-                Log.Error("SendCommand: Proxy is not defined.");
-                throw new CommunicationException("Proxy is not defined.");
-            }
-
             if (_isConnected == false)
             {
                 Log.Error("SendCommand: Client is not connected.");
                 throw new CommunicationException("Client is not connected.");
+            }
+
+            if (_proxy == null)
+            {
+                Log.Error("SendCommand: Proxy is not defined.");
+                throw new CommunicationException("Proxy is not defined.");
             }
 
             try
@@ -213,15 +213,15 @@ namespace MTApiService
         {
             Log.Debug("GetQuotes: begin.");
 
-            if (_proxy == null)
-            {
-                Log.Warn("GetQuotes: end. _proxy is not defined.");
-                return null;
-            }
-
             if (_isConnected == false)
             {
                 Log.Warn("GetQuotes: end. Client is not connected.");
+                return null;
+            }
+
+            if (_proxy == null)
+            {
+                Log.Warn("GetQuotes: end. _proxy is not defined.");
                 return null;
             }
 

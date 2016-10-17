@@ -177,7 +177,7 @@ int deinit()
          isCrashed = true;
          return (1);
       }
-      Print("Wxpert was deinitialized.");
+      Print("Expert was deinitialized.");
    }
    
    return (0);

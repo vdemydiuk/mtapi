@@ -5,6 +5,7 @@ using System.Windows;
 using MtApi5;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Threading.Tasks;
 
 namespace MtApi5TestClient
 {
@@ -238,347 +239,465 @@ namespace MtApi5TestClient
             _mtApiClient.BeginDisconnect();
         }
 
-        private void ExecuteOrderSend(object o)
+        private async void ExecuteOrderSend(object o)
         {
             var request = TradeRequest.GetMqlTradeRequest();
-
-            MqlTradeResult result;
-            var retVal = _mtApiClient.OrderSend(request, out result);
-
-            string historyItem;
-
-            if (retVal)
+            
+            var retVal = await Execute(() =>
             {
-                historyItem = "OrderSend successed. " + MqlTradeResultToString(result);
+                MqlTradeResult result;
+                var ok = _mtApiClient.OrderSend(request, out result);
+                return ok ? result : null;
+            });
+
+            var message = retVal != null ? $"OrderSend successed. {MqlTradeResultToString(retVal)}" : "OrderSend failed.";
+            AddLog(message);
+        }
+
+        private async void ExecuteAccountInfoDouble(object o)
+        {
+            var result = await Execute(() => _mtApiClient.AccountInfoDouble(AccountInfoDoublePropertyId));
+
+            var message = $"AccountInfoDouble: property_id = {AccountInfoDoublePropertyId}; result = {result}";
+            AddLog(message);
+        }
+
+        private async void ExecuteAccountInfoInteger(object o)
+        {
+            var result = await Execute(() => _mtApiClient.AccountInfoInteger(AccountInfoIntegerPropertyId));
+
+            var message = $"AccountInfoInteger: property_id = {AccountInfoDoublePropertyId}; result = {result}";
+            AddLog(message);
+        }
+
+        private async void ExecuteAccountInfoString(object o)
+        {
+            var result = await Execute(() => _mtApiClient.AccountInfoString(AccountInfoStringPropertyId));
+
+            var message = $"AccountInfoString: property_id = {AccountInfoDoublePropertyId}; result = {result}";
+            AddLog(message);
+        }
+
+        private async void ExecuteCopyTime(object o)
+        {
+            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
+
+            TimeSeriesResults.Clear();
+
+            var result = await Execute(() =>
+            {
+                DateTime[] array;
+                var count = _mtApiClient.CopyTime(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                return count > 0 ? array : null;
+            });
+
+            if (result == null)
+            {
+                AddLog("CopyTime: result is null");
+                return;
             }
-            else
+
+            RunOnUiThread(() =>
             {
-                historyItem = "OrderSend failed. " + MqlTradeResultToString(result);
-            }
-
-            History.Add(historyItem);
-        }
-
-        private void ExecuteAccountInfoDouble(object o)
-        {
-            var result = _mtApiClient.AccountInfoDouble(AccountInfoDoublePropertyId);
-
-            var historyItem = $"AccountInfoDouble: property_id = {AccountInfoDoublePropertyId}; result = {result}";
-            History.Add(historyItem);
-        }
-
-        private void ExecuteAccountInfoInteger(object o)
-        {
-            var result = _mtApiClient.AccountInfoInteger(AccountInfoIntegerPropertyId);
-
-            var historyItem = $"AccountInfoInteger: property_id = {AccountInfoDoublePropertyId}; result = {result}";
-            History.Add(historyItem);
-        }
-
-        private void ExecuteAccountInfoString(object o)
-        {
-            var result = _mtApiClient.AccountInfoString(AccountInfoStringPropertyId);
-
-            var historyItem = $"AccountInfoString: property_id = {AccountInfoDoublePropertyId}; result = {result}";
-            History.Add(historyItem);
-        }
-
-        private void ExecuteCopyTime(object o)
-        {
-            if (TimeSeriesValues != null && string.IsNullOrEmpty(TimeSeriesValues.SymbolValue) == false)
-            {
-                TimeSeriesResults.Clear();
-
-                DateTime[] timesArray;
-                var count = _mtApiClient.CopyTime(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out timesArray);
-                if (count > 0)
+                foreach (var time in result)
                 {
-                    foreach (var time in timesArray)
-                    {
-                        TimeSeriesResults.Add(time.ToString(CultureInfo.CurrentCulture));
-                    }
-
-                    History.Add("CopyTime success");
+                    TimeSeriesResults.Add(time.ToString(CultureInfo.CurrentCulture));
                 }
-            }
+            });
+
+            AddLog("CopyTime: success");
         }
 
-        private void ExecuteCopyOpen(object o)
+        private async void ExecuteCopyOpen(object o)
         {
-            if (TimeSeriesValues != null && string.IsNullOrEmpty(TimeSeriesValues.SymbolValue) == false)
-            {
-                TimeSeriesResults.Clear();
+            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
 
-                double[] opensArray;
-                var count = _mtApiClient.CopyOpen(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out opensArray);
-                if (count > 0)
+            TimeSeriesResults.Clear();
+
+            var result = await Execute(() =>
+            {
+                double[] array;
+                var count = _mtApiClient.CopyOpen(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                return count > 0 ? array : null;
+            });
+
+            if (result == null)
+            {
+                AddLog("CopyOpen: result is null");
+                return;
+            }
+
+            RunOnUiThread(() =>
+            {
+                foreach (var open in result)
                 {
-                    foreach (var open in opensArray)
-                    {
-                        TimeSeriesResults.Add(open.ToString(CultureInfo.CurrentCulture));
-                    }
-
-                    History.Add("CopyOpen success");
+                    TimeSeriesResults.Add(open.ToString(CultureInfo.CurrentCulture));
                 }
-            }
+            });
+
+            AddLog("CopyOpen: success");
         }
 
-        private void ExecuteCopyHigh(object o)
+        private async void ExecuteCopyHigh(object o)
         {
-            if (TimeSeriesValues != null && string.IsNullOrEmpty(TimeSeriesValues.SymbolValue) == false)
-            {
-                TimeSeriesResults.Clear();
+            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
 
+            TimeSeriesResults.Clear();
+
+            var result = await Execute(() =>
+            {
                 double[] array;
                 var count = _mtApiClient.CopyHigh(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
-                if (count > 0)
-                {
-                    foreach (var value in array)
-                    {
-                        TimeSeriesResults.Add(value.ToString(CultureInfo.CurrentCulture));
-                    }
+                return count > 0 ? array : null;
+            });
 
-                    History.Add("CopyHigh success");
-                }
+            if (result == null)
+            {
+                AddLog("CopyHigh: result is null");
+                return;
             }
+
+            RunOnUiThread(() =>
+            {
+                foreach (var value in result)
+                {
+                    TimeSeriesResults.Add(value.ToString(CultureInfo.CurrentCulture));
+                }
+            });
+
+            AddLog("CopyHigh: success");
         }
 
-        private void ExecuteCopyLow(object o)
+        private async void ExecuteCopyLow(object o)
         {
-            if (TimeSeriesValues != null && string.IsNullOrEmpty(TimeSeriesValues.SymbolValue) == false)
-            {
-                TimeSeriesResults.Clear();
+            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
 
+            TimeSeriesResults.Clear();
+
+            var result = await Execute(() =>
+            {
                 double[] array;
                 var count = _mtApiClient.CopyLow(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
-                if (count > 0)
-                {
-                    foreach (var value in array)
-                    {
-                        TimeSeriesResults.Add(value.ToString(CultureInfo.CurrentCulture));
-                    }
+                return count > 0 ? array : null;
+            });
 
-                    History.Add("CopyLow success");
-                }
+            if (result == null)
+            {
+                AddLog("CopyLow: result is null");
+                return;
             }
+
+            RunOnUiThread(() =>
+            {
+                foreach (var value in result)
+                {
+                    TimeSeriesResults.Add(value.ToString(CultureInfo.CurrentCulture));
+                }
+            });
+
+            AddLog("CopyLow: success");
         }
 
-        private void ExecuteCopyClose(object o)
+        private async void ExecuteCopyClose(object o)
         {
-            if (TimeSeriesValues != null && string.IsNullOrEmpty(TimeSeriesValues.SymbolValue) == false)
-            {
-                TimeSeriesResults.Clear();
+            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
 
+            TimeSeriesResults.Clear();
+
+            var result = await Execute(() =>
+            {
                 double[] array;
-                var count = _mtApiClient.CopyClose(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
-                if (count > 0)
-                {
-                    foreach (var value in array)
-                    {
-                        TimeSeriesResults.Add(value.ToString(CultureInfo.CurrentCulture));
-                    }
+                var count = _mtApiClient.CopyClose(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame,
+                    TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                return count > 0 ? array : null;
+            });
 
-                    History.Add("CopyClose success");
-                }
+            if (result == null)
+            {
+                AddLog("CopyClose: result is null");
+                return;
             }
+
+            RunOnUiThread(() =>
+            {
+                foreach (var value in result)
+                {
+                    TimeSeriesResults.Add(value.ToString(CultureInfo.CurrentCulture));
+                }
+            });
+
+            AddLog("CopyClose: success");
         }
 
-        private void ExecuteCopyRates(object o)
+        private async void ExecuteCopyRates(object o)
         {
-            if (TimeSeriesValues != null && string.IsNullOrEmpty(TimeSeriesValues.SymbolValue) == false)
+            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
+
+            TimeSeriesResults.Clear();
+
+            var result = await Execute(() =>
             {
-                TimeSeriesResults.Clear();
+                MqlRates[] array;
+                var count = _mtApiClient.CopyRates(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                return count > 0 ? array : null;
+            });
 
-                MqlRates[] ratesArray;
-                var count = _mtApiClient.CopyRates(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out ratesArray);
-                if (count > 0)
-                {
-                    foreach (var rates in ratesArray)
-                    {
-                        TimeSeriesResults.Add(
-                            $"time={rates.time}; open={rates.open}; high={rates.high}; low={rates.low}; close={rates.close}; tick_volume={rates.tick_volume}; spread={rates.spread}; real_volume={rates.tick_volume}");
-                    }
-
-                    History.Add("CopyRates success");
-                }
+            if (result == null)
+            {
+                AddLog("CopyRates: result is null");
+                return;
             }
+
+            RunOnUiThread(() =>
+            {
+                foreach (var rates in result)
+                {
+                    TimeSeriesResults.Add(
+                        $"time={rates.time}; open={rates.open}; high={rates.high}; low={rates.low}; close={rates.close}; tick_volume={rates.tick_volume}; spread={rates.spread}; real_volume={rates.tick_volume}");
+                }
+            });
+
+            AddLog("CopyRates: success");
+
         }
 
-        private void ExecuteCopyTickVolume(object o)
+        private async void ExecuteCopyTickVolume(object o)
         {
-            if (TimeSeriesValues != null && string.IsNullOrEmpty(TimeSeriesValues.SymbolValue) == false)
-            {
-                TimeSeriesResults.Clear();
+            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
 
+            TimeSeriesResults.Clear();
+
+            var result = await Execute(() =>
+            {
                 long[] array;
-                var count = _mtApiClient.CopyTickVolume(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
-                if (count > 0)
-                {
-                    foreach (var value in array)
-                    {
-                        TimeSeriesResults.Add(value.ToString());
-                    }
+                var count = _mtApiClient.CopyTickVolume(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame,
+                    TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                return count > 0 ? array : null;
+            });
 
-                    History.Add("CopyTickVolume success");
-                }
+            if (result == null)
+            {
+                AddLog("CopyTickVolume: result is null");
+                return;
             }
+
+            RunOnUiThread(() =>
+            {
+                foreach (var value in result)
+                {
+                    TimeSeriesResults.Add(value.ToString());
+                }
+            });
+
+            AddLog("CopyTickVolume: success");
         }
 
-        private void ExecuteCopyRealVolume(object o)
+        private async void ExecuteCopyRealVolume(object o)
         {
-            if (TimeSeriesValues != null && string.IsNullOrEmpty(TimeSeriesValues.SymbolValue) == false)
-            {
-                TimeSeriesResults.Clear();
+            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
 
+            TimeSeriesResults.Clear();
+
+            var result = await Execute(() =>
+            {
                 long[] array;
-                var count = _mtApiClient.CopyRealVolume(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
-                if (count > 0)
-                {
-                    foreach (var value in array)
-                    {
-                        TimeSeriesResults.Add(value.ToString());
-                    }
+                var count = _mtApiClient.CopyRealVolume(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame,
+                    TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                return count > 0 ? array : null;
+            });
 
-                    History.Add("CopyRealVolume success");
-                }
+            if (result == null)
+            {
+                AddLog("CopyRealVolume: result is null");
+                return;
             }
+
+            RunOnUiThread(() =>
+            {
+                foreach (var value in result)
+                {
+                    TimeSeriesResults.Add(value.ToString());
+                }
+            });
+
+            AddLog("CopyRealVolume: success");
         }
 
-        private void ExecuteCopySpread(object o)
+        private async void ExecuteCopySpread(object o)
         {
-            if (TimeSeriesValues != null && string.IsNullOrEmpty(TimeSeriesValues.SymbolValue) == false)
-            {
-                TimeSeriesResults.Clear();
+            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
 
+            TimeSeriesResults.Clear();
+
+            var result = await Execute(() =>
+            {
                 int[] array;
-                var count = _mtApiClient.CopySpread(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
-                if (count > 0)
-                {
-                    foreach (var value in array)
-                    {
-                        TimeSeriesResults.Add(value.ToString());
-                    }
+                var count = _mtApiClient.CopySpread(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame,
+                    TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                return count > 0 ? array : null;
+            });
 
-                    History.Add("CopySpread success");
-                }
+            if (result == null)
+            {
+                AddLog("CopySpread: result is null");
+                return;
             }
+
+            RunOnUiThread(() =>
+            {
+                foreach (var value in result)
+                {
+                    TimeSeriesResults.Add(value.ToString());
+                }
+            });
+
+            AddLog("CopySpread: success");
         }
 
-        private void ExecuteSymbolsTotal(object o)
+        private async void ExecuteSymbolsTotal(object o)
         {
-            var selectedCount = _mtApiClient.SymbolsTotal(true);
-            History.Add($"SymbolsTotal(true) success, result = {selectedCount}");
+            var selectedCount = await Execute(() => _mtApiClient.SymbolsTotal(true));
+            AddLog($"SymbolsTotal(true) success, result = {selectedCount}");
 
-            var commonCount = _mtApiClient.SymbolsTotal(false);
-            History.Add($"SymbolsTotal(false) success, result = {commonCount}");
+            var commonCount = await Execute(() => _mtApiClient.SymbolsTotal(false));
+            AddLog($"SymbolsTotal(false) success, result = {commonCount}");
         }
 
-        private void ExecuteSymbolName(object o)
+        private async void ExecuteSymbolName(object o)
         {
-            var selectedSymbol = _mtApiClient.SymbolName(5, true);
-            History.Add("SymbolName(5, true) success, result = " + selectedSymbol);
+            var selectedSymbol = await Execute(() => _mtApiClient.SymbolName(5, true));
+            AddLog($"SymbolName(5, true) success, result = {selectedSymbol}");
 
-            var commonSymbol = _mtApiClient.SymbolName(5, false);
-            History.Add("SymbolName(5, false) success, result = " + commonSymbol);
-
+            var commonSymbol = await Execute(() => _mtApiClient.SymbolName(5, false));
+            AddLog($"SymbolName(5, false) success, result = {commonSymbol}");
         }
 
-        private void ExecuteSymbolSelect(object o)
+        private async void ExecuteSymbolSelect(object o)
         {
-            var retVal = _mtApiClient.SymbolSelect("AUDJPY", true);
-            History.Add("SymbolSelect(AUDJPY, true) success, result = " + retVal);
+            var retVal = await Execute(() => _mtApiClient.SymbolSelect("AUDJPY", true));
+            AddLog("SymbolSelect(AUDJPY, true) success, result = " + retVal);
 
             //var retVal1 = _mtApiClient.SymbolSelect("AUDJPY", false);
-            //History.Add("SymbolSelect(AUDJPY, false) success, result = " + retVal1);
+            //AddLog("SymbolSelect(AUDJPY, false) success, result = " + retVal1);
         }
 
-        private void ExecuteSymbolIsSynchronized(object o)
+        private async void ExecuteSymbolIsSynchronized(object o)
         {
-            var retVal = _mtApiClient.SymbolIsSynchronized("EURUSD");
-            History.Add("SymbolIsSynchronized(EURUSD) success, result = " + retVal);
+            var retVal = await Execute(() => _mtApiClient.SymbolIsSynchronized("EURUSD"));
+            AddLog("SymbolIsSynchronized(EURUSD): result = " + retVal);
         }
 
-        private void ExecuteSymbolInfoDouble(object o)
+        private async void ExecuteSymbolInfoDouble(object o)
         {
-            var retVal = _mtApiClient.SymbolInfoDouble("EURUSD", ENUM_SYMBOL_INFO_DOUBLE.SYMBOL_BID);
-            History.Add("SymbolInfoDouble(EURUSD, ENUM_SYMBOL_INFO_DOUBLE.SYMBOL_BID) success, result = " + retVal);
+            var retVal = await Execute(() => _mtApiClient.SymbolInfoDouble("EURUSD", ENUM_SYMBOL_INFO_DOUBLE.SYMBOL_BID));
+            AddLog($"SymbolInfoDouble(EURUSD, ENUM_SYMBOL_INFO_DOUBLE.SYMBOL_BID): result = {retVal}");
         }
 
-        private void ExecuteSymbolInfoInteger(object o)
+        private async void ExecuteSymbolInfoInteger(object o)
         {
-            var retVal = _mtApiClient.SymbolInfoInteger("EURUSD", ENUM_SYMBOL_INFO_INTEGER.SYMBOL_SPREAD);
-            History.Add("SymbolInfoInteger(EURUSD, ENUM_SYMBOL_INFO_INTEGER.SYMBOL_SPREAD) success, result = " + retVal);
+            var retVal = await Execute(() => _mtApiClient.SymbolInfoInteger("EURUSD", ENUM_SYMBOL_INFO_INTEGER.SYMBOL_SPREAD));
+            AddLog($"SymbolInfoInteger(EURUSD, ENUM_SYMBOL_INFO_INTEGER.SYMBOL_SPREAD): result = {retVal}");
         }
 
-        private void ExecuteSymbolInfoString(object o)
+        private async void ExecuteSymbolInfoString(object o)
         {
-            var retVal = _mtApiClient.SymbolInfoString("EURUSD", ENUM_SYMBOL_INFO_STRING.SYMBOL_DESCRIPTION);
-            History.Add("SymbolInfoString(EURUSD, ENUM_SYMBOL_INFO_STRING.SYMBOL_DESCRIPTION) success, result = " + retVal);
+            var retVal = await Execute(() => _mtApiClient.SymbolInfoString("EURUSD", ENUM_SYMBOL_INFO_STRING.SYMBOL_DESCRIPTION));
+            AddLog($"SymbolInfoString(EURUSD, ENUM_SYMBOL_INFO_STRING.SYMBOL_DESCRIPTION): result = {retVal}");
         }
 
-        private void ExecuteSymbolInfoTick(object o)
+        private async void ExecuteSymbolInfoTick(object o)
         {
-            MqlTick tick;
-            var retVal = _mtApiClient.SymbolInfoTick("EURUSD", out tick);
-            History.Add("SymbolInfoTick(EURUSD) success, result = " + retVal);
-            History.Add("SymbolInfoTick(EURUSD) tick.time = " + tick.time);
-            History.Add("SymbolInfoTick(EURUSD) tick.bid = " + tick.bid);
-            History.Add("SymbolInfoTick(EURUSD) tick.ask = " + tick.ask);
-            History.Add("SymbolInfoTick(EURUSD) tick.last = " + tick.last);
-            History.Add("SymbolInfoTick(EURUSD) tick.volume = " + tick.volume);
-        }
-
-        private void ExecuteSymbolInfoSessionQuote(object o)
-        {
-            DateTime from;
-            DateTime to;
-            var retVal = _mtApiClient.SymbolInfoSessionQuote("EURUSD", ENUM_DAY_OF_WEEK.MONDAY, 0, out from, out to);
-            History.Add("SymbolInfoSessionQuote(EURUSD) success, result = " + retVal);
-            History.Add("SymbolInfoSessionQuote(EURUSD) from = " + from);
-            History.Add("SymbolInfoSessionQuote(EURUSD) to = " + to);
-        }
-
-        private void ExecuteSymbolInfoSessionTrade(object o)
-        {
-            DateTime from;
-            DateTime to;
-            var retVal = _mtApiClient.SymbolInfoSessionTrade("EURUSD", ENUM_DAY_OF_WEEK.MONDAY, 0, out from, out to);
-            History.Add("SymbolInfoSessionTrade(EURUSD) success, result = " + retVal);
-            History.Add("SymbolInfoSessionTrade(EURUSD) from = " + from);
-            History.Add("SymbolInfoSessionTrade(EURUSD) to = " + to);
-        }
-
-        private void ExecuteMarketBookAdd(object o)
-        {
-            var retVal = _mtApiClient.MarketBookAdd("CHFJPY");
-            History.Add("MarketBookAdd(CHFJPY) success, result = " + retVal);
-        }
-
-        private void ExecuteMarketBookRelease(object o)
-        {
-            var retVal = _mtApiClient.MarketBookRelease("CHFJPY");
-            History.Add("MarketBookRelease(CHFJPY) success, result = " + retVal);
-        }
-
-        private void ExecuteMarketBookGet(object o)
-        {
-            MqlBookInfo[] book;
-            var retVal = _mtApiClient.MarketBookGet("EURUSD", out book);
-
-            History.Add("MarketBookGet(EURUSD) success, result = " + retVal);
-
-            if (retVal && book != null)
+            var result = await Execute(() =>
             {
-                for (int i = 0; i < book.Length; i++)
+                MqlTick tick;
+                var ok = _mtApiClient.SymbolInfoTick("EURUSD", out tick);
+                return ok ? tick : null;
+            });
+
+            if (result == null) return;
+            AddLog("SymbolInfoTick(EURUSD) success");
+            AddLog($"SymbolInfoTick(EURUSD) tick.time = {result.time}");
+            AddLog($"SymbolInfoTick(EURUSD) tick.bid = {result.bid}");
+            AddLog($"SymbolInfoTick(EURUSD) tick.ask = {result.ask}");
+            AddLog($"SymbolInfoTick(EURUSD) tick.last = {result.last}");
+            AddLog($"SymbolInfoTick(EURUSD) tick.volume = {result.volume}");
+        }
+
+        private async void ExecuteSymbolInfoSessionQuote(object o)
+        {
+            var retVal = await Execute(() =>
+            {
+                DateTime from;
+                DateTime to;
+                var ok = _mtApiClient.SymbolInfoSessionQuote("EURUSD", ENUM_DAY_OF_WEEK.MONDAY, 0, out from, out to);
+                if (ok)
                 {
-                    History.Add($"MarketBookGet: book[{i}].price = {book[i].price}");
-                    History.Add($"MarketBookGet: book[{i}].price = {book[i].volume}");
-                    History.Add($"MarketBookGet: book[{i}].price = {book[i].type}");
+                    AddLog($"SymbolInfoSessionQuote(EURUSD) from = {from}");
+                    AddLog($"SymbolInfoSessionQuote(EURUSD) to = {to}");
                 }
+                return ok;
+            });
+
+            AddLog($"SymbolInfoSessionQuote(EURUSD): result = {retVal}");
+
+        }
+
+        private async void ExecuteSymbolInfoSessionTrade(object o)
+        {
+            var retVal = await Execute(() =>
+            {
+                DateTime from;
+                DateTime to;
+                var ok = _mtApiClient.SymbolInfoSessionTrade("EURUSD", ENUM_DAY_OF_WEEK.MONDAY, 0, out from, out to);
+                if (ok)
+                {
+                    AddLog($"SymbolInfoSessionTrade(EURUSD) from = {from}");
+                    AddLog($"SymbolInfoSessionTrade(EURUSD) to = {to}");
+                }
+                return ok;
+            });
+
+            AddLog("SymbolInfoSessionTrade(EURUSD): result = " + retVal);
+        }
+
+        private async void ExecuteMarketBookAdd(object o)
+        {
+            var retVal = await Execute(() => _mtApiClient.MarketBookAdd("CHFJPY"));
+            AddLog($"MarketBookAdd(CHFJPY): result = {retVal}");
+        }
+
+        private async void ExecuteMarketBookRelease(object o)
+        {
+            var retVal = await Execute(() => _mtApiClient.MarketBookRelease("CHFJPY"));
+            AddLog($"MarketBookRelease(CHFJPY): result = {retVal}");
+        }
+
+        private async void ExecuteMarketBookGet(object o)
+        {
+            var result = await Execute(() =>
+            {
+                MqlBookInfo[] book;
+                var ok = _mtApiClient.MarketBookGet("EURUSD", out book);
+                return ok ? book : null;
+            });
+
+            if (result == null)
+            {
+                AddLog("MarketBookGet(EURUSD): result is null");
+                return;
+            }
+
+            AddLog("MarketBookGet(EURUSD): success");
+
+            for (var i = 0; i < result.Length; i++)
+            {
+                AddLog($"MarketBookGet: book[{i}].price = {result[i].price}");
+                AddLog($"MarketBookGet: book[{i}].price = {result[i].volume}");
+                AddLog($"MarketBookGet: book[{i}].price = {result[i].type}");
             }
         }
 
-        private void ExecutePositionOpen(object obj)
+        private async void ExecutePositionOpen(object obj)
         {
             const string symbol = "EURUSD";
             const ENUM_ORDER_TYPE orderType = ENUM_ORDER_TYPE.ORDER_TYPE_BUY;
@@ -588,8 +707,8 @@ namespace MtApi5TestClient
             const double tp = 1.020;
             const string comment = "Test PositionOpen";
 
-            var retVal = _mtApiClient.PositionOpen(symbol, orderType, volume, price, sl, tp, comment);
-            History.Add("PositionOpen: symbol EURUSD result = " + retVal);
+            var retVal = await Execute (() => _mtApiClient.PositionOpen(symbol, orderType, volume, price, sl, tp, comment));
+            AddLog($"PositionOpen: symbol EURUSD result = {retVal}");
         }
 
         private static void RunOnUiThread(Action action)
@@ -681,8 +800,7 @@ namespace MtApi5TestClient
 
         private void RemoveQuote(Mt5Quote quote)
         {
-            if (quote == null)
-                return;
+            if (quote == null) return;
 
             if (_quotesMap.ContainsKey(quote.Instrument))
             {
@@ -731,13 +849,38 @@ namespace MtApi5TestClient
 
         private void OnSelectedQuoteChanged()
         {
-            if (SelectedQuote != null)
-            {
-                TradeRequest.Symbol = SelectedQuote.Instrument;
-                TimeSeriesValues.SymbolValue = SelectedQuote.Instrument;
-            }            
+            if (SelectedQuote == null) return;
+
+            TradeRequest.Symbol = SelectedQuote.Instrument;
+            TimeSeriesValues.SymbolValue = SelectedQuote.Instrument;
         }
 
+        private async Task<TResult> Execute<TResult>(Func<TResult> func)
+        {
+            return await Task.Factory.StartNew(() =>
+            {
+                var result = default(TResult);
+                try
+                {
+                    result = func();
+                }
+                catch (Exception ex)
+                {
+                    AddLog($"Exception: {ex.Message}");
+                }
+
+                return result;
+            });
+        }
+
+        private void AddLog(string msg)
+        {
+            RunOnUiThread(() =>
+            {
+                var time = DateTime.Now.ToString("h:mm:ss tt");
+                History.Add($"[{time}]: {msg}");
+            });
+        }
         #endregion
 
         #region INotifyPropertyChanged
