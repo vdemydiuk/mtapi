@@ -44,6 +44,8 @@ namespace MTApiService
                 MaxReceivedMessageSize = 2147483647,
                 MaxBufferSize = 2147483647,
                 MaxBufferPoolSize = 2147483647,
+                SendTimeout = new TimeSpan(12, 0, 0),
+                ReceiveTimeout = new TimeSpan(12, 0, 0),
                 ReaderQuotas =
                 {
                     MaxArrayLength = 2147483647,
@@ -81,6 +83,8 @@ namespace MTApiService
                 MaxReceivedMessageSize = 2147483647,
                 MaxBufferSize = 2147483647,
                 MaxBufferPoolSize = 2147483647,
+                SendTimeout = new TimeSpan(12, 0, 0),
+                ReceiveTimeout = new TimeSpan(12, 0, 0),
                 ReaderQuotas =
                 {
                     MaxArrayLength = 2147483647,
