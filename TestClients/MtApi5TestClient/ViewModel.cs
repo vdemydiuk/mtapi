@@ -47,6 +47,8 @@ namespace MtApi5TestClient
         public DelegateCommand MarketBookGetCommand { get; private set; }
 
         public DelegateCommand PositionOpenCommand { get; private set; }
+
+        public DelegateCommand PrintCommand { get; private set; }
         #endregion
 
         #region Properties
@@ -131,6 +133,17 @@ namespace MtApi5TestClient
 
         public ObservableCollection<string> TimeSeriesResults { get; } = new ObservableCollection<string>();
 
+        private string _messageText = "Print some text in MetaTrader expert console";
+        public string MessageText
+        {
+            get { return _messageText; }
+            set
+            {
+                _messageText = value;
+                OnPropertyChanged("MessageText");
+            }
+        }
+
         #endregion
 
         #region Public Methods
@@ -210,6 +223,8 @@ namespace MtApi5TestClient
             MarketBookGetCommand = new DelegateCommand(ExecuteMarketBookGet);
 
             PositionOpenCommand = new DelegateCommand(ExecutePositionOpen);
+
+            PrintCommand = new DelegateCommand(ExecutePrint);
         }
 
         private bool CanExecuteConnect(object o)
@@ -709,6 +724,14 @@ namespace MtApi5TestClient
 
             var retVal = await Execute (() => _mtApiClient.PositionOpen(symbol, orderType, volume, price, sl, tp, comment));
             AddLog($"PositionOpen: symbol EURUSD result = {retVal}");
+        }
+
+        private async void ExecutePrint(object obj)
+        {
+            var message = MessageText;
+
+            var retVal = await Execute(() => _mtApiClient.Print(message));
+            AddLog($"Print: message print in MetaTrader - {retVal}");
         }
 
         private static void RunOnUiThread(Action action)

@@ -1392,6 +1392,19 @@ namespace MtApi5
 
         #endregion
 
+        #region Common Functions
+        ///<summary>
+        ///It enters a message in the Expert Advisor log.
+        ///</summary>
+        ///<param name="message">Symbol name.</param>
+        public bool Print(string message)
+        {
+            var commandParameters = new ArrayList { message };
+
+            return SendCommand<bool>(Mt5CommandType.Print, commandParameters);
+        }
+        #endregion
+
         #endregion
 
         #region Properties

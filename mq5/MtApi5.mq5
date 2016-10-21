@@ -1692,6 +1692,18 @@ int executeCommand()
       sendBooleanResponse(ExpertHandle, IsTesting());
    }
    break;
+   
+   case 68: //Print
+   {
+        string printMsg;
+        StringInit(printMsg, 1000, 0);
+
+        getStringValue(ExpertHandle, 0, printMsg);
+         
+        Print(printMsg);      
+        sendBooleanResponse(ExpertHandle, true);
+   }
+   break;
 
    default:
       Print("Unknown command type = ", commandType);
