@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
 
 namespace MtApi5
 {
@@ -8,7 +6,7 @@ namespace MtApi5
     {
         public ENUM_TRADE_REQUEST_ACTIONS Action { get; set; }           // Trade operation type
         public uint Magic { get; set; }                                 // Expert Advisor ID (magic number)
-        public uint Order { get; set; }                                 // Order ticket
+        public ulong Order { get; set; }                                 // Order ticket
         public string Symbol { get; set; }                               // Trade symbol
         public double Volume { get; set; }                               // Requested volume for a deal in lots
         public double Price { get; set; }                                // Price

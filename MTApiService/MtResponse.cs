@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Runtime.Serialization;
 using System.Collections;
+using System.Globalization;
 
 namespace MTApiService
 {
@@ -21,6 +20,8 @@ namespace MTApiService
                                 typeof(MtResponseArrayList), typeof(MtResponseMqlRatesArray),
                                 typeof(MtResponseMqlBookInfoArray)};
         }
+
+        public abstract object GetValue();
     }
 
     [DataContract]
@@ -33,6 +34,13 @@ namespace MTApiService
 
         [DataMember]
         public int Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 
     [DataContract]
@@ -45,6 +53,13 @@ namespace MTApiService
 
         [DataMember]
         public long Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 
     [DataContract]
@@ -57,6 +72,13 @@ namespace MTApiService
 
         [DataMember]
         public ulong Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 
     [DataContract]
@@ -69,6 +91,13 @@ namespace MTApiService
 
         [DataMember]
         public double Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value.ToString(CultureInfo.CurrentCulture);
+        }
     }
 
     [DataContract]
@@ -81,6 +110,13 @@ namespace MTApiService
 
         [DataMember]
         public string Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value;
+        }
     }
 
     [DataContract]
@@ -93,6 +129,13 @@ namespace MTApiService
 
         [DataMember]
         public bool Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 
     [DataContract]
@@ -105,6 +148,13 @@ namespace MTApiService
 
         [DataMember]
         public double[] Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 
     [DataContract]
@@ -117,6 +167,13 @@ namespace MTApiService
 
         [DataMember]
         public int[] Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 
     [DataContract]
@@ -129,6 +186,13 @@ namespace MTApiService
 
         [DataMember]
         public long[] Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 
     [DataContract]
@@ -141,6 +205,13 @@ namespace MTApiService
 
         [DataMember]
         public ArrayList Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 
     [DataContract]
@@ -153,6 +224,13 @@ namespace MTApiService
 
         [DataMember]
         public MtMqlRates[] Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 
     [DataContract]
@@ -165,6 +243,13 @@ namespace MTApiService
 
         [DataMember]
         public MtMqlTick Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 
     [DataContract]
@@ -177,6 +262,13 @@ namespace MTApiService
 
         [DataMember]
         public MtMqlBookInfo[] Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
     
 }

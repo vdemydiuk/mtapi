@@ -3,6 +3,8 @@
 
 #include <Trade\SymbolInfo.mqh>
 #include <trade/trade.mqh>
+#property version   "1.1"
+#property description "MtApi (MT5) connection expert"
 
 #import "MT5Connector.dll"
    bool initExpert(int expertHandle, int port, string symbol, double bid, double ask, string& err);
@@ -32,8 +34,6 @@
    bool getDoubleValue(int expertHandle, int paramIndex, double& res);
    bool getStringValue(int expertHandle, int paramIndex, string& res);
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res);
-   
-//   void verify(bool isDemo, string accountName, long accountNumber);   
 #import
 
 input int Port = 8228;
@@ -43,11 +43,10 @@ int ExpertHandle;
 string message;
 bool isCrashed = false;
 
+bool IsRemoteReadyForTesting = false;
+
 string symbolValue;
 string commentValue;
-
-double myBid;
-double myAsk;
 
 string PARAM_SEPARATOR = ";";
 
@@ -55,6 +54,12 @@ int OnInit()
 {
    int result = init();  
    return (result);
+}
+
+double OnTester()
+{
+    Print("OnTester");
+    return 0;
 }
 
 void OnDeinit(const int reason)
@@ -69,9 +74,9 @@ void OnTick()
 
 int preinit()
 {
-   message        = "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111" + "";
-   symbolValue    = "222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222" + "";
-   commentValue   = "333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333" + "";
+   StringInit(message, 1000, 0);
+   StringInit(symbolValue, 1000, 0);
+   StringInit(commentValue, 1000, 0);
 
    return (0);
 }
@@ -84,11 +89,15 @@ bool IsDemo()
       return(false);
 }
 
+bool IsTesting()
+{  
+   bool isTesting = MQLInfoInteger(MQL_TESTER);
+   return isTesting;
+}
+
 int init() 
 {
-   preinit();
-   
-//   verify(IsDemo(), AccountInfoString(ACCOUNT_NAME), AccountInfoInteger(ACCOUNT_LOGIN));
+   preinit();  
 
    if (TerminalInfoInteger(TERMINAL_DLLS_ALLOWED) == false) 
    {
@@ -110,17 +119,14 @@ int init()
       return (1);
    }
 
-   long chartID= ChartID();
-   ExpertHandle = ChartGetInteger(chartID, CHART_WINDOW_HANDLE);
+   long chartID = ChartID();
+   ExpertHandle = (int) ChartGetInteger(chartID, CHART_WINDOW_HANDLE);
    
    MqlTick last_tick;
    SymbolInfoTick(Symbol(),last_tick);
    double Bid = last_tick.bid;
    double Ask = last_tick.ask;
    
-   myBid = Bid;
-   myAsk = Ask;
-
    if (!initExpert(ExpertHandle, Port, Symbol(), Bid, Ask, message))
    {
        MessageBox(message, "MtApi", 0);
@@ -133,6 +139,30 @@ int init()
       isCrashed = true;
       return (1);
    }
+   
+   PrintFormat("Expert Handle = %d", ExpertHandle);
+   
+   //--- Backtesting mode
+   if (false)
+   {
+       if (IsTesting())
+       {      
+          Print("Waiting on remote client...");
+          //wait for command (BacktestingReady) from remote side to be ready for work
+          while(!IsRemoteReadyForTesting)
+          {
+             executeCommand();
+             
+             //This section uses a while loop to simulate Sleep() during Backtest.
+             unsigned int viSleepUntilTick = GetTickCount() + 100; //100 milliseconds
+             while(GetTickCount() < viSleepUntilTick) 
+             {
+                //Do absolutely nothing. Just loop until the desired tick is reached.
+             }
+          }
+       }
+   }
+   //--- 
 
    return (0);
 }
@@ -147,6 +177,7 @@ int deinit()
          isCrashed = true;
          return (1);
       }
+      Print("Expert was deinitialized.");
    }
    
    return (0);
@@ -154,41 +185,31 @@ int deinit()
 
 int start() 
 {
-   if (isCrashed == 0) 
-   {   
-      MqlTick last_tick;
-      SymbolInfoTick(Symbol(),last_tick);
-      double Bid = last_tick.bid;
-      double Ask = last_tick.ask;
+   MqlTick last_tick;
+   SymbolInfoTick(Symbol(),last_tick);
+   double Bid = last_tick.bid;
+   double Ask = last_tick.ask;
    
-      if (executeCommand() != 0)
-      {  
-         CSymbolInfo mysymbol;
-         mysymbol.Name (_Symbol);
-         mysymbol.RefreshRates();
-
-         Bid = mysymbol.Bid();
-         Ask =  mysymbol.Ask();
-                           
-         if (myBid == Bid && myAsk == Ask)
-         {         
-            return (0);
-         }
-      }      
-      
-      if (!updateQuote(ExpertHandle, Symbol(), Bid, Ask, message)) 
-      {
-         MessageBox(message, "MtApi", 0);
-         isCrashed = true;
-         return (1);
-      }
-      
-      myBid = Bid;
-      myAsk = Ask;
+   if (!updateQuote(ExpertHandle, Symbol(), Bid, Ask, message)) 
+   {
+      Print("updateQuote: [ERROR] ", message);
    }
 
    return (0);
 }
+
+void OnTimer()
+{
+   while(true)
+   {
+      int executedCommand = executeCommand();
+      if (executedCommand == 0)
+      {   
+         return;
+      }
+   }
+}
+
 
 int executeCommand()
 {
@@ -196,8 +217,14 @@ int executeCommand()
 
    if (!getCommandType(ExpertHandle, commandType))
    {
+      Print("[ERROR] getCommandType");
       return (0);
-   }            
+   }
+   
+   if (commandType > 0)
+   {
+      Print("executeCommand: commnad type = ", commandType);
+   }
   
    switch (commandType) 
    {
@@ -227,6 +254,7 @@ int executeCommand()
       sendBooleanResponse(ExpertHandle, retVal);  
    }
    break;
+
    case 64: //PositionClose
    {      
       int ticket;
@@ -237,7 +265,7 @@ int executeCommand()
       sendBooleanResponse(ExpertHandle, trade.PositionClose(ticket));
    }
    break;
-      
+         
    case 2: // OrderCalcMargin
    {
       ENUM_ORDER_TYPE action;
@@ -1610,7 +1638,72 @@ int executeCommand()
          sendVoidResponse(ExpertHandle);
       }
    }
-   break;     
+   break;
+   
+   case 65: //PositionOpen
+   {      
+      string symbol;
+      StringInit(symbol, 50, 0);
+      ENUM_ORDER_TYPE order_type;
+      double volume;
+      double price;
+      double sl;
+      double tp;
+      string comment;
+      StringInit(comment, 1000, 0);
+            
+      getStringValue(ExpertHandle, 0, symbol);
+      int order_type_int = 0;
+      getIntValue(ExpertHandle, 1, order_type_int);
+      order_type = (ENUM_ORDER_TYPE) order_type_int;
+      getDoubleValue(ExpertHandle, 2, volume);
+      getDoubleValue(ExpertHandle, 3, price);
+      getDoubleValue(ExpertHandle, 4, sl);
+      getDoubleValue(ExpertHandle, 5, tp);
+      getStringValue(ExpertHandle, 6, comment);
+      
+      PrintFormat("command PositionOpen: symbol = %s, order_type = %d, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
+         symbol, order_type, volume, price, sl, tp, comment);
+      
+      CTrade trade;             
+      bool result = trade.PositionOpen(symbol, order_type, volume, price, sl, tp, comment);
+      sendBooleanResponse(ExpertHandle, result);
+      Print("command PositionOpen: result = ", result);
+   }
+   break;
+   
+   case 66: //BacktestingReady
+   {
+      if (IsTesting())
+      {
+         Print("Remote client is ready for backteting");
+         IsRemoteReadyForTesting = true;
+         sendBooleanResponse(ExpertHandle, true);
+      }
+      else
+      {
+         sendBooleanResponse(ExpertHandle, false);
+      }
+   }
+   break; 
+
+   case 67: //IsTesting
+   {
+      sendBooleanResponse(ExpertHandle, IsTesting());
+   }
+   break;
+   
+   case 68: //Print
+   {
+        string printMsg;
+        StringInit(printMsg, 1000, 0);
+
+        getStringValue(ExpertHandle, 0, printMsg);
+         
+        Print(printMsg);      
+        sendBooleanResponse(ExpertHandle, true);
+   }
+   break;
 
    default:
       Print("Unknown command type = ", commandType);

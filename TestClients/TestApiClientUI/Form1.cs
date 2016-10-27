@@ -837,7 +837,7 @@ namespace TestApiClientUI
         }
 
         //OrderSend
-        private void button1_Click(object sender, EventArgs e)
+        private async void button1_Click(object sender, EventArgs e)
         {
             var symbol = textBoxOrderSymbol.Text;
 
@@ -878,7 +878,7 @@ namespace TestApiClientUI
                     break;
             }
 
-            var ticket = Execute(() => _apiClient.OrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, arrowColor));
+            var ticket = await Execute(() => _apiClient.OrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, arrowColor));
 
             AddToLog(string.Format("Sended order result: ticket = {0}", ticket));
         }

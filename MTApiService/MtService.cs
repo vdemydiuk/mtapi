@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ServiceModel;
 using System.Threading;
+using log4net;
 
 namespace MTApiService
 {
@@ -18,7 +19,7 @@ namespace MTApiService
         MtResponse SendCommand(MtCommand command);
 
         [OperationContract]
-        IEnumerable<MtQuote> GetQuotes();
+        List<MtQuote> GetQuotes();
     }
 
     [ServiceContract]
@@ -46,107 +47,149 @@ namespace MTApiService
                     InstanceContextMode = InstanceContextMode.Single)]
     public sealed class MtService : IMtApi
     {
+        private static readonly ILog Log = LogManager.GetLogger(typeof(MtService));
+
         public MtService(IMtApiServer serverCallback)
         {
             if (serverCallback == null)
-                throw new ArgumentNullException("serverCallback");
+                throw new ArgumentNullException(nameof(serverCallback));
 
-            mServer = serverCallback;
+            _server = serverCallback;
         }
 
         #region IMtApi
         public bool Connect()
         {
-            bool connected = false;
+            Log.Debug("Connect: begin");
 
-            IMtApiCallback callback = OperationContext.Current.GetCallbackChannel<IMtApiCallback>();
+            var callback = OperationContext.Current.GetCallbackChannel<IMtApiCallback>();
 
-            if (callback != null)
+            if (callback == null)
             {
+                Log.Warn("Connect: end. Callback is not definded.");
+                return false;
+            }
+
+            var connected = false;
+
+            try
+            {
+                _clientsLocker.AcquireWriterLock(10000);
+
                 try
                 {
-                    mClientsLocker.AcquireWriterLock(10000);
+                    if (_clientCallbacks.Contains(callback) == false)
+                        _clientCallbacks.Add(callback);
 
-                    try
-                    {
-                        if (mClientCallbacks.Contains(callback) == false)
-                            mClientCallbacks.Add(callback);
-
-                        connected = true;
-                    }
-                    finally
-                    {
-                        mClientsLocker.ReleaseWriterLock();
-                    }
+                    connected = true;
                 }
-                catch (ApplicationException)
+                finally
                 {
+                    _clientsLocker.ReleaseWriterLock();
                 }
             }
+            catch (ApplicationException ex)
+            {
+                Log.ErrorFormat("Connect: ApplicationException - {0}", ex.Message);
+            }
+
+            Log.DebugFormat("Connect: end. connected = {0}", connected);
 
             return connected;
         }
 
         public void Disconnect()
         {
-            IMtApiCallback callback = OperationContext.Current.GetCallbackChannel<IMtApiCallback>();
+            Log.Debug("Disconnect: begin");
 
-            if (callback != null)
+            var callback = OperationContext.Current.GetCallbackChannel<IMtApiCallback>();
+
+            if (callback == null)
             {
+                Log.Warn("Disconnect: end. Callback is not definded.");
+                return;
+            }
+
+            try
+            {
+                _clientsLocker.AcquireWriterLock(10000);
+
                 try
                 {
-                    mClientsLocker.AcquireWriterLock(10000);
-
-                    try
-                    {
-                        mClientCallbacks.Remove(callback);
-                    }
-                    finally
-                    {
-                        mClientsLocker.ReleaseWriterLock();
-                    }
+                    _clientCallbacks.Remove(callback);
                 }
-                catch (ApplicationException)
+                finally
                 {
+                    _clientsLocker.ReleaseWriterLock();
                 }
             }
+            catch (ApplicationException ex)
+            {
+                Log.ErrorFormat("Disconnect: ApplicationException - {0}", ex.Message);
+            }
+
+            Log.Debug("Disconnect: end.");
         }
 
         public MtResponse SendCommand(MtCommand command)
         {
-            return mServer.SendCommand(command);
+            Log.DebugFormat("SendCommand: called. command = {0}", command);
+
+            return _server.SendCommand(command);
         }
 
-        public IEnumerable<MtQuote> GetQuotes()
+        public List<MtQuote> GetQuotes()
         {
-            return mServer.GetQuotes();
+            Log.Debug("GetQuotes: called.");
+
+            return _server.GetQuotes();
         }
         #endregion
 
         #region Public Methods
         public void OnStopServer()
         {
+            Log.Debug("OnStopServer: begin.");
+
             ExecuteCallbackAction(a => a.OnServerStopped());
+
+            Log.Debug("OnStopServer: end.");
         }
 
         public void QuoteUpdate(MtQuote quote)
         {
+            Log.Debug("QuoteUpdate: begin.");
+
             ExecuteCallbackAction(a => a.OnQuoteUpdate(quote));
+
+            Log.Debug("QuoteUpdate: end.");
         }
 
         public void OnQuoteAdded(MtQuote quote)
         {
+            Log.Debug("OnQuoteAdded: begin.");
+
             ExecuteCallbackAction(a => a.OnQuoteAdded(quote));
+
+            Log.Debug("OnQuoteAdded: end.");
         }
 
         public void OnQuoteRemoved(MtQuote quote)
         {
+            Log.Debug("OnQuoteRemoved: begin.");
+
             ExecuteCallbackAction(a => a.OnQuoteRemoved(quote));
+
+            Log.Debug("OnQuoteRemoved: end.");
         }
 
         public void OnMtEvent(MtEvent mtEvent)
         {
+            Log.Debug("OnMtEvent: begin.");
+
             ExecuteCallbackAction(a => a.OnMtEvent(mtEvent));
+
+            Log.Debug("OnMtEvent: end.");
         }
         #endregion
 
@@ -154,22 +197,26 @@ namespace MTApiService
 
         private void ExecuteCallbackAction(Action<IMtApiCallback> action)
         {
+            Log.Debug("ExecuteCallbackAction: begin.");
+
             try
             {
-                mClientsLocker.AcquireReaderLock(2000);
+                _clientsLocker.AcquireReaderLock(2000);
 
                 List<IMtApiCallback> crashedClientCallbacks = null;
 
                 try
                 {
-                    foreach (var callback in mClientCallbacks)
+                    foreach (var callback in _clientCallbacks)
                     {
                         try
                         {
                             action(callback);
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
+                            Log.ErrorFormat("ExecuteCallbackAction: Exception - {0}", ex.Message);
+
                             if (crashedClientCallbacks == null)
                                 crashedClientCallbacks = new List<IMtApiCallback>();
 
@@ -179,29 +226,33 @@ namespace MTApiService
 
                     if (crashedClientCallbacks != null)
                     {
+                        Log.WarnFormat("ExecuteCallbackAction: crashed callback count = {0}", crashedClientCallbacks.Count);
+
                         foreach (var crashedCallback in crashedClientCallbacks)
                         {
-                            mClientCallbacks.Remove(crashedCallback);
+                            _clientCallbacks.Remove(crashedCallback);
                         }
                     }
                 }
                 finally
                 {
-                    mClientsLocker.ReleaseReaderLock();
+                    _clientsLocker.ReleaseReaderLock();
                 }
             }
-            catch (ApplicationException)
+            catch (ApplicationException ex)
             {
-                //TODO: add logging
+                Log.ErrorFormat("ExecuteCallbackAction: ApplicationException - {0}", ex.Message);
             }
+
+            Log.Debug("ExecuteCallbackAction: end.");
         }
 
         #endregion
 
         #region Fields
-        private readonly IMtApiServer mServer;
-        private readonly List<IMtApiCallback> mClientCallbacks = new List<IMtApiCallback>();
-        private readonly ReaderWriterLock mClientsLocker = new ReaderWriterLock();
+        private readonly IMtApiServer _server;
+        private readonly List<IMtApiCallback> _clientCallbacks = new List<IMtApiCallback>();
+        private readonly ReaderWriterLock _clientsLocker = new ReaderWriterLock();
         #endregion
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MtApi5
 {
-    enum Mt5CommandType
+    internal enum Mt5CommandType
     {
         //NoCommand = 0
 
@@ -101,6 +101,15 @@ namespace MtApi5
         MarketBookRelease                   = 61,
         MarketBookGet                       = 62,
         OrderCloseAll                       = 63,
-        PositionClose                       = 64
+
+        //CTrade
+        PositionClose                       = 64,
+        PositionOpen                        = 65,
+
+        //Backtesting
+        BacktestingReady                    = 66,
+        IsTesting                           = 67,
+
+        Print                               = 68
     }
 }

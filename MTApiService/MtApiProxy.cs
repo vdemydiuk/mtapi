@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 
 namespace MTApiService
 {
-    class MtApiProxy : DuplexClientBase<IMtApi>, IMtApi, IDisposable
+    internal class MtApiProxy : DuplexClientBase<IMtApi>, IMtApi, IDisposable
     {
-        public MtApiProxy(InstanceContext callbackContext, Binding binding,
-                                                   EndpointAddress remoteAddress)
+        public MtApiProxy(InstanceContext callbackContext, Binding binding, EndpointAddress remoteAddress)
             : base(callbackContext, binding, remoteAddress)
         {
-            base.InnerDuplexChannel.Faulted += new EventHandler(InnerDuplexChannel_Faulted);
-            base.InnerDuplexChannel.Open();
+            InnerDuplexChannel.Faulted += InnerDuplexChannel_Faulted;
+            InnerDuplexChannel.Open();
         }
 
         #region IMtApi Members
@@ -34,7 +31,7 @@ namespace MTApiService
             return Channel.SendCommand(command);
         }
 
-        public IEnumerable<MtQuote> GetQuotes()
+        public List<MtQuote> GetQuotes()
         {
             return Channel.GetQuotes();
         }
@@ -47,19 +44,19 @@ namespace MTApiService
         {
             try
             {
-                this.Close();
+                Close();
             }
             catch (CommunicationException)
             {
-                this.Abort();
+                Abort();
             }
             catch (TimeoutException)
             {
-                this.Abort();
+                Abort();
             }
             catch (Exception)
             {
-                this.Abort();
+                Abort();
             }
         }
 
@@ -68,9 +65,9 @@ namespace MTApiService
         #region Private Methods
         private void InnerDuplexChannel_Faulted(object sender, EventArgs e)
         {
-            if (Faulted != null)
-                Faulted(this, e);
+            Faulted?.Invoke(this, e);
         }
+
         #endregion
 
         #region Events

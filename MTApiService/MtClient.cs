@@ -1,173 +1,208 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Collections;
 using System.ServiceModel;
 using System.Collections.Generic;
+using log4net;
 
 namespace MTApiService
 {
     [CallbackBehavior(UseSynchronizationContext = false)]
     public class MtClient: IMtApiCallback, IDisposable
     {
-        private static string SERVICE_NAME = "MtApiService";
+        private const string ServiceName = "MtApiService";
 
         public delegate void MtQuoteHandler(MtQuote quote);
+
+        #region Fields
+        private static readonly ILog Log = LogManager.GetLogger(typeof(MtClient));
+
+        private MtApiProxy _proxy;
+        private bool _isConnected;
+        #endregion
 
         #region Public Methods
         public void Open(string host, int port)
         {
-            Debug.WriteLine("[INFO] MtClient::Open");
+            Log.DebugFormat("Open: begin. host = {0}, port = {1}", host, port);
 
             if (string.IsNullOrEmpty(host))
-                throw new ArgumentNullException("host", "host is null or empty");
+                throw new ArgumentNullException(nameof(host), "host is null or empty");
 
             if (port < 0 || port > 65536)
-                throw new ArgumentOutOfRangeException("port", "port value is invalid");
+                throw new ArgumentOutOfRangeException(nameof(port), "port value is invalid");
 
-            var urlService = string.Format("net.tcp://{0}:{1}/{2}", host, port, SERVICE_NAME);
+            var urlService = $"net.tcp://{host}:{port}/{ServiceName}";
 
-            lock (mClientLocker)
+            if (_proxy != null)
             {
-                if (mProxy != null)
-                    return;
-
-                var bind = new NetTcpBinding(SecurityMode.None)
-                {
-                    MaxReceivedMessageSize = 2147483647,
-                    MaxBufferSize = 2147483647,
-                    MaxBufferPoolSize = 2147483647,
-                    ReaderQuotas =
-                    {
-                        MaxArrayLength = 2147483647,
-                        MaxBytesPerRead = 2147483647,
-                        MaxDepth = 2147483647,
-                        MaxStringContentLength = 2147483647,
-                        MaxNameTableCharCount = 2147483647
-                    }
-                };
-                // Commented next statement since it is not required
-
-                mProxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
-                mProxy.Faulted += mProxy_Faulted;
+                Log.Warn("Open: end. _proxy is not null.");
+                return;
             }
+
+            var bind = new NetTcpBinding(SecurityMode.None)
+            {
+                MaxReceivedMessageSize = 2147483647,
+                MaxBufferSize = 2147483647,
+                MaxBufferPoolSize = 2147483647,
+                SendTimeout = new TimeSpan(12, 0, 0),
+                ReceiveTimeout = new TimeSpan(12, 0, 0),
+                ReaderQuotas =
+                {
+                    MaxArrayLength = 2147483647,
+                    MaxBytesPerRead = 2147483647,
+                    MaxDepth = 2147483647,
+                    MaxStringContentLength = 2147483647,
+                    MaxNameTableCharCount = 2147483647
+                }
+            };
+            // Commented next statement since it is not required
+
+            _proxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
+            _proxy.Faulted += ProxyFaulted;
+
+            Log.Debug("Open: end.");
         }
 
         public void Open(int port)
         {
+            Log.DebugFormat("Open: begin. port = {0}", port);
+
             if (port < 0 || port > 65536)
-                throw new ArgumentOutOfRangeException("port", "port value is invalid");
+                throw new ArgumentOutOfRangeException(nameof(port), "port value is invalid");
 
-            var urlService = string.Format("net.pipe://localhost/{0}_{1}", SERVICE_NAME, port);
+            var urlService = $"net.pipe://localhost/{ServiceName}_{port}";
 
-            lock (mClientLocker)
+            if (_proxy != null)
             {
-                if (mProxy != null)
-                    return;
-
-                var bind = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None)
-                {
-                    MaxReceivedMessageSize = 2147483647,
-                    MaxBufferSize = 2147483647,
-                    MaxBufferPoolSize = 2147483647,
-                    ReaderQuotas =
-                    {
-                        MaxArrayLength = 2147483647,
-                        MaxBytesPerRead = 2147483647,
-                        MaxDepth = 2147483647,
-                        MaxStringContentLength = 2147483647,
-                        MaxNameTableCharCount = 2147483647
-                    }
-                };
-                // Commented next statement since it is not required
-
-                mProxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
-                mProxy.Faulted += mProxy_Faulted;
+                Log.Warn("Open: end. _proxy is not null.");
+                return;
             }
+
+            var bind = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None)
+            {
+                MaxReceivedMessageSize = 2147483647,
+                MaxBufferSize = 2147483647,
+                MaxBufferPoolSize = 2147483647,
+                SendTimeout = new TimeSpan(12, 0, 0),
+                ReceiveTimeout = new TimeSpan(12, 0, 0),
+                ReaderQuotas =
+                {
+                    MaxArrayLength = 2147483647,
+                    MaxBytesPerRead = 2147483647,
+                    MaxDepth = 2147483647,
+                    MaxStringContentLength = 2147483647,
+                    MaxNameTableCharCount = 2147483647
+                }
+            };
+            // Commented next statement since it is not required
+
+            _proxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
+            _proxy.Faulted += ProxyFaulted;
+
+            Log.Debug("Open: end.");
         }
 
         public void Close()
         {
-            Debug.WriteLine("[INFO] MtClient::Close");
+            Log.Debug("Close: begin.");
 
-            lock (mClientLocker)
+            if (_proxy != null)
             {
-                if (mProxy != null)
-                {
-                    mProxy.Faulted -= mProxy_Faulted;
-                    mProxy.Dispose();
-                    mProxy = null;
-                }
-
-                mIsConnected = false;
+                _proxy.Faulted -= ProxyFaulted;
+                _proxy.Dispose();
+                _proxy = null;
             }
+
+            _isConnected = false;
+
+            Log.Debug("Close: end.");
         }
 
+        /// <exception cref="CommunicationException">Thrown when connection failed</exception>
         public void Connect()
         {
-            Debug.WriteLine("[INFO] MtClient::Connect");
+            Log.Debug("Connect: begin.");
+
+            if (_proxy == null)
+            {
+                Log.Error("Connect: _proxy is not defined.");
+                throw new CommunicationException("Connection failed to service. Proxy is not defined (needs to call Open)");
+            }
+
+            if (_isConnected)
+            {
+                Log.Warn("Connected: end. Client is already connected.");
+                return;
+            }
 
             try
             {
-                lock (mClientLocker)
-                {
-                    if (mProxy != null && mIsConnected == true)
-                        return;
-
-                    mIsConnected = mProxy.Connect();
-
-                    if (mIsConnected == false)
-                        throw new Exception("Connected failed");
-                }
+                _isConnected = _proxy.Connect();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("[ERROR] MtClient::Connect: {0}", ex.Message);
+                Log.ErrorFormat("Connect: Exception - {0}", ex.Message);
 
                 Close();
 
-                throw new CommunicationException(string.Format("Connection failed to service"));
+                throw new CommunicationException($"Connection failed to service. {ex.Message}");
             }
+
+            if (_isConnected == false)
+            {
+                Log.Error("Connect: end. Connection failed.");
+                throw new CommunicationException("Connection failed");
+            }
+
+            Log.Debug("Connect: end.");
         }
 
         public void Disconnect()
         {
-            Debug.WriteLine("[INFO] MtClient::Disconnect");
+            Log.Debug("Disconnect: begin.");
 
             try
             {
-                lock (mClientLocker)
-                {
-                    mIsConnected = false;
+                _isConnected = false;
 
-                    if (mProxy != null)
-                        mProxy.Disconnect();
-                }
+                _proxy?.Disconnect();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("[ERROR] MtClient::Disconnect: {0}", ex.Message);
+                Log.ErrorFormat("Disconnect: Exception - {0}", ex.Message);
 
                 Close();
             }
+
+            Log.Debug("Disconnect: end.");
         }
 
-        public MtResponse SendCommand(int commandType, ArrayList commandParameters)
+        /// <exception cref="CommunicationException">Thrown when connection failed</exception>
+        public MtResponse SendCommand(int commandType, ArrayList parameters)
         {
-            Debug.WriteLine("[INFO] MtClient::SendCommand: commandType = {0}", commandType);
+            Log.DebugFormat("SendCommand: begin. commandType = {0}, parameters count = {1}", commandType, parameters?.Count);
 
-            MtResponse result = null;
+            MtResponse result;
+
+            if (_isConnected == false)
+            {
+                Log.Error("SendCommand: Client is not connected.");
+                throw new CommunicationException("Client is not connected.");
+            }
+
+            if (_proxy == null)
+            {
+                Log.Error("SendCommand: Proxy is not defined.");
+                throw new CommunicationException("Proxy is not defined.");
+            }
 
             try
             {
-                lock (mClientLocker)
-                {
-                    if (mProxy != null && mIsConnected == true)
-                        result = mProxy.SendCommand(new MtCommand(commandType, commandParameters));
-                }
+                result = _proxy.SendCommand(new MtCommand(commandType, parameters));
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("[ERROR] MtClient::SendCommand: {0}", ex.Message);
+                Log.ErrorFormat("SendCommand: Exception - {0}", ex.Message);
 
                 Close();
 
@@ -177,30 +212,41 @@ namespace MTApiService
             return result;
         }
 
+        /// <exception cref="CommunicationException">Thrown when connection failed</exception>
         public IEnumerable<MtQuote> GetQuotes()
         {
-            Debug.WriteLine("[INFO] MtClient::GetQuotes");
+            Log.Debug("GetQuotes: begin.");
 
-            IEnumerable<MtQuote> result = null;
+            if (_isConnected == false)
+            {
+                Log.Warn("GetQuotes: end. Client is not connected.");
+                return null;
+            }
+
+            if (_proxy == null)
+            {
+                Log.Warn("GetQuotes: end. _proxy is not defined.");
+                return null;
+            }
+
+            List<MtQuote> result;
 
             try
             {
-                lock (mClientLocker)
-                {
-                    if (mProxy != null && mIsConnected == true)
-                        result = mProxy.GetQuotes();
-                }
+                result = _proxy.GetQuotes();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("[ERROR] MtClient::GetQuotes: {0}", ex.Message);
+                Log.ErrorFormat("GetQuotes: Exception - {0}", ex.Message);
 
                 Close();
 
-                throw new CommunicationException("Service connection failed");
+                throw new CommunicationException($"Service connection failed! {ex.Message}");
             }
 
-            return result;;
+            Log.DebugFormat("GetQuotes: end. quotes count = {0}", result?.Count);
+
+            return result;
         }
 
         #endregion
@@ -209,74 +255,70 @@ namespace MTApiService
 
         public void OnQuoteUpdate(MtQuote quote)
         {
-            if (quote != null)
-            {                
-                if (QuoteUpdated != null)
-                {
-                    QuoteUpdated(quote);
-                }
+            Log.DebugFormat("OnQuoteUpdate: begin. quote = {0}", quote);
 
-                Debug.WriteLine("[INFO] MtClient::OnQuoteUpdate: " + quote);
-            }
+            if (quote == null) return;
+
+            QuoteUpdated?.Invoke(quote);
+
+            Log.Debug("OnQuoteUpdate: end.");
         }
 
         public void OnQuoteAdded(MtQuote quote)
         {
-            Debug.WriteLine("[INFO] MtClient::OnQuoteAdded");
+            Log.DebugFormat("OnQuoteAdded: begin. quote = {0}", quote);
 
             QuoteAdded?.Invoke(quote);
+
+            Log.Debug("OnQuoteAdded: end.");
         }
 
         public void OnQuoteRemoved(MtQuote quote)
         {
-            Debug.WriteLine("[INFO] MtClient::OnQuoteRemoved");
+            Log.DebugFormat("OnQuoteRemoved: begin. quote = {0}", quote);
 
             QuoteRemoved?.Invoke(quote);
+
+            Log.Debug("OnQuoteRemoved: end.");
         }
 
         public void OnServerStopped()
         {
-            Debug.WriteLine("[INFO] MtClient::OnServerStopped");
+            Log.Debug("OnServerStopped: begin.");
 
             Close();
-
             ServerDisconnected?.Invoke(this, EventArgs.Empty);
+
+            Log.Debug("OnServerStopped: end.");
         }
 
 
         public void OnMtEvent(MtEvent mtEvent)
         {
+            Log.DebugFormat("OnMtEvent: begin. event = {0}", mtEvent);
+
             MtEventReceived?.Invoke(this, new MtEventArgs(mtEvent));
+
+            Log.Debug("OnMtEvent: end.");
         }
 
         #endregion
 
         #region Properties
-        public bool IsConnected 
-        {
-            get
-            {
-                lock (mClientLocker)
-                {
-                    return mProxy.State == CommunicationState.Opened && mIsConnected == true;
-                }
-            }
-        }
+        public bool IsConnected => _proxy.State == CommunicationState.Opened && _isConnected;
 
         #endregion
 
         #region Private Methods
 
-        void mProxy_Faulted(object sender, EventArgs e)
+        private void ProxyFaulted(object sender, EventArgs e)
         {
-            Debug.WriteLine("[INFO] MtClient::mProxy_Faulted");
+            Log.Debug("ProxyFaulted: begin.");
 
             Close();
+            ServerFailed?.Invoke(this, EventArgs.Empty);
 
-            if (ServerFailed != null)
-            {
-                ServerFailed(this, EventArgs.Empty);
-            }
+            Log.Debug("ProxyFaulted: end.");
         }
 
         #endregion
@@ -285,9 +327,11 @@ namespace MTApiService
 
         public void Dispose()
         {
-            Debug.WriteLine("[INFO] MtClient::Dispose");
+            Log.Debug("Dispose: begin.");
 
             Close();
+
+            Log.Debug("Dispose: end.");
         }
 
         #endregion
@@ -299,12 +343,6 @@ namespace MTApiService
         public event EventHandler ServerDisconnected;
         public event EventHandler ServerFailed;
         public event EventHandler<MtEventArgs> MtEventReceived;
-        #endregion
-
-        #region Fields
-        private readonly object mClientLocker = new object();
-        private MtApiProxy mProxy = null;
-        private bool mIsConnected = false;
         #endregion
     }
 }

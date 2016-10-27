@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 
 namespace MTApiService
 {
@@ -10,6 +11,9 @@ namespace MTApiService
 
         public MtCommandTask(MtCommand command)
         {
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
+
             Command = command;
         }
 
@@ -20,7 +24,7 @@ namespace MTApiService
             _responseWaiter.WaitOne(time);
             lock (_locker)
             {
-                return _result;    
+                return _result;
             }
         }
 
@@ -32,6 +36,10 @@ namespace MTApiService
             }
             _responseWaiter.Set();
         }
- 
+
+        public override string ToString()
+        {
+            return $"Command = {Command}";
+        }
     }
 }
