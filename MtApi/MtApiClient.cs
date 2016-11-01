@@ -1443,6 +1443,12 @@ namespace MtApi
             var commandParameters = new ArrayList { name, (int)propId };
             return SendCommand<string>(MtCommandType.SymbolInfoString, commandParameters); ;
         }
+
+        public MtSession SymbolInfoSession(string symbol, DayOfWeek dayOfWeek, uint index, SessionType type)
+        {
+            var responce = SendRequest<SessionResponse>(new SessionRequest { Symbol = symbol, DayOfWeek = dayOfWeek, SessionIndex = (int)index, SessionType = type });
+            return responce != null ? responce.Session : null;
+        }
         #endregion
 
         #region Private Methods
