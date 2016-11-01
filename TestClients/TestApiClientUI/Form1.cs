@@ -32,6 +32,7 @@ namespace TestApiClientUI
 
             comboBox1.SelectedIndex = 0;
             comboBox2.SelectedIndex = 0;
+            comboBox4.SelectedIndex = 0;
 
             _timerTradeMonitor = new TimerTradeMonitor(_apiClient);
             _timerTradeMonitor.Interval = 10000; // 10 sec
@@ -500,7 +501,8 @@ namespace TestApiClientUI
         {
             RunOnUiThread(() =>
             {
-                listBoxEventLog.Items.Add(msg);
+                var time = DateTime.Now.ToString("h:mm:ss tt");
+                listBoxEventLog.Items.Add($"[{time}]: {msg}");
                 listBoxEventLog.SetSelected(listBoxEventLog.Items.Count - 1, true);
                 listBoxEventLog.SetSelected(listBoxEventLog.Items.Count - 1, false);
             });
@@ -1125,7 +1127,7 @@ namespace TestApiClientUI
         {
             string symbol = textBoxSelectedSymbol.Text;
             ENUM_TIMEFRAMES timeframes;
-            Enum.TryParse<ENUM_TIMEFRAMES>(comboBox3.SelectedValue.ToString(), out timeframes);
+            Enum.TryParse(comboBox3.SelectedValue.ToString(), out timeframes);
 
             DateTime startTime = dateTimePicker1.Value;
             DateTime stopTime = dateTimePicker1.Value;
@@ -1158,6 +1160,45 @@ namespace TestApiClientUI
             }
         }
 
+        //SymbolsTotal
+        private async void button28_Click(object sender, EventArgs e)
+        {
+            var result_true = await Execute(() => _apiClient.SymbolsTotal(true));
+            AddToLog($"SymbolsTotal [true]: result = {result_true}");
+
+            var result_false = await Execute(() => _apiClient.SymbolsTotal(false));
+            AddToLog($"SymbolsTotal [false]: result = {result_false}");
+        }
+
+        //SymbolName
+        private async void button29_Click(object sender, EventArgs e)
+        {
+            int pos = 1;
+            bool selected = false;
+            var result = await Execute(() => _apiClient.SymbolName(pos, selected));
+            AddToLog($"SymbolName [true]: result = {result}");
+        }
+
+        //SymbolSelect
+        private async void button30_Click(object sender, EventArgs e)
+        {
+            var symbol = textBox1.Text;
+            bool select = true;
+            var result = await Execute(() => _apiClient.SymbolSelect(symbol, select));
+            AddToLog($"SymbolSelect [true]: result = {result}");
+        }
+
+        //SymbolInfoInteger
+        private async void button32_Click(object sender, EventArgs e)
+        {
+            var symbol = textBox1.Text;
+            EnumSymbolInfoInteger propId;
+            Enum.TryParse(comboBox4.Text, out propId);
+
+            var result = await Execute(() => _apiClient.SymbolInfoInteger(symbol, propId));
+            AddToLog($"SymbolInfoInteger [true]: result = {result}");
+        }
+
         private void _tradeMonitor_AvailabilityOrdersChanged(object sender, AvailabilityOrdersEventArgs e)
         {
             if (e.Opened != null)
@@ -1170,6 +1211,5 @@ namespace TestApiClientUI
                 AddToLog($"{sender.GetType()}: Closed orders - {string.Join(", ", e.Closed.Select(o => o.Ticket).ToList())}");
             }
         }
-
     }
 }

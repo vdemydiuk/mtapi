@@ -139,13 +139,21 @@
             this.button6 = new System.Windows.Forms.Button();
             this.listBoxProceHistory = new System.Windows.Forms.ListBox();
             this.tabPage6 = new System.Windows.Forms.TabPage();
+            this.textBoxPrint = new System.Windows.Forms.TextBox();
+            this.button27 = new System.Windows.Forms.Button();
             this.button14 = new System.Windows.Forms.Button();
             this.button13 = new System.Windows.Forms.Button();
             this.tabPage7 = new System.Windows.Forms.TabPage();
             this.button23 = new System.Windows.Forms.Button();
             this.iCustomBtn = new System.Windows.Forms.Button();
-            this.button27 = new System.Windows.Forms.Button();
-            this.textBoxPrint = new System.Windows.Forms.TextBox();
+            this.tabPage8 = new System.Windows.Forms.TabPage();
+            this.comboBox4 = new System.Windows.Forms.ComboBox();
+            this.button32 = new System.Windows.Forms.Button();
+            this.button30 = new System.Windows.Forms.Button();
+            this.button29 = new System.Windows.Forms.Button();
+            this.button28 = new System.Windows.Forms.Button();
+            this.label28 = new System.Windows.Forms.Label();
+            this.textBox1 = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -161,6 +169,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.tabPage6.SuspendLayout();
             this.tabPage7.SuspendLayout();
+            this.tabPage8.SuspendLayout();
             this.SuspendLayout();
             // 
             // textBoxServerName
@@ -323,6 +332,7 @@
             this.tabControl1.Controls.Add(this.tabPage5);
             this.tabControl1.Controls.Add(this.tabPage6);
             this.tabControl1.Controls.Add(this.tabPage7);
+            this.tabControl1.Controls.Add(this.tabPage8);
             this.tabControl1.Location = new System.Drawing.Point(12, 147);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -1359,6 +1369,23 @@
             this.tabPage6.Text = "Client Terminal";
             this.tabPage6.UseVisualStyleBackColor = true;
             // 
+            // textBoxPrint
+            // 
+            this.textBoxPrint.Location = new System.Drawing.Point(209, 16);
+            this.textBoxPrint.Name = "textBoxPrint";
+            this.textBoxPrint.Size = new System.Drawing.Size(386, 20);
+            this.textBoxPrint.TabIndex = 3;
+            // 
+            // button27
+            // 
+            this.button27.Location = new System.Drawing.Point(601, 16);
+            this.button27.Name = "button27";
+            this.button27.Size = new System.Drawing.Size(75, 23);
+            this.button27.TabIndex = 2;
+            this.button27.Text = "Print";
+            this.button27.UseVisualStyleBackColor = true;
+            this.button27.Click += new System.EventHandler(this.button27_Click);
+            // 
             // button14
             // 
             this.button14.Location = new System.Drawing.Point(13, 45);
@@ -1411,22 +1438,113 @@
             this.iCustomBtn.UseVisualStyleBackColor = true;
             this.iCustomBtn.Click += new System.EventHandler(this.iCustomBtn_Click);
             // 
-            // button27
+            // tabPage8
             // 
-            this.button27.Location = new System.Drawing.Point(601, 16);
-            this.button27.Name = "button27";
-            this.button27.Size = new System.Drawing.Size(75, 23);
-            this.button27.TabIndex = 2;
-            this.button27.Text = "Print";
-            this.button27.UseVisualStyleBackColor = true;
-            this.button27.Click += new System.EventHandler(this.button27_Click);
+            this.tabPage8.Controls.Add(this.comboBox4);
+            this.tabPage8.Controls.Add(this.button32);
+            this.tabPage8.Controls.Add(this.button30);
+            this.tabPage8.Controls.Add(this.button29);
+            this.tabPage8.Controls.Add(this.button28);
+            this.tabPage8.Controls.Add(this.label28);
+            this.tabPage8.Controls.Add(this.textBox1);
+            this.tabPage8.Location = new System.Drawing.Point(4, 22);
+            this.tabPage8.Name = "tabPage8";
+            this.tabPage8.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage8.Size = new System.Drawing.Size(682, 377);
+            this.tabPage8.TabIndex = 8;
+            this.tabPage8.Text = "Symbols";
+            this.tabPage8.UseVisualStyleBackColor = true;
             // 
-            // textBoxPrint
+            // comboBox4
             // 
-            this.textBoxPrint.Location = new System.Drawing.Point(209, 16);
-            this.textBoxPrint.Name = "textBoxPrint";
-            this.textBoxPrint.Size = new System.Drawing.Size(386, 20);
-            this.textBoxPrint.TabIndex = 3;
+            this.comboBox4.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox4.FormattingEnabled = true;
+            this.comboBox4.Items.AddRange(new object[] {
+            "SYMBOL_SELECT",
+            "SYMBOL_VISIBLE",
+            "SYMBOL_SESSION_DEALS",
+            "SYMBOL_SESSION_BUY_ORDERS",
+            "SYMBOL_SESSION_SELL_ORDERS",
+            "SYMBOL_VOLUME",
+            "SYMBOL_VOLUMEHIGH",
+            "SYMBOL_VOLUMELOW",
+            "SYMBOL_TIME",
+            "SYMBOL_DIGITS",
+            "SYMBOL_SPREAD",
+            "SYMBOL_SPREAD_FLOAT",
+            "SYMBOL_TRADE_CALC_MODE",
+            "SYMBOL_TRADE_MODE",
+            "SYMBOL_START_TIME",
+            "SYMBOL_EXPIRATION_TIME",
+            "SYMBOL_TRADE_STOPS_LEVEL",
+            "SYMBOL_TRADE_FREEZE_LEVEL",
+            "SYMBOL_TRADE_EXEMODE",
+            "SYMBOL_SWAP_MODE",
+            "SYMBOL_SWAP_ROLLOVER3DAYS",
+            "SYMBOL_EXPIRATION_MODE",
+            "SYMBOL_FILLING_MODE",
+            "SYMBOL_ORDER_MODE"});
+            this.comboBox4.Location = new System.Drawing.Point(10, 87);
+            this.comboBox4.Name = "comboBox4";
+            this.comboBox4.Size = new System.Drawing.Size(174, 21);
+            this.comboBox4.TabIndex = 3;
+            // 
+            // button32
+            // 
+            this.button32.Location = new System.Drawing.Point(190, 87);
+            this.button32.Name = "button32";
+            this.button32.Size = new System.Drawing.Size(108, 23);
+            this.button32.TabIndex = 2;
+            this.button32.Text = "SymbolInfoInteger";
+            this.button32.UseVisualStyleBackColor = true;
+            this.button32.Click += new System.EventHandler(this.button32_Click);
+            // 
+            // button30
+            // 
+            this.button30.Location = new System.Drawing.Point(206, 56);
+            this.button30.Name = "button30";
+            this.button30.Size = new System.Drawing.Size(92, 23);
+            this.button30.TabIndex = 2;
+            this.button30.Text = "SymbolSelect";
+            this.button30.UseVisualStyleBackColor = true;
+            this.button30.Click += new System.EventHandler(this.button30_Click);
+            // 
+            // button29
+            // 
+            this.button29.Location = new System.Drawing.Point(108, 56);
+            this.button29.Name = "button29";
+            this.button29.Size = new System.Drawing.Size(92, 23);
+            this.button29.TabIndex = 2;
+            this.button29.Text = "SymbolName";
+            this.button29.UseVisualStyleBackColor = true;
+            this.button29.Click += new System.EventHandler(this.button29_Click);
+            // 
+            // button28
+            // 
+            this.button28.Location = new System.Drawing.Point(10, 56);
+            this.button28.Name = "button28";
+            this.button28.Size = new System.Drawing.Size(92, 23);
+            this.button28.TabIndex = 2;
+            this.button28.Text = "SymbolsTotal";
+            this.button28.UseVisualStyleBackColor = true;
+            this.button28.Click += new System.EventHandler(this.button28_Click);
+            // 
+            // label28
+            // 
+            this.label28.AutoSize = true;
+            this.label28.Location = new System.Drawing.Point(7, 20);
+            this.label28.Name = "label28";
+            this.label28.Size = new System.Drawing.Size(41, 13);
+            this.label28.TabIndex = 1;
+            this.label28.Text = "Symbol";
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(54, 17);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(100, 20);
+            this.textBox1.TabIndex = 0;
+            this.textBox1.Text = "EURUSD";
             // 
             // Form1
             // 
@@ -1466,6 +1584,8 @@
             this.tabPage6.ResumeLayout(false);
             this.tabPage6.PerformLayout();
             this.tabPage7.ResumeLayout(false);
+            this.tabPage8.ResumeLayout(false);
+            this.tabPage8.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1590,6 +1710,14 @@
         private System.Windows.Forms.Button button25;
         private System.Windows.Forms.Button button27;
         private System.Windows.Forms.TextBox textBoxPrint;
+        private System.Windows.Forms.TabPage tabPage8;
+        private System.Windows.Forms.Label label28;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Button button28;
+        private System.Windows.Forms.Button button29;
+        private System.Windows.Forms.Button button30;
+        private System.Windows.Forms.Button button32;
+        private System.Windows.Forms.ComboBox comboBox4;
     }
 }
 
