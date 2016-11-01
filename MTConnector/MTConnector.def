@@ -15,3 +15,4 @@ EXPORTS initExpert
 		getIntValue
 		getDoubleValue
 		getStringValue
+		getBooleanValue
