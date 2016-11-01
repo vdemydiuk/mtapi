@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChartPeriod.cs" />
+    <Compile Include="EnumSymbolInfoInteger.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Monitors\AvailabilityOrdersEventArgs.cs" />
     <Compile Include="MqlRates.cs" />

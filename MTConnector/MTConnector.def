@@ -3,16 +3,17 @@ LIBRARY MTConnector
 EXPORTS initExpert
         deinitExpert
         updateQuote
-		sendEvent
-		sendIntResponse
-		sendBooleanResponse
-		sendDoubleResponse
-		sendStringResponse
-		sendVoidResponse
-		sendDoubleArrayResponse
-		sendIntArrayResponse
-		getCommandType
-		getIntValue
-		getDoubleValue
-		getStringValue
-		getBooleanValue
+        sendEvent
+        sendIntResponse
+        sendBooleanResponse
+        sendDoubleResponse
+        sendStringResponse
+        sendVoidResponse
+        sendDoubleArrayResponse
+        sendIntArrayResponse
+        sendLongResponse
+        getCommandType
+        getIntValue
+        getDoubleValue
+        getStringValue
+        getBooleanValue

@@ -200,6 +200,7 @@ namespace MtApi
         //Symbols
         SymbolsTotal                        = 200,
         SymbolName                          = 201,
-        SymbolSelect                        = 202
+        SymbolSelect                        = 202,
+        SymbolInfoInteger                   = 203
     }
 }
