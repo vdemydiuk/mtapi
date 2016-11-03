@@ -12,19 +12,19 @@
         <?define PlatformSystemFolder = "SystemFolder" ?>
     <?endif ?>
 
-    <?define ProductVersion="1.0.10" ?>
+    <?define ProductVersion="1.0.11" ?>
     <?define Manufacturer="DW"?>
     <?define ProductPath="..\build\products\$(var.Configuration)\"?>
     
-	<Product Id="*" 
+  <Product Id="*" 
             Name="$(var.ProductName) $(var.ProductVersion)" 
             Language="1033" 
             Version="$(var.ProductVersion)" 
             Manufacturer="$(var.Manufacturer)" 
             UpgradeCode="d72d346e-e6f7-4c23-85c6-1c42b3175599">
-		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
-		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
         <MediaTemplate EmbedCab="yes" />
 
         <Feature Id="MtApi5" Title="$(var.ProductName)" Level="1">
@@ -37,7 +37,7 @@
 
         <Property Id="WIXUI_INSTALLDIR">INSTALLFOLDER</Property>
         <UIRef Id="WixUI_Mondo" />
-	</Product>
+  </Product>
 
     <Fragment>
         <Directory Id="TARGETDIR" Name="SourceDir">
