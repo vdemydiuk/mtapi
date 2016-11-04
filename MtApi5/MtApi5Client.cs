@@ -4,6 +4,9 @@ using System.Linq;
 using MTApiService;
 using System.Collections;
 using System.ServiceModel;
+using MtApi5.Requests;
+using MtApi5.Responses;
+using Newtonsoft.Json;
 
 namespace MtApi5
 {
@@ -1200,6 +1203,24 @@ namespace MtApi5
 
             return spreadArray?.Length ?? 0;
         }
+
+
+        ///<summary>
+        ///The function receives ticks in the MqlTick format into ticks_array. In this case, ticks are indexed from the past to the present, i.e. the 0 indexed tick is the oldest one in the array. For tick analysis, check the flags field, which shows what exactly has changed in the tick.
+        ///</summary>
+        ///<param name="symbolName">Symbol name.</param>
+        ///<param name="flags">The flag that determines the type of received ticks.</param>
+        ///<param name="from">The date from which you want to request ticks.  In milliseconds since 1970.01.01. If from=0, the last count ticks will be returned.</param>
+        ///<param name="count">The number of ticks that you want to receive. If the 'from' and 'count' parameters are not specified, all available recent ticks (but not more than 2000) will be written to result.</param>
+        ///<see href="https://www.mql5.com/en/docs/series/copyticks"/>
+        public List<MqlTick> CopyTicks(string symbolName, CopyTicksFlag flags = CopyTicksFlag.All, ulong from = 0, uint count = 0)
+        {
+            var response = SendRequest<CopyTicksResponse>(new CopyTicksRequest
+            {
+                SymbolName = symbolName, Flags = (int)flags, From = from, Count = count
+            });
+            return response.Ticks;
+        }
         #endregion
 
         #region Market Info
@@ -1302,7 +1323,7 @@ namespace MtApi5
             tick = null;
             if (retVal != null)
             {
-                tick = new MqlTick(Mt5TimeConverter.ConvertFromMtTime(retVal.time), retVal.bid, retVal.ask, retVal.last, retVal.volume);
+                tick = new MqlTick { MtTime = retVal.time, ask = retVal.ask, bid = retVal.bid, last = retVal.last, volume = retVal.volume };
             }
 
             return tick != null;
@@ -1511,6 +1532,46 @@ namespace MtApi5
             var responseValue = response?.GetValue();
             return responseValue != null ? (T) responseValue : default(T);
         }
+
+        private T SendRequest<T>(RequestBase request) where T : ResponseBase, new()
+        {
+            if (request == null)
+                return default(T);
+
+            var serializer = JsonConvert.SerializeObject(request, Formatting.None,
+                            new JsonSerializerSettings
+                            {
+                                NullValueHandling = NullValueHandling.Ignore
+                            });
+            var commandParameters = new ArrayList { serializer };
+
+            MtResponseString res;
+            try
+            {
+                lock (_client)
+                {
+                    res = (MtResponseString)_client.SendCommand((int)Mt5CommandType.MtRequest, commandParameters);
+                }
+            }
+            catch (CommunicationException ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+
+            if (res == null)
+            {
+                throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
+            }
+
+            var response = JsonConvert.DeserializeObject<T>(res.Value);
+            if (response.ErrorCode != 0)
+            {
+                throw new ExecutionException((ErrorCode)response.ErrorCode, response.ErrorMessage);
+            }
+
+            return response;
+        }
+
 
         private void mClient_QuoteUpdated(MtQuote quote)
         {

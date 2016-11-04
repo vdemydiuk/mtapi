@@ -334,9 +334,9 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBox Grid.Row="0" Text="symbolName"/>
-                        <TextBox Grid.Row="1" Text="timeframe"/>
-                        <TextBox Grid.Row="2" Text="startPos"/>
-                        <TextBox Grid.Row="3" Text="count"/>
+                        <TextBox Grid.Row="1" Grid.Column="0" Text="timeframe"/>
+                        <TextBox Grid.Row="2" Grid.Column="0" Text="startPos"/>
+                        <TextBox Grid.Row="3" Grid.Column="0" Text="count"/>
                         <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding TimeSeriesValues.SymbolValue}"/>
                         <ComboBox Grid.Row="1" Grid.Column="1" 
                                   ItemsSource="{Binding Source={StaticResource ENUM_TIMEFRAMES_Key}}"
@@ -344,25 +344,27 @@
                         <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding TimeSeriesValues.StartPos}"/>
                         <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding TimeSeriesValues.Count}"/>
 
-                        <WrapPanel Grid.Row="4" Grid.ColumnSpan="2" Margin="10">
-                            <Button Command="{Binding CopyRatesCommand}"
+                        <WrapPanel Grid.Row="4" Grid.ColumnSpan="2" Grid.Column="0" Margin="10">
+                            <Button Command="{Binding CopyRatesCommand}" Margin="1"
                                 Content="CopyRates" HorizontalAlignment="Left" />
-                            <Button Command="{Binding CopyTimesCommand}"
+                            <Button Command="{Binding CopyTimesCommand}" Margin="1"
                                 Content="CopyTimes" HorizontalAlignment="Left" />
-                            <Button Command="{Binding CopyOpenCommand}"
+                            <Button Command="{Binding CopyOpenCommand}" Margin="1"
                                 Content="CopyOpen" HorizontalAlignment="Left" />
-                            <Button Command="{Binding CopyHighCommand}"
+                            <Button Command="{Binding CopyHighCommand}" Margin="1"
                                 Content="CopyHigh" HorizontalAlignment="Left" />
-                            <Button Command="{Binding CopyLowCommand}"
+                            <Button Command="{Binding CopyLowCommand}" Margin="1"
                                 Content="CopyLow" HorizontalAlignment="Left" />
-                            <Button Command="{Binding CopyCloseCommand}"
+                            <Button Command="{Binding CopyCloseCommand}" Margin="1"
                                 Content="CopyClose" HorizontalAlignment="Left" />
-                            <Button Command="{Binding CopyTickVolumeCommand}"
+                            <Button Command="{Binding CopyTickVolumeCommand}" Margin="1"
                                 Content="CopyTickVolume" HorizontalAlignment="Left" />
-                            <Button Command="{Binding CopyRealVolumeCommand}"
+                            <Button Command="{Binding CopyRealVolumeCommand}" Margin="1"
                                 Content="CopyRealVolume" HorizontalAlignment="Left" />
-                            <Button Command="{Binding CopySpreadCommand}"
+                            <Button Command="{Binding CopySpreadCommand}" Margin="1"
                                 Content="CopySpread" HorizontalAlignment="Left" />
+                            <Button Command="{Binding CopyTicksCommand}" Margin="1"
+                                Content="CopyTicks" HorizontalAlignment="Left" />
 
                         </WrapPanel>
                     </Grid>

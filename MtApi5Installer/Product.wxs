@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <?define ProductName="MtApi5" ?>
+
     <?if $(var.Platform) = x64 ?>
-        <?define ProductName="MtApi5_x64" ?>
         <?define ProductPathNative="..\build\products\$(var.Configuration)\x64\"?>
         <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
         <?define PlatformSystemFolder = "System64Folder" ?>    
     <?else ?>
-        <?define ProductName="MtApi5" ?>
         <?define ProductPathNative="..\build\products\$(var.Configuration)\"?>
         <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
         <?define PlatformSystemFolder = "SystemFolder" ?>
@@ -77,6 +77,11 @@
                     <RegistryValue Type="string" Value="[INSTALLFOLDER]"/>
                 </RegistryKey>
 
+            </Component>
+          
+            <Component Id="NewtonsoftJsondll" Directory="INSTALLFOLDER">
+                <File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" KeyPath="yes"
+                    src="$(var.ProductPath)Newtonsoft.Json.dll"/>
             </Component>
 
             <Component Id="MTApiServiceDll" Directory="INSTALLFOLDER">

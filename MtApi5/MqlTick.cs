@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace MtApi5
 {
@@ -9,17 +6,24 @@ namespace MtApi5
     {
         public MqlTick(DateTime time, double bid, double ask, double last, ulong volume)
         {
-            this.time = time;
+            MtTime = Mt5TimeConverter.ConvertToMtTime(time);
             this.bid = bid;
             this.ask = ask;
             this.last = last;
             this.volume = volume;
         }
 
-        public DateTime time { get; private set; }          // Time of the last prices update
-        public double bid { get; private set; }           // Current Bid price
-        public double ask { get; private set; }           // Current Ask price
-        public double last { get; private set; }          // Price of the last deal (Last)
-        public ulong volume { get; private set; }        // Volume for the current Last price
+        public MqlTick()
+        {
+        }
+
+        public long MtTime { get; set; }          // Time of the last prices update
+
+        public double bid { get; set; }           // Current Bid price
+        public double ask { get; set; }           // Current Ask price
+        public double last { get; set; }          // Price of the last deal (Last)
+        public ulong volume { get; set; }        // Volume for the current Last price
+
+        public DateTime time => Mt5TimeConverter.ConvertFromMtTime(MtTime);
     }
 }
