@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using log4net;
 using log4net.Appender;
 using log4net.Core;
@@ -24,7 +25,7 @@ namespace MTApiService
             };
             patternLayout.ActivateOptions();
 
-            string filename = $"{DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss")}.{LogFileNameExtension}";
+            string filename = $"{DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss")}-{Process.GetCurrentProcess().Id}.{LogFileNameExtension}";
 
             var roller = new RollingFileAppender
             {
