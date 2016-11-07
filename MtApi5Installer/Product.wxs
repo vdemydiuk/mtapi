@@ -23,6 +23,8 @@
             Manufacturer="$(var.Manufacturer)" 
             UpgradeCode="d72d346e-e6f7-4c23-85c6-1c42b3175599">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    
+    <WixVariable Id="WixUILicenseRtf" Value="..\LICENSE.rtf" />
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
         <MediaTemplate EmbedCab="yes" />
