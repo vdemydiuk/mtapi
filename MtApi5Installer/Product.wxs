@@ -12,7 +12,7 @@
         <?define PlatformSystemFolder = "SystemFolder" ?>
     <?endif ?>
 
-    <?define ProductVersion="1.0.11" ?>
+    <?define ProductVersion=!(bind.FileVersion.MtApi5.dll) ?>
     <?define Manufacturer="DW"?>
     <?define ProductPath="..\build\products\$(var.Configuration)\"?>
     
