@@ -1,30 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <?define ProductName="MtApi5" ?>
+
     <?if $(var.Platform) = x64 ?>
-        <?define ProductName="MtApi5_x64" ?>
         <?define ProductPathNative="..\build\products\$(var.Configuration)\x64\"?>
         <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
         <?define PlatformSystemFolder = "System64Folder" ?>    
     <?else ?>
-        <?define ProductName="MtApi5" ?>
         <?define ProductPathNative="..\build\products\$(var.Configuration)\"?>
         <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
         <?define PlatformSystemFolder = "SystemFolder" ?>
     <?endif ?>
 
-    <?define ProductVersion="1.0.10" ?>
+    <?define ProductVersion=!(bind.FileVersion.MtApi5.dll) ?>
     <?define Manufacturer="DW"?>
     <?define ProductPath="..\build\products\$(var.Configuration)\"?>
     
-	<Product Id="*" 
+  <Product Id="*" 
             Name="$(var.ProductName) $(var.ProductVersion)" 
             Language="1033" 
             Version="$(var.ProductVersion)" 
             Manufacturer="$(var.Manufacturer)" 
             UpgradeCode="d72d346e-e6f7-4c23-85c6-1c42b3175599">
-		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    
+    <WixVariable Id="WixUILicenseRtf" Value="..\LICENSE.rtf" />
 
-		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
         <MediaTemplate EmbedCab="yes" />
 
         <Feature Id="MtApi5" Title="$(var.ProductName)" Level="1">
@@ -37,7 +39,7 @@
 
         <Property Id="WIXUI_INSTALLDIR">INSTALLFOLDER</Property>
         <UIRef Id="WixUI_Mondo" />
-	</Product>
+  </Product>
 
     <Fragment>
         <Directory Id="TARGETDIR" Name="SourceDir">
@@ -77,6 +79,11 @@
                     <RegistryValue Type="string" Value="[INSTALLFOLDER]"/>
                 </RegistryKey>
 
+            </Component>
+          
+            <Component Id="NewtonsoftJsondll" Directory="INSTALLFOLDER">
+                <File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" KeyPath="yes"
+                    src="$(var.ProductPath)Newtonsoft.Json.dll"/>
             </Component>
 
             <Component Id="MTApiServiceDll" Directory="INSTALLFOLDER">

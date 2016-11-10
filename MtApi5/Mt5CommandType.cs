@@ -110,6 +110,9 @@ namespace MtApi5
         BacktestingReady                    = 66,
         IsTesting                           = 67,
 
-        Print                               = 68
+        Print                               = 68,
+
+        //Requests
+        MtRequest                           = 155,
     }
 }

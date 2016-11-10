@@ -1,6 +1,7 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      ""
 
+#include <json.mqh>
 #include <Trade\SymbolInfo.mqh>
 #include <trade/trade.mqh>
 #property version   "1.1"
@@ -47,6 +48,7 @@ bool IsRemoteReadyForTesting = false;
 
 string symbolValue;
 string commentValue;
+string requestValue;
 
 string PARAM_SEPARATOR = ";";
 
@@ -77,6 +79,7 @@ int preinit()
    StringInit(message, 1000, 0);
    StringInit(symbolValue, 1000, 0);
    StringInit(commentValue, 1000, 0);
+   StringInit(requestValue, 1000, 0);
 
    return (0);
 }
@@ -231,6 +234,25 @@ int executeCommand()
    case 0:
       //NoCommand         
       break;
+
+   case 155: //Request
+   {
+      if (!getStringValue(ExpertHandle, 0, requestValue))
+      {
+         PrintParamError("Request");
+      }
+      
+      string response = "";
+
+      if (requestValue != "")
+      {
+         Print("executeCommand: incoming request = ", requestValue);
+         response = OnRequest(requestValue);
+      }
+      
+      sendStringResponse(ExpertHandle, response);      
+   }
+   break;      
       
    case 1: // OrderSend
    {
@@ -1829,4 +1851,115 @@ bool OrderCloseAll()
       if (trade.PositionClose(PositionGetSymbol(i))) i--;
    }
    return true;
+}
+
+string OnRequest(string json)
+{
+   string response = "";
+
+   JSONParser *parser = new JSONParser();
+   JSONValue *jv = parser.parse(json);
+   
+   if(jv == NULL) 
+   {   
+      PrintFormat("OnRequest [ERROR]: %d - %s", (string)parser.getErrorCode(), parser.getErrorMessage());
+   }
+   else
+   {
+      if(jv.isObject()) 
+      {
+         JSONObject *jo = jv;
+         int requestType = jo.getInt("RequestType");
+     
+         switch(requestType)
+         {
+            case 1: //CopyTicks
+               response = ExecuteRequest_CopyTicks(jo);
+               break;
+            default:
+               PrintFormat("OnRequest [WARNING]: Unknown request type %d", requestType);
+               response = CreateErrorResponse(-1, "Unknown request type");
+               break;
+        }
+      }
+      
+      delete jv;
+   }   
+   
+   delete parser;
+   
+   return response;
+}
+
+string CreateErrorResponse(int code, string message)
+{
+   JSONValue* jsonError;
+   if (code == 0)
+      jsonError = new JSONString("0");
+   else
+      jsonError = new JSONNumber((long)code);
+      
+   JSONObject *joResponse = new JSONObject();   
+   joResponse.put("ErrorCode", jsonError);
+   joResponse.put("ErrorMessage", new JSONString(message));
+   
+   string result = joResponse.toString();   
+   delete joResponse;   
+   return result; 
+}
+
+string CreateSuccessResponse(string responseName, JSONValue* responseBody)
+{
+   JSONObject *joResponse = new JSONObject();
+   joResponse.put("ErrorCode", new JSONString("0"));
+      
+   if (responseBody != NULL)
+   {
+      joResponse.put(responseName, responseBody);   
+   }
+   
+   string result = joResponse.toString();   
+   delete joResponse;   
+   return result;
+}
+
+JSONObject* Serialize(MqlTick& tick)
+{
+    JSONObject *jo = new JSONObject();
+    jo.put("MtTime", new JSONNumber(tick.time));
+    jo.put("bid", new JSONNumber(tick.bid));
+    jo.put("ask", new JSONNumber(tick.ask));
+    jo.put("last", new JSONNumber(tick.last));
+    jo.put("volume", new JSONNumber(tick.volume));
+    return jo;
+}
+
+string ExecuteRequest_CopyTicks(JSONObject *jo)
+{
+   if (jo.getValue("SymbolName") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter SymbolName");
+   if (jo.getValue("Flags") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Flags");
+   if (jo.getValue("From") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter From");
+   if (jo.getValue("Count") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Count");      
+
+   string symbol = jo.getString("SymbolName");
+   uint flags = jo.getInt("Flags");
+   int from = jo.getInt("From");
+   int count = jo.getInt("Count");
+   
+   MqlTick ticks[];
+   int received = CopyTicks(symbol, ticks, flags, from, count); 
+   if(received == -1)
+      return CreateErrorResponse(GetLastError(), "CopyTicks failed");
+   
+   JSONArray* jaTicks = new JSONArray();
+   for(int i = 0; i < received; i++)
+   {
+      jaTicks.put(i, Serialize(ticks[i]));
+   }
+        
+   return CreateSuccessResponse("Ticks", jaTicks);;
 }

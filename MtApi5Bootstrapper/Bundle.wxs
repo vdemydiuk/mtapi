@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
+  <?if $(var.Platform) = x64 ?>
+    <?define MsiSourceFileName="MtApi5Installer_x64.msi"?>
+    <?define VcRedistFileName="vc_redist.x64.exe"?>
+  <?else ?>
+    <?define MsiSourceFileName="MtApi5Installer_x86.msi"?>
+    <?define VcRedistFileName="vc_redist.x86.exe"?>
+  <?endif ?>
+
+  <?define ProductName="!(bind.packageName.MtApi5Msi)" ?>
+  <?define ProductVersion="!(bind.packageVersion.MtApi5Msi)" ?>
+  <?define Manufacturer="!(bind.packageManufacturer.MtApi5Msi)" ?>
+
+  <Bundle Name="$(var.ProductName) Bootstrapper"
+          Version="$(var.ProductVersion)"
+          Manufacturer="$(var.Manufacturer)"
+          UpgradeCode="1497e285-c228-490b-9638-565e118548fb">
+
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense">
+      <bal:WixStandardBootstrapperApplication LicenseFile="..\LICENSE.rtf"/>
+    </BootstrapperApplicationRef>
+
+    <Chain>
+      
+      <ExePackage SourceFile="..\vcredist\$(var.VcRedistFileName)"
+                  Name="Redist\$(var.VcRedistFileName)"
+                  Cache="no"
+                  Compressed="yes"
+                  InstallCommand="/install /quiet /norestart">
+        <!-- Ignore "Newer version installed" error -->
+        <ExitCode Value="1638" Behavior="success"/>
+      </ExePackage>
+      
+      <MsiPackage Id="MtApi5Msi"
+                  SourceFile="..\build\installers\$(var.Configuration)\$(var.MsiSourceFileName)"
+                  Visible="yes"
+                  DisplayInternalUI="yes" />
+    
+    </Chain>
+  </Bundle>
+</Wix>

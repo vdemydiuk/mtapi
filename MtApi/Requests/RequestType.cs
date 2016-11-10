@@ -11,6 +11,7 @@
         OrderDelete     = 6,
         OrderModify     = 7,
         iCustom         = 8,
-        CopyRates       = 9
+        CopyRates       = 9,
+        Session         = 10,
     }
 }

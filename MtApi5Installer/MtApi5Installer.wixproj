@@ -6,7 +6,7 @@
     <ProductVersion>3.6</ProductVersion>
     <ProjectGuid>{a9ed070f-ab4d-4380-9dde-5d931ac71333}</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>MtApi5Installer</OutputName>
+    <OutputName>MtApi5Installer_$(Platform)</OutputName>
     <OutputType>Package</OutputType>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
@@ -22,11 +22,11 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
     <DefineConstants>Debug</DefineConstants>
-    <OutputPath>..\build\installers\$(Configuration)\x64\</OutputPath>
+    <OutputPath>..\build\installers\$(Configuration)</OutputPath>
     <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
-    <OutputPath>..\build\installers\$(Configuration)\x64\</OutputPath>
+    <OutputPath>..\build\installers\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
   <ItemGroup>

@@ -195,6 +195,12 @@ namespace MtApi
         MtRequest                           = 155,
 
         //Backtesting
-        BacktestingReady                    = 156
+        BacktestingReady                    = 156,
+
+        //Symbols
+        SymbolsTotal                        = 200,
+        SymbolName                          = 201,
+        SymbolSelect                        = 202,
+        SymbolInfoInteger                   = 203
     }
 }

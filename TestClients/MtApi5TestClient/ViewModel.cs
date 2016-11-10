@@ -31,6 +31,7 @@ namespace MtApi5TestClient
         public DelegateCommand CopyTickVolumeCommand { get; private set; }
         public DelegateCommand CopyRealVolumeCommand { get; private set; }
         public DelegateCommand CopySpreadCommand { get; private set; }
+        public DelegateCommand CopyTicksCommand { get; private set; }
 
         public DelegateCommand SymbolsTotalCommand { get; private set; }
         public DelegateCommand SymbolNameCommand { get; private set; }
@@ -207,7 +208,8 @@ namespace MtApi5TestClient
             CopyTickVolumeCommand = new DelegateCommand(ExecuteCopyTickVolume);
             CopyRealVolumeCommand = new DelegateCommand(ExecuteCopyRealVolume);
             CopySpreadCommand = new DelegateCommand(ExecuteCopySpread);
-            
+            CopyTicksCommand = new DelegateCommand(ExecuteCopyTicks);
+
             SymbolsTotalCommand = new DelegateCommand(ExecuteSymbolsTotal);
             SymbolNameCommand = new DelegateCommand(ExecuteSymbolName);
             SymbolSelectCommand = new DelegateCommand(ExecuteSymbolSelect);
@@ -567,6 +569,32 @@ namespace MtApi5TestClient
             });
 
             AddLog("CopySpread: success");
+        }
+
+        private async void ExecuteCopyTicks(object o)
+        {
+            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
+
+            TimeSeriesResults.Clear();
+
+            var result = await Execute(() => _mtApiClient.CopyTicks(TimeSeriesValues.SymbolValue));
+
+            if (result == null)
+            {
+                AddLog("CopyTicks: result is null");
+                return;
+            }
+
+            AddLog("CopyTicks: success.");
+
+            RunOnUiThread(() =>
+            {
+                foreach (var v in result)
+                {
+                    var tickStr = $"time = {v.time}, bid = {v.bid}, ask = {v.ask}, last = {v.last}, volume = {v.volume}";
+                    TimeSeriesResults.Add(tickStr);
+                }
+            });
         }
 
         private async void ExecuteSymbolsTotal(object o)
