@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <?define ProductName="MtApi" ?>
-    <?define ProductVersion="1.0.31" ?>
+    <?define ProductVersion=!(bind.FileVersion.MtApi.dll) ?>
     <?define Manufacturer="DW"?>
     <?define ProductPath="..\build\products\$(var.Configuration)\"?>
   
@@ -11,15 +11,17 @@
            Version="$(var.ProductVersion)" 
            Manufacturer="$(var.Manufacturer)" 
            UpgradeCode="4107F5F4-7300-4B45-88CE-63929AF228FA">
-		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
-		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-		<MediaTemplate EmbedCab="yes" />
+    <WixVariable Id="WixUILicenseRtf" Value="..\LICENSE.rtf" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
 
         <Feature Id="MtApi" Title="$(var.ProductName)" Level="1">
           <ComponentGroupRef Id="MtApiComponents"/>
         </Feature>
-    
+
         <Feature Id="MTConnector" Title="MT Connector" Level="1">
           <ComponentGroupRef Id="MTConnectorComponents"/>
         </Feature>
@@ -35,18 +37,18 @@
         </InstallExecuteSequence>
     </Product>
 
-	<Fragment>
-		<Directory Id="TARGETDIR" Name="SourceDir">
-			<Directory Id="ProgramFilesFolder">
-				<Directory Id="INSTALLFOLDER" Name="$(var.ProductName)">
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="$(var.ProductName)">
 
-          <Directory Id="ExpertFolder" Name="Experts">                        
+          <Directory Id="ExpertFolder" Name="Experts">
           </Directory>
           
           <Directory Id="GAC" Name="GAC">
           </Directory>
-          
-         </Directory>        
+
+         </Directory>
       </Directory>
 
       <Directory Id="SystemFolder">
@@ -57,7 +59,7 @@
         </Directory>
       </Directory>
 
-    </Directory>   
+    </Directory>
   </Fragment>
 
     <Fragment>
@@ -66,7 +68,7 @@
             <Component Id="MtApiDll" Directory="INSTALLFOLDER">
                 <File Id="MtApi.dll" Name="MtApi.dll" KeyPath="yes"
                     Source="$(var.ProductPath)MtApi.dll" />
-        
+
                 <RegistryKey Root="HKLM"
                     Key="Software\Microsoft\.NetFramework\v4.0.30319\AssemblyFoldersEx\$(var.ProductName)"
                     Action="createAndRemoveOnUninstall">
@@ -78,7 +80,7 @@
                 <File Id="GAC_MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
                     src="$(var.ProductPath)MTApiService.dll"/>
             </Component>-->
-          
+
             <Component Id="NewtonsoftJsondll" Directory="INSTALLFOLDER">
                 <File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" KeyPath="yes"
                     src="$(var.ProductPath)Newtonsoft.Json.dll"/>
@@ -87,7 +89,7 @@
             <Component Id="MtApiExpert" Directory="ExpertFolder">
                 <File Id="MtApi.ex4" Name="MtApi.ex4" KeyPath="yes"
                     Source="..\mq4\MtApi.ex4" />
-            </Component>        
+            </Component>
 
             <Component Id="AppShortcutConnMgr" Guid="*" Directory="ApplicationProgramsFolder">
                 <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
