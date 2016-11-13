@@ -1,6 +1,6 @@
 ﻿namespace MtApi.Responses
 {
-    public class SessionResponse : ResponseBase
+    internal class SessionResponse : ResponseBase
     {
         public MtSession Session { get; set; }
     }

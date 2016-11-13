@@ -1,6 +1,6 @@
 ﻿namespace MtApi.Requests
 {
-    public class OrderModifyRequest: RequestBase
+    internal class OrderModifyRequest: RequestBase
     {
         public int Ticket { get; set; }
         public double Price { get; set; }
@@ -10,9 +10,6 @@
 
         public int? ArrowColor { get; set; }
 
-        public override RequestType RequestType
-        {
-            get { return RequestType.OrderModify; }
-        }
+        public override RequestType RequestType => RequestType.OrderModify;
     }
 }

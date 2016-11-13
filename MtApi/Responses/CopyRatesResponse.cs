@@ -2,7 +2,7 @@
 
 namespace MtApi.Responses
 {
-    public class CopyRatesResponse: ResponseBase
+    internal class CopyRatesResponse: ResponseBase
     {
         public List<MqlRates> Rates { get; set; }
     }

@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MtApi.Requests
+﻿namespace MtApi.Requests
 {
-    public abstract class CopyRatesRequestBase : RequestBase
+    internal abstract class CopyRatesRequestBase : RequestBase
     {
         public enum CopyRatesTypeEnum
         {
@@ -15,10 +9,7 @@ namespace MtApi.Requests
             CopyRates_3 = 3,
         }
 
-        public override RequestType RequestType
-        {
-            get { return RequestType.CopyRates; }
-        }
+        public override RequestType RequestType => RequestType.CopyRates;
 
         public abstract CopyRatesTypeEnum CopyRatesType { get; }
 
@@ -26,34 +17,25 @@ namespace MtApi.Requests
         public ENUM_TIMEFRAMES Timeframe { get; set; }
     }
 
-    public class CopyRates1Request : CopyRatesRequestBase
+    internal class CopyRates1Request : CopyRatesRequestBase
     {
-        public override CopyRatesTypeEnum CopyRatesType
-        {
-            get { return CopyRatesTypeEnum.CopyRates_1; }
-        }
+        public override CopyRatesTypeEnum CopyRatesType => CopyRatesTypeEnum.CopyRates_1;
 
         public int StartPos { get; set; }
         public int Count { get; set; }
     }
 
-    public class CopyRates2Request : CopyRatesRequestBase
+    internal class CopyRates2Request : CopyRatesRequestBase
     {
-        public override CopyRatesTypeEnum CopyRatesType
-        {
-            get { return CopyRatesTypeEnum.CopyRates_2; }
-        }
+        public override CopyRatesTypeEnum CopyRatesType => CopyRatesTypeEnum.CopyRates_2;
 
         public int StartTime { get; set; }
         public int Count { get; set; }
     }
 
-    public class CopyRates3Request : CopyRatesRequestBase
+    internal class CopyRates3Request : CopyRatesRequestBase
     {
-        public override CopyRatesTypeEnum CopyRatesType
-        {
-            get { return CopyRatesTypeEnum.CopyRates_3; }
-        }
+        public override CopyRatesTypeEnum CopyRatesType => CopyRatesTypeEnum.CopyRates_3;
 
         public int StartTime { get; set; }
         public int StopTime { get; set; }

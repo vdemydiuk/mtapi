@@ -1,6 +1,6 @@
 ﻿namespace MtApi.Requests
 {
-    public class OrderSendRequest: RequestBase
+    internal class OrderSendRequest: RequestBase
     {
         public string Symbol { get; set; }
         public int Cmd { get; set; }
@@ -15,9 +15,6 @@
         public int? Expiration { get; set; }
         public int? ArrowColor { get; set; }
 
-        public override RequestType RequestType
-        {
-            get { return RequestType.OrderSend; }
-        }
+        public override RequestType RequestType => RequestType.OrderSend;
     }
 }

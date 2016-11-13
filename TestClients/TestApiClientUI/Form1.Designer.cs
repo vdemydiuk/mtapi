@@ -154,6 +154,8 @@
             this.button28 = new System.Windows.Forms.Button();
             this.label28 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
+            this.button31 = new System.Windows.Forms.Button();
+            this.comboBox5 = new System.Windows.Forms.ComboBox();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -1109,6 +1111,8 @@
             // 
             // tabPage5
             // 
+            this.tabPage5.Controls.Add(this.comboBox5);
+            this.tabPage5.Controls.Add(this.button31);
             this.tabPage5.Controls.Add(this.dateTimePicker2);
             this.tabPage5.Controls.Add(this.dateTimePicker1);
             this.tabPage5.Controls.Add(this.label6);
@@ -1546,6 +1550,30 @@
             this.textBox1.TabIndex = 0;
             this.textBox1.Text = "EURUSD";
             // 
+            // button31
+            // 
+            this.button31.Location = new System.Drawing.Point(287, 298);
+            this.button31.Name = "button31";
+            this.button31.Size = new System.Drawing.Size(128, 23);
+            this.button31.TabIndex = 22;
+            this.button31.Text = "SeriesInfoInteger";
+            this.button31.UseVisualStyleBackColor = true;
+            this.button31.Click += new System.EventHandler(this.button31_Click);
+            // 
+            // comboBox5
+            // 
+            this.comboBox5.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox5.FormattingEnabled = true;
+            this.comboBox5.Items.AddRange(new object[] {
+            "SERIES_BARS_COUNT",
+            "SERIES_FIRSTDATE",
+            "SERIES_LASTBAR_DATE",
+            "SERIES_SERVER_FIRSTDATE"});
+            this.comboBox5.Location = new System.Drawing.Point(160, 298);
+            this.comboBox5.Name = "comboBox5";
+            this.comboBox5.Size = new System.Drawing.Size(121, 21);
+            this.comboBox5.TabIndex = 23;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1718,6 +1746,8 @@
         private System.Windows.Forms.Button button30;
         private System.Windows.Forms.Button button32;
         private System.Windows.Forms.ComboBox comboBox4;
+        private System.Windows.Forms.Button button31;
+        private System.Windows.Forms.ComboBox comboBox5;
     }
 }
 

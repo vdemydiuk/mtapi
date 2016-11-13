@@ -1,10 +1,8 @@
-﻿
-using System;
-using System.Collections;
+﻿using System.Collections;
 
 namespace MtApi.Requests
 {
-    public class ICustomRequest : RequestBase
+    internal class ICustomRequest : RequestBase
     {
         public enum ParametersType
         {
@@ -22,9 +20,6 @@ namespace MtApi.Requests
         public ArrayList Params { get; set; }
         public ParametersType ParamsType { get; set; }
 
-        public override RequestType RequestType
-        {
-            get { return RequestType.iCustom; }
-        }
+        public override RequestType RequestType => RequestType.iCustom;
     }
 }

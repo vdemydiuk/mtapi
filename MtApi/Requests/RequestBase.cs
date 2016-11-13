@@ -1,8 +1,6 @@
-﻿using Newtonsoft.Json;
-
-namespace MtApi.Requests
+﻿namespace MtApi.Requests
 {
-    public abstract class RequestBase
+    internal abstract class RequestBase
     {
         public abstract RequestType RequestType { get; }
     }

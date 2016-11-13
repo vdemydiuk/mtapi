@@ -1,6 +1,6 @@
 ﻿namespace MtApi.Responses
 {
-    public class GetOrderResponse: ResponseBase
+    internal class GetOrderResponse: ResponseBase
     {
         public MtOrder Order { get; set; }
     }

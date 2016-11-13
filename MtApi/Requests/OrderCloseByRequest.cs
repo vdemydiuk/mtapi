@@ -1,15 +1,12 @@
 ﻿namespace MtApi.Requests
 {
-    public class OrderCloseByRequest: RequestBase
+    internal class OrderCloseByRequest: RequestBase
     {
         public int Ticket { get; set; }
         public int Opposite { get; set; }
 
         public int? ArrowColor { get; set; }
 
-        public override RequestType RequestType
-        {
-            get { return RequestType.OrderCloseBy; }
-        }
+        public override RequestType RequestType => RequestType.OrderCloseBy;
     }
 }

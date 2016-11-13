@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChartPeriod.cs" />
+    <Compile Include="EnumSeriesInfoInteger.cs" />
     <Compile Include="EnumSymbolInfoInteger.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Monitors\AvailabilityOrdersEventArgs.cs" />
@@ -92,6 +93,7 @@
     <Compile Include="Requests\OrderDeleteRequest.cs" />
     <Compile Include="Requests\OrderModifyRequest.cs" />
     <Compile Include="Requests\OrderSendRequest.cs" />
+    <Compile Include="Requests\SeriesInfoIntegerRequest.cs" />
     <Compile Include="Requests\SessionRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />
     <Compile Include="Requests\RequestType.cs" />
@@ -100,6 +102,7 @@
     <Compile Include="Responses\GetOrdersResponse.cs" />
     <Compile Include="Responses\ICustomResponse.cs" />
     <Compile Include="Responses\OrderSendResponse.cs" />
+    <Compile Include="Responses\SeriesInfoIntegerResponse.cs" />
     <Compile Include="Responses\SessionResponse.cs" />
     <Compile Include="Responses\ResponseBase.cs" />
     <Compile Include="SeriesIdentifier.cs" />

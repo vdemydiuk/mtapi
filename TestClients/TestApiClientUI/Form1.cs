@@ -39,7 +39,9 @@ namespace TestApiClientUI
 
             comboBox1.SelectedIndex = 0;
             comboBox2.SelectedIndex = 0;
+            comboBox3.SelectedIndex = 0;
             comboBox4.SelectedIndex = 0;
+            comboBox5.SelectedIndex = 0;
 
             _timerTradeMonitor = new TimerTradeMonitor(_apiClient) { Interval = 10000 }; // 10 sec
             _timerTradeMonitor.AvailabilityOrdersChanged += _tradeMonitor_AvailabilityOrdersChanged;
@@ -1220,6 +1222,19 @@ namespace TestApiClientUI
             {
                 AddToLog($"{sender.GetType()}: Closed orders - {string.Join(", ", e.Closed.Select(o => o.Ticket).ToList())}");
             }
+        }
+
+        //SeriesInfoInteger
+        private async void button31_Click(object sender, EventArgs e)
+        {
+            var symbol = textBoxSelectedSymbol.Text;
+            ENUM_TIMEFRAMES timeframes;
+            Enum.TryParse(comboBox3.Text, out timeframes);
+            EnumSeriesInfoInteger propId;
+            Enum.TryParse(comboBox5.Text, out propId);
+
+            var result = await Execute(() => _apiClient.SeriesInfoInteger(symbol, timeframes, propId));
+            AddToLog($"SeriesInfoInteger: result = {result}");
         }
     }
 }

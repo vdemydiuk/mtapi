@@ -13,7 +13,7 @@ namespace MtApi.Monitors
         #endregion
 
         #region ctor
-        public TradeMonitor(MtApiClient apiClient)
+        protected TradeMonitor(MtApiClient apiClient)
         {
             if (apiClient == null)
                 throw new ArgumentNullException(nameof(apiClient));
@@ -73,13 +73,7 @@ namespace MtApi.Monitors
         protected abstract void OnMtConnected();
         protected abstract void OnMtDisconnected();
 
-        public bool IsMtConnected
-        {
-            get
-            {
-                return _apiClient.ConnectionState == MtConnectionState.Connected;
-            }
-        }
+        public bool IsMtConnected => _apiClient.ConnectionState == MtConnectionState.Connected;
 
         protected void Check()
         {
@@ -113,12 +107,12 @@ namespace MtApi.Monitors
                 prevOrders = _prevOrders;
             }
 
-            if (_prevOrders != null) //skip checking on first load orders
+            if (prevOrders != null) //skip checking on first load orders
             {
                 //check open orders
                 foreach (var order in tradesOrders)
                 {
-                    if (_prevOrders.Find(a => a.Ticket == order.Ticket) == null)
+                    if (prevOrders.Find(a => a.Ticket == order.Ticket) == null)
                     {
                         openedOrders.Add(order);
                     }
@@ -126,7 +120,7 @@ namespace MtApi.Monitors
 
                 //check closed orders
                 var closeOrdersTemp = new List<MtOrder>();
-                foreach (var order in _prevOrders)
+                foreach (var order in prevOrders)
                 {
                     if (tradesOrders.Find(a => a.Ticket == order.Ticket) == null)
                     {
@@ -180,10 +174,7 @@ namespace MtApi.Monitors
                 _prevOrders = null;
             }
 
-            Task.Factory.StartNew(() =>
-            {
-                Check();
-            });
+            Task.Factory.StartNew(Check);
         }
         #endregion
     }

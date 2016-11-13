@@ -1,6 +1,6 @@
 ﻿namespace MtApi.Responses
 {
-    public class ResponseBase
+    internal class ResponseBase
     {
         public int ErrorCode { get; set; }
         public string ErrorMessage { get; set; }

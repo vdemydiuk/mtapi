@@ -4,7 +4,7 @@ namespace MtApi.Monitors
     public class TimeframeTradeMonitor : TradeMonitor
     {
         #region Fields
-        private volatile bool _isStarted = false;
+        private volatile bool _isStarted;
         #endregion
 
         #region ctor
@@ -23,13 +23,8 @@ namespace MtApi.Monitors
         // Returns:
         //     true if PositionMonitor should check orders
         //     otherwise, false.
-        public override bool IsStarted
-        {
-            get
-            {
-                return _isStarted;
-            }
-        }
+        public override bool IsStarted => _isStarted;
+
         #endregion
 
         #region Protected Methods

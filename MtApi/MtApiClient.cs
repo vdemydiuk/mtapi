@@ -1466,6 +1466,18 @@ namespace MtApi
             return response?.Rates;
         }
 
+        public long SeriesInfoInteger(string symbolName, ENUM_TIMEFRAMES timeframe, EnumSeriesInfoInteger propId)
+        {
+            var response = SendRequest<SeriesInfoIntegerResponse>(new SeriesInfoIntegerRequest
+            {
+                SymbolName = symbolName,
+                Timeframe = (int)timeframe,
+                PropId = (int)propId
+            });
+
+            return response?.Value ?? 0;
+        }
+
         #endregion
 
         #region Checkup
