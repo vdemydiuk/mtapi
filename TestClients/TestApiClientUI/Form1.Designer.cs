@@ -110,9 +110,12 @@
             this.listBoxAccountInfo = new System.Windows.Forms.ListBox();
             this.button4 = new System.Windows.Forms.Button();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.comboBox6 = new System.Windows.Forms.ComboBox();
+            this.label29 = new System.Windows.Forms.Label();
+            this.comboBox5 = new System.Windows.Forms.ComboBox();
+            this.button31 = new System.Windows.Forms.Button();
             this.txtMarketInfoSymbol = new System.Windows.Forms.TextBox();
             this.button5 = new System.Windows.Forms.Button();
-            this.listBoxMarketInfo = new System.Windows.Forms.ListBox();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.dateTimePicker2 = new System.Windows.Forms.DateTimePicker();
             this.dateTimePicker1 = new System.Windows.Forms.DateTimePicker();
@@ -154,8 +157,10 @@
             this.button28 = new System.Windows.Forms.Button();
             this.label28 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
-            this.button31 = new System.Windows.Forms.Button();
-            this.comboBox5 = new System.Windows.Forms.ComboBox();
+            this.comboBox7 = new System.Windows.Forms.ComboBox();
+            this.button33 = new System.Windows.Forms.Button();
+            this.label30 = new System.Windows.Forms.Label();
+            this.comboBox8 = new System.Windows.Forms.ComboBox();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -1038,9 +1043,16 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.comboBox8);
+            this.tabPage4.Controls.Add(this.label30);
+            this.tabPage4.Controls.Add(this.button33);
+            this.tabPage4.Controls.Add(this.comboBox7);
+            this.tabPage4.Controls.Add(this.comboBox6);
+            this.tabPage4.Controls.Add(this.label29);
+            this.tabPage4.Controls.Add(this.comboBox5);
+            this.tabPage4.Controls.Add(this.button31);
             this.tabPage4.Controls.Add(this.txtMarketInfoSymbol);
             this.tabPage4.Controls.Add(this.button5);
-            this.tabPage4.Controls.Add(this.listBoxMarketInfo);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
@@ -1049,70 +1061,67 @@
             this.tabPage4.Text = "MarketInfo";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // comboBox6
+            // 
+            this.comboBox6.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox6.FormattingEnabled = true;
+            this.comboBox6.Location = new System.Drawing.Point(229, 10);
+            this.comboBox6.Name = "comboBox6";
+            this.comboBox6.Size = new System.Drawing.Size(121, 21);
+            this.comboBox6.TabIndex = 27;
+            // 
+            // label29
+            // 
+            this.label29.AutoSize = true;
+            this.label29.Location = new System.Drawing.Point(164, 13);
+            this.label29.Name = "label29";
+            this.label29.Size = new System.Drawing.Size(59, 13);
+            this.label29.TabIndex = 26;
+            this.label29.Text = "TimeFrame";
+            // 
+            // comboBox5
+            // 
+            this.comboBox5.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox5.FormattingEnabled = true;
+            this.comboBox5.Items.AddRange(new object[] {
+            "SERIES_BARS_COUNT",
+            "SERIES_FIRSTDATE",
+            "SERIES_LASTBAR_DATE",
+            "SERIES_SERVER_FIRSTDATE"});
+            this.comboBox5.Location = new System.Drawing.Point(13, 74);
+            this.comboBox5.Name = "comboBox5";
+            this.comboBox5.Size = new System.Drawing.Size(186, 21);
+            this.comboBox5.TabIndex = 25;
+            // 
+            // button31
+            // 
+            this.button31.Location = new System.Drawing.Point(208, 74);
+            this.button31.Name = "button31";
+            this.button31.Size = new System.Drawing.Size(111, 23);
+            this.button31.TabIndex = 24;
+            this.button31.Text = "SeriesInfoInteger";
+            this.button31.UseVisualStyleBackColor = true;
+            this.button31.Click += new System.EventHandler(this.button31_Click);
+            // 
             // txtMarketInfoSymbol
             // 
-            this.txtMarketInfoSymbol.Location = new System.Drawing.Point(208, 6);
+            this.txtMarketInfoSymbol.Location = new System.Drawing.Point(57, 10);
             this.txtMarketInfoSymbol.Name = "txtMarketInfoSymbol";
             this.txtMarketInfoSymbol.Size = new System.Drawing.Size(100, 20);
             this.txtMarketInfoSymbol.TabIndex = 7;
             // 
             // button5
             // 
-            this.button5.Location = new System.Drawing.Point(16, 328);
+            this.button5.Location = new System.Drawing.Point(208, 45);
             this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(186, 23);
+            this.button5.Size = new System.Drawing.Size(111, 23);
             this.button5.TabIndex = 6;
-            this.button5.Text = "Execute";
+            this.button5.Text = "MarketInfo";
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
-            // listBoxMarketInfo
-            // 
-            this.listBoxMarketInfo.FormattingEnabled = true;
-            this.listBoxMarketInfo.Items.AddRange(new object[] {
-            "",
-            "MODE_LOW",
-            "MODE_HIGH",
-            "",
-            "",
-            "MODE_TIME",
-            "",
-            "",
-            "",
-            "MODE_BID",
-            "MODE_ASK",
-            "MODE_POINT",
-            "MODE_DIGITS",
-            "MODE_SPREAD",
-            "MODE_STOPLEVEL",
-            "MODE_LOTSIZE",
-            "MODE_TICKVALUE",
-            "MODE_TICKSIZE",
-            "MODE_SWAPLONG",
-            "MODE_SWAPSHORT",
-            "MODE_STARTING",
-            "MODE_EXPIRATION",
-            "MODE_TRADEALLOWED",
-            "MODE_MINLOT",
-            "MODE_LOTSTEP",
-            "MODE_MAXLOT",
-            "MODE_SWAPTYPE",
-            "MODE_PROFITCALCMODE",
-            "MODE_MARGINCALCMODE",
-            "MODE_MARGININIT",
-            "MODE_MARGINMAINTENANCE",
-            "MODE_MARGINHEDGED",
-            "MODE_MARGINREQUIRED",
-            "MODE_FREEZELEVEL"});
-            this.listBoxMarketInfo.Location = new System.Drawing.Point(16, 6);
-            this.listBoxMarketInfo.Name = "listBoxMarketInfo";
-            this.listBoxMarketInfo.Size = new System.Drawing.Size(186, 316);
-            this.listBoxMarketInfo.TabIndex = 5;
-            // 
             // tabPage5
             // 
-            this.tabPage5.Controls.Add(this.comboBox5);
-            this.tabPage5.Controls.Add(this.button31);
             this.tabPage5.Controls.Add(this.dateTimePicker2);
             this.tabPage5.Controls.Add(this.dateTimePicker1);
             this.tabPage5.Controls.Add(this.label6);
@@ -1550,29 +1559,42 @@
             this.textBox1.TabIndex = 0;
             this.textBox1.Text = "EURUSD";
             // 
-            // button31
+            // comboBox7
             // 
-            this.button31.Location = new System.Drawing.Point(287, 298);
-            this.button31.Name = "button31";
-            this.button31.Size = new System.Drawing.Size(128, 23);
-            this.button31.TabIndex = 22;
-            this.button31.Text = "SeriesInfoInteger";
-            this.button31.UseVisualStyleBackColor = true;
-            this.button31.Click += new System.EventHandler(this.button31_Click);
+            this.comboBox7.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox7.FormattingEnabled = true;
+            this.comboBox7.Location = new System.Drawing.Point(13, 101);
+            this.comboBox7.Name = "comboBox7";
+            this.comboBox7.Size = new System.Drawing.Size(186, 21);
+            this.comboBox7.TabIndex = 28;
             // 
-            // comboBox5
+            // button33
             // 
-            this.comboBox5.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBox5.FormattingEnabled = true;
-            this.comboBox5.Items.AddRange(new object[] {
-            "SERIES_BARS_COUNT",
-            "SERIES_FIRSTDATE",
-            "SERIES_LASTBAR_DATE",
-            "SERIES_SERVER_FIRSTDATE"});
-            this.comboBox5.Location = new System.Drawing.Point(160, 298);
-            this.comboBox5.Name = "comboBox5";
-            this.comboBox5.Size = new System.Drawing.Size(121, 21);
-            this.comboBox5.TabIndex = 23;
+            this.button33.Location = new System.Drawing.Point(208, 99);
+            this.button33.Name = "button33";
+            this.button33.Size = new System.Drawing.Size(111, 23);
+            this.button33.TabIndex = 29;
+            this.button33.Text = "SymbolInfoDouble";
+            this.button33.UseVisualStyleBackColor = true;
+            this.button33.Click += new System.EventHandler(this.button33_Click);
+            // 
+            // label30
+            // 
+            this.label30.AutoSize = true;
+            this.label30.Location = new System.Drawing.Point(10, 13);
+            this.label30.Name = "label30";
+            this.label30.Size = new System.Drawing.Size(41, 13);
+            this.label30.TabIndex = 30;
+            this.label30.Text = "Symbol";
+            // 
+            // comboBox8
+            // 
+            this.comboBox8.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox8.FormattingEnabled = true;
+            this.comboBox8.Location = new System.Drawing.Point(13, 47);
+            this.comboBox8.Name = "comboBox8";
+            this.comboBox8.Size = new System.Drawing.Size(186, 21);
+            this.comboBox8.TabIndex = 31;
             // 
             // Form1
             // 
@@ -1687,7 +1709,6 @@
         private System.Windows.Forms.Label label24;
         private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.Button button5;
-        private System.Windows.Forms.ListBox listBoxMarketInfo;
         private System.Windows.Forms.TextBox txtMarketInfoSymbol;
         private System.Windows.Forms.TabPage tabPage5;
         private System.Windows.Forms.Button button6;
@@ -1746,8 +1767,14 @@
         private System.Windows.Forms.Button button30;
         private System.Windows.Forms.Button button32;
         private System.Windows.Forms.ComboBox comboBox4;
-        private System.Windows.Forms.Button button31;
         private System.Windows.Forms.ComboBox comboBox5;
+        private System.Windows.Forms.Button button31;
+        private System.Windows.Forms.ComboBox comboBox6;
+        private System.Windows.Forms.Label label29;
+        private System.Windows.Forms.ComboBox comboBox7;
+        private System.Windows.Forms.Button button33;
+        private System.Windows.Forms.Label label30;
+        private System.Windows.Forms.ComboBox comboBox8;
     }
 }
 

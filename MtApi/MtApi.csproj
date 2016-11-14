@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="ChartPeriod.cs" />
     <Compile Include="EnumSeriesInfoInteger.cs" />
+    <Compile Include="EnumSymbolInfoDouble.cs" />
     <Compile Include="EnumSymbolInfoInteger.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Monitors\AvailabilityOrdersEventArgs.cs" />
@@ -97,6 +98,7 @@
     <Compile Include="Requests\SessionRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />
     <Compile Include="Requests\RequestType.cs" />
+    <Compile Include="Requests\SymbolInfoDoubleRequest.cs" />
     <Compile Include="Responses\CopyRatesResponse.cs" />
     <Compile Include="Responses\GetOrderResponse.cs" />
     <Compile Include="Responses\GetOrdersResponse.cs" />
@@ -105,6 +107,7 @@
     <Compile Include="Responses\SeriesInfoIntegerResponse.cs" />
     <Compile Include="Responses\SessionResponse.cs" />
     <Compile Include="Responses\ResponseBase.cs" />
+    <Compile Include="Responses\SymbolInfoDoubleResponse.cs" />
     <Compile Include="SeriesIdentifier.cs" />
     <Compile Include="TimeBarArgs.cs" />
     <Compile Include="Monitors\TimeframeTradeMonitor.cs" />

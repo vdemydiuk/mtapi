@@ -658,63 +658,6 @@ namespace MtApi
 
         #endregion
 
-        #region Symbols
-        ///<summary>
-        ///Returns the number of available (selected in Market Watch or all) symbols.
-        ///</summary>
-        ///<param name="selected">Request mode. Can be true or false.</param>
-        ///<returns>
-        ///If the 'selected' parameter is true, the function returns the number of symbols selected in MarketWatch. If the value is false, it returns the total number of all symbols.
-        ///</returns>
-        public int SymbolsTotal(bool selected)
-        {
-            var commandParameters = new ArrayList { selected };
-            return SendCommand<int>(MtCommandType.SymbolsTotal, commandParameters);
-        }
-
-        ///<summary>
-        ///Returns the name of a symbol.
-        ///</summary>
-        ///<param name="pos">Order number of a symbol.</param>
-        ///<param name="selected">Request mode. If the value is true, the symbol is taken from the list of symbols selected in MarketWatch. If the value is false, the symbol is taken from the general list.</param>
-        ///<returns>
-        ///Value of string type with the symbol name.
-        ///</returns>
-        public string SymbolName(int pos, bool selected)
-        {
-            var commandParameters = new ArrayList { pos, selected };
-            return SendCommand<string>(MtCommandType.SymbolName, commandParameters);
-        }
-
-        ///<summary>
-        ///Selects a symbol in the Market Watch window or removes a symbol from the window.
-        ///</summary>
-        ///<param name="name">Symbol name</param>
-        ///<param name="select">Switch. If the value is false, a symbol should be removed from MarketWatch, otherwise a symbol should be selected in this window. A symbol can't be removed if the symbol chart is open, or there are open orders for this symbol.</param>
-        ///<returns>
-        ///In case of failure returns false.
-        ///</returns>
-        public bool SymbolSelect(string name, bool select)
-        {
-            var commandParameters = new ArrayList { name, select };
-            return SendCommand<bool>(MtCommandType.SymbolSelect, commandParameters);
-        }
-
-        ///<summary>
-        ///Returns the corresponding property of a specified symbol.
-        ///</summary>
-        ///<param name="name">Symbol name</param>
-        ///<param name="propId">Identifier of a symbol property. The value can be one of the values of the EnumSymbolInfoInteger enumeration</param>
-        ///<returns>
-        ///The value of long type.
-        ///</returns>
-        public long SymbolInfoInteger(string name, EnumSymbolInfoInteger propId)
-        {
-            var commandParameters = new ArrayList { name, (int)propId };
-            return SendCommand<long>(MtCommandType.SymbolInfoInteger, commandParameters);
-        }
-        #endregion
-
         #region Common Function
 
         public void Alert(string msg)
@@ -732,12 +675,6 @@ namespace MtApi
         public int GetTickCount()
         {
             return SendCommand<int>(MtCommandType.GetTickCount, null);
-        }
-
-        public double MarketInfo(string symbol, MarketInfoModeType type)
-        {
-            var commandParameters = new ArrayList { symbol, (int)type };
-            return SendCommand<double>(MtCommandType.MarketInfo, commandParameters);
         }
 
         public int MessageBox(string text, string caption, int flag)
@@ -1487,16 +1424,127 @@ namespace MtApi
             return SendCommand<string>(MtCommandType.TerminalInfoString, commandParameters);
         }
 
+        #endregion
+
+        #region Market Info
+
+        ///<summary>
+        ///Returns various data about securities listed in the "Market Watch" window.
+        ///</summary>
+        ///<param name="symbol">Symbol name.</param>
+        ///<param name="type">Request identifier that defines the type of information to be returned. Can be any of values of request identifiers.</param>
+        ///<returns>
+        ///Returns various data about securities listed in the "Market Watch" window.
+        ///</returns>
+        public double MarketInfo(string symbol, MarketInfoModeType type)
+        {
+            var commandParameters = new ArrayList { symbol, (int)type };
+            return SendCommand<double>(MtCommandType.MarketInfo, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the number of available (selected in Market Watch or all) symbols.
+        ///</summary>
+        ///<param name="selected">Request mode. Can be true or false.</param>
+        ///<returns>
+        ///If the 'selected' parameter is true, the function returns the number of symbols selected in MarketWatch. If the value is false, it returns the total number of all symbols.
+        ///</returns>
+        public int SymbolsTotal(bool selected)
+        {
+            var commandParameters = new ArrayList { selected };
+            return SendCommand<int>(MtCommandType.SymbolsTotal, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the name of a symbol.
+        ///</summary>
+        ///<param name="pos">Order number of a symbol.</param>
+        ///<param name="selected">Request mode. If the value is true, the symbol is taken from the list of symbols selected in MarketWatch. If the value is false, the symbol is taken from the general list.</param>
+        ///<returns>
+        ///Value of string type with the symbol name.
+        ///</returns>
+        public string SymbolName(int pos, bool selected)
+        {
+            var commandParameters = new ArrayList { pos, selected };
+            return SendCommand<string>(MtCommandType.SymbolName, commandParameters);
+        }
+
+        ///<summary>
+        ///Selects a symbol in the Market Watch window or removes a symbol from the window.
+        ///</summary>
+        ///<param name="name">Symbol name</param>
+        ///<param name="select">Switch. If the value is false, a symbol should be removed from MarketWatch, otherwise a symbol should be selected in this window. A symbol can't be removed if the symbol chart is open, or there are open orders for this symbol.</param>
+        ///<returns>
+        ///In case of failure returns false.
+        ///</returns>
+        public bool SymbolSelect(string name, bool select)
+        {
+            var commandParameters = new ArrayList { name, select };
+            return SendCommand<bool>(MtCommandType.SymbolSelect, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the corresponding property of a specified symbol.
+        ///</summary>
+        ///<param name="name">Symbol name</param>
+        ///<param name="propId">Identifier of a symbol property. The value can be one of the values of the EnumSymbolInfoInteger enumeration</param>
+        ///<returns>
+        ///The value of long type.
+        ///</returns>
+        public long SymbolInfoInteger(string name, EnumSymbolInfoInteger propId)
+        {
+            var commandParameters = new ArrayList { name, (int)propId };
+            return SendCommand<long>(MtCommandType.SymbolInfoInteger, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the corresponding property of a specified symbol.
+        ///</summary>
+        ///<param name="name">Symbol name</param>
+        ///<param name="propId">Identifier of a symbol property. The value can be one of the values of the ENUM_SYMBOL_INFO_STRING enumeration.</param>
+        ///<returns>
+        ///The value of string type.
+        ///</returns>
         public string SymbolInfoString(string name, ENUM_SYMBOL_INFO_STRING propId)
         {
             var commandParameters = new ArrayList { name, (int)propId };
-            return SendCommand<string>(MtCommandType.SymbolInfoString, commandParameters); ;
+            return SendCommand<string>(MtCommandType.SymbolInfoString, commandParameters);
         }
 
+        ///<summary>
+        ///Allows receiving time of beginning and end of the specified quoting/trading  sessions for a specified symbol and day of week.
+        /// 
+        ///</summary>
+        ///<param name="symbol">Symbol name.</param>
+        ///<param name="dayOfWeek">Day of the week.</param>
+        ///<param name="index">Ordinal number of a session, whose beginning and end time we want to receive. Indexing of sessions starts with 0.</param>
+        ///<param name="type">Session type: Quote, Trade</param>
+        ///<returns>
+        ///The value session.
+        ///</returns>
         public MtSession SymbolInfoSession(string symbol, DayOfWeek dayOfWeek, uint index, SessionType type)
         {
             var responce = SendRequest<SessionResponse>(new SessionRequest { Symbol = symbol, DayOfWeek = dayOfWeek, SessionIndex = (int)index, SessionType = type });
-            return responce != null ? responce.Session : null;
+            return responce?.Session;
+        }
+
+        ///<summary>
+        ///Returns the corresponding property of a specified symbol.
+        ///</summary>
+        ///<param name="symbolName">Symbol name.</param>
+        ///<param name="propId">Identifier of a symbol property. The value can be one of the values of the ENUM_SYMBOL_INFO_DOUBLE enumeration.</param>
+        /// <returns>
+        /// The value of double type.
+        /// </returns>
+        public double SymbolInfoDouble(string symbolName, EnumSymbolInfoDouble propId)
+        {
+            var response = SendRequest<SymbolInfoDoubleResponse>(new SymbolInfoDoubleRequest
+            {
+                SymbolName = symbolName,
+                PropId = (int)propId
+            });
+
+            return response?.Value ?? 0;
         }
         #endregion
 

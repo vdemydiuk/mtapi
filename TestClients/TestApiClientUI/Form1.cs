@@ -28,6 +28,9 @@ namespace TestApiClientUI
             InitializeComponent();
 
             comboBox3.DataSource = Enum.GetNames(typeof(ENUM_TIMEFRAMES));
+            comboBox6.DataSource = Enum.GetNames(typeof(ENUM_TIMEFRAMES));
+            comboBox7.DataSource = Enum.GetNames(typeof(EnumSymbolInfoDouble));
+            comboBox8.DataSource = Enum.GetNames(typeof(MarketInfoModeType));
 
             _apiClient.QuoteUpdated += apiClient_QuoteUpdated;
             _apiClient.QuoteAdded += apiClient_QuoteAdded;
@@ -721,12 +724,14 @@ namespace TestApiClientUI
             }
         }
 
-        private void button5_Click(object sender, EventArgs e)
+        //MarketInfo
+        private async void button5_Click(object sender, EventArgs e)
         {
-            if (listBoxMarketInfo.SelectedIndex < 0)
-                return;
+            var symbol = txtMarketInfoSymbol.Text;
+            MarketInfoModeType propId;
+            Enum.TryParse(comboBox8.Text, out propId);
 
-            var result = _apiClient.MarketInfo(txtMarketInfoSymbol.Text, (MarketInfoModeType)listBoxMarketInfo.SelectedIndex);
+            var result = await Execute(() => _apiClient.MarketInfo(symbol, propId));
             AddToLog($"MarketInfo result: {result}");
         }
 
@@ -1227,14 +1232,25 @@ namespace TestApiClientUI
         //SeriesInfoInteger
         private async void button31_Click(object sender, EventArgs e)
         {
-            var symbol = textBoxSelectedSymbol.Text;
+            var symbol = txtMarketInfoSymbol.Text;
             ENUM_TIMEFRAMES timeframes;
-            Enum.TryParse(comboBox3.Text, out timeframes);
+            Enum.TryParse(comboBox6.Text, out timeframes);
             EnumSeriesInfoInteger propId;
             Enum.TryParse(comboBox5.Text, out propId);
 
             var result = await Execute(() => _apiClient.SeriesInfoInteger(symbol, timeframes, propId));
             AddToLog($"SeriesInfoInteger: result = {result}");
+        }
+
+        //SymbolInfoDouble
+        private async void button33_Click(object sender, EventArgs e)
+        {
+            var symbol = txtMarketInfoSymbol.Text;
+            EnumSymbolInfoDouble propId;
+            Enum.TryParse(comboBox7.Text, out propId);
+
+            var result = await Execute(() => _apiClient.SymbolInfoDouble(symbol, propId));
+            AddToLog($"SymbolInfoDouble: result = {result}");
         }
     }
 }

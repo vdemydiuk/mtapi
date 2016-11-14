@@ -13,6 +13,7 @@
         iCustom             = 8,
         CopyRates           = 9,
         Session             = 10,
-        SeriesInfoInteger   = 11
+        SeriesInfoInteger   = 11,
+        SymbolInfoDouble    = 12
     }
 }
