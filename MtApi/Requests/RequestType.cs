@@ -14,6 +14,7 @@
         CopyRates           = 9,
         Session             = 10,
         SeriesInfoInteger   = 11,
-        SymbolInfoDouble    = 12
+        SymbolInfoDouble    = 12,
+        SymbolInfoTick      = 13
     }
 }

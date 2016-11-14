@@ -1546,6 +1546,23 @@ namespace MtApi
 
             return response?.Value ?? 0;
         }
+
+        ///<summary>
+        ///Returns the corresponding property of a specified symbol.
+        ///</summary>
+        ///<param name="symbol">Symbol name.</param>
+        /// <returns>
+        /// MqlTick object, to which the current prices and time of the last price update will be placed.
+        /// </returns>
+        public MqlTick SymbolInfoTick(string symbol)
+        {
+            var response = SendRequest<SymbolInfoTickResponse>(new SymbolInfoTickRequest
+            {
+                Symbol = symbol
+            });
+
+            return response?.Tick;
+        }
         #endregion
 
         #region Private Methods

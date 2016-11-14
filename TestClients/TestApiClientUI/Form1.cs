@@ -123,7 +123,7 @@ namespace TestApiClientUI
             var msg =
                 $"TimeBar: Symbol = {e.TimeBar.Symbol}, OpenTime = {e.TimeBar.OpenTime}, CloseTime = {e.TimeBar.CloseTime}, Open = {e.TimeBar.Open}, Close = {e.TimeBar.Close}, High = {e.TimeBar.High}, Low = {e.TimeBar.Low}";
             Console.WriteLine(msg);
-            AddToLog(msg);
+            PrintLog(msg);
         }
 
         private void apiClient_QuoteUpdated(object sender, string symbol, double bid, double ask)
@@ -281,7 +281,7 @@ namespace TestApiClientUI
                         sendedOrders.Add(orderId);
                     }
 
-                    AddToLog($"Closed order result: {result},  ticketId = {orderId}, volume - {volume}, slippage {slippage}");
+                    PrintLog($"Closed order result: {result},  ticketId = {orderId}, volume - {volume}, slippage {slippage}");
                 }
 
                 foreach (var orderId in sendedOrders)
@@ -317,7 +317,7 @@ namespace TestApiClientUI
 
                 var result = _apiClient.OrderCloseBy(ticket, opposite, color);
 
-                AddToLog($"ClosedBy order result: {result},  ticketId = {ticket}, opposite {opposite}");
+                PrintLog($"ClosedBy order result: {result},  ticketId = {ticket}, opposite {opposite}");
             }
         }
 
@@ -325,26 +325,26 @@ namespace TestApiClientUI
         {
             var result = _apiClient.OrderClosePrice();
             textBoxOrderPrice.Text = result.ToString(CultureInfo.CurrentCulture);
-            AddToLog($"OrderClosePrice result: {result}");
+            PrintLog($"OrderClosePrice result: {result}");
         }
 
         private void OrderCloseTime()
         {
             var result = _apiClient.OrderCloseTime();
-            AddToLog($"OrderCloseTime result: {result}");
+            PrintLog($"OrderCloseTime result: {result}");
         }
 
         private void OrderComment()
         {
             var result = _apiClient.OrderComment();
             textBoxOrderComment.Text = result;
-            AddToLog($"OrderComment result: {result}");
+            PrintLog($"OrderComment result: {result}");
         }
 
         private void OrderCommission()
         {
             var result = _apiClient.OrderCommission();
-            AddToLog($"OrderCommission result: {result}");
+            PrintLog($"OrderCommission result: {result}");
         }
 
         private void OrderDelete()
@@ -353,26 +353,26 @@ namespace TestApiClientUI
             {
                 var ticket = (int)listBoxSendedOrders.SelectedItems[0];
                 var result = _apiClient.OrderDelete(ticket);
-                AddToLog($"Delete order result: {result},  ticketId = {ticket}");
+                PrintLog($"Delete order result: {result},  ticketId = {ticket}");
             }
         }
 
         private void OrderExpiration()
         {
             var result = _apiClient.OrderExpiration();
-            AddToLog($"Expiration order result: {result}");
+            PrintLog($"Expiration order result: {result}");
         }
 
         private void OrderLots()
         {
             var result = _apiClient.OrderLots();
-            AddToLog($"Lots order result: {result}");
+            PrintLog($"Lots order result: {result}");
         }
 
         private void OrderMagicNumber()
         {
             var result = _apiClient.OrderMagicNumber();
-            AddToLog($"MagicNumber order result: {result}");
+            PrintLog($"MagicNumber order result: {result}");
         }
 
         private void OrderModify()
@@ -410,20 +410,20 @@ namespace TestApiClientUI
 
                 var result = _apiClient.OrderModify(ticket, price, stoploss, takeprofit, expiration, arrowColor);
 
-                AddToLog($"OrderModify result: {result}");
+                PrintLog($"OrderModify result: {result}");
             }
         }
 
         private void OrderOpenPrice()
         {
             var result = _apiClient.OrderOpenPrice();
-            AddToLog($"OrderOpenPrice result: {result}");
+            PrintLog($"OrderOpenPrice result: {result}");
         }
 
         private void OrderOpenTime()
         {
             var result = _apiClient.OrderOpenTime();
-            AddToLog($"OpenTime order result: {result}");
+            PrintLog($"OpenTime order result: {result}");
         }
 
         private void OrderPrint()
@@ -434,7 +434,7 @@ namespace TestApiClientUI
         private void OrderProfit()
         {
             var result = _apiClient.OrderProfit();
-            AddToLog($"Profit order result: {result}");
+            PrintLog($"Profit order result: {result}");
         }
 
         private void OrderSelect()
@@ -452,60 +452,60 @@ namespace TestApiClientUI
             {
                 var result = _apiClient.OrderSelect(ticket, OrderSelectMode.SELECT_BY_POS);
 
-                AddToLog($"OrderSelect result: {result}");
+                PrintLog($"OrderSelect result: {result}");
             }
         }
 
         private void OrdersHistoryTotal()
         {
             var result = _apiClient.OrdersHistoryTotal();
-            AddToLog($"OrdersHistoryTotal result: {result}");
+            PrintLog($"OrdersHistoryTotal result: {result}");
         }
 
         private void OrderStopLoss()
         {
             var result = _apiClient.OrderStopLoss();
             textBoxOrderStoploss.Text = result.ToString(CultureInfo.CurrentCulture);
-            AddToLog($"OrderStopLoss result: {result}");
+            PrintLog($"OrderStopLoss result: {result}");
         }
 
         private void OrdersTotal()
         {
             var result = _apiClient.OrdersTotal();
-            AddToLog($"OrdersTotal result: {result}");
+            PrintLog($"OrdersTotal result: {result}");
         }
 
         private void OrderSwap()
         {
             var result = _apiClient.OrderSwap();
-            AddToLog($"OrderSwap result: {result}");
+            PrintLog($"OrderSwap result: {result}");
         }
 
         private void OrderSymbol()
         {
             var result = _apiClient.OrderSymbol();
             textBoxOrderSymbol.Text = result;
-            AddToLog($"OrderSymbol result: {result}");
+            PrintLog($"OrderSymbol result: {result}");
         }
 
         private void OrderTakeProfit()
         {
             var result = _apiClient.OrderTakeProfit();
             textBoxOrderProffit.Text = result.ToString(CultureInfo.CurrentCulture);
-            AddToLog($"OrderTakeProfit result: {result}");
+            PrintLog($"OrderTakeProfit result: {result}");
         }
 
         private void OrderTicket()
         {
             var result = _apiClient.OrderTicket();
-            AddToLog($"OrderTicket result: {result}");
+            PrintLog($"OrderTicket result: {result}");
         }
 
         private void OrderType()
         {
             var result = _apiClient.OrderType();
             comboBoxOrderCommand.SelectedIndex = (int)result;
-            AddToLog($"OrderType result: {result}");
+            PrintLog($"OrderType result: {result}");
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -513,7 +513,7 @@ namespace TestApiClientUI
             _groupOrderCommands[comboBoxSelectedCommand.SelectedIndex]();
         }
 
-        private void AddToLog(string msg)
+        private void PrintLog(string msg)
         {
             RunOnUiThread(() =>
             {
@@ -531,79 +531,79 @@ namespace TestApiClientUI
                 case 0:
                     {
                         var result = _apiClient.GetLastError();
-                        AddToLog($"GetLastError result: {result}");
+                        PrintLog($"GetLastError result: {result}");
                     }
                     break;
                 case 1:
                     {
                         var result = _apiClient.IsConnected();
-                        AddToLog($"IsConnected result: {result}");
+                        PrintLog($"IsConnected result: {result}");
                     }
                     break;
                 case 2:
                     {
                         var result = _apiClient.IsDemo();
-                        AddToLog($"IsDemo result: {result}");
+                        PrintLog($"IsDemo result: {result}");
                     }
                     break;
                 case 3:
                     {
                         var result = _apiClient.IsDllsAllowed();
-                        AddToLog($"IsDllsAllowed result: {result}");
+                        PrintLog($"IsDllsAllowed result: {result}");
                     }
                     break;
                 case 4:
                     {
                         var result = _apiClient.IsExpertEnabled();
-                        AddToLog($"IsExpertEnabled result: {result}");
+                        PrintLog($"IsExpertEnabled result: {result}");
                     }
                     break;
                 case 5:
                     {
                         var result = _apiClient.IsLibrariesAllowed();
-                        AddToLog($"IsLibrariesAllowed result: {result}");
+                        PrintLog($"IsLibrariesAllowed result: {result}");
                     }
                     break;
                 case 6:
                     {
                         var result = _apiClient.IsOptimization();
-                        AddToLog($"IsOptimization result: {result}");
+                        PrintLog($"IsOptimization result: {result}");
                     }
                     break;
                 case 7:
                     {
                         var result = _apiClient.IsStopped();
-                        AddToLog($"IsStopped result: {result}");
+                        PrintLog($"IsStopped result: {result}");
                     }
                     break;
                 case 8:
                     {
                         var result = _apiClient.IsTesting();
-                        AddToLog($"IsTesting result: {result}");
+                        PrintLog($"IsTesting result: {result}");
                     }
                     break;
                 case 9:
                     {
                         var result = _apiClient.IsTradeAllowed();
-                        AddToLog($"IsTradeAllowed result: {result}");
+                        PrintLog($"IsTradeAllowed result: {result}");
                     }
                     break;
                 case 10:
                     {
                         var result = _apiClient.IsTradeContextBusy();
-                        AddToLog($"IsTradeContextBusy result: {result}");
+                        PrintLog($"IsTradeContextBusy result: {result}");
                     }
                     break;
                 case 11:
                     {
                         var result = _apiClient.IsVisualMode();
-                        AddToLog($"IsVisualMode result: {result}");
+                        PrintLog($"IsVisualMode result: {result}");
                     }
                     break;
                 case 12:
                     {
                         var result = _apiClient.UninitializeReason();
-                        AddToLog($"UninitializeReason result: {result}");
+                        PrintLog($"UninitializeReason result: {result}");
                     }
                     break;
                 case 13:
@@ -611,7 +611,7 @@ namespace TestApiClientUI
                         int errorCode;
                         int.TryParse(textBoxErrorCode.Text, out errorCode);
                         var result = _apiClient.ErrorDescription(errorCode);
-                        AddToLog($"ErrorDescription result: {result}");
+                        PrintLog($"ErrorDescription result: {result}");
                     }
                     break;
                 default:
@@ -626,97 +626,97 @@ namespace TestApiClientUI
                 case 0:
                     {
                         var result = _apiClient.AccountBalance();
-                        AddToLog($"AccountBalance result: {result}");
+                        PrintLog($"AccountBalance result: {result}");
                     }
                     break;
                 case 1:
                     {
                         var result = _apiClient.AccountCredit();
-                        AddToLog($"AccountCredit result: {result}");
+                        PrintLog($"AccountCredit result: {result}");
                     }
                     break;
                 case 2:
                     {
                         var result = _apiClient.AccountCompany();
-                        AddToLog($"AccountCompany result: {result}");
+                        PrintLog($"AccountCompany result: {result}");
                     }
                     break;
                 case 3:
                     {
                         var result = _apiClient.AccountCurrency();
-                        AddToLog($"AccountCurrency result: {result}");
+                        PrintLog($"AccountCurrency result: {result}");
                     }
                     break;
                 case 4:
                     {
                         var result = _apiClient.AccountEquity();
-                        AddToLog($"AccountEquity result: {result}");
+                        PrintLog($"AccountEquity result: {result}");
                     }
                     break;
                 case 5:
                     {
                         var result = _apiClient.AccountFreeMargin();
-                        AddToLog($"AccountFreeMargin result: {result}");
+                        PrintLog($"AccountFreeMargin result: {result}");
                     }
                     break;
                 case 6:
                     {
                         var result = _apiClient.AccountFreeMarginCheck(textBoxAccountInfoSymbol.Text, (TradeOperation)comboBoxAccountInfoCmd.SelectedIndex, int.Parse(textBoxAccountInfoVolume.Text));
-                        AddToLog($"AccountFreeMarginCheck result: {result}");
+                        PrintLog($"AccountFreeMarginCheck result: {result}");
                     }
                     break;
                 case 7:
                     {
                         var result = _apiClient.AccountFreeMarginMode();
-                        AddToLog($"AccountFreeMarginMode result: {result}");
+                        PrintLog($"AccountFreeMarginMode result: {result}");
                     }
                     break;
                 case 8:
                     {
                         var result = _apiClient.AccountLeverage();
-                        AddToLog($"AccountLeverage result: {result}");
+                        PrintLog($"AccountLeverage result: {result}");
                     }
                     break;
                 case 9:
                     {
                         var result = _apiClient.AccountMargin();
-                        AddToLog($"AccountMargin result: {result}");
+                        PrintLog($"AccountMargin result: {result}");
                     }
                     break;
                 case 10:
                     {
                         var result = _apiClient.AccountName();
-                        AddToLog($"AccountName result: {result}");
+                        PrintLog($"AccountName result: {result}");
                     }
                     break;
                 case 11:
                     {
                         var result = _apiClient.AccountNumber();
-                        AddToLog($"AccountNumber result: {result}");
+                        PrintLog($"AccountNumber result: {result}");
                     }
                     break;
                 case 12:
                     {
                         var result = _apiClient.AccountProfit();
-                        AddToLog($"AccountProfit result: {result}");
+                        PrintLog($"AccountProfit result: {result}");
                     }
                     break;
                 case 13:
                     {
                         var result = _apiClient.AccountServer();
-                        AddToLog($"AccountServer result: {result}");
+                        PrintLog($"AccountServer result: {result}");
                     }
                     break;
                 case 14:
                     {
                         var result = _apiClient.AccountStopoutLevel();
-                        AddToLog($"AccountStopoutLevel result: {result}");
+                        PrintLog($"AccountStopoutLevel result: {result}");
                     }
                     break;
                 case 15:
                     {
                         var result = _apiClient.AccountStopoutMode();
-                        AddToLog($"AccountStopoutMode result: {result}");
+                        PrintLog($"AccountStopoutMode result: {result}");
                     }
                     break;
                 default:
@@ -732,7 +732,7 @@ namespace TestApiClientUI
             Enum.TryParse(comboBox8.Text, out propId);
 
             var result = await Execute(() => _apiClient.MarketInfo(symbol, propId));
-            AddToLog($"MarketInfo result: {result}");
+            PrintLog($"MarketInfo result: {result}");
         }
 
         private void button6_Click(object sender, EventArgs e)
@@ -810,19 +810,19 @@ namespace TestApiClientUI
         private void button13_Click(object sender, EventArgs e)
         {
             var retVal = _apiClient.TimeCurrent();
-            AddToLog($"TimeCurrent result: {retVal}");
+            PrintLog($"TimeCurrent result: {retVal}");
         }
 
         private void button14_Click(object sender, EventArgs e)
         {
             var retVal = _apiClient.TimeLocal();
-            AddToLog($"TimeLocal result: {retVal}");
+            PrintLog($"TimeLocal result: {retVal}");
         }
 
         private void buttonRefreshRates_Click(object sender, EventArgs e)
         {
             var retVal = _apiClient.RefreshRates();
-            AddToLog($"RefreshRates result: {retVal}");
+            PrintLog($"RefreshRates result: {retVal}");
         }
 
         private void listBoxEventLog_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -841,11 +841,11 @@ namespace TestApiClientUI
                 }
                 catch (MtConnectionException ex)
                 {
-                    AddToLog("MtExecutionException: " + ex.Message);
+                    PrintLog("MtExecutionException: " + ex.Message);
                 }
                 catch (MtExecutionException ex)
                 {
-                    AddToLog("MtExecutionException: " + ex.Message + "; ErrorCode = " + ex.ErrorCode);
+                    PrintLog("MtExecutionException: " + ex.Message + "; ErrorCode = " + ex.ErrorCode);
                 }
 
                 return result;
@@ -898,7 +898,7 @@ namespace TestApiClientUI
 
             var ticket = await Execute(() => _apiClient.OrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, arrowColor));
 
-            AddToLog($"Sended order result: ticket = {ticket}");
+            PrintLog($"Sended order result: ticket = {ticket}");
         }
 
         //GetOrder
@@ -914,7 +914,7 @@ namespace TestApiClientUI
             {
                 var result =
                     $"Order: Ticket = {order.Ticket}, Symbol = {order.Symbol}, Operation = {order.Operation}, OpenPrice = {order.OpenPrice}, ClosePrice = {order.ClosePrice}, Lots = {order.Lots}, Profit = {order.Profit}, Comment = {order.Comment}, Commission = {order.Commission}, MagicNumber = {order.MagicNumber}, OpenTime = {order.OpenTime}, CloseTime = {order.CloseTime}, Swap = {order.Swap}, Expiration = {order.Expiration}, TakeProfit = {order.TakeProfit}, StopLoss = {order.StopLoss}";
-                AddToLog(result);
+                PrintLog(result);
             }
         }
 
@@ -932,12 +932,12 @@ namespace TestApiClientUI
                 {
                     var result =
                         $"Order: Ticket = {order.Ticket}, Symbol = {order.Symbol}, Operation = {order.Operation}, OpenPrice = {order.OpenPrice}, ClosePrice = {order.ClosePrice}, Lots = {order.Lots}, Profit = {order.Profit}, Comment = {order.Comment}, Commission = {order.Commission}, MagicNumber = {order.MagicNumber}, OpenTime = {order.OpenTime}, CloseTime = {order.CloseTime}, Swap = {order.Swap}, Expiration = {order.Expiration}, TakeProfit = {order.TakeProfit}, StopLoss = {order.StopLoss}";
-                    AddToLog(result);
+                    PrintLog(result);
                 }
             }
             else
             {
-                AddToLog("GetOrders: 0 orders");
+                PrintLog("GetOrders: 0 orders");
             }
         }
 
@@ -953,7 +953,7 @@ namespace TestApiClientUI
 
             var ticket = await Execute(() => _apiClient.OrderSendBuy(symbol, volume, slippage));
 
-            AddToLog(
+            PrintLog(
                 $"Sended order result: ticketId = {ticket}, symbol = {symbol}, volume = {volume}, slippage = {slippage}");
         }
 
@@ -969,7 +969,7 @@ namespace TestApiClientUI
 
             var ticket = await Execute(() => _apiClient.OrderSendSell(symbol, volume, slippage));
 
-            AddToLog($"Sended order result: ticketId = {ticket}, symbol = {symbol}, volume = {volume}, slippage = {slippage}");
+            PrintLog($"Sended order result: ticketId = {ticket}, symbol = {symbol}, volume = {volume}, slippage = {slippage}");
         }
 
         //OrderClose
@@ -994,7 +994,7 @@ namespace TestApiClientUI
                 closed = await Execute(() => _apiClient.OrderClose(ticket, volume, price, slippage));
             }
 
-            AddToLog($"Close order result: {closed}, ticket = {ticket}");
+            PrintLog($"Close order result: {closed}, ticket = {ticket}");
         }
 
         //OrderCloseBy
@@ -1005,7 +1005,7 @@ namespace TestApiClientUI
 
             var closed = await Execute(() => _apiClient.OrderCloseBy(ticket, opposite));
 
-            AddToLog($"Close order result: {closed}, ticket = {ticket}");
+            PrintLog($"Close order result: {closed}, ticket = {ticket}");
         }
 
         //OrderDelete
@@ -1015,7 +1015,7 @@ namespace TestApiClientUI
 
             var deleted = await Execute(() => _apiClient.OrderDelete(ticket));
 
-            AddToLog($"Delete order result: {deleted}, ticket = {ticket}");
+            PrintLog($"Delete order result: {deleted}, ticket = {ticket}");
         }
 
         //OrderModify
@@ -1052,7 +1052,7 @@ namespace TestApiClientUI
 
             var modified = await Execute(() => _apiClient.OrderModify(ticket, price, stoploss, takeprofit, expiration, color));
 
-            AddToLog($"Modify order result: {modified}, ticket = {ticket}");
+            PrintLog($"Modify order result: {modified}, ticket = {ticket}");
         }
 
         //iCustom (ZigZag)
@@ -1066,7 +1066,7 @@ namespace TestApiClientUI
             const int shift = 0;
 
             var retVal = await Execute(() => _apiClient.iCustom(symbol, (int)timeframe, name, parameters, mode, shift));
-            AddToLog($"ICustom result: {retVal}");
+            PrintLog($"ICustom result: {retVal}");
         }
 
         //iCustom (Parabolic)
@@ -1080,7 +1080,7 @@ namespace TestApiClientUI
             const int shift = 1;
 
             var retVal = await Execute(() => _apiClient.iCustom(symbol, (int)timeframe, name, parameters, mode, shift));
-            AddToLog($"ICustom result: {retVal}");
+            PrintLog($"ICustom result: {retVal}");
         }
 
         //CopyRates
@@ -1101,12 +1101,12 @@ namespace TestApiClientUI
                 {
                     var result =
                         $"Rate: Time = {r.Time}, Open = {r.Open}, High = {r.High}, Low = {r.Low}, Close = {r.Close}, TickVolume = {r.TickVolume}, Spread = {r.Spread}, RealVolume = {r.RealVolume}";
-                    AddToLog(result);
+                    PrintLog(result);
                 }
             }
             else
             {
-                AddToLog("CopyRates: 0 rates");
+                PrintLog("CopyRates: 0 rates");
             }
         }
 
@@ -1128,12 +1128,12 @@ namespace TestApiClientUI
                 {
                     var result =
                         $"Rate: Time = {r.Time}, Open = {r.Open}, High = {r.High}, Low = {r.Low}, Close = {r.Close}, TickVolume = {r.TickVolume}, Spread = {r.Spread}, RealVolume = {r.RealVolume}";
-                    AddToLog(result);
+                    PrintLog(result);
                 }
             }
             else
             {
-                AddToLog("CopyRates: 0 rates");
+                PrintLog("CopyRates: 0 rates");
             }
         }
 
@@ -1155,12 +1155,12 @@ namespace TestApiClientUI
                 {
                     var result =
                         $"Rate: Time = {r.Time}, Open = {r.Open}, High = {r.High}, Low = {r.Low}, Close = {r.Close}, TickVolume = {r.TickVolume}, Spread = {r.Spread}, RealVolume = {r.RealVolume}";
-                    AddToLog(result);
+                    PrintLog(result);
                 }
             }
             else
             {
-                AddToLog("CopyRates: 0 rates");
+                PrintLog("CopyRates: 0 rates");
             }
         }
 
@@ -1171,7 +1171,7 @@ namespace TestApiClientUI
             if (!string.IsNullOrEmpty(msg))
             {
                 _apiClient.Print(msg);
-                AddToLog("Print executed");
+                PrintLog("Print executed");
             }
         }
 
@@ -1179,10 +1179,10 @@ namespace TestApiClientUI
         private async void button28_Click(object sender, EventArgs e)
         {
             var resultTrue = await Execute(() => _apiClient.SymbolsTotal(true));
-            AddToLog($"SymbolsTotal [true]: result = {resultTrue}");
+            PrintLog($"SymbolsTotal [true]: result = {resultTrue}");
 
             var resultFalse = await Execute(() => _apiClient.SymbolsTotal(false));
-            AddToLog($"SymbolsTotal [false]: result = {resultFalse}");
+            PrintLog($"SymbolsTotal [false]: result = {resultFalse}");
         }
 
         //SymbolName
@@ -1192,7 +1192,7 @@ namespace TestApiClientUI
             const bool selected = false;
 
             var result = await Execute(() => _apiClient.SymbolName(pos, selected));
-            AddToLog($"SymbolName [true]: result = {result}");
+            PrintLog($"SymbolName [true]: result = {result}");
         }
 
         //SymbolSelect
@@ -1202,7 +1202,7 @@ namespace TestApiClientUI
             const bool @select = true;
 
             var result = await Execute(() => _apiClient.SymbolSelect(symbol, select));
-            AddToLog($"SymbolSelect [true]: result = {result}");
+            PrintLog($"SymbolSelect [true]: result = {result}");
         }
 
         //SymbolInfoInteger
@@ -1213,19 +1213,19 @@ namespace TestApiClientUI
             Enum.TryParse(comboBox4.Text, out propId);
 
             var result = await Execute(() => _apiClient.SymbolInfoInteger(symbol, propId));
-            AddToLog($"SymbolInfoInteger [true]: result = {result}");
+            PrintLog($"SymbolInfoInteger [true]: result = {result}");
         }
 
         private void _tradeMonitor_AvailabilityOrdersChanged(object sender, AvailabilityOrdersEventArgs e)
         {
             if (e.Opened != null)
             {
-                AddToLog($"{sender.GetType()}: Opened orders - {string.Join(", ", e.Opened.Select(o => o.Ticket).ToList())}");
+                PrintLog($"{sender.GetType()}: Opened orders - {string.Join(", ", e.Opened.Select(o => o.Ticket).ToList())}");
             }
 
             if (e.Closed != null)
             {
-                AddToLog($"{sender.GetType()}: Closed orders - {string.Join(", ", e.Closed.Select(o => o.Ticket).ToList())}");
+                PrintLog($"{sender.GetType()}: Closed orders - {string.Join(", ", e.Closed.Select(o => o.Ticket).ToList())}");
             }
         }
 
@@ -1239,7 +1239,7 @@ namespace TestApiClientUI
             Enum.TryParse(comboBox5.Text, out propId);
 
             var result = await Execute(() => _apiClient.SeriesInfoInteger(symbol, timeframes, propId));
-            AddToLog($"SeriesInfoInteger: result = {result}");
+            PrintLog($"SeriesInfoInteger: result = {result}");
         }
 
         //SymbolInfoDouble
@@ -1250,7 +1250,19 @@ namespace TestApiClientUI
             Enum.TryParse(comboBox7.Text, out propId);
 
             var result = await Execute(() => _apiClient.SymbolInfoDouble(symbol, propId));
-            AddToLog($"SymbolInfoDouble: result = {result}");
+            PrintLog($"SymbolInfoDouble: result = {result}");
+        }
+
+        //SymbolInfoTick
+        private async void button34_Click(object sender, EventArgs e)
+        {
+            var symbol = txtMarketInfoSymbol.Text;
+
+            var result = await Execute(() => _apiClient.SymbolInfoTick(symbol));
+            if (result != null)
+            {
+                PrintLog($"SymbolInfoTick: Tick - time = {result.Time}, Bid = {result.Bid}, Ask = {result.Ask}, Last = {result.Last}, Volume = {result.Volume}");
+            }
         }
     }
 }

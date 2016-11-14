@@ -161,6 +161,7 @@
             this.button33 = new System.Windows.Forms.Button();
             this.label30 = new System.Windows.Forms.Label();
             this.comboBox8 = new System.Windows.Forms.ComboBox();
+            this.button34 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -1043,6 +1044,7 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.button34);
             this.tabPage4.Controls.Add(this.comboBox8);
             this.tabPage4.Controls.Add(this.label30);
             this.tabPage4.Controls.Add(this.button33);
@@ -1596,6 +1598,16 @@
             this.comboBox8.Size = new System.Drawing.Size(186, 21);
             this.comboBox8.TabIndex = 31;
             // 
+            // button34
+            // 
+            this.button34.Location = new System.Drawing.Point(387, 47);
+            this.button34.Name = "button34";
+            this.button34.Size = new System.Drawing.Size(112, 23);
+            this.button34.TabIndex = 32;
+            this.button34.Text = "SymbolInfoTick";
+            this.button34.UseVisualStyleBackColor = true;
+            this.button34.Click += new System.EventHandler(this.button34_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1775,6 +1787,7 @@
         private System.Windows.Forms.Button button33;
         private System.Windows.Forms.Label label30;
         private System.Windows.Forms.ComboBox comboBox8;
+        private System.Windows.Forms.Button button34;
     }
 }
 

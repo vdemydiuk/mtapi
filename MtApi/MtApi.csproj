@@ -65,6 +65,7 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Monitors\AvailabilityOrdersEventArgs.cs" />
     <Compile Include="MqlRates.cs" />
+    <Compile Include="MqlTick.cs" />
     <Compile Include="MtConnectionEventArgs.cs" />
     <Compile Include="MtConnectionException.cs" />
     <Compile Include="MtConnectionState.cs" />
@@ -99,6 +100,7 @@
     <Compile Include="Requests\RequestBase.cs" />
     <Compile Include="Requests\RequestType.cs" />
     <Compile Include="Requests\SymbolInfoDoubleRequest.cs" />
+    <Compile Include="Requests\SymbolInfoTickRequest.cs" />
     <Compile Include="Responses\CopyRatesResponse.cs" />
     <Compile Include="Responses\GetOrderResponse.cs" />
     <Compile Include="Responses\GetOrdersResponse.cs" />
@@ -108,6 +110,7 @@
     <Compile Include="Responses\SessionResponse.cs" />
     <Compile Include="Responses\ResponseBase.cs" />
     <Compile Include="Responses\SymbolInfoDoubleResponse.cs" />
+    <Compile Include="Responses\SymbolInfoTickResponse.cs" />
     <Compile Include="SeriesIdentifier.cs" />
     <Compile Include="TimeBarArgs.cs" />
     <Compile Include="Monitors\TimeframeTradeMonitor.cs" />
