@@ -58,9 +58,15 @@ namespace MtApi
         IsVisualMode                        = 37,
         UninitializeReason                  = 38,
         ErrorDescription                    = 39,
+        TerminalCompany                     = 68,
+        TerminalName                        = 69,
+        TerminalPath                        = 70,
+        TerminalInfoString                  = 153,
+        TerminalInfoInteger                 = 204,
+        //TerminalInfoDouble                  = 205,
 
         //Account Information
-        AccountBalance                      = 40,
+        AccountBalance = 40,
         AccountCredit                       = 41,
         AccountCompany                      = 42,
         AccountCurrency                     = 43,
@@ -90,11 +96,6 @@ namespace MtApi
         SendFTPA                            = 65,
         SendMail                            = 66,
         Sleep                               = 67,
-
-        //Client Terminal
-        TerminalCompany                     = 68,
-        TerminalName                        = 69,
-        TerminalPath                        = 70,
 
         //Date and Time
         Day                                 = 71,
@@ -188,8 +189,6 @@ namespace MtApi
         //
         RefreshRates                        = 150,
         //
-        TerminalInfoString                  = 153,
-        SymbolInfoString                    = 154,
 
         //Requests
         MtRequest                           = 155,
@@ -197,7 +196,8 @@ namespace MtApi
         //Backtesting
         BacktestingReady                    = 156,
 
-        //Symbols
+        //Market Info
+        SymbolInfoString                    = 154,
         SymbolsTotal                        = 200,
         SymbolName                          = 201,
         SymbolSelect                        = 202,

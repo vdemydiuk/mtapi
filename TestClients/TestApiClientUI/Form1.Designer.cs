@@ -162,6 +162,8 @@
             this.label30 = new System.Windows.Forms.Label();
             this.comboBox8 = new System.Windows.Forms.ComboBox();
             this.button34 = new System.Windows.Forms.Button();
+            this.button35 = new System.Windows.Forms.Button();
+            this.comboBox9 = new System.Windows.Forms.ComboBox();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -1044,6 +1046,8 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.comboBox9);
+            this.tabPage4.Controls.Add(this.button35);
             this.tabPage4.Controls.Add(this.button34);
             this.tabPage4.Controls.Add(this.comboBox8);
             this.tabPage4.Controls.Add(this.label30);
@@ -1608,6 +1612,25 @@
             this.button34.UseVisualStyleBackColor = true;
             this.button34.Click += new System.EventHandler(this.button34_Click);
             // 
+            // button35
+            // 
+            this.button35.Location = new System.Drawing.Point(208, 128);
+            this.button35.Name = "button35";
+            this.button35.Size = new System.Drawing.Size(111, 23);
+            this.button35.TabIndex = 33;
+            this.button35.Text = "TerminalInfoInteger";
+            this.button35.UseVisualStyleBackColor = true;
+            this.button35.Click += new System.EventHandler(this.button35_Click);
+            // 
+            // comboBox9
+            // 
+            this.comboBox9.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox9.FormattingEnabled = true;
+            this.comboBox9.Location = new System.Drawing.Point(13, 130);
+            this.comboBox9.Name = "comboBox9";
+            this.comboBox9.Size = new System.Drawing.Size(186, 21);
+            this.comboBox9.TabIndex = 34;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1788,6 +1811,8 @@
         private System.Windows.Forms.Label label30;
         private System.Windows.Forms.ComboBox comboBox8;
         private System.Windows.Forms.Button button34;
+        private System.Windows.Forms.Button button35;
+        private System.Windows.Forms.ComboBox comboBox9;
     }
 }
 

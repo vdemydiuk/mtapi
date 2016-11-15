@@ -498,83 +498,230 @@ namespace MtApi
         }
         #endregion
 
-        #region Check Status
+        #region Checkup
 
+        ///<summary>
+        ///Returns the contents of the system variable _LastError.
+        ///After the function call, the contents of _LastError are reset.
+        ///</summary>
+        ///<returns>
+        ///Returns the value of the last error that occurred during the execution of an mql4 program.
+        ///</returns>
         public int GetLastError()
         {
             return SendCommand<int>(MtCommandType.GetLastError, null);
         }
 
+        ///<summary>
+        ///Checks connection between client terminal and server.
+        ///</summary>
+        ///<returns>
+        ///It returns true if connection to the server was successfully established, otherwise, it returns false.
+        ///</returns>
         public bool IsConnected()
         {
             return SendCommand<bool>(MtCommandType.IsConnected, null);
         }
 
+        ///<summary>
+        ///Checks if the Expert Advisor runs on a demo account.
+        ///</summary>
+        ///<returns>
+        ///Returns true if the Expert Advisor runs on a demo account, otherwise returns false.
+        ///</returns>
         public bool IsDemo()
         {
             return SendCommand<bool>(MtCommandType.IsDemo, null);
         }
 
+        ///<summary>
+        ///Checks if the DLL function call is allowed for the Expert Advisor.
+        ///</summary>
+        ///<returns>
+        ///Returns true if the DLL function call is allowed for the Expert Advisor, otherwise returns false.
+        ///</returns>
         public bool IsDllsAllowed()
         {
             return SendCommand<bool>(MtCommandType.IsDllsAllowed, null);
         }
 
+        ///<summary>
+        ///Checks if Expert Advisors are enabled for running.
+        ///</summary>
+        ///<returns>
+        ///Returns true if Expert Advisors are enabled for running, otherwise returns false.
+        ///</returns>
         public bool IsExpertEnabled()
         {
             return SendCommand<bool>(MtCommandType.IsExpertEnabled, null);
         }
 
+        ///<summary>
+        ///Checks if the Expert Advisor can call library function.
+        ///</summary>
+        ///<returns>
+        ///Returns true if the Expert Advisor can call library function, otherwise returns false.
+        ///</returns>
         public bool IsLibrariesAllowed()
         {
             return SendCommand<bool>(MtCommandType.IsLibrariesAllowed, null);
         }
 
+        ///<summary>
+        ///Checks if Expert Advisor runs in the Strategy Tester optimization mode.
+        ///</summary>
+        ///<returns>
+        ///Returns true if Expert Advisor runs in the Strategy Tester optimization mode, otherwise returns false.
+        ///</returns>
         public bool IsOptimization()
         {
             return SendCommand<bool>(MtCommandType.IsOptimization, null);
         }
 
+        ///<summary>
+        ///Checks the forced shutdown of an mql4 program.
+        ///</summary>
+        ///<returns>
+        ///Returns true, if the _StopFlag system variable contains a value other than 0. 
+        ///A nonzero value is written into _StopFlag, if a mql4 program has been commanded to complete its operation. 
+        ///In this case, you must immediately terminate the program, otherwise the program will be completed 
+        ///forcibly from the outside after 3 seconds.
+        ///</returns>
         public bool IsStopped()
         {
             return SendCommand<bool>(MtCommandType.IsStopped, null);
         }
 
+        ///<summary>
+        ///Checks if the Expert Advisor runs in the testing mode.
+        ///</summary>
+        ///<returns>
+        ///Returns true if the Expert Advisor runs in the testing mode, otherwise returns false.
+        ///</returns>
         public bool IsTesting()
         {
             return SendCommand<bool>(MtCommandType.IsTesting, null);
         }
 
+        ///<summary>
+        ///Checks if the Expert Advisor is allowed to trade and trading context is not busy.
+        ///</summary>
+        ///<returns>
+        ///Returns true if the Expert Advisor is allowed to trade and trading context is not busy, otherwise returns false.
+        ///</returns>
         public bool IsTradeAllowed()
         {
             return SendCommand<bool>(MtCommandType.IsTradeAllowed, null);
         }
 
+        ///<summary>
+        ///Returns the information about trade context.
+        ///</summary>
+        ///<returns>
+        ///Returns true if a thread for trading is occupied by another Expert Advisor, otherwise returns false.
+        ///</returns>
         public bool IsTradeContextBusy()
         {
             return SendCommand<bool>(MtCommandType.IsTradeContextBusy, null);
         }
 
+        ///<summary>
+        ///Checks if the Expert Advisor is tested in visual mode.
+        ///</summary>
+        ///<returns>
+        ///Returns true if the Expert Advisor is tested with checked "Visual Mode" button, otherwise returns false.
+        ///</returns>
         public bool IsVisualMode()
         {
             return SendCommand<bool>(MtCommandType.IsVisualMode, null);
         }
 
+        ///<summary>
+        ///Returns the code of a reason for deinitialization.
+        ///</summary>
+        ///<returns>
+        ///Returns the value of _UninitReason which is formed before OnDeinit() is called. 
+        ///Value depends on the reasons that led to deinitialization.
+        ///</returns>
         public int UninitializeReason()
         {
             return SendCommand<int>(MtCommandType.UninitializeReason, null);
         }
 
+        ///<summary>
+        ///Print the error description.
+        ///</summary>
         public string ErrorDescription(int errorCode)
         {
             var commandParameters = new ArrayList { errorCode };
             return SendCommand<string>(MtCommandType.ErrorDescription, commandParameters);
         }
 
+        ///<summary>
+        ///Returns the value of a corresponding property of the mql4 program environment. 
+        ///</summary>
+        ///<param name="propertyId">Identifier of a property. Can be one of the values of the ENUM_TERMINAL_INFO_STRING enumeration.</param>
+        ///<returns>
+        ///Value of string type.
+        ///</returns>
+        public string TerminalInfoString(ENUM_TERMINAL_INFO_STRING propertyId)
+        {
+            var commandParameters = new ArrayList { (int)propertyId };
+            return SendCommand<string>(MtCommandType.TerminalInfoString, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the value of a corresponding property of the mql4 program environment.
+        ///</summary>
+        ///<param name="propertyId">Identifier of a property. Can be one of the values of the ENUM_TERMINAL_INFO_INTEGER enumeration.</param>
+        ///<returns>
+        ///Value of int type.
+        ///</returns>
+        public int TerminalInfoInteger(EnumTerminalInfoInteger propertyId)
+        {
+            var commandParameters = new ArrayList { (int)propertyId };
+            return SendCommand<int>(MtCommandType.TerminalInfoInteger, commandParameters);
+        }
+
+        //TODO: TerminalInfoDouble
+
+        ///<summary>
+        ///Returns the name of company owning the client terminal.
+        ///</summary>
+        ///<returns>
+        ///The name of company owning the client terminal.
+        ///</returns>
+        public string TerminalCompany()
+        {
+            return SendCommand<string>(MtCommandType.TerminalCompany, null);
+        }
+
+        ///<summary>
+        ///Returns client terminal name.
+        ///</summary>
+        ///<returns>
+        ///Client terminal name.
+        ///</returns>
+        public string TerminalName()
+        {
+            return SendCommand<string>(MtCommandType.TerminalName, null);
+        }
+
+        ///<summary>
+        ///Returns the directory, from which the client terminal was launched.
+        ///</summary>
+        ///<returns>
+        ///The directory, from which the client terminal was launched.
+        ///</returns>
+        public string TerminalPath()
+        {
+            return SendCommand<string>(MtCommandType.TerminalPath, null);
+        }
+
         #endregion
 
         #region Account Information
-        
+
         public double AccountBalance()
         {
             return SendCommand<double>(MtCommandType.AccountBalance, null);
@@ -728,25 +875,6 @@ namespace MtApi
         {
             var commandParameters = new ArrayList { milliseconds };
             SendCommand<object>(MtCommandType.Sleep, commandParameters);
-        }
-
-        #endregion
-
-        #region Client Terminal Functions
-
-        public string TerminalCompany()
-        {
-            return SendCommand<string>(MtCommandType.TerminalCompany, null);
-        }
-
-        public string TerminalName()
-        {
-            return SendCommand<string>(MtCommandType.TerminalName, null);
-        }
-
-        public string TerminalPath()
-        {
-            return SendCommand<string>(MtCommandType.TerminalPath, null);
         }
 
         #endregion
@@ -1403,6 +1531,15 @@ namespace MtApi
             return response?.Rates;
         }
 
+        ///<summary>
+        ///Returns information about the state of historical data.
+        ///</summary>
+        ///<param name="symbolName">Symbol name.</param>
+        ///<param name="timeframe">Period.</param>
+        ///<param name="propId">Identifier of the requested property, value of the ENUM_SERIES_INFO_INTEGER enumeration.</param>
+        ///<returns>
+        ///Returns value of the long type.
+        ///</returns>
         public long SeriesInfoInteger(string symbolName, ENUM_TIMEFRAMES timeframe, EnumSeriesInfoInteger propId)
         {
             var response = SendRequest<SeriesInfoIntegerResponse>(new SeriesInfoIntegerRequest
@@ -1413,15 +1550,6 @@ namespace MtApi
             });
 
             return response?.Value ?? 0;
-        }
-
-        #endregion
-
-        #region Checkup
-        public string TerminalInfoString(ENUM_TERMINAL_INFO_STRING propertyId)
-        {
-            var commandParameters = new ArrayList { (int)propertyId };
-            return SendCommand<string>(MtCommandType.TerminalInfoString, commandParameters);
         }
 
         #endregion
