@@ -32,6 +32,7 @@ namespace TestApiClientUI
             comboBox7.DataSource = Enum.GetNames(typeof(EnumSymbolInfoDouble));
             comboBox8.DataSource = Enum.GetNames(typeof(MarketInfoModeType));
             comboBox9.DataSource = Enum.GetNames(typeof(EnumTerminalInfoInteger));
+            comboBox10.DataSource = Enum.GetNames(typeof(EnumTerminalInfoDouble));
 
             _apiClient.QuoteUpdated += apiClient_QuoteUpdated;
             _apiClient.QuoteAdded += apiClient_QuoteAdded;
@@ -1274,6 +1275,16 @@ namespace TestApiClientUI
 
             var result = await Execute(() => _apiClient.TerminalInfoInteger(propId));
             PrintLog($"TerminalInfoInteger: result = {result}");
+        }
+
+        //TerminalInfoDouble
+        private async void button36_Click(object sender, EventArgs e)
+        {
+            EnumTerminalInfoDouble propId;
+            Enum.TryParse(comboBox10.Text, out propId);
+
+            var result = await Execute(() => _apiClient.TerminalInfoDouble(propId));
+            PrintLog($"TerminalInfoDouble: result = {result}");
         }
     }
 }

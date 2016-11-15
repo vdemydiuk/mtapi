@@ -683,7 +683,18 @@ namespace MtApi
             return SendCommand<int>(MtCommandType.TerminalInfoInteger, commandParameters);
         }
 
-        //TODO: TerminalInfoDouble
+        ///<summary>
+        ///Returns the value of a corresponding property of the mql4 program environment.
+        ///</summary>
+        ///<param name="propertyId">Identifier of a property. Can be one of the values of the ENUM_TERMINAL_INFO_DOUBLE enumeration.</param>
+        ///<returns>
+        ///Value of double type.
+        ///</returns>
+        public double TerminalInfoDouble(EnumTerminalInfoDouble propertyId)
+        {
+            var commandParameters = new ArrayList { (int)propertyId };
+            return SendCommand<double>(MtCommandType.TerminalInfoDouble, commandParameters);
+        }
 
         ///<summary>
         ///Returns the name of company owning the client terminal.

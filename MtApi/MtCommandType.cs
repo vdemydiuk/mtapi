@@ -63,7 +63,7 @@ namespace MtApi
         TerminalPath                        = 70,
         TerminalInfoString                  = 153,
         TerminalInfoInteger                 = 204,
-        //TerminalInfoDouble                  = 205,
+        TerminalInfoDouble                  = 205,
 
         //Account Information
         AccountBalance = 40,

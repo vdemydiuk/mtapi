@@ -62,6 +62,7 @@
     <Compile Include="EnumSeriesInfoInteger.cs" />
     <Compile Include="EnumSymbolInfoDouble.cs" />
     <Compile Include="EnumSymbolInfoInteger.cs" />
+    <Compile Include="EnumTerminalInfoDouble.cs" />
     <Compile Include="EnumTerminalInfoInteger.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Monitors\AvailabilityOrdersEventArgs.cs" />

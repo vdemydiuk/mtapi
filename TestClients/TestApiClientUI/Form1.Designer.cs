@@ -164,6 +164,8 @@
             this.button34 = new System.Windows.Forms.Button();
             this.button35 = new System.Windows.Forms.Button();
             this.comboBox9 = new System.Windows.Forms.ComboBox();
+            this.comboBox10 = new System.Windows.Forms.ComboBox();
+            this.button36 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -1046,6 +1048,8 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.button36);
+            this.tabPage4.Controls.Add(this.comboBox10);
             this.tabPage4.Controls.Add(this.comboBox9);
             this.tabPage4.Controls.Add(this.button35);
             this.tabPage4.Controls.Add(this.button34);
@@ -1631,6 +1635,25 @@
             this.comboBox9.Size = new System.Drawing.Size(186, 21);
             this.comboBox9.TabIndex = 34;
             // 
+            // comboBox10
+            // 
+            this.comboBox10.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox10.FormattingEnabled = true;
+            this.comboBox10.Location = new System.Drawing.Point(13, 157);
+            this.comboBox10.Name = "comboBox10";
+            this.comboBox10.Size = new System.Drawing.Size(186, 21);
+            this.comboBox10.TabIndex = 35;
+            // 
+            // button36
+            // 
+            this.button36.Location = new System.Drawing.Point(208, 157);
+            this.button36.Name = "button36";
+            this.button36.Size = new System.Drawing.Size(111, 23);
+            this.button36.TabIndex = 36;
+            this.button36.Text = "TerminalInfoDouble";
+            this.button36.UseVisualStyleBackColor = true;
+            this.button36.Click += new System.EventHandler(this.button36_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1813,6 +1836,8 @@
         private System.Windows.Forms.Button button34;
         private System.Windows.Forms.Button button35;
         private System.Windows.Forms.ComboBox comboBox9;
+        private System.Windows.Forms.Button button36;
+        private System.Windows.Forms.ComboBox comboBox10;
     }
 }
 
