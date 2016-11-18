@@ -12,6 +12,7 @@ namespace MTApiService
         private const string ServiceName = "MtApiService";
 
         public delegate void MtQuoteHandler(MtQuote quote);
+        public delegate void MtEventHandler(MtEvent e);
 
         #region Fields
         private static readonly ILog Log = LogManager.GetLogger(typeof(MtClient));
@@ -213,7 +214,7 @@ namespace MTApiService
         }
 
         /// <exception cref="CommunicationException">Thrown when connection failed</exception>
-        public IEnumerable<MtQuote> GetQuotes()
+        public List<MtQuote> GetQuotes()
         {
             Log.Debug("GetQuotes: begin.");
 
@@ -259,7 +260,7 @@ namespace MTApiService
 
             if (quote == null) return;
 
-            QuoteUpdated?.Invoke(quote);
+            QuoteUpdated?.Invoke( quote);
 
             Log.Debug("OnQuoteUpdate: end.");
         }
@@ -293,11 +294,11 @@ namespace MTApiService
         }
 
 
-        public void OnMtEvent(MtEvent mtEvent)
+        public void OnMtEvent(MtEvent e)
         {
-            Log.DebugFormat("OnMtEvent: begin. event = {0}", mtEvent);
+            Log.DebugFormat("OnMtEvent: begin. event = {0}", e);
 
-            MtEventReceived?.Invoke(this, new MtEventArgs(mtEvent));
+            MtEventReceived?.Invoke(e);
 
             Log.Debug("OnMtEvent: end.");
         }
@@ -342,7 +343,7 @@ namespace MTApiService
         public event MtQuoteHandler QuoteUpdated;
         public event EventHandler ServerDisconnected;
         public event EventHandler ServerFailed;
-        public event EventHandler<MtEventArgs> MtEventReceived;
+        public event MtEventHandler MtEventReceived;
         #endregion
     }
 }

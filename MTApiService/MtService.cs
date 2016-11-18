@@ -66,7 +66,7 @@ namespace MTApiService
 
             if (callback == null)
             {
-                Log.Warn("Connect: end. Callback is not definded.");
+                Log.Warn("Connect: end. Callback is not defined.");
                 return false;
             }
 
@@ -158,7 +158,7 @@ namespace MTApiService
 
         public void QuoteUpdate(MtQuote quote)
         {
-            Log.Debug("QuoteUpdate: begin.");
+            Log.DebugFormat("QuoteUpdate: begin. quote = {0}", quote);
 
             ExecuteCallbackAction(a => a.OnQuoteUpdate(quote));
 
@@ -167,7 +167,7 @@ namespace MTApiService
 
         public void OnQuoteAdded(MtQuote quote)
         {
-            Log.Debug("OnQuoteAdded: begin.");
+            Log.DebugFormat("OnQuoteAdded: begin. quote = {0}", quote);
 
             ExecuteCallbackAction(a => a.OnQuoteAdded(quote));
 
@@ -176,18 +176,18 @@ namespace MTApiService
 
         public void OnQuoteRemoved(MtQuote quote)
         {
-            Log.Debug("OnQuoteRemoved: begin.");
+            Log.DebugFormat("OnQuoteRemoved: begin. quote = {0}", quote);
 
             ExecuteCallbackAction(a => a.OnQuoteRemoved(quote));
 
             Log.Debug("OnQuoteRemoved: end.");
         }
 
-        public void OnMtEvent(MtEvent mtEvent)
+        public void OnMtEvent(MtEvent e)
         {
-            Log.Debug("OnMtEvent: begin.");
+            Log.DebugFormat("OnMtEvent: begin.quote = {0}", e);
 
-            ExecuteCallbackAction(a => a.OnMtEvent(mtEvent));
+            ExecuteCallbackAction(a => a.OnMtEvent(e));
 
             Log.Debug("OnMtEvent: end.");
         }

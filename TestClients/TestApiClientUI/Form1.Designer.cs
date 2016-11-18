@@ -43,7 +43,7 @@
             this.colSymbol = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colBid = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colAsk = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colFeedCount = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colExpertHandle = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.listBoxEventLog = new System.Windows.Forms.ListBox();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.tabControl1 = new System.Windows.Forms.TabControl();
@@ -110,6 +110,15 @@
             this.listBoxAccountInfo = new System.Windows.Forms.ListBox();
             this.button4 = new System.Windows.Forms.Button();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.button36 = new System.Windows.Forms.Button();
+            this.comboBox10 = new System.Windows.Forms.ComboBox();
+            this.comboBox9 = new System.Windows.Forms.ComboBox();
+            this.button35 = new System.Windows.Forms.Button();
+            this.button34 = new System.Windows.Forms.Button();
+            this.comboBox8 = new System.Windows.Forms.ComboBox();
+            this.label30 = new System.Windows.Forms.Label();
+            this.button33 = new System.Windows.Forms.Button();
+            this.comboBox7 = new System.Windows.Forms.ComboBox();
             this.comboBox6 = new System.Windows.Forms.ComboBox();
             this.label29 = new System.Windows.Forms.Label();
             this.comboBox5 = new System.Windows.Forms.ComboBox();
@@ -157,15 +166,6 @@
             this.button28 = new System.Windows.Forms.Button();
             this.label28 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
-            this.comboBox7 = new System.Windows.Forms.ComboBox();
-            this.button33 = new System.Windows.Forms.Button();
-            this.label30 = new System.Windows.Forms.Label();
-            this.comboBox8 = new System.Windows.Forms.ComboBox();
-            this.button34 = new System.Windows.Forms.Button();
-            this.button35 = new System.Windows.Forms.Button();
-            this.comboBox9 = new System.Windows.Forms.ComboBox();
-            this.comboBox10 = new System.Windows.Forms.ComboBox();
-            this.button36 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -288,7 +288,7 @@
             this.colSymbol,
             this.colBid,
             this.colAsk,
-            this.colFeedCount});
+            this.colExpertHandle});
             this.listViewQuotes.Location = new System.Drawing.Point(6, 19);
             this.listViewQuotes.Name = "listViewQuotes";
             this.listViewQuotes.Size = new System.Drawing.Size(357, 104);
@@ -309,9 +309,10 @@
             // 
             this.colAsk.Text = "Ask";
             // 
-            // colFeedCount
+            // colExpertHandle
             // 
-            this.colFeedCount.Text = "Feeds";
+            this.colExpertHandle.Text = "ExpertHandle";
+            this.colExpertHandle.Width = 80;
             // 
             // listBoxEventLog
             // 
@@ -1071,6 +1072,91 @@
             this.tabPage4.Text = "MarketInfo";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // button36
+            // 
+            this.button36.Location = new System.Drawing.Point(208, 157);
+            this.button36.Name = "button36";
+            this.button36.Size = new System.Drawing.Size(111, 23);
+            this.button36.TabIndex = 36;
+            this.button36.Text = "TerminalInfoDouble";
+            this.button36.UseVisualStyleBackColor = true;
+            this.button36.Click += new System.EventHandler(this.button36_Click);
+            // 
+            // comboBox10
+            // 
+            this.comboBox10.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox10.FormattingEnabled = true;
+            this.comboBox10.Location = new System.Drawing.Point(13, 157);
+            this.comboBox10.Name = "comboBox10";
+            this.comboBox10.Size = new System.Drawing.Size(186, 21);
+            this.comboBox10.TabIndex = 35;
+            // 
+            // comboBox9
+            // 
+            this.comboBox9.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox9.FormattingEnabled = true;
+            this.comboBox9.Location = new System.Drawing.Point(13, 130);
+            this.comboBox9.Name = "comboBox9";
+            this.comboBox9.Size = new System.Drawing.Size(186, 21);
+            this.comboBox9.TabIndex = 34;
+            // 
+            // button35
+            // 
+            this.button35.Location = new System.Drawing.Point(208, 128);
+            this.button35.Name = "button35";
+            this.button35.Size = new System.Drawing.Size(111, 23);
+            this.button35.TabIndex = 33;
+            this.button35.Text = "TerminalInfoInteger";
+            this.button35.UseVisualStyleBackColor = true;
+            this.button35.Click += new System.EventHandler(this.button35_Click);
+            // 
+            // button34
+            // 
+            this.button34.Location = new System.Drawing.Point(387, 47);
+            this.button34.Name = "button34";
+            this.button34.Size = new System.Drawing.Size(112, 23);
+            this.button34.TabIndex = 32;
+            this.button34.Text = "SymbolInfoTick";
+            this.button34.UseVisualStyleBackColor = true;
+            this.button34.Click += new System.EventHandler(this.button34_Click);
+            // 
+            // comboBox8
+            // 
+            this.comboBox8.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox8.FormattingEnabled = true;
+            this.comboBox8.Location = new System.Drawing.Point(13, 47);
+            this.comboBox8.Name = "comboBox8";
+            this.comboBox8.Size = new System.Drawing.Size(186, 21);
+            this.comboBox8.TabIndex = 31;
+            // 
+            // label30
+            // 
+            this.label30.AutoSize = true;
+            this.label30.Location = new System.Drawing.Point(10, 13);
+            this.label30.Name = "label30";
+            this.label30.Size = new System.Drawing.Size(41, 13);
+            this.label30.TabIndex = 30;
+            this.label30.Text = "Symbol";
+            // 
+            // button33
+            // 
+            this.button33.Location = new System.Drawing.Point(208, 99);
+            this.button33.Name = "button33";
+            this.button33.Size = new System.Drawing.Size(111, 23);
+            this.button33.TabIndex = 29;
+            this.button33.Text = "SymbolInfoDouble";
+            this.button33.UseVisualStyleBackColor = true;
+            this.button33.Click += new System.EventHandler(this.button33_Click);
+            // 
+            // comboBox7
+            // 
+            this.comboBox7.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox7.FormattingEnabled = true;
+            this.comboBox7.Location = new System.Drawing.Point(13, 101);
+            this.comboBox7.Name = "comboBox7";
+            this.comboBox7.Size = new System.Drawing.Size(186, 21);
+            this.comboBox7.TabIndex = 28;
+            // 
             // comboBox6
             // 
             this.comboBox6.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -1569,91 +1655,6 @@
             this.textBox1.TabIndex = 0;
             this.textBox1.Text = "EURUSD";
             // 
-            // comboBox7
-            // 
-            this.comboBox7.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBox7.FormattingEnabled = true;
-            this.comboBox7.Location = new System.Drawing.Point(13, 101);
-            this.comboBox7.Name = "comboBox7";
-            this.comboBox7.Size = new System.Drawing.Size(186, 21);
-            this.comboBox7.TabIndex = 28;
-            // 
-            // button33
-            // 
-            this.button33.Location = new System.Drawing.Point(208, 99);
-            this.button33.Name = "button33";
-            this.button33.Size = new System.Drawing.Size(111, 23);
-            this.button33.TabIndex = 29;
-            this.button33.Text = "SymbolInfoDouble";
-            this.button33.UseVisualStyleBackColor = true;
-            this.button33.Click += new System.EventHandler(this.button33_Click);
-            // 
-            // label30
-            // 
-            this.label30.AutoSize = true;
-            this.label30.Location = new System.Drawing.Point(10, 13);
-            this.label30.Name = "label30";
-            this.label30.Size = new System.Drawing.Size(41, 13);
-            this.label30.TabIndex = 30;
-            this.label30.Text = "Symbol";
-            // 
-            // comboBox8
-            // 
-            this.comboBox8.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBox8.FormattingEnabled = true;
-            this.comboBox8.Location = new System.Drawing.Point(13, 47);
-            this.comboBox8.Name = "comboBox8";
-            this.comboBox8.Size = new System.Drawing.Size(186, 21);
-            this.comboBox8.TabIndex = 31;
-            // 
-            // button34
-            // 
-            this.button34.Location = new System.Drawing.Point(387, 47);
-            this.button34.Name = "button34";
-            this.button34.Size = new System.Drawing.Size(112, 23);
-            this.button34.TabIndex = 32;
-            this.button34.Text = "SymbolInfoTick";
-            this.button34.UseVisualStyleBackColor = true;
-            this.button34.Click += new System.EventHandler(this.button34_Click);
-            // 
-            // button35
-            // 
-            this.button35.Location = new System.Drawing.Point(208, 128);
-            this.button35.Name = "button35";
-            this.button35.Size = new System.Drawing.Size(111, 23);
-            this.button35.TabIndex = 33;
-            this.button35.Text = "TerminalInfoInteger";
-            this.button35.UseVisualStyleBackColor = true;
-            this.button35.Click += new System.EventHandler(this.button35_Click);
-            // 
-            // comboBox9
-            // 
-            this.comboBox9.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBox9.FormattingEnabled = true;
-            this.comboBox9.Location = new System.Drawing.Point(13, 130);
-            this.comboBox9.Name = "comboBox9";
-            this.comboBox9.Size = new System.Drawing.Size(186, 21);
-            this.comboBox9.TabIndex = 34;
-            // 
-            // comboBox10
-            // 
-            this.comboBox10.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBox10.FormattingEnabled = true;
-            this.comboBox10.Location = new System.Drawing.Point(13, 157);
-            this.comboBox10.Name = "comboBox10";
-            this.comboBox10.Size = new System.Drawing.Size(186, 21);
-            this.comboBox10.TabIndex = 35;
-            // 
-            // button36
-            // 
-            this.button36.Location = new System.Drawing.Point(208, 157);
-            this.button36.Name = "button36";
-            this.button36.Size = new System.Drawing.Size(111, 23);
-            this.button36.TabIndex = 36;
-            this.button36.Text = "TerminalInfoDouble";
-            this.button36.UseVisualStyleBackColor = true;
-            this.button36.Click += new System.EventHandler(this.button36_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1780,7 +1781,7 @@
         private System.Windows.Forms.Button button8;
         private System.Windows.Forms.Button button11;
         private System.Windows.Forms.Button button12;
-        private System.Windows.Forms.ColumnHeader colFeedCount;
+        private System.Windows.Forms.ColumnHeader colExpertHandle;
         private System.Windows.Forms.TabPage tabPage6;
         private System.Windows.Forms.Button button13;
         private System.Windows.Forms.Button button14;

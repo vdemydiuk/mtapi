@@ -398,11 +398,11 @@ namespace MTApiService
             Log.Debug("expert_QuoteChanged: end.");
         }
 
-        private void Expert_OnMtEvent(object sender, MtEventArgs e)
+        private void Expert_OnMtEvent(MtExpert expert, MtEvent e)
         {
-            Log.DebugFormat("Expert_OnMtEvent: begin. event = {0}", e.Event);
+            Log.DebugFormat("Expert_OnMtEvent: begin. expert = {0}, event = {1}", expert, e);
 
-            _service.OnMtEvent(e.Event);
+            _service.OnMtEvent(e);
 
             Log.Debug("Expert_OnMtEvent: end.");
         }

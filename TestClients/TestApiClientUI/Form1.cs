@@ -35,6 +35,7 @@ namespace TestApiClientUI
             comboBox10.DataSource = Enum.GetNames(typeof(EnumTerminalInfoDouble));
 
             _apiClient.QuoteUpdated += apiClient_QuoteUpdated;
+            _apiClient.QuoteUpdate += _apiClient_QuoteUpdate;
             _apiClient.QuoteAdded += apiClient_QuoteAdded;
             _apiClient.QuoteRemoved += apiClient_QuoteRemoved;
             _apiClient.ConnectionStateChanged += apiClient_ConnectionStateChanged;
@@ -112,12 +113,18 @@ namespace TestApiClientUI
 
         private void apiClient_QuoteRemoved(object sender, MtQuoteEventArgs e)
         {
-            RunOnUiThread(() => RemoveQuote(e.Quote) );
+            if (e.Quote != null)
+            {
+                RunOnUiThread(() => RemoveQuote(e.Quote));
+            }
         }
 
         private void apiClient_QuoteAdded(object sender, MtQuoteEventArgs e)
         {
-            RunOnUiThread(() => AddNewQuote(e.Quote));
+            if (e.Quote != null)
+            {
+                RunOnUiThread(() => AddNewQuote(e.Quote));
+            }
         }
 
         private void _apiClient_OnLastTimeBar(object sender, TimeBarArgs e)
@@ -131,72 +138,53 @@ namespace TestApiClientUI
         private void apiClient_QuoteUpdated(object sender, string symbol, double bid, double ask)
         {
             Console.WriteLine(@"Quote: Symbol = {0}, Bid = {1}, Ask = {2}", symbol, bid, ask);
+        }
+
+
+        private void _apiClient_QuoteUpdate(object sender, MtQuoteEventArgs e)
+        {
             //if UI of quite is busy we are skipping this update
             if (_isUiQuoteUpdateReady)
             {
-                RunOnUiThread(() => ChangeQuote(symbol, bid, ask));
+                RunOnUiThread(() => ChangeQuote(e.Quote));
             }
         }
 
         private void AddNewQuote(MtQuote quote)
         {
-            if (quote == null)
-                return;
+            var key = quote.ExpertHandle.ToString();
 
-            if (string.IsNullOrEmpty(quote.Instrument) == false
-                && listViewQuotes.Items.ContainsKey(quote.Instrument) == false)
+            if (listViewQuotes.Items.ContainsKey(key) == false)
             {
-                var item = new ListViewItem(quote.Instrument) { Name = quote.Instrument };
+                var item = new ListViewItem(quote.Instrument) { Name = key };
                 item.SubItems.Add(quote.Bid.ToString(CultureInfo.CurrentCulture));
                 item.SubItems.Add(quote.Ask.ToString(CultureInfo.CurrentCulture));
-                item.SubItems.Add("1");
+                item.SubItems.Add(key);
                 listViewQuotes.Items.Add(item);
-            }
-            else
-            {
-                var item = listViewQuotes.Items[quote.Instrument];
-                int feedCount;
-                int.TryParse(item.SubItems[3].Text, out feedCount);
-                feedCount++;
-                item.SubItems[3].Text = feedCount.ToString();
             }
         }
 
         private void RemoveQuote(MtQuote quote)
         {
-            if (quote == null)
-                return;
+            var key = quote.ExpertHandle.ToString();
 
-            if (string.IsNullOrEmpty(quote.Instrument) == false
-                && listViewQuotes.Items.ContainsKey(quote.Instrument))
+            if (listViewQuotes.Items.ContainsKey(key))
             {
-                var item = listViewQuotes.Items[quote.Instrument];
-                int feedCount;
-                int.TryParse(item.SubItems[3].Text, out feedCount);
-                feedCount--;
-                if (feedCount <= 0)
-                {
-                    listViewQuotes.Items.RemoveByKey(quote.Instrument);
-                }
-                else
-                {
-                    item.SubItems[3].Text = feedCount.ToString();
-                }
+                listViewQuotes.Items.RemoveByKey(key);
             }
         }
 
-        private void ChangeQuote(string symbol, double bid, double ask)
+        private void ChangeQuote(MtQuote quote)
         {
             _isUiQuoteUpdateReady = false;
 
-            if (string.IsNullOrEmpty(symbol) == false)
+            var key = quote.ExpertHandle.ToString();
+
+            if (listViewQuotes.Items.ContainsKey(key))
             {
-                if (listViewQuotes.Items.ContainsKey(symbol))
-                {
-                    var item = listViewQuotes.Items[symbol];
-                    item.SubItems[1].Text = bid.ToString(CultureInfo.CurrentCulture);
-                    item.SubItems[2].Text = ask.ToString(CultureInfo.CurrentCulture);
-                }
+                var item = listViewQuotes.Items[key];
+                item.SubItems[1].Text = quote.Bid.ToString(CultureInfo.CurrentCulture);
+                item.SubItems[2].Text = quote.Ask.ToString(CultureInfo.CurrentCulture);
             }
 
             _isUiQuoteUpdateReady = true;

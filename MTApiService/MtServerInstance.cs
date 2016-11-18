@@ -60,7 +60,7 @@ namespace MTApiService
                 }
             }
 
-            var expert = new MtExpert(expertHandle, new MtQuote(symbol, bid, ask), mtHandler);
+            var expert = new MtExpert(expertHandle, new MtQuote { Instrument = symbol, Bid = bid, Ask = ask, ExpertHandle = expertHandle }, mtHandler);
 
             lock (_experts)
             {
@@ -111,7 +111,7 @@ namespace MTApiService
 
             if (expert != null)
             {
-                expert.Quote = new MtQuote(symbol, bid, ask);
+                expert.Quote = new MtQuote { Instrument = symbol, Bid = bid, Ask = ask, ExpertHandle = expertHandle };
             }
             else
             {
@@ -133,7 +133,7 @@ namespace MTApiService
 
             if (expert != null)
             {
-                expert.SendEvent(new MtEvent(eventType, payload));
+                expert.SendEvent(new MtEvent { EventType = eventType, Payload = payload, ExpertHandle = expertHandle });
             }
             else
             {

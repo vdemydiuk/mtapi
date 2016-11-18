@@ -7,20 +7,17 @@ namespace MTApiService
     public class MtEvent
     {
         [DataMember]
-        public int EventType { get; private set; }
+        public int EventType { get; internal set; }
 
         [DataMember]
-        public string Payload { get; private set; }
+        public string Payload { get; internal set; }
 
-        public MtEvent(int eventType, string payload)
-        {
-            EventType = eventType;
-            Payload = payload;
-        }
+        [DataMember]
+        public int ExpertHandle { get; internal set; }
 
         public override string ToString()
         {
-            return "MtEvent = " + EventType + ", Payload = " + Payload;
+            return $"EventType = {EventType}; Payload = {Payload}; ExpertHandle = {ExpertHandle}";
         }
     }
 

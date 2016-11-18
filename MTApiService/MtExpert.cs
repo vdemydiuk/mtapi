@@ -6,6 +6,7 @@ namespace MTApiService
     public class MtExpert
     {
         public delegate void MtQuoteHandler(MtExpert expert, MtQuote quote);
+        public delegate void MtEventHandler(MtExpert expert, MtEvent e);
 
         #region Private Fields
         private static readonly ILog Log = LogManager.GetLogger(typeof(MtExpert));
@@ -187,7 +188,7 @@ namespace MTApiService
 
         private void FireOnMtEvent(MtEvent mtEvent)
         {
-            OnMtEvent?.Invoke(this, new MtEventArgs(mtEvent));
+            OnMtEvent?.Invoke(this, mtEvent);
         }
         #endregion
 
@@ -195,7 +196,7 @@ namespace MTApiService
         public event EventHandler Deinited;
         public event MtQuoteHandler QuoteChanged;
         public event EventHandler CommandExecuted;
-        public event EventHandler<MtEventArgs> OnMtEvent;
+        public event MtEventHandler OnMtEvent;
         #endregion
     }
 }

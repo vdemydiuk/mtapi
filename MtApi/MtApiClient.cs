@@ -81,14 +81,15 @@ namespace MtApi
         ///<summary>
         ///Load quotes connected into MetaTrader API.
         ///</summary>
-        public IEnumerable<MtQuote> GetQuotes()
+        public List<MtQuote> GetQuotes()
         {
             IEnumerable<MTApiService.MtQuote> quotes;
             lock (_client)
             {
                 quotes = _client.GetQuotes();
             }
-            return quotes?.Select(q => q.Convert());
+
+            return quotes?.Select(q => new MtQuote(q)).ToList();
         }
         #endregion
 
@@ -1847,10 +1848,12 @@ namespace MtApi
             {
                 if (_isBacktestingMode)
                 {
+                    QuoteUpdate?.Invoke(this, new MtQuoteEventArgs(new MtQuote(quote)));
                     QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
                 }
                 else
                 {
+                    QuoteUpdate?.FireEventAsync(this, new MtQuoteEventArgs(new MtQuote(quote)));
                     QuoteUpdated.FireEventAsync(this, quote.Instrument, quote.Bid, quote.Ask);
                 }
             }
@@ -1868,23 +1871,23 @@ namespace MtApi
 
         private void _client_QuoteRemoved(MTApiService.MtQuote quote)
         {
-            QuoteRemoved.FireEventAsync(this, new MtQuoteEventArgs(quote.Convert()));
+            QuoteRemoved.FireEventAsync(this, new MtQuoteEventArgs(new MtQuote(quote)));
         }
 
         private void _client_QuoteAdded(MTApiService.MtQuote quote)
         {
-            QuoteAdded.FireEventAsync(this, new MtQuoteEventArgs(quote.Convert()));
+            QuoteAdded.FireEventAsync(this, new MtQuoteEventArgs(new MtQuote(quote)));
         }
 
-        private void _client_MtEventReceived(object sender, MtEventArgs e)
+        private void _client_MtEventReceived(MtEvent e)
         {
-            var eventType = (MtEventTypes) e.Event.EventType;
+            var eventType = (MtEventTypes) e.EventType;
 
             switch(eventType)
             {
                 case MtEventTypes.LastTimeBar:
                     {
-                        FireOnLastTimeBar(JsonConvert.DeserializeObject<MtTimeBar>(e.Event.Payload));
+                        FireOnLastTimeBar(JsonConvert.DeserializeObject<MtTimeBar>(e.Payload));
                     }
                     break;
                 default:
@@ -1907,6 +1910,7 @@ namespace MtApi
         #region Events
 
         public event MtApiQuoteHandler QuoteUpdated;
+        public event EventHandler<MtQuoteEventArgs> QuoteUpdate;
         public event EventHandler<MtQuoteEventArgs> QuoteAdded;
         public event EventHandler<MtQuoteEventArgs> QuoteRemoved;
         public event EventHandler<MtConnectionEventArgs> ConnectionStateChanged;

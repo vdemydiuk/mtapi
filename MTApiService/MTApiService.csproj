@@ -78,7 +78,7 @@
     <Compile Include="MtConnectionProfile.cs" />
     <Compile Include="MtExecutorManager.cs" />
     <Compile Include="MtExpert.cs" />
-    <Compile Include="MtInstrument.cs" />
+    <Compile Include="MtQuote.cs" />
     <Compile Include="MtResponse.cs" />
     <Compile Include="MtServer.cs" />
     <Compile Include="MtCommand.cs" />
