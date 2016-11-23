@@ -41,10 +41,6 @@ namespace MTApiService
             roller.ActivateOptions();
             hierarchy.Root.AddAppender(roller);
 
-            var memory = new MemoryAppender();
-            memory.ActivateOptions();
-            hierarchy.Root.AddAppender(memory);
-
 #if (DEBUG)
             hierarchy.Root.Level = Level.Debug;
 #else
