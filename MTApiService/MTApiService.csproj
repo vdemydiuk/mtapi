@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="ICommandManager.cs" />
     <Compile Include="IMetaTraderHandler.cs" />
+    <Compile Include="ITaskExecutor.cs" />
     <Compile Include="LogConfigurator.cs" />
     <Compile Include="MtCommandEventArgs.cs" />
     <Compile Include="IDisposableChannel.cs" />

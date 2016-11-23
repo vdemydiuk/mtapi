@@ -11,13 +11,13 @@ namespace MTApiService
             : base(callbackContext, binding, remoteAddress)
         {
             InnerDuplexChannel.Faulted += InnerDuplexChannel_Faulted;
-            InnerDuplexChannel.Open();
         }
 
         #region IMtApi Members
 
         public bool Connect()
         {
+            InnerDuplexChannel.Open();
             return Channel.Connect();
         }
 

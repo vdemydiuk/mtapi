@@ -4,14 +4,13 @@ using log4net;
 
 namespace MTApiService
 {
-    internal class MtCommandExecutorManager : ICommandManager
+    internal class MtExecutorManager : ICommandManager
     {
         #region Private Fields
-        private static readonly ILog Log = LogManager.GetLogger(typeof(MtCommandExecutorManager));
+        private static readonly ILog Log = LogManager.GetLogger(typeof(MtExecutorManager));
 
-        private readonly List<MtExpert> _commandExecutors = new List<MtExpert>();
-        private readonly Queue<MtCommandTask> _commandTasks = new Queue<MtCommandTask>();
-
+        private readonly List<ITaskExecutor> _executorList = new List<ITaskExecutor>();
+        private readonly Dictionary<int, ITaskExecutor> _executorMap = new Dictionary<int, ITaskExecutor>();
         private readonly object _locker = new object();
         #endregion
 
@@ -23,149 +22,94 @@ namespace MTApiService
 
             lock (_locker)
             {
-                _commandExecutors.Clear();
-                _commandTasks.Clear();
+                _executorList.Clear();
+                _executorMap.Clear();
             }
 
             Log.Debug("Stop: end.");
         }
 
-        public void AddCommandExecutor(MtExpert commandExecutor)
+        public void AddExecutor(ITaskExecutor executor)
         {
-            if (commandExecutor == null)
-                throw new ArgumentNullException(nameof(commandExecutor));
+            if (executor == null)
+                throw new ArgumentNullException(nameof(executor));
 
-            Log.DebugFormat("AddCommandExecutor: begin. commandExecutor = {0}", commandExecutor);
+            Log.DebugFormat("AddExecutor: begin. executor = {0}", executor);
 
-            var notify = false;
             lock (_locker)
             {
-                if (_commandExecutors.Contains(commandExecutor))
+                if (_executorList.Contains(executor))
                 {
-                    Log.Warn("AddCommandExecutor: end. Command executor already exist.");
+                    Log.Warn("AddExecutor: end. Executor already exist.");
                     return;
                 }
 
-                _commandExecutors.Add(commandExecutor);
-                if (_commandTasks.Count > 0)
-                {
-                    notify = true;
-                }
-            }
-
-            commandExecutor.CommandExecuted += CommandExecutor_CommandExecuted;
-            commandExecutor.CommandManager = this;
-
-            if (notify)
-            {
-                NotifyCommandReady();
+                _executorList.Add(executor);
+                _executorMap[executor.Handle] = executor;
             }
 
             Log.Debug("AddCommandExecutor: end.");
         }
 
-        public void RemoveCommandExecutor(MtExpert commandExecutor)
+        public void RemoveExecutor(ITaskExecutor executor)
         {
-            if (commandExecutor == null)
-                throw new ArgumentNullException(nameof(commandExecutor));
+            if (executor == null)
+                throw new ArgumentNullException(nameof(executor));
 
-            Log.DebugFormat("RemoveCommandExecutor: begin. commandExecutor = {0}", commandExecutor);
+            Log.DebugFormat("RemoveExecutor: begin. executor = {0}", executor);
 
-            var notify = false;
             lock (_locker)
             {
-                if (_commandExecutors.Contains(commandExecutor) == false)
+                if (_executorList.Contains(executor) == false)
                 {
-                    Log.Warn("RemoveCommandExecutor: end. Command executor is not exist in collection.");
+                    Log.Warn("RemoveExecutor: end. Executor is not exist in collection.");
                     return;
                 }
 
-                _commandExecutors.Remove(commandExecutor);
-                if (_commandTasks.Count > 0)
+                _executorList.Remove(executor);
+                _executorMap.Remove(executor.Handle);
+            }
+
+            Log.Debug("RemoveExecutor: end.");
+        }
+
+        public MtCommandTask SendCommand(MtCommand command)
+        {
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
+
+            var task = new MtCommandTask(command);
+
+            Log.DebugFormat("SendTask: begin. command = {0}", command);
+
+            ITaskExecutor executor = null;
+
+            lock (_locker)
+            {
+                if (_executorMap.ContainsKey(command.ExpertHandle))
                 {
-                    notify = true;
+                    executor = _executorMap[command.ExpertHandle];
+                }
+                else
+                {
+                    executor = _executorList.Count > 0 ? _executorList[0] : null;
                 }
             }
 
-            commandExecutor.CommandExecuted -= CommandExecutor_CommandExecuted;
-            commandExecutor.CommandManager = null;
-
-            if (notify)
+            if (executor == null)
             {
-                NotifyCommandReady();
+                Log.Error("SendTask: Executor is null!");
+            }
+            else
+            {
+                executor.Execute(task);
             }
 
-            Log.Debug("RemoveCommandExecutor: end.");
+            Log.Debug("SendTask: end.");
+
+            return task;
         }
 
-        public void EnqueueCommandTask(MtCommandTask task)
-        {
-            if (task == null)
-                throw new ArgumentNullException(nameof(task));
-
-            Log.DebugFormat("EnqueueCommandTask: begin. task = {0}", task);
-
-            lock (_locker)
-            {
-                _commandTasks.Enqueue(task);
-            }
-
-            NotifyCommandReady();
-
-            Log.Debug("EnqueueCommandTask: end.");
-        }
-
-        public MtCommandTask DequeueCommandTask()
-        {
-            Log.Debug("DequeueCommandTask: called.");
-
-            lock (_locker)
-            {
-                return _commandTasks.Count > 0 ? _commandTasks.Dequeue() : null;
-            }
-        }
-
-        #endregion
-
-        #region Private Methods
-        private void NotifyCommandReady()
-        {
-            Log.Debug("NotifyCommandReady: begin.");
-
-            var commandExecutors = new List<MtExpert>();
-            lock (_locker)
-            {
-                commandExecutors.AddRange(_commandExecutors);
-            }
-
-            foreach (var executor in commandExecutors)
-            {
-                executor.NotifyCommandReady();
-            }
-
-            Log.DebugFormat("NotifyCommandReady: end. Notified executor count = {0}", commandExecutors.Count);
-        }
-
-        private void CommandExecutor_CommandExecuted(object sender, EventArgs e)
-        {
-            Log.Debug("CommandExecutor_CommandExecuted: begin.");
-
-            var notify = false;
-            lock (_locker)
-            {
-                if (_commandTasks.Count > 0)
-                {
-                    notify = true;
-                }
-            }
-
-            if (notify)
-            {
-                NotifyCommandReady();
-            }
-
-            Log.Debug("CommandExecutor_CommandExecuted: end.");
-        }
         #endregion
     }
 }

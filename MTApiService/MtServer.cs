@@ -21,7 +21,7 @@ namespace MTApiService
 
         private readonly MtService _service;
         private readonly List<ServiceHost> _hosts = new List<ServiceHost>();
-        private readonly MtCommandExecutorManager _executorManager = new MtCommandExecutorManager();
+        private readonly MtExecutorManager _executorManager = new MtExecutorManager();
         private readonly List<MtExpert> _experts = new List<MtExpert>();
         #endregion
 
@@ -149,7 +149,7 @@ namespace MTApiService
                 _experts.Add(expert);
             }
 
-            _executorManager.AddCommandExecutor(expert);
+            _executorManager.AddExecutor(expert);
 
             _service.OnQuoteAdded(expert.Quote);
 
@@ -170,11 +170,20 @@ namespace MTApiService
                 return null;
             }
 
-            var task = new MtCommandTask(command);
-            _executorManager.EnqueueCommandTask(task);
+            var task = _executorManager.SendCommand(command);
 
             //wait for execute command in MetaTrader
-            var response = task.WaitResult(WaitResponseTime);
+            MtResponse response = null;
+            try
+            {
+                response = task.WaitResult(WaitResponseTime);
+            }
+            catch (Exception ex)
+            {
+                Log.WarnFormat("SendCommand: Exception - {0}", ex.Message);
+            }
+
+            Log.DebugFormat("SendCommand: end. response = {0}", response);
 
             return response;
         }
@@ -371,7 +380,7 @@ namespace MTApiService
                 expertsCount = _experts.Count;
             }
 
-            _executorManager.RemoveCommandExecutor(expert);
+            _executorManager.RemoveExecutor(expert);
 
             expert.Deinited -= expert_Deinited;
             expert.QuoteChanged -= expert_QuoteChanged;

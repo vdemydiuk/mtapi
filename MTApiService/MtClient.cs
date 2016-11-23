@@ -6,8 +6,8 @@ using log4net;
 
 namespace MTApiService
 {
-    [CallbackBehavior(UseSynchronizationContext = false)]
-    public class MtClient: IMtApiCallback, IDisposable
+    [CallbackBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, UseSynchronizationContext = false)]
+    public class MtClient : IMtApiCallback, IDisposable
     {
         private const string ServiceName = "MtApiService";
 
@@ -17,28 +17,22 @@ namespace MTApiService
         #region Fields
         private static readonly ILog Log = LogManager.GetLogger(typeof(MtClient));
 
-        private MtApiProxy _proxy;
-        private bool _isConnected;
+        private readonly MtApiProxy _proxy;
         #endregion
 
-        #region Public Methods
-        public void Open(string host, int port)
+        #region ctor
+        public MtClient(string host, int port)
         {
-            Log.DebugFormat("Open: begin. host = {0}, port = {1}", host, port);
-
             if (string.IsNullOrEmpty(host))
                 throw new ArgumentNullException(nameof(host), "host is null or empty");
 
             if (port < 0 || port > 65536)
                 throw new ArgumentOutOfRangeException(nameof(port), "port value is invalid");
 
-            var urlService = $"net.tcp://{host}:{port}/{ServiceName}";
+            Host = host;
+            Port = port;
 
-            if (_proxy != null)
-            {
-                Log.Warn("Open: end. _proxy is not null.");
-                return;
-            }
+            var urlService = $"net.tcp://{host}:{port}/{ServiceName}";
 
             var bind = new NetTcpBinding(SecurityMode.None)
             {
@@ -56,28 +50,19 @@ namespace MTApiService
                     MaxNameTableCharCount = 2147483647
                 }
             };
-            // Commented next statement since it is not required
 
             _proxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
             _proxy.Faulted += ProxyFaulted;
-
-            Log.Debug("Open: end.");
         }
 
-        public void Open(int port)
+        public MtClient(int port)
         {
-            Log.DebugFormat("Open: begin. port = {0}", port);
-
             if (port < 0 || port > 65536)
                 throw new ArgumentOutOfRangeException(nameof(port), "port value is invalid");
 
-            var urlService = $"net.pipe://localhost/{ServiceName}_{port}";
+            Port = port;
 
-            if (_proxy != null)
-            {
-                Log.Warn("Open: end. _proxy is not null.");
-                return;
-            }
+            var urlService = $"net.pipe://localhost/{ServiceName}_{port}";
 
             var bind = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None)
             {
@@ -95,61 +80,40 @@ namespace MTApiService
                     MaxNameTableCharCount = 2147483647
                 }
             };
-            // Commented next statement since it is not required
 
             _proxy = new MtApiProxy(new InstanceContext(this), bind, new EndpointAddress(urlService));
             _proxy.Faulted += ProxyFaulted;
-
-            Log.Debug("Open: end.");
         }
 
-        public void Close()
-        {
-            Log.Debug("Close: begin.");
 
-            if (_proxy != null)
-            {
-                _proxy.Faulted -= ProxyFaulted;
-                _proxy.Dispose();
-                _proxy = null;
-            }
+        #endregion
 
-            _isConnected = false;
-
-            Log.Debug("Close: end.");
-        }
-
+        #region Public Methods
         /// <exception cref="CommunicationException">Thrown when connection failed</exception>
         public void Connect()
         {
             Log.Debug("Connect: begin.");
 
-            if (_proxy == null)
+            if (_proxy.State != CommunicationState.Created)
             {
-                Log.Error("Connect: _proxy is not defined.");
-                throw new CommunicationException("Connection failed to service. Proxy is not defined (needs to call Open)");
-            }
-
-            if (_isConnected)
-            {
-                Log.Warn("Connected: end. Client is already connected.");
+                Log.ErrorFormat("Connected: end. Client has invalid state {0}", _proxy.State);
                 return;
             }
 
+            var coonected = false;
+
             try
             {
-                _isConnected = _proxy.Connect();
+                coonected = _proxy.Connect();
             }
             catch (Exception ex)
             {
                 Log.ErrorFormat("Connect: Exception - {0}", ex.Message);
 
-                Close();
-
                 throw new CommunicationException($"Connection failed to service. {ex.Message}");
             }
 
-            if (_isConnected == false)
+            if (coonected == false)
             {
                 Log.Error("Connect: end. Connection failed.");
                 throw new CommunicationException("Connection failed");
@@ -164,15 +128,11 @@ namespace MTApiService
 
             try
             {
-                _isConnected = false;
-
-                _proxy?.Disconnect();
+                _proxy.Disconnect();
             }
             catch (Exception ex)
             {
                 Log.ErrorFormat("Disconnect: Exception - {0}", ex.Message);
-
-                Close();
             }
 
             Log.Debug("Disconnect: end.");
@@ -183,19 +143,13 @@ namespace MTApiService
         {
             Log.DebugFormat("SendCommand: begin. commandType = {0}, parameters count = {1}", commandType, parameters?.Count);
 
-            MtResponse result;
-
-            if (_isConnected == false)
+            if (IsConnected == false)
             {
                 Log.Error("SendCommand: Client is not connected.");
                 throw new CommunicationException("Client is not connected.");
             }
 
-            if (_proxy == null)
-            {
-                Log.Error("SendCommand: Proxy is not defined.");
-                throw new CommunicationException("Proxy is not defined.");
-            }
+            MtResponse result;
 
             try
             {
@@ -205,10 +159,10 @@ namespace MTApiService
             {
                 Log.ErrorFormat("SendCommand: Exception - {0}", ex.Message);
 
-                Close();
-
                 throw new CommunicationException("Service connection failed! " + ex.Message);
             }
+
+            Log.DebugFormat("SendCommand: end. result = {0}", result);
 
             return result;
         }
@@ -218,15 +172,9 @@ namespace MTApiService
         {
             Log.Debug("GetQuotes: begin.");
 
-            if (_isConnected == false)
+            if (IsConnected == false)
             {
                 Log.Warn("GetQuotes: end. Client is not connected.");
-                return null;
-            }
-
-            if (_proxy == null)
-            {
-                Log.Warn("GetQuotes: end. _proxy is not defined.");
                 return null;
             }
 
@@ -239,8 +187,6 @@ namespace MTApiService
             catch (Exception ex)
             {
                 Log.ErrorFormat("GetQuotes: Exception - {0}", ex.Message);
-
-                Close();
 
                 throw new CommunicationException($"Service connection failed! {ex.Message}");
             }
@@ -260,7 +206,7 @@ namespace MTApiService
 
             if (quote == null) return;
 
-            QuoteUpdated?.Invoke( quote);
+            QuoteUpdated?.Invoke(quote);
 
             Log.Debug("OnQuoteUpdate: end.");
         }
@@ -287,7 +233,6 @@ namespace MTApiService
         {
             Log.Debug("OnServerStopped: begin.");
 
-            Close();
             ServerDisconnected?.Invoke(this, EventArgs.Empty);
 
             Log.Debug("OnServerStopped: end.");
@@ -306,7 +251,16 @@ namespace MTApiService
         #endregion
 
         #region Properties
-        public bool IsConnected => _proxy.State == CommunicationState.Opened && _isConnected;
+        public string Host { get; private set; }
+        public int Port { get; private set; }
+
+        private bool IsConnected
+        {
+            get
+            {
+                return _proxy.State == CommunicationState.Opened;
+            }
+        }
 
         #endregion
 
@@ -316,7 +270,6 @@ namespace MTApiService
         {
             Log.Debug("ProxyFaulted: begin.");
 
-            Close();
             ServerFailed?.Invoke(this, EventArgs.Empty);
 
             Log.Debug("ProxyFaulted: end.");
@@ -330,7 +283,7 @@ namespace MTApiService
         {
             Log.Debug("Dispose: begin.");
 
-            Close();
+            _proxy.Dispose();
 
             Log.Debug("Dispose: end.");
         }

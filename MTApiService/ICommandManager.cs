@@ -1,8 +1,7 @@
 ﻿namespace MTApiService
 {
-    public interface ICommandManager
+    internal interface ICommandManager
     {
-        void EnqueueCommandTask(MtCommandTask task);
-        MtCommandTask DequeueCommandTask();
+        MtCommandTask SendCommand(MtCommand task);
     }
 }

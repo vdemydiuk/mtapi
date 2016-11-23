@@ -8,6 +8,7 @@ using System.ServiceModel;
 using MtApi.Requests;
 using MtApi.Responses;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace MtApi
 {
@@ -27,7 +28,7 @@ namespace MtApi
         #endregion
 
         #region Private Fields
-        private readonly MtClient _client = new MtClient();
+        private MtClient _client;
         private readonly object _locker = new object();
         private MtConnectionState _connectionState = MtConnectionState.Disconnected;
         #endregion
@@ -37,13 +38,6 @@ namespace MtApi
         public MtApiClient()
         {
             LogConfigurator.Setup(LogProfileName);
-
-            _client.QuoteAdded += _client_QuoteAdded;
-            _client.QuoteRemoved += _client_QuoteRemoved;
-            _client.QuoteUpdated += _client_QuoteUpdated;
-            _client.ServerDisconnected += _client_ServerDisconnected;
-            _client.ServerFailed += _client_ServerFailed;
-            _client.MtEventReceived += _client_MtEventReceived;
         }
         #endregion
 
@@ -55,8 +49,7 @@ namespace MtApi
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(string host, int port)
         {
-            Action<string, int> connectAction = Connect;
-            connectAction.BeginInvoke(host, port, null, null);
+            Task.Factory.StartNew(() => Connect(host, port));
         }
 
         ///<summary>
@@ -65,8 +58,7 @@ namespace MtApi
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(int port)
         {
-            Action<int> connectAction = Connect;
-            connectAction.BeginInvoke(port, null, null);
+            Task.Factory.StartNew(() => Connect(port));
         }
 
         ///<summary>
@@ -74,8 +66,7 @@ namespace MtApi
         ///</summary>
         public void BeginDisconnect()
         {
-            Action disconnectAction = Disconnect;
-            disconnectAction.BeginInvoke(null, null);
+            Task.Factory.StartNew(() => Disconnect(false));
         }
 
         ///<summary>
@@ -83,12 +74,7 @@ namespace MtApi
         ///</summary>
         public List<MtQuote> GetQuotes()
         {
-            IEnumerable<MTApiService.MtQuote> quotes;
-            lock (_client)
-            {
-                quotes = _client.GetQuotes();
-            }
-
+            var quotes = _client.GetQuotes();
             return quotes?.Select(q => new MtQuote(q)).ToList();
         }
         #endregion
@@ -1706,44 +1692,81 @@ namespace MtApi
         #endregion
 
         #region Private Methods
-        private void Connect(string host, int port)
+        private MtClient Client
         {
-            UpdateConnectionState(MtConnectionState.Connecting, $"Connecting to {host}:{port}");
-            try
+            get
             {
-                lock (_client)
+                lock(_locker)
                 {
-                    _client.Open(host, port);
-                    _client.Connect();
+                    return _client;
                 }
             }
-            catch (Exception e)
+        }
+
+        private void Connect(MtClient client)
+        {
+            lock (_locker)
             {
-                UpdateConnectionState(MtConnectionState.Failed, $"Failed connection to {host}:{port}. {e.Message}");
-                return;
+                if (_connectionState == MtConnectionState.Connected
+                    || _connectionState == MtConnectionState.Connecting)
+                {
+                    return;
+                }
+
+                _connectionState = MtConnectionState.Connecting;
             }
-            UpdateConnectionState(MtConnectionState.Connected, $"Connected  to  {host}:{port}");
-            OnConnected();
+
+            string message = string.IsNullOrEmpty(client.Host) ? $"Connecting to localhost:{client.Port}" : $"Connecting to {client.Host}:{client.Port}";
+            ConnectionStateChanged?.Invoke(this, new MtConnectionEventArgs(MtConnectionState.Connecting, message));
+
+            var state = MtConnectionState.Failed;
+
+            lock (_locker)
+            {
+                try
+                {
+                    client.Connect();
+                    state = MtConnectionState.Connected;
+                }
+                catch (Exception e)
+                {
+                    client.Dispose();
+                    message = string.IsNullOrEmpty(client.Host) ? $"Failed connection to localhost:{client.Port}. {e.Message}" : $"Failed connection to {client.Host}:{client.Port}. {e.Message}";
+                }
+
+                if (state == MtConnectionState.Connected)
+                {
+                    _client = client;
+                    _client.QuoteAdded += _client_QuoteAdded;
+                    _client.QuoteRemoved += _client_QuoteRemoved;
+                    _client.QuoteUpdated += _client_QuoteUpdated;
+                    _client.ServerDisconnected += _client_ServerDisconnected;
+                    _client.ServerFailed += _client_ServerFailed;
+                    _client.MtEventReceived += _client_MtEventReceived;
+                    message = string.IsNullOrEmpty(client.Host) ? $"Connected to localhost:{client.Port}" : $"Connected to  { client.Host}:{client.Port}";
+                }
+
+                _connectionState = state;
+            }
+
+            ConnectionStateChanged?.Invoke(this, new MtConnectionEventArgs(state, message));
+
+            if (state == MtConnectionState.Connected)
+            {
+                OnConnected();
+            }
+        }
+
+        private void Connect(string host, int port)
+        {
+            var client = new MtClient(host, port);
+            Connect(client);
         }
 
         private void Connect(int port)
         {
-            UpdateConnectionState(MtConnectionState.Connecting, $"Connecting to 'localhost':{port}");
-            try
-            {
-                lock (_client)
-                {
-                    _client.Open(port);
-                    _client.Connect();
-                }
-            }
-            catch (Exception e)
-            {
-                UpdateConnectionState(MtConnectionState.Failed, $"Failed connection  to 'localhost':{port}. {e.Message}");
-                return;
-            }
-            UpdateConnectionState(MtConnectionState.Connected, $"Connected to 'localhost':{port}");
-            OnConnected();
+            var client = new MtClient(port);
+            Connect(client);
         }
 
         private void OnConnected()
@@ -1755,48 +1778,65 @@ namespace MtApi
             }
         }
 
-        private void Disconnect()
+        private void Disconnect(bool failed)
         {
-            lock (_client)
-            {
-                _client.Disconnect();
-                _client.Close();
-            }
+            var state =  failed ? MtConnectionState.Disconnected : MtConnectionState.Disconnected;
+            var message = failed ? "Connection Failed" : "Disconnected";
 
-            UpdateConnectionState(MtConnectionState.Disconnected, "Disconnected");
-        }
-
-        private void UpdateConnectionState(MtConnectionState state, string message)
-        {
-            var changed = false;
             lock (_locker)
             {
-                if (_connectionState != state)
+                if (_connectionState == MtConnectionState.Disconnected
+                    || _connectionState == MtConnectionState.Failed)
+                    return;
+
+                if (_client != null)
                 {
-                    _connectionState = state;
-                    changed = true;
+                    _client.QuoteAdded -= _client_QuoteAdded;
+                    _client.QuoteRemoved -= _client_QuoteRemoved;
+                    _client.QuoteUpdated -= _client_QuoteUpdated;
+                    _client.ServerDisconnected -= _client_ServerDisconnected;
+                    _client.ServerFailed -= _client_ServerFailed;
+                    _client.MtEventReceived -= _client_MtEventReceived;
+
+                    if (!failed)
+                    {
+                        _client.Disconnect();
+                    }
+
+                    _client.Dispose();
+
+                    _client = null;
                 }
+
+                _connectionState = state;
             }
 
-            if (changed)
-            {
-                ConnectionStateChanged.FireEventAsync(this, new MtConnectionEventArgs(state, message));
-            }
+
+            ConnectionStateChanged?.Invoke(this, new MtConnectionEventArgs(state, message));
         }
 
         private T SendCommand<T>(MtCommandType commandType, ArrayList commandParameters)
         {
             MtResponse response;
+
+            var client = Client;
+            if (client == null)
+            {
+                throw new MtConnectionException("No connection");
+            }
+
             try
             {
-                lock (_client)
-                {
-                    response = _client.SendCommand((int)commandType, commandParameters);
-                }
+                response = client.SendCommand((int)commandType, commandParameters);
             }
             catch (CommunicationException ex)
             {
                 throw new MtConnectionException(ex.Message, ex);
+            }
+
+            if (response == null)
+            {
+                throw new MtExecutionException(MtErrorCode.MtApiCustomError, "Response from MetaTrader is null");
             }
 
             var responseValue = response.GetValue();
@@ -1815,25 +1855,14 @@ namespace MtApi
                             });
             var commandParameters = new ArrayList { serializer };
 
-            MtResponseString res;
-            try
-            {
-                lock (_client)
-                {
-                    res = (MtResponseString)_client.SendCommand((int)MtCommandType.MtRequest, commandParameters);
-                }
-            }
-            catch (CommunicationException ex)
-            {
-                throw new MtConnectionException(ex.Message, ex);
-            }
+            var res = SendCommand<string>(MtCommandType.MtRequest, commandParameters);
 
             if (res == null)
             {
                 throw new MtExecutionException(MtErrorCode.MtApiCustomError, "Response from MetaTrader is null");
             }
 
-            var response = JsonConvert.DeserializeObject<T>(res.Value);
+            var response = JsonConvert.DeserializeObject<T>(res);
             if (response.ErrorCode != 0)
             {
                 throw new MtExecutionException((MtErrorCode)response.ErrorCode, response.ErrorMessage);
@@ -1846,37 +1875,29 @@ namespace MtApi
         {
             if (quote != null)
             {
-                if (_isBacktestingMode)
-                {
-                    QuoteUpdate?.Invoke(this, new MtQuoteEventArgs(new MtQuote(quote)));
-                    QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
-                }
-                else
-                {
-                    QuoteUpdate?.FireEventAsync(this, new MtQuoteEventArgs(new MtQuote(quote)));
-                    QuoteUpdated.FireEventAsync(this, quote.Instrument, quote.Bid, quote.Ask);
-                }
+                QuoteUpdate?.Invoke(this, new MtQuoteEventArgs(new MtQuote(quote)));
+                QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
             }
         }
 
         private void _client_ServerDisconnected(object sender, EventArgs e)
         {
-            UpdateConnectionState(MtConnectionState.Disconnected, "MtApi is disconnected");
+            Disconnect(false);
         }
 
         private void _client_ServerFailed(object sender, EventArgs e)
         {
-            UpdateConnectionState(MtConnectionState.Failed, "Failed connection with MtApi");
+            Disconnect(true);
         }
 
         private void _client_QuoteRemoved(MTApiService.MtQuote quote)
         {
-            QuoteRemoved.FireEventAsync(this, new MtQuoteEventArgs(new MtQuote(quote)));
+            QuoteRemoved?.Invoke(this, new MtQuoteEventArgs(new MtQuote(quote)));
         }
 
         private void _client_QuoteAdded(MTApiService.MtQuote quote)
         {
-            QuoteAdded.FireEventAsync(this, new MtQuoteEventArgs(new MtQuote(quote)));
+            QuoteAdded?.Invoke(this, new MtQuoteEventArgs(new MtQuote(quote)));
         }
 
         private void _client_MtEventReceived(MtEvent e)
@@ -1897,7 +1918,7 @@ namespace MtApi
 
         private void FireOnLastTimeBar(MtTimeBar timeBar)
         {
-            OnLastTimeBar.FireEventAsync(this, new TimeBarArgs(timeBar));
+            OnLastTimeBar?.Invoke(this, new TimeBarArgs(timeBar));
         }
 
         private void BacktestingReady()

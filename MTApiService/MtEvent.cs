@@ -20,14 +20,4 @@ namespace MTApiService
             return $"EventType = {EventType}; Payload = {Payload}; ExpertHandle = {ExpertHandle}";
         }
     }
-
-    public class MtEventArgs: EventArgs
-    {
-        public MtEventArgs(MtEvent e)
-        {
-            Event = e;
-        }
-
-        public MtEvent Event { get; private set; }
-    }
 }

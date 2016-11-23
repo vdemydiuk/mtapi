@@ -135,11 +135,27 @@ namespace TestApiClientUI
             PrintLog(msg);
         }
 
-        private void apiClient_QuoteUpdated(object sender, string symbol, double bid, double ask)
+        private void TestCallback(string symbol)
         {
-            Console.WriteLine(@"Quote: Symbol = {0}, Bid = {1}, Ask = {2}", symbol, bid, ask);
+            int bars = 0;
+            try
+            {
+                bars = _apiClient.iBars(symbol, ChartPeriod.PERIOD_M5);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("TestCallback:  Exception - {0}", ex.Message);
+            }
+
+            if (bars > 0)
+                Console.WriteLine("TestCallback:  iBar = {0}", bars);
         }
 
+        private void apiClient_QuoteUpdated(object sender, string symbol, double bid, double ask)
+        {
+            Console.WriteLine(@"Quote: Symbol = {0}, Bid = {1}, Ask = {2}", symbol, bid, ask);            
+            TestCallback(symbol);
+        }
 
         private void _apiClient_QuoteUpdate(object sender, MtQuoteEventArgs e)
         {
@@ -741,13 +757,13 @@ namespace TestApiClientUI
 
             Console.WriteLine($"Finished time: {DateTime.Now}");
 
-            using (var file = new System.IO.StreamWriter($@"{System.IO.Path.GetTempPath()}\MtApi\test.txt"))
-            {
-                foreach (var value in openPriceList)
-                {
-                    file.WriteLine(value);
-                }
-            }
+            //using (var file = new System.IO.StreamWriter($@"{System.IO.Path.GetTempPath()}\MtApi\test.txt"))
+            //{
+            //    foreach (var value in openPriceList)
+            //    {
+            //        file.WriteLine(value);
+            //    }
+            //}
         }
 
         private void button7_Click(object sender, EventArgs e)

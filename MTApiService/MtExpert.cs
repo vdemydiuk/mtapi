@@ -1,9 +1,10 @@
 ﻿using System;
 using log4net;
+using System.Collections.Generic;
 
 namespace MTApiService
 {
-    public class MtExpert
+    internal class MtExpert: ITaskExecutor
     {
         public delegate void MtQuoteHandler(MtExpert expert, MtQuote quote);
         public delegate void MtEventHandler(MtExpert expert, MtEvent e);
@@ -12,8 +13,8 @@ namespace MTApiService
         private static readonly ILog Log = LogManager.GetLogger(typeof(MtExpert));
 
         private readonly IMetaTraderHandler _mtHadler;
-        private MtCommandTask _commandTask;
-        private ICommandManager _commandManager;
+        private MtCommandTask _currentTask;
+        private readonly Queue<MtCommandTask> _taskQueue = new Queue<MtCommandTask>();
         private readonly object _locker = new object();
         #endregion
 
@@ -42,9 +43,8 @@ namespace MTApiService
         {
             Log.DebugFormat("SendResponse: begin. response = {0}", response);
 
-            _commandTask.SetResult(response);
-            _commandTask = null;
-            FireOnCommandExecuted();
+            _currentTask.SetResult(response);
+            _currentTask = null;
 
             Log.Debug("SendResponse: end.");
         }
@@ -53,20 +53,16 @@ namespace MTApiService
         {
             Log.Debug("GetCommandType: called.");
 
-            var commandManager = CommandManager;
-            if (commandManager != null)
-            {
-                _commandTask = commandManager.DequeueCommandTask();
-            }
+            _currentTask = DequeueTask();
 
-            return _commandTask?.Command?.CommandType ?? 0;
+            return _currentTask?.Command?.CommandType ?? 0;
         }
 
         public object GetCommandParameter(int index)
         {
             Log.DebugFormat("GetCommandType: called. index = {0}", index);
 
-            var command = _commandTask?.Command;
+            var command = _currentTask?.Command;
             if (command?.Parameters != null && index >= 0 && index < command.Parameters.Count)
             {
                 return command.Parameters[index];
@@ -91,7 +87,22 @@ namespace MTApiService
 
         #endregion
 
+        #region ITaskExecutor
+
+        public void Execute(MtCommandTask task)
+        {
+            lock (_taskQueue)
+            {
+                _taskQueue.Enqueue(task);
+            }
+
+            NotifyCommandReady();
+        }
+
+        #endregion
+
         #region Properties
+
         private MtQuote _quote;
         public MtQuote Quote
         {
@@ -134,41 +145,34 @@ namespace MTApiService
             }
         }
 
-        public ICommandManager CommandManager
-        {
-            private get
-            {
-                lock (_locker)
-                {
-                    return _commandManager;
-                }
-            }
-            set
-            {
-                lock (_locker)
-                {
-                    _commandManager = value;
-                }
-            }
-        }
-
-        #endregion
-
-        #region IMtCommandExecutor
-        public void NotifyCommandReady()
-        {
-            Log.Debug("NotifyCommandReady: begin.");
-
-            SendTickToMetaTrader();
-
-            Log.Debug("NotifyCommandReady: end.");
-        }
         #endregion
 
         #region Private Methods
-        private void SendTickToMetaTrader()
+        private MtCommandTask DequeueTask()
         {
+            Log.Debug("DequeueTask: called.");
+
+            MtCommandTask task;
+            int count = 0;
+
+            lock (_locker)
+            {
+                count = _taskQueue.Count;
+                task = _taskQueue.Count > 0 ? _taskQueue.Dequeue() : null;
+            }
+
+            Log.DebugFormat("DequeueTask: end. left task count = {0}.", count);
+
+            return task;
+        }
+
+        private void NotifyCommandReady()
+        {
+            Log.Debug("NotifyCommandReady: begin.");
+
             _mtHadler.SendTickToMetaTrader(Handle);
+
+            Log.Debug("NotifyCommandReady: end.");
         }
 
         private void FireOnQuoteChanged(MtQuote quote)
@@ -181,11 +185,6 @@ namespace MTApiService
             Deinited?.Invoke(this, EventArgs.Empty);
         }
 
-        private void FireOnCommandExecuted()
-        {
-            CommandExecuted?.Invoke(this, EventArgs.Empty);
-        }
-
         private void FireOnMtEvent(MtEvent mtEvent)
         {
             OnMtEvent?.Invoke(this, mtEvent);
@@ -195,7 +194,6 @@ namespace MTApiService
         #region Events
         public event EventHandler Deinited;
         public event MtQuoteHandler QuoteChanged;
-        public event EventHandler CommandExecuted;
         public event MtEventHandler OnMtEvent;
         #endregion
     }

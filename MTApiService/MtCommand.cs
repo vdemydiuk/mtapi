@@ -13,10 +13,13 @@ namespace MTApiService
         }
 
         [DataMember]
-        public int CommandType { get; private set; }
+        public int CommandType { get; set; }
 
         [DataMember]
-        public ArrayList Parameters { get; private set; }
+        public ArrayList Parameters { get; set; }
+
+        [DataMember]
+        public int ExpertHandle { get; set; }
 
         public override string ToString()
         {
