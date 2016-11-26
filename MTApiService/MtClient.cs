@@ -100,7 +100,7 @@ namespace MTApiService
                 return;
             }
 
-            var coonected = false;
+            bool coonected;
 
             try
             {
@@ -254,13 +254,7 @@ namespace MTApiService
         public string Host { get; private set; }
         public int Port { get; private set; }
 
-        private bool IsConnected
-        {
-            get
-            {
-                return _proxy.State == CommunicationState.Opened;
-            }
-        }
+        private bool IsConnected => _proxy.State == CommunicationState.Opened;
 
         #endregion
 

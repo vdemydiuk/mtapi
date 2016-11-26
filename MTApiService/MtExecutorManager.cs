@@ -82,7 +82,7 @@ namespace MTApiService
 
             Log.DebugFormat("SendTask: begin. command = {0}", command);
 
-            ITaskExecutor executor = null;
+            ITaskExecutor executor;
 
             lock (_locker)
             {

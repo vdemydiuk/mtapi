@@ -1780,7 +1780,7 @@ namespace MtApi
 
         private void Disconnect(bool failed)
         {
-            var state =  failed ? MtConnectionState.Disconnected : MtConnectionState.Disconnected;
+            var state =  failed ? MtConnectionState.Failed : MtConnectionState.Disconnected;
             var message = failed ? "Connection Failed" : "Disconnected";
 
             lock (_locker)

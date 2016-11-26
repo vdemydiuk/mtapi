@@ -153,7 +153,7 @@ namespace MTApiService
             Log.Debug("DequeueTask: called.");
 
             MtCommandTask task;
-            int count = 0;
+            int count;
 
             lock (_locker)
             {
