@@ -94,6 +94,25 @@ namespace MtApi
                 }
             }
         }
+
+        private int _executorHandle;
+        public int ExecutorHandle
+        {
+            get
+            {
+                lock (_locker)
+                {
+                    return _executorHandle;
+                }
+            }
+            set
+            {
+                lock (_locker)
+                {
+                    _executorHandle = value;
+                }
+            }
+        }
         #endregion
 
 
@@ -1827,7 +1846,7 @@ namespace MtApi
 
             try
             {
-                response = client.SendCommand((int)commandType, commandParameters);
+                response = client.SendCommand((int)commandType, commandParameters, ExecutorHandle);
             }
             catch (CommunicationException ex)
             {

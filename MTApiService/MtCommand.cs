@@ -6,12 +6,6 @@ namespace MTApiService
     [DataContract]
     public class MtCommand
     {
-        public MtCommand(int commandType, ArrayList parameters)
-        {
-            CommandType = commandType;
-            Parameters = parameters;
-        }
-
         [DataMember]
         public int CommandType { get; set; }
 
@@ -23,7 +17,7 @@ namespace MTApiService
 
         public override string ToString()
         {
-            return $"CommandType = {CommandType}";
+            return $"CommandType = {CommandType}; ExpertHandle = {ExpertHandle}";
         }
     }
 }

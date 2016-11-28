@@ -135,26 +135,9 @@ namespace TestApiClientUI
             PrintLog(msg);
         }
 
-        private void TestCallback(string symbol)
-        {
-            int bars = 0;
-            try
-            {
-                bars = _apiClient.iBars(symbol, ChartPeriod.PERIOD_M5);
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine("TestCallback:  Exception - {0}", ex.Message);
-            }
-
-            if (bars > 0)
-                Console.WriteLine("TestCallback:  iBar = {0}", bars);
-        }
-
         private void apiClient_QuoteUpdated(object sender, string symbol, double bid, double ask)
         {
             Console.WriteLine(@"Quote: Symbol = {0}, Bid = {1}, Ask = {2}", symbol, bid, ask);            
-            TestCallback(symbol);
         }
 
         private void _apiClient_QuoteUpdate(object sender, MtQuoteEventArgs e)
@@ -260,6 +243,11 @@ namespace TestApiClientUI
                 textBoxOrderSymbol.Text = listViewQuotes.SelectedItems[0].Text;
                 txtMarketInfoSymbol.Text = listViewQuotes.SelectedItems[0].Text;
                 textBoxSelectedSymbol.Text = listViewQuotes.SelectedItems[0].Text;
+
+                if (checkBox2.Checked)
+                {
+                    _apiClient.ExecutorHandle = int.Parse(listViewQuotes.SelectedItems[0].SubItems[3].Text);
+                }
             }
         }
 
@@ -1289,6 +1277,24 @@ namespace TestApiClientUI
 
             var result = await Execute(() => _apiClient.TerminalInfoDouble(propId));
             PrintLog($"TerminalInfoDouble: result = {result}");
+        }
+
+        private void checkBox2_CheckedChanged(object sender, EventArgs e)
+        {
+            var checkbox = sender as CheckBox;
+            if (checkbox == null)
+                return;
+
+            int expertHandle = 0;
+            if (checkbox.Checked)
+            {
+                if (listViewQuotes.SelectedItems.Count > 0)
+                {
+                    expertHandle = int.Parse(listViewQuotes.SelectedItems[0].SubItems[3].Text);
+                }
+            }
+
+            _apiClient.ExecutorHandle = expertHandle;
         }
     }
 }

@@ -139,7 +139,7 @@ namespace MTApiService
         }
 
         /// <exception cref="CommunicationException">Thrown when connection failed</exception>
-        public MtResponse SendCommand(int commandType, ArrayList parameters)
+        public MtResponse SendCommand(int commandType, ArrayList parameters, int expertHandle)
         {
             Log.DebugFormat("SendCommand: begin. commandType = {0}, parameters count = {1}", commandType, parameters?.Count);
 
@@ -153,7 +153,7 @@ namespace MTApiService
 
             try
             {
-                result = _proxy.SendCommand(new MtCommand(commandType, parameters));
+                result = _proxy.SendCommand(new MtCommand { CommandType = commandType, Parameters = parameters, ExpertHandle = expertHandle});
             }
             catch (Exception ex)
             {

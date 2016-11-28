@@ -166,6 +166,7 @@
             this.button28 = new System.Windows.Forms.Button();
             this.label28 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
+            this.checkBox2 = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -188,20 +189,20 @@
             // 
             this.textBoxServerName.Location = new System.Drawing.Point(70, 19);
             this.textBoxServerName.Name = "textBoxServerName";
-            this.textBoxServerName.Size = new System.Drawing.Size(156, 20);
+            this.textBoxServerName.Size = new System.Drawing.Size(228, 20);
             this.textBoxServerName.TabIndex = 0;
             // 
             // textBoxPort
             // 
             this.textBoxPort.Location = new System.Drawing.Point(70, 45);
             this.textBoxPort.Name = "textBoxPort";
-            this.textBoxPort.Size = new System.Drawing.Size(156, 20);
+            this.textBoxPort.Size = new System.Drawing.Size(57, 20);
             this.textBoxPort.TabIndex = 1;
             this.textBoxPort.Text = "8222";
             // 
             // buttonConnect
             // 
-            this.buttonConnect.Location = new System.Drawing.Point(42, 71);
+            this.buttonConnect.Location = new System.Drawing.Point(17, 73);
             this.buttonConnect.Name = "buttonConnect";
             this.buttonConnect.Size = new System.Drawing.Size(75, 23);
             this.buttonConnect.TabIndex = 4;
@@ -211,7 +212,7 @@
             // 
             // buttonDisconnect
             // 
-            this.buttonDisconnect.Location = new System.Drawing.Point(125, 71);
+            this.buttonDisconnect.Location = new System.Drawing.Point(98, 73);
             this.buttonDisconnect.Name = "buttonDisconnect";
             this.buttonDisconnect.Size = new System.Drawing.Size(75, 23);
             this.buttonDisconnect.TabIndex = 3;
@@ -247,7 +248,7 @@
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(238, 102);
+            this.groupBox1.Size = new System.Drawing.Size(306, 102);
             this.groupBox1.TabIndex = 10;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Connection";
@@ -258,7 +259,7 @@
             this.toolStripStatusConnection});
             this.statusStrip1.Location = new System.Drawing.Point(0, 668);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(713, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(981, 22);
             this.statusStrip1.TabIndex = 11;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -271,10 +272,11 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.checkBox2);
             this.groupBox2.Controls.Add(this.listViewQuotes);
-            this.groupBox2.Location = new System.Drawing.Point(256, 12);
+            this.groupBox2.Location = new System.Drawing.Point(12, 120);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(371, 129);
+            this.groupBox2.Size = new System.Drawing.Size(306, 319);
             this.groupBox2.TabIndex = 13;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Quotes:";
@@ -289,9 +291,11 @@
             this.colBid,
             this.colAsk,
             this.colExpertHandle});
+            this.listViewQuotes.FullRowSelect = true;
             this.listViewQuotes.Location = new System.Drawing.Point(6, 19);
+            this.listViewQuotes.MultiSelect = false;
             this.listViewQuotes.Name = "listViewQuotes";
-            this.listViewQuotes.Size = new System.Drawing.Size(357, 104);
+            this.listViewQuotes.Size = new System.Drawing.Size(292, 271);
             this.listViewQuotes.TabIndex = 15;
             this.listViewQuotes.UseCompatibleStateImageBehavior = false;
             this.listViewQuotes.View = System.Windows.Forms.View.Details;
@@ -300,6 +304,7 @@
             // colSymbol
             // 
             this.colSymbol.Text = "Symbol";
+            this.colSymbol.Width = 80;
             // 
             // colBid
             // 
@@ -322,9 +327,9 @@
             this.listBoxEventLog.ContextMenuStrip = this.contextMenuStrip1;
             this.listBoxEventLog.FormattingEnabled = true;
             this.listBoxEventLog.HorizontalScrollbar = true;
-            this.listBoxEventLog.Location = new System.Drawing.Point(12, 556);
+            this.listBoxEventLog.Location = new System.Drawing.Point(12, 452);
             this.listBoxEventLog.Name = "listBoxEventLog";
-            this.listBoxEventLog.Size = new System.Drawing.Size(690, 95);
+            this.listBoxEventLog.Size = new System.Drawing.Size(958, 199);
             this.listBoxEventLog.TabIndex = 14;
             this.listBoxEventLog.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listBoxEventLog_MouseDoubleClick);
             // 
@@ -346,10 +351,11 @@
             this.tabControl1.Controls.Add(this.tabPage6);
             this.tabControl1.Controls.Add(this.tabPage7);
             this.tabControl1.Controls.Add(this.tabPage8);
-            this.tabControl1.Location = new System.Drawing.Point(12, 147);
+            this.tabControl1.Location = new System.Drawing.Point(324, 12);
+            this.tabControl1.Multiline = true;
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(690, 403);
+            this.tabControl1.Size = new System.Drawing.Size(646, 427);
             this.tabControl1.TabIndex = 15;
             // 
             // tabPage2
@@ -374,10 +380,10 @@
             this.tabPage2.Controls.Add(this.button2);
             this.tabPage2.Controls.Add(this.groupBox3);
             this.tabPage2.Controls.Add(this.listBoxSendedOrders);
-            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Location = new System.Drawing.Point(4, 40);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(682, 377);
+            this.tabPage2.Size = new System.Drawing.Size(638, 383);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Trade Operations";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -568,7 +574,7 @@
             this.listBoxClosedOrders.FormattingEnabled = true;
             this.listBoxClosedOrders.Location = new System.Drawing.Point(213, 85);
             this.listBoxClosedOrders.Name = "listBoxClosedOrders";
-            this.listBoxClosedOrders.Size = new System.Drawing.Size(463, 43);
+            this.listBoxClosedOrders.Size = new System.Drawing.Size(419, 43);
             this.listBoxClosedOrders.TabIndex = 5;
             // 
             // button2
@@ -853,7 +859,7 @@
             this.listBoxSendedOrders.Location = new System.Drawing.Point(213, 23);
             this.listBoxSendedOrders.Name = "listBoxSendedOrders";
             this.listBoxSendedOrders.SelectionMode = System.Windows.Forms.SelectionMode.MultiSimple;
-            this.listBoxSendedOrders.Size = new System.Drawing.Size(463, 43);
+            this.listBoxSendedOrders.Size = new System.Drawing.Size(419, 43);
             this.listBoxSendedOrders.TabIndex = 1;
             // 
             // tabPage1
@@ -866,7 +872,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(682, 377);
+            this.tabPage1.Size = new System.Drawing.Size(638, 377);
             this.tabPage1.TabIndex = 2;
             this.tabPage1.Text = "Check Status";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -944,7 +950,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(682, 377);
+            this.tabPage3.Size = new System.Drawing.Size(638, 377);
             this.tabPage3.TabIndex = 3;
             this.tabPage3.Text = "Account Information";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -1067,7 +1073,7 @@
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(682, 377);
+            this.tabPage4.Size = new System.Drawing.Size(638, 377);
             this.tabPage4.TabIndex = 4;
             this.tabPage4.Text = "MarketInfo";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -1245,7 +1251,7 @@
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(682, 377);
+            this.tabPage5.Size = new System.Drawing.Size(638, 377);
             this.tabPage5.TabIndex = 5;
             this.tabPage5.Text = "Timeframes";
             this.tabPage5.UseVisualStyleBackColor = true;
@@ -1473,21 +1479,21 @@
             this.tabPage6.Location = new System.Drawing.Point(4, 22);
             this.tabPage6.Name = "tabPage6";
             this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage6.Size = new System.Drawing.Size(682, 377);
+            this.tabPage6.Size = new System.Drawing.Size(638, 377);
             this.tabPage6.TabIndex = 6;
             this.tabPage6.Text = "Client Terminal";
             this.tabPage6.UseVisualStyleBackColor = true;
             // 
             // textBoxPrint
             // 
-            this.textBoxPrint.Location = new System.Drawing.Point(209, 16);
+            this.textBoxPrint.Location = new System.Drawing.Point(13, 86);
             this.textBoxPrint.Name = "textBoxPrint";
             this.textBoxPrint.Size = new System.Drawing.Size(386, 20);
             this.textBoxPrint.TabIndex = 3;
             // 
             // button27
             // 
-            this.button27.Location = new System.Drawing.Point(601, 16);
+            this.button27.Location = new System.Drawing.Point(405, 84);
             this.button27.Name = "button27";
             this.button27.Size = new System.Drawing.Size(75, 23);
             this.button27.TabIndex = 2;
@@ -1522,7 +1528,7 @@
             this.tabPage7.Location = new System.Drawing.Point(4, 22);
             this.tabPage7.Name = "tabPage7";
             this.tabPage7.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage7.Size = new System.Drawing.Size(682, 377);
+            this.tabPage7.Size = new System.Drawing.Size(638, 377);
             this.tabPage7.TabIndex = 7;
             this.tabPage7.Text = "Technical Indicators";
             this.tabPage7.UseVisualStyleBackColor = true;
@@ -1556,10 +1562,10 @@
             this.tabPage8.Controls.Add(this.button28);
             this.tabPage8.Controls.Add(this.label28);
             this.tabPage8.Controls.Add(this.textBox1);
-            this.tabPage8.Location = new System.Drawing.Point(4, 22);
+            this.tabPage8.Location = new System.Drawing.Point(4, 40);
             this.tabPage8.Name = "tabPage8";
             this.tabPage8.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage8.Size = new System.Drawing.Size(682, 377);
+            this.tabPage8.Size = new System.Drawing.Size(638, 359);
             this.tabPage8.TabIndex = 8;
             this.tabPage8.Text = "Symbols";
             this.tabPage8.UseVisualStyleBackColor = true;
@@ -1655,11 +1661,22 @@
             this.textBox1.TabIndex = 0;
             this.textBox1.Text = "EURUSD";
             // 
+            // checkBox2
+            // 
+            this.checkBox2.AutoSize = true;
+            this.checkBox2.Location = new System.Drawing.Point(6, 296);
+            this.checkBox2.Name = "checkBox2";
+            this.checkBox2.Size = new System.Drawing.Size(281, 17);
+            this.checkBox2.TabIndex = 16;
+            this.checkBox2.Text = "Use selected ExpertHandle (chart) as default executor";
+            this.checkBox2.UseVisualStyleBackColor = true;
+            this.checkBox2.CheckedChanged += new System.EventHandler(this.checkBox2_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(713, 690);
+            this.ClientSize = new System.Drawing.Size(981, 690);
             this.ContextMenuStrip = this.contextMenuStrip1;
             this.Controls.Add(this.listBoxEventLog);
             this.Controls.Add(this.tabControl1);
@@ -1674,6 +1691,7 @@
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             this.tabControl1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
@@ -1839,6 +1857,7 @@
         private System.Windows.Forms.ComboBox comboBox9;
         private System.Windows.Forms.Button button36;
         private System.Windows.Forms.ComboBox comboBox10;
+        private System.Windows.Forms.CheckBox checkBox2;
     }
 }
 
