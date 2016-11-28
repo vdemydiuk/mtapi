@@ -1710,6 +1710,20 @@ namespace MtApi
         }
         #endregion
 
+        #region Chart Operations
+
+        ///<summary>
+        ///Returns the ID of the current chart.
+        ///</summary>
+        ///<returns>
+        /// Value of long type.
+        ///</returns>
+        public long ChartId()
+        {
+            return SendCommand<long>(MtCommandType.ChartId, null);
+        }
+        #endregion
+
         #region Private Methods
         private MtClient Client
         {

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace MtApi
+﻿namespace MtApi
 {
     enum MtCommandType
     {
@@ -201,6 +196,7 @@ namespace MtApi
         SymbolsTotal                        = 200,
         SymbolName                          = 201,
         SymbolSelect                        = 202,
-        SymbolInfoInteger                   = 203
+        SymbolInfoInteger                   = 203,
+        ChartId                             = 206
     }
 }

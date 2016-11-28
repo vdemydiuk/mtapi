@@ -1296,5 +1296,12 @@ namespace TestApiClientUI
 
             _apiClient.ExecutorHandle = expertHandle;
         }
+
+        //CharID
+        private async void button37_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.ChartId());
+            PrintLog($"CharID: result = {result}");
+        }
     }
 }
