@@ -518,101 +518,6 @@ namespace TestApiClientUI
             });
         }
 
-        private void button3_Click(object sender, EventArgs e)
-        {
-            switch (comboBoxStatusCommand.SelectedIndex)
-            {
-                case 0:
-                    {
-                        var result = _apiClient.GetLastError();
-                        PrintLog($"GetLastError result: {result}");
-                    }
-                    break;
-                case 1:
-                    {
-                        var result = _apiClient.IsConnected();
-                        PrintLog($"IsConnected result: {result}");
-                    }
-                    break;
-                case 2:
-                    {
-                        var result = _apiClient.IsDemo();
-                        PrintLog($"IsDemo result: {result}");
-                    }
-                    break;
-                case 3:
-                    {
-                        var result = _apiClient.IsDllsAllowed();
-                        PrintLog($"IsDllsAllowed result: {result}");
-                    }
-                    break;
-                case 4:
-                    {
-                        var result = _apiClient.IsExpertEnabled();
-                        PrintLog($"IsExpertEnabled result: {result}");
-                    }
-                    break;
-                case 5:
-                    {
-                        var result = _apiClient.IsLibrariesAllowed();
-                        PrintLog($"IsLibrariesAllowed result: {result}");
-                    }
-                    break;
-                case 6:
-                    {
-                        var result = _apiClient.IsOptimization();
-                        PrintLog($"IsOptimization result: {result}");
-                    }
-                    break;
-                case 7:
-                    {
-                        var result = _apiClient.IsStopped();
-                        PrintLog($"IsStopped result: {result}");
-                    }
-                    break;
-                case 8:
-                    {
-                        var result = _apiClient.IsTesting();
-                        PrintLog($"IsTesting result: {result}");
-                    }
-                    break;
-                case 9:
-                    {
-                        var result = _apiClient.IsTradeAllowed();
-                        PrintLog($"IsTradeAllowed result: {result}");
-                    }
-                    break;
-                case 10:
-                    {
-                        var result = _apiClient.IsTradeContextBusy();
-                        PrintLog($"IsTradeContextBusy result: {result}");
-                    }
-                    break;
-                case 11:
-                    {
-                        var result = _apiClient.IsVisualMode();
-                        PrintLog($"IsVisualMode result: {result}");
-                    }
-                    break;
-                case 12:
-                    {
-                        var result = _apiClient.UninitializeReason();
-                        PrintLog($"UninitializeReason result: {result}");
-                    }
-                    break;
-                case 13:
-                    {
-                        int errorCode;
-                        int.TryParse(textBoxErrorCode.Text, out errorCode);
-                        var result = _apiClient.ErrorDescription(errorCode);
-                        PrintLog($"ErrorDescription result: {result}");
-                    }
-                    break;
-                default:
-                    return;
-            }
-        }
-
         private void button4_Click(object sender, EventArgs e)
         {
             switch (listBoxAccountInfo.SelectedIndex)
@@ -1302,6 +1207,120 @@ namespace TestApiClientUI
         {
             var result = await Execute(() => _apiClient.ChartId());
             PrintLog($"CharID: result = {result}");
+        }
+
+        //GetLastError
+        private async void button40_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.GetLastError());
+            PrintLog($"GetLastError: result = {result}");
+            RunOnUiThread(() => { textBoxErrorCode.Text = result.ToString(); });
+        }
+
+        //ErrorDescription
+        private async void button39_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(textBoxErrorCode.Text))
+            {
+                MessageBox.Show(@"Error code is not defined!");
+                textBoxErrorCode.Focus();
+                return;
+            }
+
+            int errorCode;
+            if (int.TryParse(textBoxErrorCode.Text, out errorCode) == false)
+            {
+                MessageBox.Show(@"Failed to parse error code!");
+                textBoxErrorCode.Focus();
+                return;
+            }
+
+            var result = await Execute(() => _apiClient.ErrorDescription(errorCode));
+            PrintLog($"ErrorDescription: code = {errorCode}, description = {result}");
+        }
+
+        //IsConnected
+        private async void button41_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.IsConnected());
+            PrintLog($"IsConnected: result = {result}");
+        }
+
+        //IsDemo
+        private async void button42_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.IsDemo());
+            PrintLog($"IsDemo: result = {result}");
+        }
+
+        //IsDllsAllowed
+        private async void button43_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.IsDllsAllowed());
+            PrintLog($"IsDllsAllowed: result = {result}");
+        }
+
+        //IsExpertEnabled
+        private async void button44_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.IsExpertEnabled());
+            PrintLog($"IsExpertEnabled: result = {result}");
+        }
+
+        //IsLibrariesAllowed
+        private async void button45_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.IsLibrariesAllowed());
+            PrintLog($"IsLibrariesAllowed: result = {result}");
+        }
+
+        //IsOptimization
+        private async void button46_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.IsOptimization());
+            PrintLog($"IsOptimization: result = {result}");
+        }
+
+        //IsStopped
+        private async void button47_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.IsStopped());
+            PrintLog($"IsStopped: result = {result}");
+        }
+
+        //IsTesting
+        private async void button48_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.IsTesting());
+            PrintLog($"IsTesting: result = {result}");
+        }
+
+        //IsTradeAllowed
+        private async void button49_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.IsTradeAllowed());
+            PrintLog($"IsTradeAllowed: result = {result}");
+        }
+
+        //IsTradeContextBusy
+        private async void button50_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.IsTradeContextBusy());
+            PrintLog($"IsTradeContextBusy: result = {result}");
+        }
+
+        //IsVisualMode
+        private async void button51_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.IsVisualMode());
+            PrintLog($"IsVisualMode: result = {result}");
+        }
+
+        //UninitializeReason
+        private async void button52_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(() => _apiClient.UninitializeReason());
+            PrintLog($"UninitializeReason: result = {result}");
         }
     }
 }
