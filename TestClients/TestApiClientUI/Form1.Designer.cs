@@ -119,9 +119,6 @@
             this.label24 = new System.Windows.Forms.Label();
             this.label23 = new System.Windows.Forms.Label();
             this.textBoxAccountInfoSymbol = new System.Windows.Forms.TextBox();
-            this.textBox3 = new System.Windows.Forms.TextBox();
-            this.listBoxAccountInfo = new System.Windows.Forms.ListBox();
-            this.button4 = new System.Windows.Forms.Button();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.button36 = new System.Windows.Forms.Button();
             this.comboBox10 = new System.Windows.Forms.ComboBox();
@@ -182,6 +179,22 @@
             this.tabPage9 = new System.Windows.Forms.TabPage();
             this.button38 = new System.Windows.Forms.Button();
             this.button37 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
+            this.button53 = new System.Windows.Forms.Button();
+            this.button54 = new System.Windows.Forms.Button();
+            this.button55 = new System.Windows.Forms.Button();
+            this.button56 = new System.Windows.Forms.Button();
+            this.button57 = new System.Windows.Forms.Button();
+            this.button58 = new System.Windows.Forms.Button();
+            this.button59 = new System.Windows.Forms.Button();
+            this.button60 = new System.Windows.Forms.Button();
+            this.button61 = new System.Windows.Forms.Button();
+            this.button62 = new System.Windows.Forms.Button();
+            this.button63 = new System.Windows.Forms.Button();
+            this.button64 = new System.Windows.Forms.Button();
+            this.button65 = new System.Windows.Forms.Button();
+            this.button66 = new System.Windows.Forms.Button();
+            this.button67 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -1086,15 +1099,28 @@
             // 
             // tabPage3
             // 
+            this.tabPage3.Controls.Add(this.button67);
+            this.tabPage3.Controls.Add(this.button66);
+            this.tabPage3.Controls.Add(this.button65);
+            this.tabPage3.Controls.Add(this.button64);
+            this.tabPage3.Controls.Add(this.button63);
+            this.tabPage3.Controls.Add(this.button62);
+            this.tabPage3.Controls.Add(this.button61);
+            this.tabPage3.Controls.Add(this.button60);
+            this.tabPage3.Controls.Add(this.button59);
+            this.tabPage3.Controls.Add(this.button58);
+            this.tabPage3.Controls.Add(this.button57);
+            this.tabPage3.Controls.Add(this.button56);
+            this.tabPage3.Controls.Add(this.button55);
+            this.tabPage3.Controls.Add(this.button54);
+            this.tabPage3.Controls.Add(this.button53);
+            this.tabPage3.Controls.Add(this.button3);
             this.tabPage3.Controls.Add(this.comboBoxAccountInfoCmd);
             this.tabPage3.Controls.Add(this.textBoxAccountInfoVolume);
             this.tabPage3.Controls.Add(this.label25);
             this.tabPage3.Controls.Add(this.label24);
             this.tabPage3.Controls.Add(this.label23);
             this.tabPage3.Controls.Add(this.textBoxAccountInfoSymbol);
-            this.tabPage3.Controls.Add(this.textBox3);
-            this.tabPage3.Controls.Add(this.listBoxAccountInfo);
-            this.tabPage3.Controls.Add(this.button4);
             this.tabPage3.Location = new System.Drawing.Point(4, 40);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
@@ -1105,30 +1131,25 @@
             // 
             // comboBoxAccountInfoCmd
             // 
+            this.comboBoxAccountInfoCmd.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxAccountInfoCmd.FormattingEnabled = true;
-            this.comboBoxAccountInfoCmd.Items.AddRange(new object[] {
-            "OP_BUY",
-            "OP_SELL",
-            "OP_BUYLIMIT",
-            "OP_SELLLIMIT",
-            "OP_BUYSTOP",
-            "OP_SELLSTOP"});
-            this.comboBoxAccountInfoCmd.Location = new System.Drawing.Point(246, 45);
+            this.comboBoxAccountInfoCmd.Location = new System.Drawing.Point(215, 106);
             this.comboBoxAccountInfoCmd.Name = "comboBoxAccountInfoCmd";
             this.comboBoxAccountInfoCmd.Size = new System.Drawing.Size(120, 21);
             this.comboBoxAccountInfoCmd.TabIndex = 9;
             // 
             // textBoxAccountInfoVolume
             // 
-            this.textBoxAccountInfoVolume.Location = new System.Drawing.Point(246, 92);
+            this.textBoxAccountInfoVolume.Location = new System.Drawing.Point(215, 133);
             this.textBoxAccountInfoVolume.Name = "textBoxAccountInfoVolume";
-            this.textBoxAccountInfoVolume.Size = new System.Drawing.Size(100, 20);
+            this.textBoxAccountInfoVolume.Size = new System.Drawing.Size(120, 20);
             this.textBoxAccountInfoVolume.TabIndex = 8;
+            this.textBoxAccountInfoVolume.Text = "1";
             // 
             // label25
             // 
             this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(193, 99);
+            this.label25.Location = new System.Drawing.Point(165, 137);
             this.label25.Name = "label25";
             this.label25.Size = new System.Drawing.Size(44, 13);
             this.label25.TabIndex = 6;
@@ -1137,7 +1158,7 @@
             // label24
             // 
             this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(193, 53);
+            this.label24.Location = new System.Drawing.Point(165, 113);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(30, 13);
             this.label24.TabIndex = 5;
@@ -1146,7 +1167,7 @@
             // label23
             // 
             this.label23.AutoSize = true;
-            this.label23.Location = new System.Drawing.Point(193, 12);
+            this.label23.Location = new System.Drawing.Point(165, 87);
             this.label23.Name = "label23";
             this.label23.Size = new System.Drawing.Size(44, 13);
             this.label23.TabIndex = 4;
@@ -1154,52 +1175,11 @@
             // 
             // textBoxAccountInfoSymbol
             // 
-            this.textBoxAccountInfoSymbol.Location = new System.Drawing.Point(246, 6);
+            this.textBoxAccountInfoSymbol.Location = new System.Drawing.Point(215, 81);
             this.textBoxAccountInfoSymbol.Name = "textBoxAccountInfoSymbol";
-            this.textBoxAccountInfoSymbol.Size = new System.Drawing.Size(100, 20);
+            this.textBoxAccountInfoSymbol.Size = new System.Drawing.Size(120, 20);
             this.textBoxAccountInfoSymbol.TabIndex = 3;
-            // 
-            // textBox3
-            // 
-            this.textBox3.Location = new System.Drawing.Point(193, 197);
-            this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(408, 20);
-            this.textBox3.TabIndex = 2;
-            // 
-            // listBoxAccountInfo
-            // 
-            this.listBoxAccountInfo.FormattingEnabled = true;
-            this.listBoxAccountInfo.Items.AddRange(new object[] {
-            "AccountBalance",
-            "AccountCredit",
-            "AccountCompany",
-            "AccountCurrency",
-            "AccountEquity",
-            "AccountFreeMargin",
-            "AccountFreeMarginCheck",
-            "AccountFreeMarginMode",
-            "AccountLeverage",
-            "AccountMargin",
-            "AccountName",
-            "AccountNumber",
-            "AccountProfit",
-            "AccountServer",
-            "AccountStopoutLevel",
-            "AccountStopoutMode"});
-            this.listBoxAccountInfo.Location = new System.Drawing.Point(6, 6);
-            this.listBoxAccountInfo.Name = "listBoxAccountInfo";
-            this.listBoxAccountInfo.Size = new System.Drawing.Size(180, 316);
-            this.listBoxAccountInfo.TabIndex = 1;
-            // 
-            // button4
-            // 
-            this.button4.Location = new System.Drawing.Point(6, 328);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(180, 23);
-            this.button4.TabIndex = 0;
-            this.button4.Text = "Execute";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.button4_Click);
+            this.textBoxAccountInfoSymbol.Text = "EURUSD";
             // 
             // tabPage4
             // 
@@ -1839,6 +1819,166 @@
             this.button37.UseVisualStyleBackColor = true;
             this.button37.Click += new System.EventHandler(this.button37_Click);
             // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(6, 4);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(145, 23);
+            this.button3.TabIndex = 10;
+            this.button3.Text = "AccountBalance";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // button53
+            // 
+            this.button53.Location = new System.Drawing.Point(6, 33);
+            this.button53.Name = "button53";
+            this.button53.Size = new System.Drawing.Size(145, 23);
+            this.button53.TabIndex = 11;
+            this.button53.Text = "AccountCredit";
+            this.button53.UseVisualStyleBackColor = true;
+            this.button53.Click += new System.EventHandler(this.button53_Click);
+            // 
+            // button54
+            // 
+            this.button54.Location = new System.Drawing.Point(6, 62);
+            this.button54.Name = "button54";
+            this.button54.Size = new System.Drawing.Size(145, 23);
+            this.button54.TabIndex = 12;
+            this.button54.Text = "AccountCompany";
+            this.button54.UseVisualStyleBackColor = true;
+            this.button54.Click += new System.EventHandler(this.button54_Click);
+            // 
+            // button55
+            // 
+            this.button55.Location = new System.Drawing.Point(6, 90);
+            this.button55.Name = "button55";
+            this.button55.Size = new System.Drawing.Size(145, 23);
+            this.button55.TabIndex = 13;
+            this.button55.Text = "AccountCurrency";
+            this.button55.UseVisualStyleBackColor = true;
+            this.button55.Click += new System.EventHandler(this.button55_Click);
+            // 
+            // button56
+            // 
+            this.button56.Location = new System.Drawing.Point(6, 119);
+            this.button56.Name = "button56";
+            this.button56.Size = new System.Drawing.Size(145, 23);
+            this.button56.TabIndex = 14;
+            this.button56.Text = "AccountEquity";
+            this.button56.UseVisualStyleBackColor = true;
+            this.button56.Click += new System.EventHandler(this.button56_Click);
+            // 
+            // button57
+            // 
+            this.button57.Location = new System.Drawing.Point(6, 148);
+            this.button57.Name = "button57";
+            this.button57.Size = new System.Drawing.Size(145, 23);
+            this.button57.TabIndex = 14;
+            this.button57.Text = "AccountFreeMargin";
+            this.button57.UseVisualStyleBackColor = true;
+            this.button57.Click += new System.EventHandler(this.button57_Click);
+            // 
+            // button58
+            // 
+            this.button58.Location = new System.Drawing.Point(190, 159);
+            this.button58.Name = "button58";
+            this.button58.Size = new System.Drawing.Size(145, 23);
+            this.button58.TabIndex = 14;
+            this.button58.Text = "AccountFreeMarginCheck";
+            this.button58.UseVisualStyleBackColor = true;
+            this.button58.Click += new System.EventHandler(this.button58_Click);
+            // 
+            // button59
+            // 
+            this.button59.Location = new System.Drawing.Point(6, 177);
+            this.button59.Name = "button59";
+            this.button59.Size = new System.Drawing.Size(145, 23);
+            this.button59.TabIndex = 14;
+            this.button59.Text = "AccountFreeMarginMode";
+            this.button59.UseVisualStyleBackColor = true;
+            this.button59.Click += new System.EventHandler(this.button59_Click);
+            // 
+            // button60
+            // 
+            this.button60.Location = new System.Drawing.Point(6, 206);
+            this.button60.Name = "button60";
+            this.button60.Size = new System.Drawing.Size(145, 23);
+            this.button60.TabIndex = 14;
+            this.button60.Text = "AccountLeverage";
+            this.button60.UseVisualStyleBackColor = true;
+            this.button60.Click += new System.EventHandler(this.button60_Click);
+            // 
+            // button61
+            // 
+            this.button61.Location = new System.Drawing.Point(6, 235);
+            this.button61.Name = "button61";
+            this.button61.Size = new System.Drawing.Size(145, 23);
+            this.button61.TabIndex = 14;
+            this.button61.Text = "AccountMargin";
+            this.button61.UseVisualStyleBackColor = true;
+            this.button61.Click += new System.EventHandler(this.button61_Click);
+            // 
+            // button62
+            // 
+            this.button62.Location = new System.Drawing.Point(6, 263);
+            this.button62.Name = "button62";
+            this.button62.Size = new System.Drawing.Size(145, 23);
+            this.button62.TabIndex = 14;
+            this.button62.Text = "AccountName";
+            this.button62.UseVisualStyleBackColor = true;
+            this.button62.Click += new System.EventHandler(this.button62_Click);
+            // 
+            // button63
+            // 
+            this.button63.Location = new System.Drawing.Point(6, 292);
+            this.button63.Name = "button63";
+            this.button63.Size = new System.Drawing.Size(145, 23);
+            this.button63.TabIndex = 14;
+            this.button63.Text = "AccountNumber";
+            this.button63.UseVisualStyleBackColor = true;
+            this.button63.Click += new System.EventHandler(this.button63_Click);
+            // 
+            // button64
+            // 
+            this.button64.Location = new System.Drawing.Point(6, 321);
+            this.button64.Name = "button64";
+            this.button64.Size = new System.Drawing.Size(145, 23);
+            this.button64.TabIndex = 14;
+            this.button64.Text = "AccountProfit";
+            this.button64.UseVisualStyleBackColor = true;
+            this.button64.Click += new System.EventHandler(this.button64_Click);
+            // 
+            // button65
+            // 
+            this.button65.Location = new System.Drawing.Point(6, 350);
+            this.button65.Name = "button65";
+            this.button65.Size = new System.Drawing.Size(145, 23);
+            this.button65.TabIndex = 14;
+            this.button65.Text = "AccountServer";
+            this.button65.UseVisualStyleBackColor = true;
+            this.button65.Click += new System.EventHandler(this.button65_Click);
+            // 
+            // button66
+            // 
+            this.button66.Location = new System.Drawing.Point(157, 4);
+            this.button66.Name = "button66";
+            this.button66.Size = new System.Drawing.Size(145, 23);
+            this.button66.TabIndex = 14;
+            this.button66.Text = "AccountStopoutLevel";
+            this.button66.UseVisualStyleBackColor = true;
+            this.button66.Click += new System.EventHandler(this.button66_Click);
+            // 
+            // button67
+            // 
+            this.button67.Location = new System.Drawing.Point(157, 33);
+            this.button67.Name = "button67";
+            this.button67.Size = new System.Drawing.Size(145, 23);
+            this.button67.TabIndex = 14;
+            this.button67.Text = "AccountStopoutMode";
+            this.button67.UseVisualStyleBackColor = true;
+            this.button67.Click += new System.EventHandler(this.button67_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1941,9 +2081,6 @@
         private System.Windows.Forms.Label label22;
         private System.Windows.Forms.TextBox textBoxErrorCode;
         private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.ListBox listBoxAccountInfo;
-        private System.Windows.Forms.Button button4;
-        private System.Windows.Forms.TextBox textBox3;
         private System.Windows.Forms.Label label23;
         private System.Windows.Forms.TextBox textBoxAccountInfoSymbol;
         private System.Windows.Forms.ComboBox comboBoxAccountInfoCmd;
@@ -2041,6 +2178,22 @@
         private System.Windows.Forms.Button button50;
         private System.Windows.Forms.Button button51;
         private System.Windows.Forms.Button button52;
+        private System.Windows.Forms.Button button53;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button button54;
+        private System.Windows.Forms.Button button55;
+        private System.Windows.Forms.Button button56;
+        private System.Windows.Forms.Button button57;
+        private System.Windows.Forms.Button button58;
+        private System.Windows.Forms.Button button59;
+        private System.Windows.Forms.Button button60;
+        private System.Windows.Forms.Button button61;
+        private System.Windows.Forms.Button button63;
+        private System.Windows.Forms.Button button62;
+        private System.Windows.Forms.Button button64;
+        private System.Windows.Forms.Button button65;
+        private System.Windows.Forms.Button button66;
+        private System.Windows.Forms.Button button67;
     }
 }
 

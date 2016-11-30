@@ -33,6 +33,7 @@ namespace TestApiClientUI
             comboBox8.DataSource = Enum.GetNames(typeof(MarketInfoModeType));
             comboBox9.DataSource = Enum.GetNames(typeof(EnumTerminalInfoInteger));
             comboBox10.DataSource = Enum.GetNames(typeof(EnumTerminalInfoDouble));
+            comboBoxAccountInfoCmd.DataSource = Enum.GetNames(typeof(TradeOperation));
 
             _apiClient.QuoteUpdated += apiClient_QuoteUpdated;
             _apiClient.QuoteUpdate += _apiClient_QuoteUpdate;
@@ -48,6 +49,7 @@ namespace TestApiClientUI
             comboBox3.SelectedIndex = 0;
             comboBox4.SelectedIndex = 0;
             comboBox5.SelectedIndex = 0;
+            comboBoxAccountInfoCmd.SelectedIndex = 0;
 
             _timerTradeMonitor = new TimerTradeMonitor(_apiClient) { Interval = 10000 }; // 10 sec
             _timerTradeMonitor.AvailabilityOrdersChanged += _tradeMonitor_AvailabilityOrdersChanged;
@@ -243,6 +245,7 @@ namespace TestApiClientUI
                 textBoxOrderSymbol.Text = listViewQuotes.SelectedItems[0].Text;
                 txtMarketInfoSymbol.Text = listViewQuotes.SelectedItems[0].Text;
                 textBoxSelectedSymbol.Text = listViewQuotes.SelectedItems[0].Text;
+                textBoxAccountInfoSymbol.Text = listViewQuotes.SelectedItems[0].Text;
 
                 if (checkBox2.Checked)
                 {
@@ -516,111 +519,6 @@ namespace TestApiClientUI
                 listBoxEventLog.SetSelected(listBoxEventLog.Items.Count - 1, true);
                 listBoxEventLog.SetSelected(listBoxEventLog.Items.Count - 1, false);
             });
-        }
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-            switch (listBoxAccountInfo.SelectedIndex)
-            {
-                case 0:
-                    {
-                        var result = _apiClient.AccountBalance();
-                        PrintLog($"AccountBalance result: {result}");
-                    }
-                    break;
-                case 1:
-                    {
-                        var result = _apiClient.AccountCredit();
-                        PrintLog($"AccountCredit result: {result}");
-                    }
-                    break;
-                case 2:
-                    {
-                        var result = _apiClient.AccountCompany();
-                        PrintLog($"AccountCompany result: {result}");
-                    }
-                    break;
-                case 3:
-                    {
-                        var result = _apiClient.AccountCurrency();
-                        PrintLog($"AccountCurrency result: {result}");
-                    }
-                    break;
-                case 4:
-                    {
-                        var result = _apiClient.AccountEquity();
-                        PrintLog($"AccountEquity result: {result}");
-                    }
-                    break;
-                case 5:
-                    {
-                        var result = _apiClient.AccountFreeMargin();
-                        PrintLog($"AccountFreeMargin result: {result}");
-                    }
-                    break;
-                case 6:
-                    {
-                        var result = _apiClient.AccountFreeMarginCheck(textBoxAccountInfoSymbol.Text, (TradeOperation)comboBoxAccountInfoCmd.SelectedIndex, int.Parse(textBoxAccountInfoVolume.Text));
-                        PrintLog($"AccountFreeMarginCheck result: {result}");
-                    }
-                    break;
-                case 7:
-                    {
-                        var result = _apiClient.AccountFreeMarginMode();
-                        PrintLog($"AccountFreeMarginMode result: {result}");
-                    }
-                    break;
-                case 8:
-                    {
-                        var result = _apiClient.AccountLeverage();
-                        PrintLog($"AccountLeverage result: {result}");
-                    }
-                    break;
-                case 9:
-                    {
-                        var result = _apiClient.AccountMargin();
-                        PrintLog($"AccountMargin result: {result}");
-                    }
-                    break;
-                case 10:
-                    {
-                        var result = _apiClient.AccountName();
-                        PrintLog($"AccountName result: {result}");
-                    }
-                    break;
-                case 11:
-                    {
-                        var result = _apiClient.AccountNumber();
-                        PrintLog($"AccountNumber result: {result}");
-                    }
-                    break;
-                case 12:
-                    {
-                        var result = _apiClient.AccountProfit();
-                        PrintLog($"AccountProfit result: {result}");
-                    }
-                    break;
-                case 13:
-                    {
-                        var result = _apiClient.AccountServer();
-                        PrintLog($"AccountServer result: {result}");
-                    }
-                    break;
-                case 14:
-                    {
-                        var result = _apiClient.AccountStopoutLevel();
-                        PrintLog($"AccountStopoutLevel result: {result}");
-                    }
-                    break;
-                case 15:
-                    {
-                        var result = _apiClient.AccountStopoutMode();
-                        PrintLog($"AccountStopoutMode result: {result}");
-                    }
-                    break;
-                default:
-                    return;
-            }
         }
 
         //MarketInfo
@@ -1321,6 +1219,137 @@ namespace TestApiClientUI
         {
             var result = await Execute(() => _apiClient.UninitializeReason());
             PrintLog($"UninitializeReason: result = {result}");
+        }
+
+        //AccountBalance
+        private void button3_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountBalance();
+            PrintLog($"AccountBalance result: {result}");
+        }
+
+        //AccountCredit
+        private void button53_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountCredit();
+            PrintLog($"AccountCredit result: {result}");
+        }
+
+        //AccountCompany
+        private void button54_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountCompany();
+            PrintLog($"AccountCompany result: {result}");
+        }
+
+        //AccountCurrency
+        private void button55_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountCurrency();
+            PrintLog($"AccountCurrency result: {result}");
+        }
+
+        //AccountEquity
+        private void button56_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountEquity();
+            PrintLog($"AccountEquity result: {result}");
+        }
+
+        //AccountFreeMargin
+        private void button57_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountFreeMargin();
+            PrintLog($"AccountFreeMargin result: {result}");
+        }
+
+        //AccountFreeMarginCheck
+        private void button58_Click(object sender, EventArgs e)
+        {
+            var symbol = textBoxAccountInfoSymbol.Text;
+            if (string.IsNullOrEmpty(symbol))
+            {
+                MessageBox.Show(@"Symbol is not defined!");
+                textBoxAccountInfoSymbol.Focus();
+                return;
+            }
+
+            double volume;
+            if (double.TryParse(textBoxAccountInfoVolume.Text, out volume) == false)
+            {
+                MessageBox.Show(@"Failed to parse volume value!");
+                textBoxAccountInfoVolume.Focus();
+                return;
+            }
+
+            TradeOperation cmd;
+            Enum.TryParse(comboBoxAccountInfoCmd.Text, out cmd);
+
+            var result = _apiClient.AccountFreeMarginCheck(symbol, cmd, volume);
+            PrintLog($"AccountFreeMarginCheck result: {result}");
+        }
+
+        //AccountFreeMarginMode
+        private void button59_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountFreeMarginMode();
+            PrintLog($"AccountFreeMarginMode result: {result}");
+        }
+
+        //AccountLeverage
+        private void button60_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountLeverage();
+            PrintLog($"AccountLeverage result: {result}");
+        }
+
+        //AccountMargin
+        private void button61_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountMargin();
+            PrintLog($"AccountMargin result: {result}");
+        }
+
+        //AccountName
+        private void button62_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountName();
+            PrintLog($"AccountName result: {result}");
+        }
+
+        //AccountNumber
+        private void button63_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountNumber();
+            PrintLog($"AccountNumber result: {result}");
+        }
+
+        //AccountProfit
+        private void button64_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountProfit();
+            PrintLog($"AccountProfit result: {result}");
+        }
+
+        //AccountServer
+        private void button65_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountServer();
+            PrintLog($"AccountServer result: {result}");
+        }
+
+        //AccountStopoutLevel
+        private void button66_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountStopoutLevel();
+            PrintLog($"AccountStopoutLevel result: {result}");
+        }
+
+        //AccountStopoutMode
+        private void button67_Click(object sender, EventArgs e)
+        {
+            var result = _apiClient.AccountStopoutMode();
+            PrintLog($"AccountStopoutMode result: {result}");
         }
     }
 }
