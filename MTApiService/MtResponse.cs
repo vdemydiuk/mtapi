@@ -12,7 +12,8 @@ namespace MTApiService
     {
         static IEnumerable<Type> GetKnownTypes()
         {
-            return new Type[] { typeof(MtResponseInt), typeof(MtResponseDouble),
+            return new Type[] { typeof(MtResponseObject),
+                                typeof(MtResponseInt), typeof(MtResponseDouble),
                                 typeof(MtResponseString), typeof(MtResponseBool),
                                 typeof(MtResponseLong), typeof(MtResponseULong),
                                 typeof(MtResponseDoubleArray), typeof(MtResponseIntArray),
@@ -22,6 +23,28 @@ namespace MTApiService
         }
 
         public abstract object GetValue();
+
+        [DataMember]
+        public int ErrorCode { get; set; }
+    }
+
+    [DataContract]
+    public class MtResponseObject : MtResponse
+    {
+        public MtResponseObject(object value)
+        {
+            Value = value;
+        }
+
+        [DataMember]
+        public object Value { get; private set; }
+
+        public override object GetValue() { return Value; }
+
+        public override string ToString()
+        {
+            return Value?.ToString() ?? string.Empty;
+        }
     }
 
     [DataContract]

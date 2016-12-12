@@ -627,9 +627,9 @@ namespace TestApiClientUI
             listBoxEventLog.Items.Clear();
         }
 
-        private async Task<TResult> Execute<TResult>(Func<TResult> func)
+        private Task<TResult> Execute<TResult>(Func<TResult> func)
         {
-            return await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
             {
                 var result = default(TResult);
                 try
@@ -646,6 +646,25 @@ namespace TestApiClientUI
                 }
 
                 return result;
+            });
+        }
+
+        private Task Execute(Action action)
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    action();
+                }
+                catch (MtConnectionException ex)
+                {
+                    PrintLog("MtExecutionException: " + ex.Message);
+                }
+                catch (MtExecutionException ex)
+                {
+                    PrintLog("MtExecutionException: " + ex.Message + "; ErrorCode = " + ex.ErrorCode);
+                }
             });
         }
 
@@ -1100,17 +1119,10 @@ namespace TestApiClientUI
             _apiClient.ExecutorHandle = expertHandle;
         }
 
-        //CharID
-        private async void button37_Click(object sender, EventArgs e)
-        {
-            var result = await Execute(() => _apiClient.ChartId());
-            PrintLog($"CharID: result = {result}");
-        }
-
         //GetLastError
         private async void button40_Click(object sender, EventArgs e)
         {
-            var result = await Execute(() => _apiClient.GetLastError());
+            var result = await Execute(_apiClient.GetLastError);
             PrintLog($"GetLastError: result = {result}");
             RunOnUiThread(() => { textBoxErrorCode.Text = result.ToString(); });
         }
@@ -1140,131 +1152,131 @@ namespace TestApiClientUI
         //IsConnected
         private async void button41_Click(object sender, EventArgs e)
         {
-            var result = await Execute(() => _apiClient.IsConnected());
+            var result = await Execute(_apiClient.IsConnected);
             PrintLog($"IsConnected: result = {result}");
         }
 
         //IsDemo
         private async void button42_Click(object sender, EventArgs e)
         {
-            var result = await Execute(() => _apiClient.IsDemo());
+            var result = await Execute(_apiClient.IsDemo);
             PrintLog($"IsDemo: result = {result}");
         }
 
         //IsDllsAllowed
         private async void button43_Click(object sender, EventArgs e)
         {
-            var result = await Execute(() => _apiClient.IsDllsAllowed());
+            var result = await Execute(_apiClient.IsDllsAllowed);
             PrintLog($"IsDllsAllowed: result = {result}");
         }
 
         //IsExpertEnabled
         private async void button44_Click(object sender, EventArgs e)
         {
-            var result = await Execute(() => _apiClient.IsExpertEnabled());
+            var result = await Execute(_apiClient.IsExpertEnabled);
             PrintLog($"IsExpertEnabled: result = {result}");
         }
 
         //IsLibrariesAllowed
         private async void button45_Click(object sender, EventArgs e)
         {
-            var result = await Execute(() => _apiClient.IsLibrariesAllowed());
+            var result = await Execute(_apiClient.IsLibrariesAllowed);
             PrintLog($"IsLibrariesAllowed: result = {result}");
         }
 
         //IsOptimization
         private async void button46_Click(object sender, EventArgs e)
         {
-            var result = await Execute(() => _apiClient.IsOptimization());
+            var result = await Execute(_apiClient.IsOptimization);
             PrintLog($"IsOptimization: result = {result}");
         }
 
         //IsStopped
         private async void button47_Click(object sender, EventArgs e)
         {
-            var result = await Execute(() => _apiClient.IsStopped());
+            var result = await Execute(_apiClient.IsStopped);
             PrintLog($"IsStopped: result = {result}");
         }
 
         //IsTesting
         private async void button48_Click(object sender, EventArgs e)
         {
-            var result = await Execute(() => _apiClient.IsTesting());
+            var result = await Execute(_apiClient.IsTesting);
             PrintLog($"IsTesting: result = {result}");
         }
 
         //IsTradeAllowed
         private async void button49_Click(object sender, EventArgs e)
         {
-            var result = await Execute(() => _apiClient.IsTradeAllowed());
+            var result = await Execute(_apiClient.IsTradeAllowed);
             PrintLog($"IsTradeAllowed: result = {result}");
         }
 
         //IsTradeContextBusy
         private async void button50_Click(object sender, EventArgs e)
         {
-            var result = await Execute(() => _apiClient.IsTradeContextBusy());
+            var result = await Execute(_apiClient.IsTradeContextBusy);
             PrintLog($"IsTradeContextBusy: result = {result}");
         }
 
         //IsVisualMode
         private async void button51_Click(object sender, EventArgs e)
         {
-            var result = await Execute(() => _apiClient.IsVisualMode());
+            var result = await Execute(_apiClient.IsVisualMode);
             PrintLog($"IsVisualMode: result = {result}");
         }
 
         //UninitializeReason
         private async void button52_Click(object sender, EventArgs e)
         {
-            var result = await Execute(() => _apiClient.UninitializeReason());
+            var result = await Execute(_apiClient.UninitializeReason);
             PrintLog($"UninitializeReason: result = {result}");
         }
 
         //AccountBalance
-        private void button3_Click(object sender, EventArgs e)
+        private async void button3_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountBalance();
+            var result = await Execute(_apiClient.AccountBalance);
             PrintLog($"AccountBalance result: {result}");
         }
 
         //AccountCredit
-        private void button53_Click(object sender, EventArgs e)
+        private async void button53_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountCredit();
+            var result = await Execute(_apiClient.AccountCredit);
             PrintLog($"AccountCredit result: {result}");
         }
 
         //AccountCompany
-        private void button54_Click(object sender, EventArgs e)
+        private async void button54_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountCompany();
+            var result = await Execute(_apiClient.AccountCompany);
             PrintLog($"AccountCompany result: {result}");
         }
 
         //AccountCurrency
-        private void button55_Click(object sender, EventArgs e)
+        private async void button55_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountCurrency();
+            var result = await Execute(_apiClient.AccountCurrency);
             PrintLog($"AccountCurrency result: {result}");
         }
 
         //AccountEquity
-        private void button56_Click(object sender, EventArgs e)
+        private async void button56_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountEquity();
+            var result = await Execute(_apiClient.AccountEquity);
             PrintLog($"AccountEquity result: {result}");
         }
 
         //AccountFreeMargin
-        private void button57_Click(object sender, EventArgs e)
+        private async void button57_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountFreeMargin();
+            var result = await Execute(_apiClient.AccountFreeMargin);
             PrintLog($"AccountFreeMargin result: {result}");
         }
 
         //AccountFreeMarginCheck
-        private void button58_Click(object sender, EventArgs e)
+        private async void button58_Click(object sender, EventArgs e)
         {
             var symbol = textBoxAccountInfoSymbol.Text;
             if (string.IsNullOrEmpty(symbol))
@@ -1285,71 +1297,85 @@ namespace TestApiClientUI
             TradeOperation cmd;
             Enum.TryParse(comboBoxAccountInfoCmd.Text, out cmd);
 
-            var result = _apiClient.AccountFreeMarginCheck(symbol, cmd, volume);
+            var result = await Execute(() => _apiClient.AccountFreeMarginCheck(symbol, cmd, volume));
             PrintLog($"AccountFreeMarginCheck result: {result}");
         }
 
         //AccountFreeMarginMode
-        private void button59_Click(object sender, EventArgs e)
+        private async void button59_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountFreeMarginMode();
+            var result = await Execute(_apiClient.AccountFreeMarginMode);
             PrintLog($"AccountFreeMarginMode result: {result}");
         }
 
         //AccountLeverage
-        private void button60_Click(object sender, EventArgs e)
+        private async void button60_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountLeverage();
+            var result = await Execute(_apiClient.AccountLeverage);
             PrintLog($"AccountLeverage result: {result}");
         }
 
         //AccountMargin
-        private void button61_Click(object sender, EventArgs e)
+        private async void button61_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountMargin();
+            var result = await Execute(_apiClient.AccountMargin);
             PrintLog($"AccountMargin result: {result}");
         }
 
         //AccountName
-        private void button62_Click(object sender, EventArgs e)
+        private async void button62_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountName();
+            var result = await Execute(_apiClient.AccountName);
             PrintLog($"AccountName result: {result}");
         }
 
         //AccountNumber
-        private void button63_Click(object sender, EventArgs e)
+        private async void button63_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountNumber();
+            var result = await Execute(_apiClient.AccountNumber);
             PrintLog($"AccountNumber result: {result}");
         }
 
         //AccountProfit
-        private void button64_Click(object sender, EventArgs e)
+        private async void button64_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountProfit();
+            var result = await Execute(_apiClient.AccountProfit);
             PrintLog($"AccountProfit result: {result}");
         }
 
         //AccountServer
-        private void button65_Click(object sender, EventArgs e)
+        private async void button65_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountServer();
+            var result = await Execute(_apiClient.AccountServer);
             PrintLog($"AccountServer result: {result}");
         }
 
         //AccountStopoutLevel
-        private void button66_Click(object sender, EventArgs e)
+        private async void button66_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountStopoutLevel();
+            var result = await Execute(_apiClient.AccountStopoutLevel);
             PrintLog($"AccountStopoutLevel result: {result}");
         }
 
         //AccountStopoutMode
-        private void button67_Click(object sender, EventArgs e)
+        private async void button67_Click(object sender, EventArgs e)
         {
-            var result = _apiClient.AccountStopoutMode();
+            var result = await Execute(_apiClient.AccountStopoutMode);
             PrintLog($"AccountStopoutMode result: {result}");
+        }
+
+        //CharID
+        private async void button37_Click(object sender, EventArgs e)
+        {
+            var result = await Execute(_apiClient.ChartId);
+            PrintLog($"CharID: result = {result}");
+        }
+
+        //ChartRedraw
+        private async void button38_Click(object sender, EventArgs e)
+        {
+            await Execute(() => _apiClient.ChartRedraw());
+            PrintLog($"ChartRedraw: called.");
         }
     }
 }

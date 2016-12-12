@@ -113,6 +113,22 @@
             this.label22 = new System.Windows.Forms.Label();
             this.textBoxErrorCode = new System.Windows.Forms.TextBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.button67 = new System.Windows.Forms.Button();
+            this.button66 = new System.Windows.Forms.Button();
+            this.button65 = new System.Windows.Forms.Button();
+            this.button64 = new System.Windows.Forms.Button();
+            this.button63 = new System.Windows.Forms.Button();
+            this.button62 = new System.Windows.Forms.Button();
+            this.button61 = new System.Windows.Forms.Button();
+            this.button60 = new System.Windows.Forms.Button();
+            this.button59 = new System.Windows.Forms.Button();
+            this.button58 = new System.Windows.Forms.Button();
+            this.button57 = new System.Windows.Forms.Button();
+            this.button56 = new System.Windows.Forms.Button();
+            this.button55 = new System.Windows.Forms.Button();
+            this.button54 = new System.Windows.Forms.Button();
+            this.button53 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
             this.comboBoxAccountInfoCmd = new System.Windows.Forms.ComboBox();
             this.textBoxAccountInfoVolume = new System.Windows.Forms.TextBox();
             this.label25 = new System.Windows.Forms.Label();
@@ -179,22 +195,6 @@
             this.tabPage9 = new System.Windows.Forms.TabPage();
             this.button38 = new System.Windows.Forms.Button();
             this.button37 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
-            this.button53 = new System.Windows.Forms.Button();
-            this.button54 = new System.Windows.Forms.Button();
-            this.button55 = new System.Windows.Forms.Button();
-            this.button56 = new System.Windows.Forms.Button();
-            this.button57 = new System.Windows.Forms.Button();
-            this.button58 = new System.Windows.Forms.Button();
-            this.button59 = new System.Windows.Forms.Button();
-            this.button60 = new System.Windows.Forms.Button();
-            this.button61 = new System.Windows.Forms.Button();
-            this.button62 = new System.Windows.Forms.Button();
-            this.button63 = new System.Windows.Forms.Button();
-            this.button64 = new System.Windows.Forms.Button();
-            this.button65 = new System.Windows.Forms.Button();
-            this.button66 = new System.Windows.Forms.Button();
-            this.button67 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -1129,6 +1129,166 @@
             this.tabPage3.Text = "Account Information";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
+            // button67
+            // 
+            this.button67.Location = new System.Drawing.Point(157, 33);
+            this.button67.Name = "button67";
+            this.button67.Size = new System.Drawing.Size(145, 23);
+            this.button67.TabIndex = 14;
+            this.button67.Text = "AccountStopoutMode";
+            this.button67.UseVisualStyleBackColor = true;
+            this.button67.Click += new System.EventHandler(this.button67_Click);
+            // 
+            // button66
+            // 
+            this.button66.Location = new System.Drawing.Point(157, 4);
+            this.button66.Name = "button66";
+            this.button66.Size = new System.Drawing.Size(145, 23);
+            this.button66.TabIndex = 14;
+            this.button66.Text = "AccountStopoutLevel";
+            this.button66.UseVisualStyleBackColor = true;
+            this.button66.Click += new System.EventHandler(this.button66_Click);
+            // 
+            // button65
+            // 
+            this.button65.Location = new System.Drawing.Point(6, 350);
+            this.button65.Name = "button65";
+            this.button65.Size = new System.Drawing.Size(145, 23);
+            this.button65.TabIndex = 14;
+            this.button65.Text = "AccountServer";
+            this.button65.UseVisualStyleBackColor = true;
+            this.button65.Click += new System.EventHandler(this.button65_Click);
+            // 
+            // button64
+            // 
+            this.button64.Location = new System.Drawing.Point(6, 321);
+            this.button64.Name = "button64";
+            this.button64.Size = new System.Drawing.Size(145, 23);
+            this.button64.TabIndex = 14;
+            this.button64.Text = "AccountProfit";
+            this.button64.UseVisualStyleBackColor = true;
+            this.button64.Click += new System.EventHandler(this.button64_Click);
+            // 
+            // button63
+            // 
+            this.button63.Location = new System.Drawing.Point(6, 292);
+            this.button63.Name = "button63";
+            this.button63.Size = new System.Drawing.Size(145, 23);
+            this.button63.TabIndex = 14;
+            this.button63.Text = "AccountNumber";
+            this.button63.UseVisualStyleBackColor = true;
+            this.button63.Click += new System.EventHandler(this.button63_Click);
+            // 
+            // button62
+            // 
+            this.button62.Location = new System.Drawing.Point(6, 263);
+            this.button62.Name = "button62";
+            this.button62.Size = new System.Drawing.Size(145, 23);
+            this.button62.TabIndex = 14;
+            this.button62.Text = "AccountName";
+            this.button62.UseVisualStyleBackColor = true;
+            this.button62.Click += new System.EventHandler(this.button62_Click);
+            // 
+            // button61
+            // 
+            this.button61.Location = new System.Drawing.Point(6, 235);
+            this.button61.Name = "button61";
+            this.button61.Size = new System.Drawing.Size(145, 23);
+            this.button61.TabIndex = 14;
+            this.button61.Text = "AccountMargin";
+            this.button61.UseVisualStyleBackColor = true;
+            this.button61.Click += new System.EventHandler(this.button61_Click);
+            // 
+            // button60
+            // 
+            this.button60.Location = new System.Drawing.Point(6, 206);
+            this.button60.Name = "button60";
+            this.button60.Size = new System.Drawing.Size(145, 23);
+            this.button60.TabIndex = 14;
+            this.button60.Text = "AccountLeverage";
+            this.button60.UseVisualStyleBackColor = true;
+            this.button60.Click += new System.EventHandler(this.button60_Click);
+            // 
+            // button59
+            // 
+            this.button59.Location = new System.Drawing.Point(6, 177);
+            this.button59.Name = "button59";
+            this.button59.Size = new System.Drawing.Size(145, 23);
+            this.button59.TabIndex = 14;
+            this.button59.Text = "AccountFreeMarginMode";
+            this.button59.UseVisualStyleBackColor = true;
+            this.button59.Click += new System.EventHandler(this.button59_Click);
+            // 
+            // button58
+            // 
+            this.button58.Location = new System.Drawing.Point(190, 159);
+            this.button58.Name = "button58";
+            this.button58.Size = new System.Drawing.Size(145, 23);
+            this.button58.TabIndex = 14;
+            this.button58.Text = "AccountFreeMarginCheck";
+            this.button58.UseVisualStyleBackColor = true;
+            this.button58.Click += new System.EventHandler(this.button58_Click);
+            // 
+            // button57
+            // 
+            this.button57.Location = new System.Drawing.Point(6, 148);
+            this.button57.Name = "button57";
+            this.button57.Size = new System.Drawing.Size(145, 23);
+            this.button57.TabIndex = 14;
+            this.button57.Text = "AccountFreeMargin";
+            this.button57.UseVisualStyleBackColor = true;
+            this.button57.Click += new System.EventHandler(this.button57_Click);
+            // 
+            // button56
+            // 
+            this.button56.Location = new System.Drawing.Point(6, 119);
+            this.button56.Name = "button56";
+            this.button56.Size = new System.Drawing.Size(145, 23);
+            this.button56.TabIndex = 14;
+            this.button56.Text = "AccountEquity";
+            this.button56.UseVisualStyleBackColor = true;
+            this.button56.Click += new System.EventHandler(this.button56_Click);
+            // 
+            // button55
+            // 
+            this.button55.Location = new System.Drawing.Point(6, 90);
+            this.button55.Name = "button55";
+            this.button55.Size = new System.Drawing.Size(145, 23);
+            this.button55.TabIndex = 13;
+            this.button55.Text = "AccountCurrency";
+            this.button55.UseVisualStyleBackColor = true;
+            this.button55.Click += new System.EventHandler(this.button55_Click);
+            // 
+            // button54
+            // 
+            this.button54.Location = new System.Drawing.Point(6, 62);
+            this.button54.Name = "button54";
+            this.button54.Size = new System.Drawing.Size(145, 23);
+            this.button54.TabIndex = 12;
+            this.button54.Text = "AccountCompany";
+            this.button54.UseVisualStyleBackColor = true;
+            this.button54.Click += new System.EventHandler(this.button54_Click);
+            // 
+            // button53
+            // 
+            this.button53.Location = new System.Drawing.Point(6, 33);
+            this.button53.Name = "button53";
+            this.button53.Size = new System.Drawing.Size(145, 23);
+            this.button53.TabIndex = 11;
+            this.button53.Text = "AccountCredit";
+            this.button53.UseVisualStyleBackColor = true;
+            this.button53.Click += new System.EventHandler(this.button53_Click);
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(6, 4);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(145, 23);
+            this.button3.TabIndex = 10;
+            this.button3.Text = "AccountBalance";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
             // comboBoxAccountInfoCmd
             // 
             this.comboBoxAccountInfoCmd.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -1808,6 +1968,7 @@
             this.button38.TabIndex = 1;
             this.button38.Text = "ChartRedraw";
             this.button38.UseVisualStyleBackColor = true;
+            this.button38.Click += new System.EventHandler(this.button38_Click);
             // 
             // button37
             // 
@@ -1818,166 +1979,6 @@
             this.button37.Text = "ChartID";
             this.button37.UseVisualStyleBackColor = true;
             this.button37.Click += new System.EventHandler(this.button37_Click);
-            // 
-            // button3
-            // 
-            this.button3.Location = new System.Drawing.Point(6, 4);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(145, 23);
-            this.button3.TabIndex = 10;
-            this.button3.Text = "AccountBalance";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
-            // 
-            // button53
-            // 
-            this.button53.Location = new System.Drawing.Point(6, 33);
-            this.button53.Name = "button53";
-            this.button53.Size = new System.Drawing.Size(145, 23);
-            this.button53.TabIndex = 11;
-            this.button53.Text = "AccountCredit";
-            this.button53.UseVisualStyleBackColor = true;
-            this.button53.Click += new System.EventHandler(this.button53_Click);
-            // 
-            // button54
-            // 
-            this.button54.Location = new System.Drawing.Point(6, 62);
-            this.button54.Name = "button54";
-            this.button54.Size = new System.Drawing.Size(145, 23);
-            this.button54.TabIndex = 12;
-            this.button54.Text = "AccountCompany";
-            this.button54.UseVisualStyleBackColor = true;
-            this.button54.Click += new System.EventHandler(this.button54_Click);
-            // 
-            // button55
-            // 
-            this.button55.Location = new System.Drawing.Point(6, 90);
-            this.button55.Name = "button55";
-            this.button55.Size = new System.Drawing.Size(145, 23);
-            this.button55.TabIndex = 13;
-            this.button55.Text = "AccountCurrency";
-            this.button55.UseVisualStyleBackColor = true;
-            this.button55.Click += new System.EventHandler(this.button55_Click);
-            // 
-            // button56
-            // 
-            this.button56.Location = new System.Drawing.Point(6, 119);
-            this.button56.Name = "button56";
-            this.button56.Size = new System.Drawing.Size(145, 23);
-            this.button56.TabIndex = 14;
-            this.button56.Text = "AccountEquity";
-            this.button56.UseVisualStyleBackColor = true;
-            this.button56.Click += new System.EventHandler(this.button56_Click);
-            // 
-            // button57
-            // 
-            this.button57.Location = new System.Drawing.Point(6, 148);
-            this.button57.Name = "button57";
-            this.button57.Size = new System.Drawing.Size(145, 23);
-            this.button57.TabIndex = 14;
-            this.button57.Text = "AccountFreeMargin";
-            this.button57.UseVisualStyleBackColor = true;
-            this.button57.Click += new System.EventHandler(this.button57_Click);
-            // 
-            // button58
-            // 
-            this.button58.Location = new System.Drawing.Point(190, 159);
-            this.button58.Name = "button58";
-            this.button58.Size = new System.Drawing.Size(145, 23);
-            this.button58.TabIndex = 14;
-            this.button58.Text = "AccountFreeMarginCheck";
-            this.button58.UseVisualStyleBackColor = true;
-            this.button58.Click += new System.EventHandler(this.button58_Click);
-            // 
-            // button59
-            // 
-            this.button59.Location = new System.Drawing.Point(6, 177);
-            this.button59.Name = "button59";
-            this.button59.Size = new System.Drawing.Size(145, 23);
-            this.button59.TabIndex = 14;
-            this.button59.Text = "AccountFreeMarginMode";
-            this.button59.UseVisualStyleBackColor = true;
-            this.button59.Click += new System.EventHandler(this.button59_Click);
-            // 
-            // button60
-            // 
-            this.button60.Location = new System.Drawing.Point(6, 206);
-            this.button60.Name = "button60";
-            this.button60.Size = new System.Drawing.Size(145, 23);
-            this.button60.TabIndex = 14;
-            this.button60.Text = "AccountLeverage";
-            this.button60.UseVisualStyleBackColor = true;
-            this.button60.Click += new System.EventHandler(this.button60_Click);
-            // 
-            // button61
-            // 
-            this.button61.Location = new System.Drawing.Point(6, 235);
-            this.button61.Name = "button61";
-            this.button61.Size = new System.Drawing.Size(145, 23);
-            this.button61.TabIndex = 14;
-            this.button61.Text = "AccountMargin";
-            this.button61.UseVisualStyleBackColor = true;
-            this.button61.Click += new System.EventHandler(this.button61_Click);
-            // 
-            // button62
-            // 
-            this.button62.Location = new System.Drawing.Point(6, 263);
-            this.button62.Name = "button62";
-            this.button62.Size = new System.Drawing.Size(145, 23);
-            this.button62.TabIndex = 14;
-            this.button62.Text = "AccountName";
-            this.button62.UseVisualStyleBackColor = true;
-            this.button62.Click += new System.EventHandler(this.button62_Click);
-            // 
-            // button63
-            // 
-            this.button63.Location = new System.Drawing.Point(6, 292);
-            this.button63.Name = "button63";
-            this.button63.Size = new System.Drawing.Size(145, 23);
-            this.button63.TabIndex = 14;
-            this.button63.Text = "AccountNumber";
-            this.button63.UseVisualStyleBackColor = true;
-            this.button63.Click += new System.EventHandler(this.button63_Click);
-            // 
-            // button64
-            // 
-            this.button64.Location = new System.Drawing.Point(6, 321);
-            this.button64.Name = "button64";
-            this.button64.Size = new System.Drawing.Size(145, 23);
-            this.button64.TabIndex = 14;
-            this.button64.Text = "AccountProfit";
-            this.button64.UseVisualStyleBackColor = true;
-            this.button64.Click += new System.EventHandler(this.button64_Click);
-            // 
-            // button65
-            // 
-            this.button65.Location = new System.Drawing.Point(6, 350);
-            this.button65.Name = "button65";
-            this.button65.Size = new System.Drawing.Size(145, 23);
-            this.button65.TabIndex = 14;
-            this.button65.Text = "AccountServer";
-            this.button65.UseVisualStyleBackColor = true;
-            this.button65.Click += new System.EventHandler(this.button65_Click);
-            // 
-            // button66
-            // 
-            this.button66.Location = new System.Drawing.Point(157, 4);
-            this.button66.Name = "button66";
-            this.button66.Size = new System.Drawing.Size(145, 23);
-            this.button66.TabIndex = 14;
-            this.button66.Text = "AccountStopoutLevel";
-            this.button66.UseVisualStyleBackColor = true;
-            this.button66.Click += new System.EventHandler(this.button66_Click);
-            // 
-            // button67
-            // 
-            this.button67.Location = new System.Drawing.Point(157, 33);
-            this.button67.Name = "button67";
-            this.button67.Size = new System.Drawing.Size(145, 23);
-            this.button67.TabIndex = 14;
-            this.button67.Text = "AccountStopoutMode";
-            this.button67.UseVisualStyleBackColor = true;
-            this.button67.Click += new System.EventHandler(this.button67_Click);
             // 
             // Form1
             // 

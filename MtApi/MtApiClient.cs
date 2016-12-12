@@ -1722,6 +1722,15 @@ namespace MtApi
         {
             return SendCommand<long>(MtCommandType.ChartId, null);
         }
+
+        ///<summary>
+        ///This function calls a forced redrawing of a specified chart.
+        ///</summary>
+        public void ChartRedraw(long chartId = 0)
+        {
+            var commandParameters = new ArrayList { chartId };
+            SendCommand<object>(MtCommandType.ChartRedraw, commandParameters);
+        }
         #endregion
 
         #region Private Methods
@@ -1870,6 +1879,11 @@ namespace MtApi
             if (response == null)
             {
                 throw new MtExecutionException(MtErrorCode.MtApiCustomError, "Response from MetaTrader is null");
+            }
+
+            if (response.ErrorCode != 0)
+            {
+                throw new MtExecutionException((MtErrorCode)response.ErrorCode, response.ToString());
             }
 
             var responseValue = response.GetValue();

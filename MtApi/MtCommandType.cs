@@ -197,6 +197,7 @@
         SymbolName                          = 201,
         SymbolSelect                        = 202,
         SymbolInfoInteger                   = 203,
-        ChartId                             = 206
+        ChartId                             = 206,
+        ChartRedraw                         = 207
     }
 }
