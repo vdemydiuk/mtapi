@@ -858,10 +858,10 @@ namespace MtApi
             return SendCommand<int>(MtCommandType.MessageBox, commandParameters);
         }
 
-        public void PlaySound(string filename)
+        public bool PlaySound(string filename)
         {
             var commandParameters = new ArrayList { filename };
-            SendCommand<object>(MtCommandType.PlaySound, commandParameters);
+            return SendCommand<bool>(MtCommandType.PlaySound, commandParameters);
         }
 
         public void Print(string msg)
@@ -882,10 +882,10 @@ namespace MtApi
             return SendCommand<bool>(MtCommandType.SendFTPA, commandParameters);
         }
 
-        public void SendMail(string subject, string someText)
+        public bool SendMail(string subject, string someText)
         {
             var commandParameters = new ArrayList { subject, someText };
-            SendCommand<object>(MtCommandType.SendMail, commandParameters);
+            return SendCommand<bool>(MtCommandType.SendMail, commandParameters);
         }
 
         public void Sleep(int milliseconds)
