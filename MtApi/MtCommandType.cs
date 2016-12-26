@@ -198,6 +198,35 @@
         SymbolSelect                        = 202,
         SymbolInfoInteger                   = 203,
         ChartId                             = 206,
-        ChartRedraw                         = 207
+        ChartRedraw                         = 207,
+
+        //Object Functions
+        ObjectCreate                        = 208,
+        ObjectName                          = 209,
+        ObjectDelete                        = 210,
+        ObjectsDeleteAll                    = 211,
+        ObjectFind                          = 212,
+        ObjectGetTimeByValue                = 213,
+        ObjectGetValueByTime                = 214,
+        ObjectMove                          = 215,
+        ObjectsTotal                        = 216,
+        ObjectGetDouble                     = 217,
+        ObjectGetInteger                    = 218,
+        ObjectGetString                     = 219,
+        ObjectSetDouble                     = 220,
+        ObjectSetInteger                    = 221,
+        ObjectSetString                     = 222,
+        TextSetFont                         = 223,
+        TextOut                             = 224,
+        TextGetSize                         = 225,
+        ObjectDescription                   = 226,
+        ObjectGet                           = 227,
+        ObjectGetFiboDescription            = 228,
+        ObjectGetShiftByValue               = 229,
+        ObjectGetValueByShift               = 230,
+        ObjectSet                           = 231,
+        ObjectSetFiboDescription            = 232,
+        ObjectSetText                       = 233,
+        ObjectType                          = 234
     }
 }

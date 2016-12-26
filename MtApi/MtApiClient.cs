@@ -1733,6 +1733,31 @@ namespace MtApi
         }
         #endregion
 
+        #region Object Functions
+
+        ///<summary>
+        ///The function creates an object with the specified name, type, and the initial coordinates in the specified chart subwindow of the specified chart.
+        ///</summary>
+        ///<param name="chartId">Chart identifier.</param>
+        ///<param name="objectName">Name of the object. The name must be unique within a chart, including its subwindows.</param>
+        ///<param name="objectType">Object type.</param>
+        ///<param name="subWindow">Number of the chart subwindow. 0 means the main chart window.</param>
+        ///<param name="time1">The time coordinate of the first anchor point.</param>
+        ///<param name="price1">The price coordinate of the first anchor point.</param>
+        ///<param name="time2">The time coordinate of the second anchor point.</param>
+        ///<param name="price2">The price coordinate of the second anchor point.</param>
+        ///<param name="time3">The price coordinate of the second anchor point.</param>
+        ///<returns>
+        ///Returns various data about securities listed in the "Market Watch" window.
+        ///</returns>
+        bool ObjectCreate(long chartId, string objectName, object objectType, int subWindow, 
+            DateTime time1, double price1, DateTime? time2 = null, double price2 = 0, DateTime? time3 = null, double price3 = 0)
+        {
+            return false;
+        }
+
+        #endregion
+
         #region Private Methods
         private MtClient Client
         {
