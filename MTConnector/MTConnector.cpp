@@ -45,7 +45,7 @@ _DLLAPI bool _stdcall initExpert(int expertHandle, int port, wchar_t* symbol, do
 {
     return Execute<bool>([&expertHandle, &port, symbol, &bid, &ask]() {
         MT4Handler^ mtHandler = gcnew MT4Handler();
-        MtServerInstance::GetInstance()->InitExpert(expertHandle, port, gcnew String(symbol), bid, ask, mtHandler);
+        MtAdapter::GetInstance()->InitExpert(expertHandle, port, gcnew String(symbol), bid, ask, mtHandler);
         return true;
     }, err, false);
 
@@ -54,7 +54,7 @@ _DLLAPI bool _stdcall initExpert(int expertHandle, int port, wchar_t* symbol, do
 _DLLAPI bool _stdcall deinitExpert(int expertHandle, wchar_t* err)
 {
     return Execute<bool>([&expertHandle]() {
-        MtServerInstance::GetInstance()->DeinitExpert(expertHandle);
+        MtAdapter::GetInstance()->DeinitExpert(expertHandle);
         return true;
     }, err, false);
 }
@@ -62,7 +62,7 @@ _DLLAPI bool _stdcall deinitExpert(int expertHandle, wchar_t* err)
 _DLLAPI bool _stdcall updateQuote(int expertHandle, wchar_t* symbol, double bid, double ask, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, symbol, &bid, &ask]() {
-        MtServerInstance::GetInstance()->SendQuote(expertHandle, gcnew String(symbol), bid, ask);
+        MtAdapter::GetInstance()->SendQuote(expertHandle, gcnew String(symbol), bid, ask);
         return true;
     }, err, false);
 }
@@ -71,7 +71,7 @@ _DLLAPI bool _stdcall updateQuote(int expertHandle, wchar_t* symbol, double bid,
 _DLLAPI bool _stdcall sendEvent(int expertHandle, int eventType, wchar_t* payload, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &eventType, payload]() {
-        MtServerInstance::GetInstance()->SendEvent(expertHandle, eventType, gcnew String(payload));
+        MtAdapter::GetInstance()->SendEvent(expertHandle, eventType, gcnew String(payload));
         return true;
     }, err, false);
 }
@@ -79,7 +79,7 @@ _DLLAPI bool _stdcall sendEvent(int expertHandle, int eventType, wchar_t* payloa
 _DLLAPI bool _stdcall sendIntResponse(int expertHandle, int response, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &response]() {
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseInt(response));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseInt(response));
         return true;
     }, err, false);
 }
@@ -87,7 +87,7 @@ _DLLAPI bool _stdcall sendIntResponse(int expertHandle, int response, wchar_t* e
 _DLLAPI bool _stdcall sendBooleanResponse(int expertHandle, bool response, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &response]() {
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseBool(response));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseBool(response));
         return true;
     }, err, false);
 }
@@ -95,7 +95,7 @@ _DLLAPI bool _stdcall sendBooleanResponse(int expertHandle, bool response, wchar
 _DLLAPI bool _stdcall sendDoubleResponse(int expertHandle, double response, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &response]() {
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseDouble(response));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseDouble(response));
         return true;
     }, err, false);
 }
@@ -103,7 +103,7 @@ _DLLAPI bool _stdcall sendDoubleResponse(int expertHandle, double response, wcha
 _DLLAPI bool _stdcall sendStringResponse(int expertHandle, wchar_t* response, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, response]() {
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseString(gcnew String(response)));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseString(gcnew String(response)));
         return true;
     }, err, false);
 }
@@ -113,7 +113,7 @@ _DLLAPI bool _stdcall sendErrorResponse(int expertHandle, int code, wchar_t* mes
     return Execute<bool>([&expertHandle, &code, message]() {
         MtResponseString^ res = gcnew MtResponseString(gcnew String(message));
         res->ErrorCode = code;
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, res);
+        MtAdapter::GetInstance()->SendResponse(expertHandle, res);
         return true;
     }, err, false);
 }
@@ -121,7 +121,7 @@ _DLLAPI bool _stdcall sendErrorResponse(int expertHandle, int code, wchar_t* mes
 _DLLAPI bool _stdcall sendVoidResponse(int expertHandle, wchar_t* err)
 {
     return Execute<bool>([&expertHandle]() {
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseObject(nullptr));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseObject(nullptr));
         return true;
     }, err, false);
 }
@@ -134,7 +134,7 @@ _DLLAPI bool _stdcall sendDoubleArrayResponse(int expertHandle, double* values, 
         {
             list[i] = values[i];
         }
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseDoubleArray(list));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseDoubleArray(list));
         return true;
     }, err, false);
 }
@@ -147,7 +147,7 @@ _DLLAPI bool _stdcall sendIntArrayResponse(int expertHandle, int* values, int si
         {
             list[i] = values[i];
         }
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseIntArray(list));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseIntArray(list));
         return true;
     }, err, false);
 }
@@ -155,7 +155,7 @@ _DLLAPI bool _stdcall sendIntArrayResponse(int expertHandle, int* values, int si
 _DLLAPI bool _stdcall sendLongResponse(int expertHandle, __int64 response, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &response]() {
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseLong(response));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseLong(response));
         return true;
     }, err, false);
 }
@@ -163,7 +163,7 @@ _DLLAPI bool _stdcall sendLongResponse(int expertHandle, __int64 response, wchar
 _DLLAPI bool _stdcall getCommandType(int expertHandle, int* res, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, res]() {
-        *res = MtServerInstance::GetInstance()->GetCommandType(expertHandle);
+        *res = MtAdapter::GetInstance()->GetCommandType(expertHandle);
         return true;
     }, err, false);
 }
@@ -171,15 +171,17 @@ _DLLAPI bool _stdcall getCommandType(int expertHandle, int* res, wchar_t* err)
 _DLLAPI bool _stdcall getIntValue(int expertHandle, int paramIndex, int* res, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &paramIndex, res]() {
-        *res = (int)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = (int)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
         return true;
     }, err, false);
 }
 
+// --- index parameters
+
 _DLLAPI bool _stdcall getDoubleValue(int expertHandle, int paramIndex, double* res, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &paramIndex, res]() {
-        *res = (double)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = (double)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
         return true;
     }, err, false);
 }
@@ -187,7 +189,7 @@ _DLLAPI bool _stdcall getDoubleValue(int expertHandle, int paramIndex, double* r
 _DLLAPI bool _stdcall getStringValue(int expertHandle, int paramIndex, wchar_t* res, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &paramIndex, res]() {
-        convertSystemString(res, (String^)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex));
+        convertSystemString(res, (String^)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex));
         return true;
     }, err, false);
 }
@@ -195,7 +197,7 @@ _DLLAPI bool _stdcall getStringValue(int expertHandle, int paramIndex, wchar_t* 
 _DLLAPI bool _stdcall getBooleanValue(int expertHandle, int paramIndex, int* res, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &paramIndex, res]() {
-        *res = (bool)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = (bool)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
         return true;
     }, err, false);
 }
@@ -203,7 +205,63 @@ _DLLAPI bool _stdcall getBooleanValue(int expertHandle, int paramIndex, int* res
 _DLLAPI bool _stdcall getLongValue(int expertHandle, int paramIndex, __int64* res, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &paramIndex, res]() {
-        *res = (__int64)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = (__int64)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        return true;
+    }, err, false);
+}
+
+// --- named parameters
+
+_DLLAPI bool _stdcall containsNamedValue(int expertHandle, wchar_t* paramName)
+{
+    wchar_t err[1000];
+    return Execute<bool>([&expertHandle, paramName]() {
+        return MtAdapter::GetInstance()->ContainsNamedParameter(expertHandle, gcnew String(paramName));
+    }, err, false);
+}
+
+_DLLAPI bool _stdcall getNamedIntValue(int expertHandle, wchar_t* paramName, int* res, wchar_t* err)
+{
+    return Execute<bool>([&expertHandle, paramName, res]() {
+        System::Object^ obj = MtAdapter::GetInstance()->GetNamedParameter(expertHandle, gcnew String(paramName));
+        *res = (int)obj;
+        return true;
+    }, err, false);
+}
+
+_DLLAPI bool _stdcall getNamedDoubleValue(int expertHandle, wchar_t* paramName, double* res, wchar_t* err)
+{
+    return Execute<bool>([&expertHandle, paramName, res]() {
+        System::Object^ obj = MtAdapter::GetInstance()->GetNamedParameter(expertHandle, gcnew String(paramName));
+        *res = (double)obj;
+        return true;
+    }, err, false);
+}
+
+_DLLAPI bool _stdcall getNamedStringValue(int expertHandle, wchar_t* paramName, wchar_t* res, wchar_t* err)
+{
+    return Execute<bool>([&expertHandle, paramName, res]() {
+        System::Object^ obj = MtAdapter::GetInstance()->GetNamedParameter(expertHandle, gcnew String(paramName));
+        convertSystemString(res, (String^)obj);
+        return true;
+    }, err, false);
+}
+
+_DLLAPI bool _stdcall getNamedBooleanValue(int expertHandle, wchar_t* paramName, int* res, wchar_t* err)
+{
+    return Execute<bool>([&expertHandle, paramName, res]() {
+        System::Object^ obj = MtAdapter::GetInstance()->GetNamedParameter(expertHandle, gcnew String(paramName));
+        *res = (bool)obj;
+        return true;
+    }, err, false);
+}
+
+_DLLAPI bool _stdcall getNamedLongValue(int expertHandle, wchar_t* paramName, __int64* res, wchar_t* err)
+{
+    return Execute<bool>([&expertHandle, paramName, res]() {
+        System::Object^ obj = MtAdapter::GetInstance()->GetNamedParameter(expertHandle, gcnew String(paramName));
+        if (obj != nullptr)
+            *res = (__int64)obj;
         return true;
     }, err, false);
 }

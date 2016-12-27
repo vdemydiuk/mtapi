@@ -4,13 +4,13 @@ using log4net;
 
 namespace MTApiService
 {
-    public class MtServerInstance
+    public class MtAdapter
     {
         #region Fields
         private const string LogProfileName = "MtApiService";
 
-        private static readonly ILog Log = LogManager.GetLogger(typeof(MtServerInstance));
-        private static readonly MtServerInstance Instance = new MtServerInstance();
+        private static readonly ILog Log = LogManager.GetLogger(typeof(MtAdapter));
+        private static readonly MtAdapter Instance = new MtAdapter();
 
         private readonly Dictionary<int, MtServer> _servers = new Dictionary<int, MtServer>();
         private readonly Dictionary<int, MtExpert> _experts = new Dictionary<int, MtExpert>();
@@ -18,16 +18,16 @@ namespace MTApiService
 
         #region Init Instance
 
-        private MtServerInstance()
+        private MtAdapter()
         {
             LogConfigurator.Setup(LogProfileName);
         }
         
-        static MtServerInstance() 
+        static MtAdapter() 
         {
         }
 
-        public static MtServerInstance GetInstance()
+        public static MtAdapter GetInstance()
         {
             return Instance;
         }
@@ -205,6 +205,50 @@ namespace MTApiService
             var retval = expert?.GetCommandParameter(index);
 
             Log.DebugFormat("GetCommandParameter: end. retval = {0}", retval);
+
+            return retval;
+        }
+
+        public object GetNamedParameter(int expertHandle, string name)
+        {
+            Log.DebugFormat("GetNamedParameter: begin. expertHandle = {0}, name = {1}", expertHandle, name);
+
+            MtExpert expert;
+            lock (_experts)
+            {
+                expert = _experts[expertHandle];
+            }
+
+            if (expert == null)
+            {
+                Log.WarnFormat("GetNamedParameter: expert with id {0} has not been found.", expertHandle);
+            }
+
+            var retval = expert?.GetNamedParameter(name);
+
+            Log.DebugFormat("GetNamedParameter: end. retval = {0}", retval);
+
+            return retval;
+        }
+
+        public bool ContainsNamedParameter(int expertHandle, string name)
+        {
+            Log.DebugFormat("ContainsNamedParameter: begin. expertHandle = {0}, name = {1}", expertHandle, name);
+
+            MtExpert expert;
+            lock (_experts)
+            {
+                expert = _experts[expertHandle];
+            }
+
+            if (expert == null)
+            {
+                Log.WarnFormat("ContainsNamedParameter: expert with id {0} has not been found.", expertHandle);
+            }
+
+            bool retval = expert != null ? expert.ContainsNamedParameter(name) : false;
+
+            Log.DebugFormat("ContainsNamedParameter: end. retval = {0}", retval);
 
             return retval;
         }

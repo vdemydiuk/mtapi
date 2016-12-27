@@ -16,8 +16,6 @@ namespace MtApi
 
     public sealed class MtApiClient
     {
-        private volatile bool _isBacktestingMode;
-
         #region MetaTrader Constants
 
         //Special constant
@@ -31,6 +29,8 @@ namespace MtApi
         private MtClient _client;
         private readonly object _locker = new object();
         private MtConnectionState _connectionState = MtConnectionState.Disconnected;
+        private volatile bool _isBacktestingMode;
+        private int _executorHandle;
         #endregion
 
         #region ctor
@@ -74,7 +74,8 @@ namespace MtApi
         ///</summary>
         public List<MtQuote> GetQuotes()
         {
-            var quotes = _client.GetQuotes();
+            var client = Client;
+            var quotes = client != null ? client.GetQuotes() : null;
             return quotes?.Select(q => new MtQuote(q)).ToList();
         }
         #endregion
@@ -95,7 +96,9 @@ namespace MtApi
             }
         }
 
-        private int _executorHandle;
+        ///<summary>
+        ///Connection status of MetaTrader API.
+        ///</summary>
         public int ExecutorHandle
         {
             get
@@ -1746,14 +1749,32 @@ namespace MtApi
         ///<param name="price1">The price coordinate of the first anchor point.</param>
         ///<param name="time2">The time coordinate of the second anchor point.</param>
         ///<param name="price2">The price coordinate of the second anchor point.</param>
-        ///<param name="time3">The price coordinate of the second anchor point.</param>
+        ///<param name="time3">The time coordinate of the third anchor point.</param>
+        ///<param name="price3">The price coordinate of the third anchor point.</param>
         ///<returns>
-        ///Returns various data about securities listed in the "Market Watch" window.
+        ///Returns true or false depending on whether the object is created or not. 
         ///</returns>
-        bool ObjectCreate(long chartId, string objectName, object objectType, int subWindow, 
-            DateTime time1, double price1, DateTime? time2 = null, double price2 = 0, DateTime? time3 = null, double price3 = 0)
+        public bool ObjectCreate(long chartId, string objectName, EnumObject objectType, int subWindow, 
+            DateTime? time1, double price1, DateTime? time2 = null, double? price2 = null, DateTime? time3 = null, double? price3 = null)
         {
-            return false;
+            var namedParams = new Dictionary<string, object>();
+            namedParams.Add(nameof(chartId), chartId);
+            namedParams.Add(nameof(objectName), objectName);
+            namedParams.Add(nameof(objectType), (int)objectType);
+            namedParams.Add(nameof(subWindow), subWindow);
+            namedParams.Add(nameof(time1), time1 == null ? 0 : MtApiTimeConverter.ConvertToMtTime(time1.Value));
+            namedParams.Add(nameof(price1), price1);
+
+            if (time2 != null)
+                namedParams.Add(nameof(time2), MtApiTimeConverter.ConvertToMtTime(time2.Value));
+            if (price2 != null)
+                namedParams.Add(nameof(price2), price2.Value);
+            if (time3 != null)
+                namedParams.Add(nameof(time3), MtApiTimeConverter.ConvertToMtTime(time3.Value));
+            if (price3 != null)
+                namedParams.Add(nameof(price3), price3.Value);
+
+            return SendCommand<bool>(MtCommandType.ObjectCreate, null, namedParams);
         }
 
         #endregion
@@ -1882,7 +1903,7 @@ namespace MtApi
             ConnectionStateChanged?.Invoke(this, new MtConnectionEventArgs(state, message));
         }
 
-        private T SendCommand<T>(MtCommandType commandType, ArrayList commandParameters)
+        private T SendCommand<T>(MtCommandType commandType, ArrayList commandParameters, Dictionary<string, object> namedParams = null)
         {
             MtResponse response;
 
@@ -1894,7 +1915,7 @@ namespace MtApi
 
             try
             {
-                response = client.SendCommand((int)commandType, commandParameters, ExecutorHandle);
+                response = client.SendCommand((int)commandType, commandParameters, namedParams, ExecutorHandle);
             }
             catch (CommunicationException ex)
             {

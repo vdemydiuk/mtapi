@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChartPeriod.cs" />
+    <Compile Include="EnumObject.cs" />
     <Compile Include="EnumSeriesInfoInteger.cs" />
     <Compile Include="EnumSymbolInfoDouble.cs" />
     <Compile Include="EnumSymbolInfoInteger.cs" />

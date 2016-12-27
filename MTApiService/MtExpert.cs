@@ -60,7 +60,7 @@ namespace MTApiService
 
         public object GetCommandParameter(int index)
         {
-            Log.DebugFormat("GetCommandType: called. index = {0}", index);
+            Log.DebugFormat("GetCommandParameter: called. index = {0}", index);
 
             var command = _currentTask?.Command;
             if (command?.Parameters != null && index >= 0 && index < command.Parameters.Count)
@@ -69,6 +69,46 @@ namespace MTApiService
             }
 
             return null;
+        }
+
+        public object GetNamedParameter(string name)
+        {
+            Log.DebugFormat("GetNamedParameter: called. name = {0}", name);
+
+            var command = _currentTask?.Command;
+            if (command == null)
+            {
+                Log.Warn("GetNamedParameter: command is not defined in task.");
+                return null;
+            }
+
+            if (command.NamedParams == null)
+            {
+                Log.Warn("GetNamedParameter: NamedParams is not defined in command.");
+                return null;
+            }
+
+            return command.NamedParams[name];
+        }
+
+        public bool ContainsNamedParameter(string name)
+        {
+            Log.DebugFormat("ContainsNamedParameter: called. name = {0}", name);
+
+            var command = _currentTask?.Command;
+            if (command == null)
+            {
+                Log.Warn("ContainsNamedParameter: command is not defined in task.");
+                return false;
+            }
+
+            if (command.NamedParams == null)
+            {
+                Log.Warn("ContainsNamedParameter: NamedParams is not defined in command.");
+                return false;
+            }
+
+            return command.NamedParams.ContainsKey(name);
         }
 
         public void SendEvent(MtEvent mtEvent)

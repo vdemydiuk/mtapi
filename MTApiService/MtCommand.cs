@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace MTApiService
 {
@@ -11,6 +12,9 @@ namespace MTApiService
 
         [DataMember]
         public ArrayList Parameters { get; set; }
+
+        [DataMember]
+        public Dictionary<string, object> NamedParams { get; set; }
 
         [DataMember]
         public int ExpertHandle { get; set; }

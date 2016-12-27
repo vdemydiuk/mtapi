@@ -33,6 +33,7 @@ namespace TestApiClientUI
             comboBox8.DataSource = Enum.GetNames(typeof(MarketInfoModeType));
             comboBox9.DataSource = Enum.GetNames(typeof(EnumTerminalInfoInteger));
             comboBox10.DataSource = Enum.GetNames(typeof(EnumTerminalInfoDouble));
+            comboBox11.DataSource = Enum.GetNames(typeof(EnumObject));
             comboBoxAccountInfoCmd.DataSource = Enum.GetNames(typeof(TradeOperation));
 
             _apiClient.QuoteUpdated += apiClient_QuoteUpdated;
@@ -49,6 +50,7 @@ namespace TestApiClientUI
             comboBox3.SelectedIndex = 0;
             comboBox4.SelectedIndex = 0;
             comboBox5.SelectedIndex = 0;
+            comboBox11.SelectedIndex = 0;
             comboBoxAccountInfoCmd.SelectedIndex = 0;
 
             _timerTradeMonitor = new TimerTradeMonitor(_apiClient) { Interval = 10000 }; // 10 sec
@@ -1369,6 +1371,7 @@ namespace TestApiClientUI
         {
             var result = await Execute(_apiClient.ChartId);
             PrintLog($"CharID: result = {result}");
+            RunOnUiThread(() => textBoxChartId.Text = result.ToString());
         }
 
         //ChartRedraw
@@ -1376,6 +1379,19 @@ namespace TestApiClientUI
         {
             await Execute(() => _apiClient.ChartRedraw());
             PrintLog($"ChartRedraw: called.");
+        }
+
+        //ObjectCreate
+        private async void button4_Click(object sender, EventArgs e)
+        {
+            long chartId = 0;
+            string objectName = "label_object";
+            //long.TryParse(textBoxChartId.Text, )
+            EnumObject objectType;
+            Enum.TryParse(comboBox11.Text, out objectType);
+
+            var result = await Execute(() => _apiClient.ObjectCreate(chartId, objectName, objectType, 0, null, 0));
+            PrintLog($"ObjectCreate result: {result}");
         }
     }
 }

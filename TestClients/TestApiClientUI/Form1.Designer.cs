@@ -195,6 +195,10 @@
             this.tabPage9 = new System.Windows.Forms.TabPage();
             this.button38 = new System.Windows.Forms.Button();
             this.button37 = new System.Windows.Forms.Button();
+            this.tabPage10 = new System.Windows.Forms.TabPage();
+            this.button4 = new System.Windows.Forms.Button();
+            this.comboBox11 = new System.Windows.Forms.ComboBox();
+            this.textBoxChartId = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -212,6 +216,7 @@
             this.tabPage7.SuspendLayout();
             this.tabPage8.SuspendLayout();
             this.tabPage9.SuspendLayout();
+            this.tabPage10.SuspendLayout();
             this.SuspendLayout();
             // 
             // textBoxServerName
@@ -393,6 +398,7 @@
             this.tabControl1.Controls.Add(this.tabPage7);
             this.tabControl1.Controls.Add(this.tabPage8);
             this.tabControl1.Controls.Add(this.tabPage9);
+            this.tabControl1.Controls.Add(this.tabPage10);
             this.tabControl1.Location = new System.Drawing.Point(324, 12);
             this.tabControl1.Multiline = true;
             this.tabControl1.Name = "tabControl1";
@@ -1951,6 +1957,7 @@
             // 
             // tabPage9
             // 
+            this.tabPage9.Controls.Add(this.textBoxChartId);
             this.tabPage9.Controls.Add(this.button38);
             this.tabPage9.Controls.Add(this.button37);
             this.tabPage9.Location = new System.Drawing.Point(4, 40);
@@ -1979,6 +1986,44 @@
             this.button37.Text = "ChartID";
             this.button37.UseVisualStyleBackColor = true;
             this.button37.Click += new System.EventHandler(this.button37_Click);
+            // 
+            // tabPage10
+            // 
+            this.tabPage10.Controls.Add(this.comboBox11);
+            this.tabPage10.Controls.Add(this.button4);
+            this.tabPage10.Location = new System.Drawing.Point(4, 40);
+            this.tabPage10.Name = "tabPage10";
+            this.tabPage10.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage10.Size = new System.Drawing.Size(638, 383);
+            this.tabPage10.TabIndex = 10;
+            this.tabPage10.Text = "Object Functions";
+            this.tabPage10.UseVisualStyleBackColor = true;
+            // 
+            // button4
+            // 
+            this.button4.Location = new System.Drawing.Point(133, 3);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(97, 23);
+            this.button4.TabIndex = 0;
+            this.button4.Text = "ObjectCreate";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
+            // comboBox11
+            // 
+            this.comboBox11.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox11.FormattingEnabled = true;
+            this.comboBox11.Location = new System.Drawing.Point(6, 5);
+            this.comboBox11.Name = "comboBox11";
+            this.comboBox11.Size = new System.Drawing.Size(121, 21);
+            this.comboBox11.TabIndex = 1;
+            // 
+            // textBoxChartId
+            // 
+            this.textBoxChartId.Location = new System.Drawing.Point(115, 8);
+            this.textBoxChartId.Name = "textBoxChartId";
+            this.textBoxChartId.Size = new System.Drawing.Size(100, 20);
+            this.textBoxChartId.TabIndex = 2;
             // 
             // Form1
             // 
@@ -2022,6 +2067,8 @@
             this.tabPage8.ResumeLayout(false);
             this.tabPage8.PerformLayout();
             this.tabPage9.ResumeLayout(false);
+            this.tabPage9.PerformLayout();
+            this.tabPage10.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2195,6 +2242,10 @@
         private System.Windows.Forms.Button button65;
         private System.Windows.Forms.Button button66;
         private System.Windows.Forms.Button button67;
+        private System.Windows.Forms.TabPage tabPage10;
+        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.ComboBox comboBox11;
+        private System.Windows.Forms.TextBox textBoxChartId;
     }
 }
 

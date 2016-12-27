@@ -7,6 +7,7 @@ using System.ServiceModel;
 using MtApi5.Requests;
 using MtApi5.Responses;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace MtApi5
 {
@@ -31,22 +32,17 @@ namespace MtApi5
 
 
         #region Private Fields
-        private readonly MtClient _client = new MtClient();
+        private MtClient _client;
+        private readonly object _locker = new object();
         private volatile bool _isBacktestingMode = false;
+        private Mt5ConnectionState _connectionState = Mt5ConnectionState.Disconnected;
+        private int _executorHandle;
         #endregion
 
         #region Public Methods
         public MtApi5Client()
         {
             LogConfigurator.Setup(LogProfileName);
-
-            ConnectionState = Mt5ConnectionState.Disconnected;
-
-            _client.QuoteAdded += mClient_QuoteAdded;
-            _client.QuoteRemoved += mClient_QuoteRemoved;
-            _client.QuoteUpdated += mClient_QuoteUpdated;
-            _client.ServerDisconnected += mClient_ServerDisconnected;
-            _client.ServerFailed += mClient_ServerFailed;
         }
 
         ///<summary>
@@ -56,15 +52,7 @@ namespace MtApi5
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(string host, int port)
         {
-            //if (string.IsNullOrEmpty(host) == false && (host.Equals("localhost") || host.Equals("127.0.0.1")))
-            //{
-            //    this.BeginConnect(port);
-            //}
-            //else
-            //{
-                Action<string, int> connectAction = Connect;
-                connectAction.BeginInvoke(host, port, null, null);
-            //}
+            Task.Factory.StartNew(() => Connect(host, port));
         }
 
         ///<summary>
@@ -73,8 +61,7 @@ namespace MtApi5
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(int port)
         {
-            Action<int> connectAction = Connect;
-            connectAction.BeginInvoke(port, null, null);
+            Task.Factory.StartNew(() => Connect(port));
         }
 
         ///<summary>
@@ -82,8 +69,7 @@ namespace MtApi5
         ///</summary>
         public void BeginDisconnect()
         {
-            Action disconnectAction = Disconnect;
-            disconnectAction.BeginInvoke(null, null);
+            Task.Factory.StartNew(() => Disconnect(false));
         }
 
         ///<summary>
@@ -91,11 +77,8 @@ namespace MtApi5
         ///</summary>
         public IEnumerable<Mt5Quote> GetQuotes()
         {
-            IEnumerable<MtQuote> quotes;
-            lock (_client)
-            {
-                quotes = _client.GetQuotes();
-            }
+            var client = Client;
+            var quotes = client != null ? client.GetQuotes() : null;
             return quotes?.Select(q => q.Parse());
         }
 
@@ -1432,7 +1415,34 @@ namespace MtApi5
         ///<summary>
         ///Connection status of MetaTrader API.
         ///</summary>
-        public Mt5ConnectionState ConnectionState { get; private set; }
+        public Mt5ConnectionState ConnectionState
+        {
+            get
+            {
+                lock (_locker)
+                {
+                    return _connectionState;
+                }
+            }
+        }
+
+        public int ExecutorHandle
+        {
+            get
+            {
+                lock (_locker)
+                {
+                    return _executorHandle;
+                }
+            }
+            set
+            {
+                lock (_locker)
+                {
+                    _executorHandle = value;
+                }
+            }
+        }
         #endregion
 
         #region Events
@@ -1443,94 +1453,148 @@ namespace MtApi5
         #endregion
 
         #region Private Methods
-        private void Connect(string host, int port)
+        private MtClient Client
         {
-            ConnectionState = Mt5ConnectionState.Connecting;
-            ConnectionStateChanged.FireEvent(this
-                , new Mt5ConnectionEventArgs(Mt5ConnectionState.Connecting, "Connecting to " + host + ":" + port));
-
-            try
+            get
             {
-                lock (_client)
+                lock (_locker)
                 {
-                    _client.Open(host, port);
-                    _client.Connect();
+                    return _client;
                 }
             }
-            catch (Exception e)
+        }
+
+        private void Connect(MtClient client)
+        {
+            lock (_locker)
             {
-                ConnectionState = Mt5ConnectionState.Failed;
-                ConnectionStateChanged.FireEvent(this
-                    , new Mt5ConnectionEventArgs(Mt5ConnectionState.Failed, "Failed connection to " + host + ":" + port + ". " + e.Message));
-                return;
+                if (_connectionState == Mt5ConnectionState.Connected
+                    || _connectionState == Mt5ConnectionState.Connecting)
+                {
+                    return;
+                }
+
+                _connectionState = Mt5ConnectionState.Connecting;
             }
 
-            ConnectionState = Mt5ConnectionState.Connected;
-            ConnectionStateChanged.FireEvent(this
-                , new Mt5ConnectionEventArgs(Mt5ConnectionState.Connected, "Connected  to " + host + ":" + port));
+            string message = string.IsNullOrEmpty(client.Host) ? $"Connecting to localhost:{client.Port}" : $"Connecting to {client.Host}:{client.Port}";
+            ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Connecting, message));
 
-            OnConnected();
+            var state = Mt5ConnectionState.Failed;
+
+            lock (_locker)
+            {
+                try
+                {
+                    client.Connect();
+                    state = Mt5ConnectionState.Connected;
+                }
+                catch (Exception e)
+                {
+                    client.Dispose();
+                    message = string.IsNullOrEmpty(client.Host) ? $"Failed connection to localhost:{client.Port}. {e.Message}" : $"Failed connection to {client.Host}:{client.Port}. {e.Message}";
+                }
+
+                if (state == Mt5ConnectionState.Connected)
+                {
+                    _client = client;
+                    _client.QuoteAdded += _client_QuoteAdded;
+                    _client.QuoteRemoved += _client_QuoteRemoved;
+                    _client.QuoteUpdated += _client_QuoteUpdated;
+                    _client.ServerDisconnected += _client_ServerDisconnected;
+                    _client.ServerFailed += _client_ServerFailed;
+                    message = string.IsNullOrEmpty(client.Host) ? $"Connected to localhost:{client.Port}" : $"Connected to  { client.Host}:{client.Port}";
+                }
+
+                _connectionState = state;
+            }
+
+            ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
+
+            if (state == Mt5ConnectionState.Connected)
+            {
+                OnConnected();
+            }
+        }
+
+        private void Connect(string host, int port)
+        {
+            var client = new MtClient(host, port);
+            Connect(client);
         }
 
         private void Connect(int port)
         {
-            ConnectionState = Mt5ConnectionState.Connecting;
-            ConnectionStateChanged.FireEvent(this
-                , new Mt5ConnectionEventArgs(Mt5ConnectionState.Connecting, "Connecting to 'localhost':" + port));
-
-            try
-            {
-                lock (_client)
-                {
-                    _client.Open(port);
-                    _client.Connect();
-                }
-            }
-            catch (Exception e)
-            {
-                ConnectionState = Mt5ConnectionState.Failed;
-                ConnectionStateChanged.FireEvent(this
-                    , new Mt5ConnectionEventArgs(Mt5ConnectionState.Failed, "Failed connection  to 'localhost':" + port + ". " + e.Message));
-
-                return;
-            }
-
-            ConnectionState = Mt5ConnectionState.Connected;
-            ConnectionStateChanged.FireEvent(this
-                , new Mt5ConnectionEventArgs(Mt5ConnectionState.Connected, "Connected to 'localhost':" + port));
-
-            OnConnected();
+            var client = new MtClient(port);
+            Connect(client);
         }
 
-        private void Disconnect()
+        private void Disconnect(bool failed)
         {
-            lock (_client)
+            var state = failed ? Mt5ConnectionState.Failed : Mt5ConnectionState.Disconnected;
+            var message = failed ? "Connection Failed" : "Disconnected";
+
+            lock (_locker)
             {
-                _client.Disconnect();
-                _client.Close();
+                if (_connectionState == Mt5ConnectionState.Disconnected
+                    || _connectionState == Mt5ConnectionState.Failed)
+                    return;
+
+                if (_client != null)
+                {
+                    _client.QuoteAdded -= _client_QuoteAdded;
+                    _client.QuoteRemoved -= _client_QuoteRemoved;
+                    _client.QuoteUpdated -= _client_QuoteUpdated;
+                    _client.ServerDisconnected -= _client_ServerDisconnected;
+                    _client.ServerFailed -= _client_ServerFailed;
+
+                    if (!failed)
+                    {
+                        _client.Disconnect();
+                    }
+
+                    _client.Dispose();
+
+                    _client = null;
+                }
+
+                _connectionState = state;
             }
 
-            ConnectionState = Mt5ConnectionState.Disconnected;
-            ConnectionStateChanged.FireEvent(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Disconnected, "Disconnected"));
+            ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
         }
 
-        private T SendCommand<T>(Mt5CommandType commandType, ArrayList commandParameters)
+        private T SendCommand<T>(Mt5CommandType commandType, ArrayList commandParameters, Dictionary<string, object> namedParams = null)
         {
             MtResponse response;
+
+            var client = Client;
+            if (client == null)
+            {
+                throw new Exception("No connection");
+            }
+
             try
             {
-                lock (_client)
-                {
-                    response = _client.SendCommand((int) commandType, commandParameters);
-                }
+                response = client.SendCommand((int)commandType, commandParameters, namedParams, ExecutorHandle);
             }
             catch (CommunicationException ex)
             {
                 throw new Exception(ex.Message, ex);
             }
 
-            var responseValue = response?.GetValue();
-            return responseValue != null ? (T) responseValue : default(T);
+            if (response == null)
+            {
+                throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
+            }
+
+            if (response.ErrorCode != 0)
+            {
+                throw new ExecutionException((ErrorCode)response.ErrorCode, response.ToString());
+            }
+
+            var responseValue = response.GetValue();
+            return responseValue != null ? (T)responseValue : default(T);
         }
 
         private T SendRequest<T>(RequestBase request) where T : ResponseBase, new()
@@ -1545,25 +1609,14 @@ namespace MtApi5
                             });
             var commandParameters = new ArrayList { serializer };
 
-            MtResponseString res;
-            try
-            {
-                lock (_client)
-                {
-                    res = (MtResponseString)_client.SendCommand((int)Mt5CommandType.MtRequest, commandParameters);
-                }
-            }
-            catch (CommunicationException ex)
-            {
-                throw new Exception(ex.Message, ex);
-            }
+            var res = SendCommand<string>(Mt5CommandType.MtRequest, commandParameters);
 
             if (res == null)
             {
                 throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
             }
 
-            var response = JsonConvert.DeserializeObject<T>(res.Value);
+            var response = JsonConvert.DeserializeObject<T>(res);
             if (response.ErrorCode != 0)
             {
                 throw new ExecutionException((ErrorCode)response.ErrorCode, response.ErrorMessage);
@@ -1573,7 +1626,7 @@ namespace MtApi5
         }
 
 
-        private void mClient_QuoteUpdated(MtQuote quote)
+        private void _client_QuoteUpdated(MtQuote quote)
         {
             if (quote != null)
             {
@@ -1581,26 +1634,22 @@ namespace MtApi5
             }
         }
 
-        private void mClient_ServerDisconnected(object sender, EventArgs e)
+        private void _client_ServerDisconnected(object sender, EventArgs e)
         {
-            ConnectionState = Mt5ConnectionState.Disconnected;
-            ConnectionStateChanged.FireEvent(this
-                , new Mt5ConnectionEventArgs(Mt5ConnectionState.Disconnected, "MtApi is disconnected"));
+            Disconnect(false);
         }
 
-        private void mClient_ServerFailed(object sender, EventArgs e)
+        private void _client_ServerFailed(object sender, EventArgs e)
         {
-            ConnectionState = Mt5ConnectionState.Failed;
-            ConnectionStateChanged.FireEvent(this
-                , new Mt5ConnectionEventArgs(Mt5ConnectionState.Failed, "Failed connection with MtApi"));
+            Disconnect(true);
         }
 
-        private void mClient_QuoteRemoved(MtQuote quote)
+        private void _client_QuoteRemoved(MtQuote quote)
         {
             QuoteRemoved.FireEvent(this, new Mt5QuoteEventArgs(quote.Parse()));
         }
 
-        private void mClient_QuoteAdded(MtQuote quote)
+        private void _client_QuoteAdded(MtQuote quote)
         {
             QuoteAdded.FireEvent(this, new Mt5QuoteEventArgs(quote.Parse()));
         }

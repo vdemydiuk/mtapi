@@ -83,7 +83,7 @@
     <Compile Include="MtResponse.cs" />
     <Compile Include="MtServer.cs" />
     <Compile Include="MtCommand.cs" />
-    <Compile Include="MtServerInstance.cs" />
+    <Compile Include="MtAdapter.cs" />
     <Compile Include="MtService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
