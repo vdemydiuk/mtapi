@@ -1426,6 +1426,9 @@ namespace MtApi5
             }
         }
 
+        ///<summary>
+        ///Handle of expert used to execute commands
+        ///</summary>
         public int ExecutorHandle
         {
             get
@@ -1646,12 +1649,12 @@ namespace MtApi5
 
         private void _client_QuoteRemoved(MtQuote quote)
         {
-            QuoteRemoved.FireEvent(this, new Mt5QuoteEventArgs(quote.Parse()));
+            QuoteRemoved?.Invoke(this, new Mt5QuoteEventArgs(quote.Parse()));
         }
 
         private void _client_QuoteAdded(MtQuote quote)
         {
-            QuoteAdded.FireEvent(this, new Mt5QuoteEventArgs(quote.Parse()));
+            QuoteAdded?.Invoke(this, new Mt5QuoteEventArgs(quote.Parse()));
         }
 
         private void OnConnected()

@@ -56,7 +56,6 @@
     <Compile Include="Mt5Enums.cs" />
     <Compile Include="Mt5ConnectionEventArgs.cs" />
     <Compile Include="Mt5ConnectionState.cs" />
-    <Compile Include="ExtensionMethods.cs" />
     <Compile Include="MqlTradeRequest.cs" />
     <Compile Include="MqlTradeResult.cs" />
     <Compile Include="Mt5QuoteEventArgs.cs" />

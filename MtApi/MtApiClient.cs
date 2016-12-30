@@ -97,7 +97,7 @@ namespace MtApi
         }
 
         ///<summary>
-        ///Connection status of MetaTrader API.
+        ///Handle of expert used to execute commands
         ///</summary>
         public int ExecutorHandle
         {
@@ -1741,7 +1741,7 @@ namespace MtApi
         ///<summary>
         ///The function creates an object with the specified name, type, and the initial coordinates in the specified chart subwindow of the specified chart.
         ///</summary>
-        ///<param name="chartId">Chart identifier.</param>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
         ///<param name="objectName">Name of the object. The name must be unique within a chart, including its subwindows.</param>
         ///<param name="objectType">Object type.</param>
         ///<param name="subWindow">Number of the chart subwindow. 0 means the main chart window.</param>
@@ -1762,7 +1762,7 @@ namespace MtApi
             namedParams.Add(nameof(objectName), objectName);
             namedParams.Add(nameof(objectType), (int)objectType);
             namedParams.Add(nameof(subWindow), subWindow);
-            namedParams.Add(nameof(time1), time1 == null ? 0 : MtApiTimeConverter.ConvertToMtTime(time1.Value));
+            namedParams.Add(nameof(time1), MtApiTimeConverter.ConvertToMtTime(time1.Value));
             namedParams.Add(nameof(price1), price1);
 
             if (time2 != null)
@@ -1775,6 +1775,366 @@ namespace MtApi
                 namedParams.Add(nameof(price3), price3.Value);
 
             return SendCommand<bool>(MtCommandType.ObjectCreate, null, namedParams);
+        }
+
+        ///<summary>
+        ///The function returns the name of the corresponding object by its index in the objects list.
+        ///</summary>
+        ///<param name="objectIndex">Object index. This value must be greater or equal to 0 and less than ObjectsTotal().</param>
+        ///<returns>
+        ///Name of the object is returned in case of success.
+        ///</returns>
+        public string ObjectName(int objectIndex)
+        {
+            var commandParameters = new ArrayList { objectIndex };
+            return SendCommand<string>(MtCommandType.ObjectName, commandParameters);
+        }
+
+        ///<summary>
+        ///The function removes the object with the specified name at the specified chart.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">Name of object to be deleted.</param>
+        ///<returns>
+        ///Returns true if the removal was successful, otherwise returns false.
+        ///</returns>
+        public bool ObjectDelete(long chartId, string objectName)
+        {
+            var commandParameters = new ArrayList { chartId, objectName };
+            return SendCommand<bool>(MtCommandType.ObjectDelete, commandParameters);
+        }
+
+        ///<summary>
+        ///The function removes the object with the specified name at the specified chart.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="subWindow">Number of the chart window. Must be greater or equal to -1 (-1 mean all subwindows, 0 means the main chart window) and less than WindowsTotal().</param>
+        ///<param name="objectType">Type of the object. The value can be one of the values of the EnumObject enumeration. EMPTY (-1) means all types.</param>
+        ///<returns>
+        ///Returns true if the removal was successful, otherwise returns false.
+        ///</returns>
+        public int ObjectsDeleteAll(long chartId, int subWindow = EMPTY, int objectType = EMPTY)
+        {
+            var commandParameters = new ArrayList { chartId, subWindow, objectType };
+            return SendCommand<int>(MtCommandType.ObjectsDeleteAll, commandParameters);
+        }
+
+        ///<summary>
+        ///The function searches for an object having the specified name.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">The name of the object to find.</param>
+        ///<returns>
+        ///If successful the function returns the number of the subwindow (0 means the main window of the chart), in which the object is found. 
+        ///</returns>
+        public int ObjectFind(long chartId, string objectName)
+        {
+            var commandParameters = new ArrayList { chartId, objectName };
+            return SendCommand<int>(MtCommandType.ObjectFind, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the time value for the specified price value of the specified object.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">Name of the object.</param>
+        ///<param name="value">Price value.</param>
+        ///<param name="lineId">Line identifier.</param>
+        ///<returns>
+        ///The time value for the specified price value of the specified object.
+        ///</returns>
+        public DateTime ObjectGetTimeByValue(long chartId, string objectName, double value, int lineId = 0)
+        {
+            var commandParameters = new ArrayList { chartId, objectName, value, lineId };
+            var res = SendCommand<int>(MtCommandType.ObjectGetTimeByValue, commandParameters);
+            return MtApiTimeConverter.ConvertFromMtTime(res);
+        }
+
+        ///<summary>
+        ///The function returns the price value for the specified time value of the specified object.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">Name of the object.</param>
+        ///<param name="time">Time value.</param>
+        ///<param name="lineId">Line identifier.</param>
+        ///<returns>
+        ///The price value for the specified time value of the specified object.
+        ///</returns>
+        public double ObjectGetValueByTime(long chartId, string objectName, DateTime? time, int lineId = 0)
+        {
+            var commandParameters = new ArrayList { chartId, objectName, time, lineId };
+            return SendCommand<double>(MtCommandType.ObjectGetValueByTime, commandParameters);
+        }
+
+        ///<summary>
+        ///The function changes coordinates of the specified anchor point of the object at the specified chart
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">Name of the object.</param>
+        ///<param name="pointIndex">Index of the anchor point.</param>
+        ///<param name="time">Time coordinate of the selected anchor point.</param>
+        ///<param name="price">Price coordinate of the selected anchor point.</param>
+        ///<returns>
+        ///If successful, returns true, in case of failure returns false.
+        ///</returns>
+        public bool ObjectMove(long chartId, string objectName, int pointIndex, DateTime? time, double price)
+        {
+            var commandParameters = new ArrayList { chartId, objectName, pointIndex, MtApiTimeConverter.ConvertToMtTime(time), price };
+            return SendCommand<bool>(MtCommandType.ObjectMove, commandParameters);
+        }
+
+        ///<summary>
+        ///The function changes coordinates of the specified anchor point of the object at the specified chart.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="subWindow">Number of the chart subwindow. 0 means the main chart window, -1 means all the subwindows of the chart, including the main window.</param>
+        ///<param name="type">Type of the object. The value can be one of the values of the EnumObject enumeration. EMPTY(-1) means all types.</param>
+        ///<returns>
+        ///The number of objects.
+        ///</returns>
+        public int ObjectsTotal(long chartId, int subWindow = EMPTY, int type = EMPTY)
+        {
+            var commandParameters = new ArrayList { chartId, subWindow, type };
+            return SendCommand<int>(MtCommandType.ObjectsTotal, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the value of the corresponding object property.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the EnumObjectPropertyDouble enumeration.</param>
+        ///<param name="propModifier">Modifier of the specified property. For the first variant, the default modifier value is equal to 0. Most properties do not require a modifier.</param>
+        ///<returns>
+        ///Value of the double type.
+        ///</returns>
+        public double ObjectGetDouble(long chartId, string objectName, EnumObjectPropertyDouble propId, int propModifier = 0)
+        {
+            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propModifier };
+            return SendCommand<double>(MtCommandType.ObjectGetDouble, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the value of the corresponding object property. The object property must be of the datetime, int, color, bool or char type.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the EnumObjectPropertyDouble enumeration.</param>
+        ///<param name="propModifier">Modifier of the specified property. For the first variant, the default modifier value is equal to 0. Most properties do not require a modifier.</param>
+        ///<returns>
+        ///The long value.
+        ///</returns>
+        public long ObjectGetInteger(long chartId, string objectName, EnumObjectPropertyInteger propId, int propModifier = 0)
+        {
+            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propModifier };
+            return SendCommand<long>(MtCommandType.ObjectGetInteger, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the value of the corresponding object property. The object property must be of the string type.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the EnumObjectPropertyString enumeration.</param>
+        ///<param name="propModifier">Modifier of the specified property. For the first variant, the default modifier value is equal to 0. Most properties do not require a modifier.  It denotes the number of the level in Fibonacci tools and in the graphical object Andrew's pitchfork. The numeration of levels starts from zero.</param>
+        ///<returns>
+        ///String value.
+        ///</returns>
+        public string ObjectGetString(long chartId, string objectName, EnumObjectPropertyString propId, int propModifier = 0)
+        {
+            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propModifier };
+            return SendCommand<string>(MtCommandType.ObjectGetString, commandParameters);
+        }
+
+        ///<summary>
+        ///The function sets the value of the corresponding object property. The object property must be of the double type. 
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the EnumObjectPropertyDouble enumeration.</param>
+        ///<param name="propValue">The value of the property.</param>
+        ///<returns>
+        ///The function returns true only if the command to change properties of a graphical object has been sent to a chart successfully.
+        ///</returns>
+        public bool ObjectSetDouble(long chartId, string objectName, EnumObjectPropertyDouble propId, double propValue)
+        {
+            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
+            return SendCommand<bool>(MtCommandType.ObjectSetDouble, commandParameters);
+        }
+
+        ///<summary>
+        ///The function sets the value of the corresponding object property. The object property must be of the double type. 
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the EnumObjectPropertyDouble enumeration.</param>
+        ///<param name="propModifier">Modifier of the specified property. It denotes the number of the level in Fibonacci tools and in the graphical object Andrew's pitchfork. The numeration of levels starts from zero.</param>
+        ///<param name="propValue">The value of the property.</param>
+        ///<returns>
+        ///The function returns true only if the command to change properties of a graphical object has been sent to a chart successfully.
+        ///</returns>
+        public bool ObjectSetDouble(long chartId, string objectName, EnumObjectPropertyDouble propId, int propModifier, double propValue)
+        {
+            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
+            var namedParams = new Dictionary<string, object>();
+            namedParams.Add(nameof(propModifier), propModifier);
+            return SendCommand<bool>(MtCommandType.ObjectSetDouble, commandParameters, namedParams);
+        }
+
+        ///<summary>
+        ///The function sets the value of the corresponding object property. The object property must be of the int type. 
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the EnumObjectPropertyInteger enumeration.</param>
+        ///<param name="propValue">The value of the property.</param>
+        ///<returns>
+        ///The function returns true only if the command to change properties of a graphical object has been sent to a chart successfully. Otherwise it returns false. 
+        ///</returns>
+        public bool ObjectSetInteger(long chartId, string objectName, EnumObjectPropertyInteger propId, long propValue)
+        {
+            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
+            return SendCommand<bool>(MtCommandType.ObjectSetInteger, commandParameters);
+        }
+
+        ///<summary>
+        ///The function sets the value of the corresponding object property. The object property must be of the int type. 
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the EnumObjectPropertyInteger enumeration.</param>
+        ///<param name="propModifier">Modifier of the specified property. It denotes the number of the level in Fibonacci tools and in the graphical object Andrew's pitchfork. The numeration of levels starts from zero.</param>
+        ///<param name="propValue">The value of the property.</param>
+        ///<returns>
+        ///The function returns true only if the command to change properties of a graphical object has been sent to a chart successfully. Otherwise it returns false. 
+        ///</returns>
+        public bool ObjectSetInteger(long chartId, string objectName, EnumObjectPropertyInteger propId, int propModifier, long propValue)
+        {
+            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
+            var namedParams = new Dictionary<string, object>();
+            namedParams.Add(nameof(propModifier), propModifier);
+            return SendCommand<bool>(MtCommandType.ObjectSetInteger, commandParameters, namedParams);
+        }
+
+        ///<summary>
+        ///The function sets the value of the corresponding object property. The object property must be of the string type. 
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the EnumObjectPropertyString enumeration.</param>
+        ///<param name="propValue">The value of the property.</param>
+        ///<returns>
+        ///The function returns true only if the command to change properties of a graphical object has been sent to a chart successfully. Otherwise it returns false. 
+        ///</returns>
+        public bool ObjectSetString(long chartId, string objectName, EnumObjectPropertyString propId, string propValue)
+        {
+            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
+            return SendCommand<bool>(MtCommandType.ObjectSetString, commandParameters);
+        }
+
+        ///<summary>
+        ///The function sets the value of the corresponding object property. The object property must be of the string type. 
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="objectName">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the EnumObjectPropertyString enumeration.</param>
+        ///<param name="propModifier">Modifier of the specified property. It denotes the number of the level in Fibonacci tools and in the graphical object Andrew's pitchfork. The numeration of levels starts from zero.</param>
+        ///<param name="propValue">The value of the property.</param>
+        ///<returns>
+        ///The function returns true only if the command to change properties of a graphical object has been sent to a chart successfully. Otherwise it returns false. 
+        ///</returns>
+        public bool ObjectSetString(long chartId, string objectName, EnumObjectPropertyString propId, int propModifier, string propValue)
+        {
+            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
+            var namedParams = new Dictionary<string, object>();
+            namedParams.Add(nameof(propModifier), propModifier);
+            return SendCommand<bool>(MtCommandType.ObjectSetString, commandParameters, namedParams);
+        }
+
+        ///<summary>
+        ///The function sets the font for displaying the text using drawing methods and returns the result of that operation. Arial font with the size -120 (12 pt) is used by default.
+        ///</summary>
+        ///<param name="name">Font name in the system or the name of the resource containing the font or the path to font file on the disk.</param>
+        ///<param name="size">The font size that can be set using positive and negative values. In case of positive values, the size of a displayed text does not depend on the operating system's font size settings. In case of negative values, the value is set in tenths of a point and the text size depends on the operating system settings ("standard scale" or "large scale"). See the Note below for more information about the differences between the modes.</param>
+        ///<param name="flags">Combination of flags describing font style.</param>
+        ///<param name="orientation">Text's horizontal inclination to X axis, the unit of measurement is 0.1 degrees. It means that orientation=450 stands for inclination equal to 45 degrees.</param>
+        ///<returns>
+        ///Returns true if the current font is successfully installed, otherwise false.
+        ///</returns>
+        public bool TextSetFont(string name, int size, FlagFontStyle flags = 0, int orientation = 0)
+        {
+            var commandParameters = new ArrayList { name, size, (uint)flags, orientation };
+            return SendCommand<bool>(MtCommandType.TextSetFont, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the object description.
+        ///</summary>
+        ///<param name="objectName">Object name.</param>
+        ///<returns>
+        ///Object description. For objects of OBJ_TEXT and OBJ_LABEL types, the text drawn by these objects will be returned.
+        ///</returns>
+        public string ObjectDescription(string objectName)
+        {
+            var commandParameters = new ArrayList { objectName };
+            return SendCommand<string>(MtCommandType.ObjectDescription, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the level description of a Fibonacci object.
+        ///</summary>
+        ///<param name="objectName">Fibonacci object name.</param>
+        ///<param name="index">Index of the Fibonacci level (0-31).</param>
+        ///<returns>
+        ///The level description of a Fibonacci object.
+        ///</returns>
+        public string ObjectGetFiboDescription(string objectName, int index)
+        {
+            var commandParameters = new ArrayList { objectName, index };
+            return SendCommand<string>(MtCommandType.ObjectGetFiboDescription, commandParameters);
+        }
+
+        ///<summary>
+        ///The function calculates and returns bar index (shift related to the current bar) for the given price.
+        ///</summary>
+        ///<param name="objectName">Object name.</param>
+        ///<param name="value">Price value.</param>
+        ///<returns>
+        ///The function calculates and returns bar index (shift related to the current bar) for the given price. The bar index is calculated by the first and second coordinates using a linear equation. Applied to trendlines and similar objects.
+        ///</returns>
+        public int ObjectGetShiftByValue(string objectName, double value)
+        {
+            var commandParameters = new ArrayList { objectName, value };
+            return SendCommand<int>(MtCommandType.ObjectGetShiftByValue, commandParameters);
+        }
+
+        ///<summary>
+        ///The function calculates and returns the price value for the specified bar (shift related to the current bar).
+        ///</summary>
+        ///<param name="objectName">Object name.</param>
+        ///<param name="shift">Bar index.</param>
+        ///<returns>
+        ///The function calculates and returns the price value for the specified bar (shift related to the current bar). The price value is calculated by the first and second coordinates using a linear equation. Applied to trendlines and similar objects.
+        ///</returns>
+        public double ObjectGetValueByShift(string objectName, int shift)
+        {
+            var commandParameters = new ArrayList { objectName, shift };
+            return SendCommand<double>(MtCommandType.ObjectGetValueByShift, commandParameters);
+        }
+
+        ///<summary>
+        ///Changes the value of the specified object property.
+        ///</summary>
+        ///<param name="objectName">Object name.</param>
+        ///<param name="index">Object property index. It can be any of object properties enumeration values.</param>
+        ///<param name="value">New value of the given property.</param>
+        ///<returns>
+        ///If the function succeeds, the returned value will be true, otherwise it returns false.
+        ///</returns>
+        public bool ObjectSet(string objectName, int index, double value)
+        {
+            var commandParameters = new ArrayList { objectName, index, value };
+            return SendCommand<bool>(MtCommandType.ObjectSet, commandParameters);
         }
 
         #endregion

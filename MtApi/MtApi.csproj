@@ -59,12 +59,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChartPeriod.cs" />
+    <Compile Include="EnumColorFormat.cs" />
     <Compile Include="EnumObject.cs" />
+    <Compile Include="EnumObjectPropertyDouble.cs" />
+    <Compile Include="EnumObjectPropertyInteger.cs" />
+    <Compile Include="EnumObjectPropertyString.cs" />
     <Compile Include="EnumSeriesInfoInteger.cs" />
     <Compile Include="EnumSymbolInfoDouble.cs" />
     <Compile Include="EnumSymbolInfoInteger.cs" />
     <Compile Include="EnumTerminalInfoDouble.cs" />
     <Compile Include="EnumTerminalInfoInteger.cs" />
+    <Compile Include="FlagFontStyle.cs" />
     <Compile Include="Monitors\AvailabilityOrdersEventArgs.cs" />
     <Compile Include="MqlRates.cs" />
     <Compile Include="MqlTick.cs" />

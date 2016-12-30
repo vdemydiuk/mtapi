@@ -13,13 +13,13 @@ namespace MtApi
             return new DateTime(tmpTime.Ticks + (time * 0x989680L));
         }
 
-        public static int ConvertToMtTime(DateTime time)
+        public static int ConvertToMtTime(DateTime? time)
         {
             int result = 0;
-            if (time != DateTime.MinValue)
+            if (time != null && time != DateTime.MinValue)
             {
                 DateTime tmpTime = new DateTime(1970, 1, 1);
-                result = (int)((time.Ticks - tmpTime.Ticks) / 0x989680L);
+                result = (int)((time.Value.Ticks - tmpTime.Ticks) / 0x989680L);
             }
             return result;
         }
