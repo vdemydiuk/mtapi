@@ -1757,13 +1757,15 @@ namespace MtApi
         public bool ObjectCreate(long chartId, string objectName, EnumObject objectType, int subWindow, 
             DateTime? time1, double price1, DateTime? time2 = null, double? price2 = null, DateTime? time3 = null, double? price3 = null)
         {
-            var namedParams = new Dictionary<string, object>();
-            namedParams.Add(nameof(chartId), chartId);
-            namedParams.Add(nameof(objectName), objectName);
-            namedParams.Add(nameof(objectType), (int)objectType);
-            namedParams.Add(nameof(subWindow), subWindow);
-            namedParams.Add(nameof(time1), MtApiTimeConverter.ConvertToMtTime(time1.Value));
-            namedParams.Add(nameof(price1), price1);
+            var namedParams = new Dictionary<string, object>
+            {
+                {nameof(chartId), chartId},
+                {nameof(objectName), objectName},
+                {nameof(objectType), (int) objectType},
+                {nameof(subWindow), subWindow},
+                {nameof(time1), MtApiTimeConverter.ConvertToMtTime(time1)},
+                {nameof(price1), price1}
+            };
 
             if (time2 != null)
                 namedParams.Add(nameof(time2), MtApiTimeConverter.ConvertToMtTime(time2.Value));
@@ -1780,13 +1782,16 @@ namespace MtApi
         ///<summary>
         ///The function returns the name of the corresponding object by its index in the objects list.
         ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
         ///<param name="objectIndex">Object index. This value must be greater or equal to 0 and less than ObjectsTotal().</param>
+        ///<param name="subWindow">Number of the chart window. Must be greater or equal to -1 (-1 mean all subwindows, 0 means the main chart window) and less than WindowsTotal().</param>
+        ///<param name="objectType">Type of the object. The value can be one of the values of the EnumObject enumeration. EMPTY (-1) means all types.</param>
         ///<returns>
         ///Name of the object is returned in case of success.
         ///</returns>
-        public string ObjectName(int objectIndex)
+        public string ObjectName(long chartId, int objectIndex, int subWindow = EMPTY, int objectType = EMPTY)
         {
-            var commandParameters = new ArrayList { objectIndex };
+            var commandParameters = new ArrayList { chartId, objectIndex, subWindow, objectType };
             return SendCommand<string>(MtCommandType.ObjectName, commandParameters);
         }
 
@@ -1976,8 +1981,7 @@ namespace MtApi
         public bool ObjectSetDouble(long chartId, string objectName, EnumObjectPropertyDouble propId, int propModifier, double propValue)
         {
             var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
-            var namedParams = new Dictionary<string, object>();
-            namedParams.Add(nameof(propModifier), propModifier);
+            var namedParams = new Dictionary<string, object> {{nameof(propModifier), propModifier}};
             return SendCommand<bool>(MtCommandType.ObjectSetDouble, commandParameters, namedParams);
         }
 
@@ -2011,8 +2015,7 @@ namespace MtApi
         public bool ObjectSetInteger(long chartId, string objectName, EnumObjectPropertyInteger propId, int propModifier, long propValue)
         {
             var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
-            var namedParams = new Dictionary<string, object>();
-            namedParams.Add(nameof(propModifier), propModifier);
+            var namedParams = new Dictionary<string, object> {{nameof(propModifier), propModifier}};
             return SendCommand<bool>(MtCommandType.ObjectSetInteger, commandParameters, namedParams);
         }
 
@@ -2046,8 +2049,7 @@ namespace MtApi
         public bool ObjectSetString(long chartId, string objectName, EnumObjectPropertyString propId, int propModifier, string propValue)
         {
             var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
-            var namedParams = new Dictionary<string, object>();
-            namedParams.Add(nameof(propModifier), propModifier);
+            var namedParams = new Dictionary<string, object> {{nameof(propModifier), propModifier}};
             return SendCommand<bool>(MtCommandType.ObjectSetString, commandParameters, namedParams);
         }
 
@@ -2135,6 +2137,51 @@ namespace MtApi
         {
             var commandParameters = new ArrayList { objectName, index, value };
             return SendCommand<bool>(MtCommandType.ObjectSet, commandParameters);
+        }
+
+        ///<summary>
+        ///The function sets a new description to a level of a Fibonacci object.
+        ///</summary>
+        ///<param name="objectName">Object name.</param>
+        ///<param name="index">Index of the Fibonacci level (0-31).</param>
+        ///<param name="text">New description of the level.</param>
+        ///<returns>
+        ///The function returns true if successful, otherwise false.
+        ///</returns>
+        public bool ObjectSetFiboDescription(string objectName, int index, string text)
+        {
+            var commandParameters = new ArrayList { objectName, index, text };
+            return SendCommand<bool>(MtCommandType.ObjectSetFiboDescription, commandParameters);
+        }
+
+        ///<summary>
+        ///The function changes the object description.
+        ///</summary>
+        ///<param name="objectName">Object name.</param>
+        ///<param name="text">A text describing the object.</param>
+        ///<param name="fontSize">Font size in points.</param>
+        ///<param name="fontName">Font name.</param>
+        ///<param name="textColor">Font color.</param>
+        ///<returns>
+        ///Changes the object description.  If the function succeeds, the returned value will be true, otherwise false.
+        ///</returns>
+        public bool ObjectSetText(string objectName, string text, int fontSize = 0, string fontName = null, Color? textColor = null)
+        {
+            var commandParameters = new ArrayList { objectName, text, fontSize, fontName, MtApiColorConverter.ConvertToMtColor(textColor) };
+            return SendCommand<bool>(MtCommandType.ObjectSetText, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the object type value.
+        ///</summary>
+        ///<param name="objectName">Object name.</param>
+        ///<returns>
+        ///The function returns the object type value. 
+        ///</returns>
+        public EnumObject ObjectType(string objectName)
+        {
+            var commandParameters = new ArrayList { objectName };
+            return (EnumObject)SendCommand<int>(MtCommandType.ObjectType, commandParameters);
         }
 
         #endregion
