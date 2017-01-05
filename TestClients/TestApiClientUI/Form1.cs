@@ -1384,14 +1384,23 @@ namespace TestApiClientUI
         //ObjectCreate
         private async void button4_Click(object sender, EventArgs e)
         {
-            long chartId = 0;
-            string objectName = "label_object";
-            //long.TryParse(textBoxChartId.Text, )
+            const long chartId = 0;
+            const string objectName = "label_object";
             EnumObject objectType;
             Enum.TryParse(comboBox11.Text, out objectType);
 
             var result = await Execute(() => _apiClient.ObjectCreate(chartId, objectName, objectType, 0, null, 0));
             PrintLog($"ObjectCreate result: {result}");
+        }
+
+        //ObjectName
+        private async void button68_Click(object sender, EventArgs e)
+        {
+            const long chartId = 0;
+            const int objectIndex = 0;
+
+            var result = await Execute(() => _apiClient.ObjectName(chartId, objectIndex));
+            PrintLog($"ObjectName result: {result}");
         }
     }
 }
