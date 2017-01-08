@@ -107,7 +107,7 @@ int _stdcall initExpert(int expertHandle, int port, wchar_t* symbol, double bid,
     try
     {
         MT5Handler^ mtHander = gcnew MT5Handler();
-        MtServerInstance::GetInstance()->InitExpert(expertHandle, port, gcnew String(symbol), bid, ask, mtHander);
+        MtAdapter::GetInstance()->InitExpert(expertHandle, port, gcnew String(symbol), bid, ask, mtHander);
     }
     catch (Exception^ e)
     {
@@ -123,7 +123,7 @@ int _stdcall deinitExpert(int expertHandle, wchar_t* err)
 {
     try
     {
-        MtServerInstance::GetInstance()->DeinitExpert(expertHandle);
+        MtAdapter::GetInstance()->DeinitExpert(expertHandle);
     }    
     catch (Exception^ e)
     {
@@ -139,7 +139,7 @@ int _stdcall updateQuote(int expertHandle, wchar_t* symbol, double bid, double a
 {
     try
     {
-        MtServerInstance::GetInstance()->SendQuote(expertHandle, gcnew String(symbol), bid, ask);
+        MtAdapter::GetInstance()->SendQuote(expertHandle, gcnew String(symbol), bid, ask);
     }
     catch (Exception^ e)
     {
@@ -155,7 +155,7 @@ int _stdcall sendIntResponse(int expertHandle, int response)
 {
     try
     {
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseInt(response));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseInt(response));
     }
     catch (Exception^ e)
     {
@@ -169,7 +169,7 @@ int _stdcall sendLongResponse(int expertHandle, __int64 response)
 {
     try
     {
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseLong(response));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseLong(response));
     }
     catch (Exception^ e)
     {
@@ -183,7 +183,7 @@ int _stdcall sendULongResponse(int expertHandle, unsigned __int64 response)
 {
     try
     {
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseULong(response));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseULong(response));
     }
     catch (Exception^ e)
     {
@@ -199,7 +199,7 @@ int _stdcall sendBooleanResponse(int expertHandle, int response)
     {
         bool value = (response != 0) ? true : false;
 
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseBool(value));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseBool(value));
     }
     catch (Exception^ e)
     {
@@ -213,7 +213,7 @@ int _stdcall sendDoubleResponse(int expertHandle, double response)
 {
     try
     {
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseDouble(response));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseDouble(response));
     }
     catch (Exception^ e)
     {
@@ -227,7 +227,7 @@ int _stdcall sendStringResponse(int expertHandle, wchar_t* response)
 {
     try
     {
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseString(gcnew String(response)));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseString(gcnew String(response)));
     }
     catch (Exception^ e)
     {
@@ -241,7 +241,7 @@ int _stdcall sendVoidResponse(int expertHandle)
 {
     try
     {        
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, nullptr);
+        MtAdapter::GetInstance()->SendResponse(expertHandle, nullptr);
     }
     catch (Exception^ e)
     {
@@ -262,7 +262,7 @@ int _stdcall sendDoubleArrayResponse(int expertHandle, double* values, int size)
             list[i] = values[i];
         }
 
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseDoubleArray(list));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseDoubleArray(list));
     }
     catch (Exception^ e)
     {
@@ -283,7 +283,7 @@ int _stdcall sendIntArrayResponse(int expertHandle, int* values, int size)
             list[i] = values[i];
         }
 
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseIntArray(list));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseIntArray(list));
     }
     catch (Exception^ e)
     {
@@ -304,7 +304,7 @@ int _stdcall sendLongArrayResponse(int expertHandle, __int64* values, int size)
             list[i] = values[i];
         }
 
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseLongArray(list));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseLongArray(list));
     }
     catch (Exception^ e)
     {
@@ -335,7 +335,7 @@ int _stdcall sendMqlRatesArrayResponse(int expertHandle, CMqlRates values[], int
             list[i] = rates;
         }
 
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseMqlRatesArray(list));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseMqlRatesArray(list));
     }
     catch (Exception^ e)
     {
@@ -357,7 +357,7 @@ int _stdcall sendMqlTickResponse(int expertHandle, CMqlTick* response, int size)
         mtResponse->last = response->last;
         mtResponse->volume = response->volume;
 
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseMqlTick(mtResponse));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseMqlTick(mtResponse));
     }
     catch (Exception^ e)
     {
@@ -384,7 +384,7 @@ int _stdcall sendMqlBookInfoArrayResponse(int expertHandle, CMqlBookInfo values[
             list[i] = info;
         }
 
-        MtServerInstance::GetInstance()->SendResponse(expertHandle, gcnew MtResponseMqlBookInfoArray(list));
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseMqlBookInfoArray(list));
     }
     catch (Exception^ e)
     {
@@ -400,7 +400,7 @@ int _stdcall getCommandType(int expertHandle, int* res)
 {
     try
     {
-        *res = MtServerInstance::GetInstance()->GetCommandType(expertHandle);
+        *res = MtAdapter::GetInstance()->GetCommandType(expertHandle);
     }
     catch (Exception^ e)
     {
@@ -414,7 +414,7 @@ int _stdcall getIntValue(int expertHandle, int paramIndex, int* res)
 {
     try
     {
-        *res = (int)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = (int)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
     }
     catch (Exception^ e)
     {
@@ -428,7 +428,7 @@ int _stdcall getDoubleValue(int expertHandle, int paramIndex, double* res)
 {
     try
     {
-        *res = (double)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = (double)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
     }
     catch (Exception^ e)
     {
@@ -442,7 +442,7 @@ int _stdcall getStringValue(int expertHandle, int paramIndex, wchar_t* res)
 {
     try
     {
-        convertSystemString(res, (String^)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex));
+        convertSystemString(res, (String^)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex));
     }
     catch (Exception^ e)
     {
@@ -456,7 +456,7 @@ int _stdcall getULongValue(int expertHandle, int paramIndex, unsigned __int64* r
 {
     try
     {
-        *res = (unsigned long)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = (unsigned long)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
     }
     catch (Exception^ e)
     {
@@ -470,7 +470,7 @@ int _stdcall getLongValue(int expertHandle, int paramIndex, __int64* res)
 {
     try
     {
-        *res = (long)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = (long)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
     }
     catch (Exception^ e)
     {
@@ -484,7 +484,7 @@ int _stdcall getBooleanValue(int expertHandle, int paramIndex, int* res)
 {
     try
     {
-        bool val = (bool)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        bool val = (bool)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
         *res = val == true ? 1 : 0;
     }
     catch (Exception^ e)
@@ -499,7 +499,7 @@ int _stdcall getUIntValue(int expertHandle, int paramIndex, unsigned int* res)
 {
     try
     {
-        *res = (unsigned int)MtServerInstance::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = (unsigned int)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
     }
     catch (Exception^ e)
     {
