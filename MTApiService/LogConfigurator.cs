@@ -29,7 +29,7 @@ namespace MTApiService
 
             var roller = new RollingFileAppender
             {
-                AppendToFile = false,
+                AppendToFile = true,
                 File = $@"{System.IO.Path.GetTempPath()}{profileName}\Logs\{filename}",
                 Layout = patternLayout,
                 PreserveLogFileNameExtension = true,
