@@ -2186,6 +2186,15 @@ namespace MtApi
 
         #endregion
 
+        #region Backtesting functions
+
+        public void UnlockTicks()
+        {
+            SendCommand<object>(MtCommandType.UnlockTicks, null);
+        }
+
+        #endregion
+
         #region Private Methods
         private MtClient Client
         {

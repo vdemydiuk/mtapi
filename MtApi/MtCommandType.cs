@@ -227,6 +227,8 @@
         ObjectSet                           = 231,
         ObjectSetFiboDescription            = 232,
         ObjectSetText                       = 233,
-        ObjectType                          = 234
+        ObjectType                          = 234,
+
+        UnlockTicks                         = 235
     }
 }
