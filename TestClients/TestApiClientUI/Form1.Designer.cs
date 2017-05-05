@@ -197,9 +197,11 @@
             this.button38 = new System.Windows.Forms.Button();
             this.button37 = new System.Windows.Forms.Button();
             this.tabPage10 = new System.Windows.Forms.TabPage();
+            this.button68 = new System.Windows.Forms.Button();
             this.comboBox11 = new System.Windows.Forms.ComboBox();
             this.button4 = new System.Windows.Forms.Button();
-            this.button68 = new System.Windows.Forms.Button();
+            this.tabPage11 = new System.Windows.Forms.TabPage();
+            this.button69 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -218,6 +220,7 @@
             this.tabPage8.SuspendLayout();
             this.tabPage9.SuspendLayout();
             this.tabPage10.SuspendLayout();
+            this.tabPage11.SuspendLayout();
             this.SuspendLayout();
             // 
             // textBoxServerName
@@ -400,6 +403,7 @@
             this.tabControl1.Controls.Add(this.tabPage8);
             this.tabControl1.Controls.Add(this.tabPage9);
             this.tabControl1.Controls.Add(this.tabPage10);
+            this.tabControl1.Controls.Add(this.tabPage11);
             this.tabControl1.Location = new System.Drawing.Point(324, 12);
             this.tabControl1.Multiline = true;
             this.tabControl1.Name = "tabControl1";
@@ -1771,10 +1775,10 @@
             this.tabPage6.Controls.Add(this.button27);
             this.tabPage6.Controls.Add(this.button14);
             this.tabPage6.Controls.Add(this.button13);
-            this.tabPage6.Location = new System.Drawing.Point(4, 40);
+            this.tabPage6.Location = new System.Drawing.Point(4, 22);
             this.tabPage6.Name = "tabPage6";
             this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage6.Size = new System.Drawing.Size(638, 383);
+            this.tabPage6.Size = new System.Drawing.Size(638, 401);
             this.tabPage6.TabIndex = 6;
             this.tabPage6.Text = "Client Terminal";
             this.tabPage6.UseVisualStyleBackColor = true;
@@ -1820,10 +1824,10 @@
             // 
             this.tabPage7.Controls.Add(this.button23);
             this.tabPage7.Controls.Add(this.iCustomBtn);
-            this.tabPage7.Location = new System.Drawing.Point(4, 40);
+            this.tabPage7.Location = new System.Drawing.Point(4, 22);
             this.tabPage7.Name = "tabPage7";
             this.tabPage7.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage7.Size = new System.Drawing.Size(638, 383);
+            this.tabPage7.Size = new System.Drawing.Size(638, 401);
             this.tabPage7.TabIndex = 7;
             this.tabPage7.Text = "Technical Indicators";
             this.tabPage7.UseVisualStyleBackColor = true;
@@ -2008,6 +2012,16 @@
             this.tabPage10.Text = "Object Functions";
             this.tabPage10.UseVisualStyleBackColor = true;
             // 
+            // button68
+            // 
+            this.button68.Location = new System.Drawing.Point(6, 39);
+            this.button68.Name = "button68";
+            this.button68.Size = new System.Drawing.Size(75, 23);
+            this.button68.TabIndex = 2;
+            this.button68.Text = "ObjectName";
+            this.button68.UseVisualStyleBackColor = true;
+            this.button68.Click += new System.EventHandler(this.button68_Click);
+            // 
             // comboBox11
             // 
             this.comboBox11.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -2027,15 +2041,26 @@
             this.button4.UseVisualStyleBackColor = true;
             this.button4.Click += new System.EventHandler(this.button4_Click);
             // 
-            // button68
+            // tabPage11
             // 
-            this.button68.Location = new System.Drawing.Point(6, 39);
-            this.button68.Name = "button68";
-            this.button68.Size = new System.Drawing.Size(75, 23);
-            this.button68.TabIndex = 2;
-            this.button68.Text = "ObjectName";
-            this.button68.UseVisualStyleBackColor = true;
-            this.button68.Click += new System.EventHandler(this.button68_Click);
+            this.tabPage11.Controls.Add(this.button69);
+            this.tabPage11.Location = new System.Drawing.Point(4, 40);
+            this.tabPage11.Name = "tabPage11";
+            this.tabPage11.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage11.Size = new System.Drawing.Size(638, 383);
+            this.tabPage11.TabIndex = 11;
+            this.tabPage11.Text = "Backtesting";
+            this.tabPage11.UseVisualStyleBackColor = true;
+            // 
+            // button69
+            // 
+            this.button69.Location = new System.Drawing.Point(6, 6);
+            this.button69.Name = "button69";
+            this.button69.Size = new System.Drawing.Size(75, 23);
+            this.button69.TabIndex = 4;
+            this.button69.Text = "UnlockTicks";
+            this.button69.UseVisualStyleBackColor = true;
+            this.button69.Click += new System.EventHandler(this.button69_Click);
             // 
             // Form1
             // 
@@ -2081,6 +2106,7 @@
             this.tabPage9.ResumeLayout(false);
             this.tabPage9.PerformLayout();
             this.tabPage10.ResumeLayout(false);
+            this.tabPage11.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2259,6 +2285,8 @@
         private System.Windows.Forms.ComboBox comboBox11;
         private System.Windows.Forms.TextBox textBoxChartId;
         private System.Windows.Forms.Button button68;
+        private System.Windows.Forms.TabPage tabPage11;
+        private System.Windows.Forms.Button button69;
     }
 }
 

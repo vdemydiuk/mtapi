@@ -141,7 +141,7 @@ namespace TestApiClientUI
 
         private void apiClient_QuoteUpdated(object sender, string symbol, double bid, double ask)
         {
-            Console.WriteLine(@"Quote: Symbol = {0}, Bid = {1}, Ask = {2}", symbol, bid, ask);            
+            Console.WriteLine(@"Quote: Symbol = {0}, Bid = {1}, Ask = {2}", symbol, bid, ask);
         }
 
         private void _apiClient_QuoteUpdate(object sender, MtQuoteEventArgs e)
@@ -1401,6 +1401,11 @@ namespace TestApiClientUI
 
             var result = await Execute(() => _apiClient.ObjectName(chartId, objectIndex));
             PrintLog($"ObjectName result: {result}");
+        }
+
+        private void button69_Click(object sender, EventArgs e)
+        {
+            _apiClient.UnlockTicks();
         }
     }
 }
