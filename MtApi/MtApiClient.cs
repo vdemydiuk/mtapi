@@ -271,31 +271,77 @@ namespace MtApi
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
                     , string comment, int magic, DateTime expiration)
         {
-            return OrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, Color.Empty);
+            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
+            {
+                Symbol = symbol,
+                Cmd = (int)cmd,
+                Volume = volume,
+                Price = price,
+                Slippage = slippage,
+                Stoploss = stoploss,
+                Takeprofit = takeprofit,
+                Comment = comment,
+                Magic = magic,
+                Expiration = MtApiTimeConverter.ConvertToMtTime(expiration)
+            });
+            return response?.Ticket ?? -1;
         }
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
                     , string comment, int magic)
         {
-            return OrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, comment, magic, DateTime.MinValue, Color.Empty);
+            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
+            {
+                Symbol = symbol,
+                Cmd = (int)cmd,
+                Volume = volume,
+                Price = price,
+                Slippage = slippage,
+                Stoploss = stoploss,
+                Takeprofit = takeprofit,
+                Comment = comment,
+                Magic = magic
+            });
+            return response?.Ticket ?? -1;
         }
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
                     , string comment)
         {
-            return OrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, comment, 0, DateTime.MinValue, Color.Empty);
+            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
+            {
+                Symbol = symbol,
+                Cmd = (int)cmd,
+                Volume = volume,
+                Price = price,
+                Slippage = slippage,
+                Stoploss = stoploss,
+                Takeprofit = takeprofit,
+                Comment = comment
+            });
+            return response?.Ticket ?? -1;
         }
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit)
         {
-            return OrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, null, 0, DateTime.MinValue, Color.Empty);
+            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
+            {
+                Symbol = symbol,
+                Cmd = (int)cmd,
+                Volume = volume,
+                Price = price,
+                Slippage = slippage,
+                Stoploss = stoploss,
+                Takeprofit = takeprofit,
+            });
+            return response?.Ticket ?? -1;
         }
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, string price, int slippage, double stoploss, double takeprofit)
         {
             double dPrice;
             return double.TryParse(price, out dPrice) ? 
-                OrderSend(symbol, cmd, volume, dPrice, slippage, stoploss, takeprofit, null, 0, DateTime.MinValue, Color.Empty) : 0;
+                OrderSend(symbol, cmd, volume, dPrice, slippage, stoploss, takeprofit) : 0;
         }
 
         public int OrderSendBuy(string symbol, double volume, int slippage)

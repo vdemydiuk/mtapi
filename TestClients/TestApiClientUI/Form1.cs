@@ -673,6 +673,8 @@ namespace TestApiClientUI
         //OrderSend
         private async void button1_Click(object sender, EventArgs e)
         {
+            var ticket = -1;
+
             var symbol = textBoxOrderSymbol.Text;
 
             var cmd = (TradeOperation) comboBoxOrderCommand.SelectedIndex;
@@ -693,28 +695,43 @@ namespace TestApiClientUI
 
             var comment = textBoxOrderComment.Text;
 
-            int magic;
-            int.TryParse(textBoxOrderMagic.Text, out magic);
-
-            var expiration = DateTime.Now;
-
-            Color arrowColor;
-            switch (comboBoxOrderColor.SelectedIndex)
+            if (string.IsNullOrEmpty(comment))
             {
-                case 0:
-                    arrowColor = Color.Green;
-                    break;
-                case 1:
-                    arrowColor = Color.Blue;
-                    break;
-                case 2:
-                    arrowColor = Color.Red;
-                    break;
-                default:
-                    return;
+                ticket = await Execute(() => _apiClient.OrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit));
             }
-
-            var ticket = await Execute(() => _apiClient.OrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, arrowColor));
+            else
+            {
+                int magic;
+                if (!int.TryParse(textBoxOrderMagic.Text, out magic))
+                {
+                    ticket = await Execute(() => _apiClient.OrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, comment));
+                }
+                else
+                {
+                    if (comboBoxOrderColor.SelectedIndex < 0 || comboBoxOrderColor.SelectedIndex > 2)
+                    {
+                        ticket = await Execute(() => _apiClient.OrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, comment, magic));
+                    }
+                    else
+                    {
+                        var expiration = DateTime.Now.AddDays(1);
+                        Color arrowColor = Color.White;
+                        switch (comboBoxOrderColor.SelectedIndex)
+                        {
+                            case 0:
+                                arrowColor = Color.Green;
+                                break;
+                            case 1:
+                                arrowColor = Color.Blue;
+                                break;
+                            case 2:
+                                arrowColor = Color.Red;
+                                break;
+                        }
+                        ticket = await Execute(() => _apiClient.OrderSend(symbol, cmd, volume, price, slippage, stoploss, takeprofit, comment, magic, expiration, arrowColor));
+                    }
+                }
+            }
 
             PrintLog($"Sended order result: ticket = {ticket}");
         }
