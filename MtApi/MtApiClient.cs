@@ -1780,6 +1780,409 @@ namespace MtApi
             var commandParameters = new ArrayList { chartId };
             SendCommand<object>(MtCommandType.ChartRedraw, commandParameters);
         }
+
+        ///<summary>
+        ///Applies a specific template from a specified file to the chart.
+        ///</summary>
+        ///<param name="chartId">Chart ID.</param>
+        ///<param name="filename">The name of the file containing the template.</param>
+        /// <returns>
+        ///Returns true if the command has been added to chart queue, otherwise false.
+        /// </returns>
+        public bool ChartApplyTemplate(long chartId, string filename)
+        {
+            var commandParameters = new ArrayList { chartId, filename };
+            return SendCommand<bool>(MtCommandType.ChartApplyTemplate, commandParameters);
+        }
+
+        ///<summary>
+        ///Saves current chart settings in a template with a specified name.
+        ///</summary>
+        ///<param name="chartId">Chart ID.</param>
+        ///<param name="filename">The filename to save the template. The ".tpl" extension will be added to the filename automatically; there is no need to specify it. The template is saved in data_folder\templates\ and can be used for manual application in the terminal. If a template with the same filename already exists, the contents of this file will be overwritten.</param>
+        /// <returns>
+        ///Returns true if the command has been added to chart queue, otherwise false.
+        /// </returns>
+        public bool ChartSaveTemplate(long chartId, string filename)
+        {
+            var commandParameters = new ArrayList { chartId, filename };
+            return SendCommand<bool>(MtCommandType.ChartSaveTemplate, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the number of a subwindow where an indicator is drawn.
+        ///</summary>
+        ///<param name="chartId">Chart ID.</param>
+        ///<param name="indicatorShortname">Short name of the indicator.</param>
+        /// <returns>
+        ///Subwindow number in case of success. In case of failure the function returns -1.
+        /// </returns>
+        public int ChartWindowFind(long chartId, string indicatorShortname)
+        {
+            var commandParameters = new ArrayList { chartId, indicatorShortname };
+            return SendCommand<int>(MtCommandType.ChartWindowFind, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the number of a subwindow where an indicator is drawn.
+        ///</summary>
+        ///<param name="chartId">Chart ID.</param>
+        ///<param name="subWindow">The number of the chart subwindow. 0 means the main chart window.</param>
+        ///<param name="time">The time value on the chart, for which the value in pixels along the X axis will be received.</param>
+        ///<param name="price">The price value on the chart, for which the value in pixels along the Y axis will be received.</param>
+        ///<param name="x">The variable, into which the conversion of time to X will be received. The origin is in the upper left corner of the main chart window.</param>
+        ///<param name="y">The variable, into which the conversion of price to Y will be received. The origin is in the upper left corner of the main chart window.</param>
+        /// <returns>
+        ///Subwindow number in case of success. In case of failure the function returns -1.
+        /// </returns>
+        public bool ChartTimePriceToXY(long chartId, int subWindow, DateTime? time, double price, out int x, out int y)
+        {
+            var commandParameters = new ArrayList { chartId, subWindow, MtApiTimeConverter.ConvertToMtTime(time), price };
+            var str = SendCommand<string>(MtCommandType.ChartTimePriceToXY, commandParameters);
+            var res = false;
+            x = 0;
+            y = 0;
+            if (!string.IsNullOrEmpty(str) && str.Contains(";"))
+            {
+                var values = str.Split(';');
+                if (values.Length > 1)
+                {
+                    int.TryParse(values[0], out x);
+                    int.TryParse(values[1], out y);
+                    res = true;
+                }
+            }
+            return res;
+        }
+
+        ///<summary>
+        ///The function returns the number of a subwindow where an indicator is drawn.
+        ///</summary>
+        ///<param name="chartId">Chart ID.</param>
+        ///<param name="x">The variable, into which the conversion of time to X will be received. The origin is in the upper left corner of the main chart window.</param>
+        ///<param name="y">The variable, into which the conversion of price to Y will be received. The origin is in the upper left corner of the main chart window.</param>
+        ///<param name="subWindow">The number of the chart subwindow. 0 means the main chart window.</param>
+        ///<param name="time">The time value on the chart, for which the value in pixels along the X axis will be received.</param>
+        ///<param name="price">The price value on the chart, for which the value in pixels along the Y axis will be received.</param>
+        /// <returns>
+        ///Subwindow number in case of success. In case of failure the function returns -1.
+        /// </returns>
+        public bool ChartXYToTimePrice(long chartId, int x, int y, out int subWindow, out DateTime? time, out double price)
+        {
+            var commandParameters = new ArrayList { chartId, x, y };
+            var str = SendCommand<string>(MtCommandType.ChartXYToTimePrice, commandParameters);
+            var res = false;
+            subWindow = 0;
+            time = null;
+            price = double.NaN;
+            if (!string.IsNullOrEmpty(str) && str.Contains(";"))
+            {
+                var values = str.Split(';');
+                if (values.Length > 2)
+                {
+                    int.TryParse(values[0], out subWindow);
+                    int mt4Time;
+                    int.TryParse(values[1], out mt4Time);
+                    time = MtApiTimeConverter.ConvertFromMtTime(mt4Time);
+                    double.TryParse(values[2], out price);
+                    res = true;
+                }
+            }
+            return res;
+        }
+
+        ///<summary>
+        ///Opens a new chart with the specified symbol and period.
+        ///</summary>
+        ///<param name="symbol">Chart symbol. NULL means the symbol of the  current chart (the Expert Advisor is attached to).</param>
+        ///<param name="period"> Chart period (timeframe). Can be one of the ENUM_TIMEFRAMES values. 0 means the current chart period.</param>
+        /// <returns>
+        ///If successful, it returns the opened chart ID. Otherwise returns 0.
+        /// </returns>
+        public long ChartOpen(string symbol, ENUM_TIMEFRAMES period)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period };
+            return SendCommand<long>(MtCommandType.ChartOpen, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the ID of the first chart of the client terminal.
+        ///</summary>
+        public long ChartFirst()
+        {
+            return SendCommand<long>(MtCommandType.ChartFirst, null);
+        }
+
+        ///<summary>
+        ///Returns the chart ID of the chart next to the specified one.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 does not mean the current chart. 0 means "return the first chart ID".</param>
+        /// <returns>
+        ///Chart ID. If this is the end of the chart list, it returns -1.
+        /// </returns>
+        public long ChartNext(long chartId)
+        {
+            var commandParameters = new ArrayList { chartId };
+            return SendCommand<long>(MtCommandType.ChartNext, commandParameters);
+        }
+
+        ///<summary>
+        ///Closes the specified chart.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        /// <returns>
+        ///If successful, returns true, otherwise false.
+        /// </returns>
+        public bool ChartClose(long chartId)
+        {
+            var commandParameters = new ArrayList { chartId };
+            return SendCommand<bool>(MtCommandType.ChartClose, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the symbol name for the specified chart.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        /// <returns>
+        ///If chart does not exist, the result will be an empty string.
+        /// </returns>
+        public string ChartSymbol(long chartId)
+        {
+            var commandParameters = new ArrayList { chartId };
+            return SendCommand<string>(MtCommandType.ChartSymbol, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the timeframe period of specified chart.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        /// <returns>
+        ///The function returns one of the ENUM_TIMEFRAMES values. If chart does not exist, it returns 0.
+        /// </returns>
+        public ENUM_TIMEFRAMES ChartPeriod(long chartId)
+        {
+            var commandParameters = new ArrayList { chartId };
+            return (ENUM_TIMEFRAMES) SendCommand<int>(MtCommandType.ChartPeriod, commandParameters);
+        }
+
+        ///<summary>
+        ///Sets a value for a corresponding property of the specified chart. Chart property should be of a double type.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="propId">Chart property ID. Can be one of the ENUM_CHART_PROPERTY_DOUBLE values (except the read-only properties).</param>
+        ///<param name="value">Property value.</param>
+        /// <returns>
+        ///Returns true if the command has been added to chart queue, otherwise false.
+        /// </returns>
+        public bool ChartSetDouble(long chartId, int propId, double value)
+        {
+            var commandParameters = new ArrayList { chartId, propId, value };
+            return SendCommand<bool>(MtCommandType.ChartSetDouble, commandParameters);
+        }
+
+        ///<summary>
+        ///Sets a value for a corresponding property of the specified chart. Chart property must be datetime, int, color, bool or char.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="propId">Chart property ID. It can be one of the ENUM_CHART_PROPERTY_INTEGER value (except the read-only properties).</param>
+        ///<param name="value">Property value.</param>
+        /// <returns>
+        ///Returns true if the command has been added to chart queue, otherwise false.
+        /// </returns>
+        public bool ChartSetInteger(long chartId, int propId, long value)
+        {
+            var commandParameters = new ArrayList { chartId, propId, value };
+            return SendCommand<bool>(MtCommandType.ChartSetInteger, commandParameters);
+        }
+
+        ///<summary>
+        ///Sets a value for a corresponding property of the specified chart. Chart property must be of the string type.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="propId">Chart property ID. Its value can be one of the ENUM_CHART_PROPERTY_STRING values (except the read-only properties).</param>
+        ///<param name="value">Property value string. String length cannot exceed 2045 characters (extra characters will be truncated).</param>
+        /// <returns>
+        ///Returns true if the command has been added to chart queue, otherwise false.
+        /// </returns>
+        public bool ChartSetString(long chartId, int propId, string value)
+        {
+            var commandParameters = new ArrayList { chartId, propId, value };
+            return SendCommand<bool>(MtCommandType.ChartSetString, commandParameters);
+        }
+
+        ///<summary>
+        ///Sets a value for a corresponding property of the specified chart. Chart property must be of the string type.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="propId">Chart property ID. This value can be one of the ENUM_CHART_PROPERTY_DOUBLE values.</param>
+        ///<param name="subWindow">Number of the chart subwindow. For the first case, the default value is 0 (main chart window). The most of the properties do not require a subwindow number.</param>
+        /// <returns>
+        ///The value of double type.
+        /// </returns>
+        public double ChartGetDouble(long chartId, int propId, int subWindow = 0)
+        {
+            var commandParameters = new ArrayList { chartId, propId, subWindow };
+            return SendCommand<double>(MtCommandType.ChartGetDouble, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the value of a corresponding property of the specified chart. Chart property must be of datetime, int or bool type.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="propId">Chart property ID. This value can be one of the ENUM_CHART_PROPERTY_INTEGER values.</param>
+        ///<param name="subWindow">Number of the chart subwindow. For the first case, the default value is 0 (main chart window). The most of the properties do not require a subwindow number.</param>
+        /// <returns>
+        ///The value of long type.
+        /// </returns>
+        public long ChartGetInteger(long chartId, int propId, int subWindow = 0)
+        {
+            var commandParameters = new ArrayList { chartId, propId, subWindow };
+            return SendCommand<long>(MtCommandType.ChartGetInteger, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the value of a corresponding property of the specified chart. Chart property must be of string type.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="propId">Chart property ID. This value can be one of the ENUM_CHART_PROPERTY_STRING values.</param>
+        /// <returns>
+        ///The value of string type.
+        /// </returns>
+        public string ChartGetString(long chartId, int propId)
+        {
+            var commandParameters = new ArrayList { chartId, propId };
+            return SendCommand<string>(MtCommandType.ChartGetString, commandParameters);
+        }
+
+        ///<summary>
+        ///Performs shift of the specified chart by the specified number of bars relative to the specified position in the chart.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="position">Chart position to perform a shift. Can be one of the ENUM_CHART_POSITION values.</param>
+        ///<param name="shift">Number of bars to shift the chart. Positive value means the right shift (to the end of chart), negative value means the left shift (to the beginning of chart). The zero shift can be used to navigate to the beginning or end of chart.</param>
+        /// <returns>
+        ///Returns true if successful, otherwise returns false.
+        /// </returns>
+        public bool ChartNavigate(long chartId, int position, int shift = 0)
+        {
+            var commandParameters = new ArrayList { chartId, position, shift };
+            return SendCommand<bool>(MtCommandType.ChartNavigate, commandParameters);
+        }
+
+        ///<summary>
+        ///Performs shift of the specified chart by the specified number of bars relative to the specified position in the chart.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="subWindow">Number of the chart subwindow. 0 denotes the main chart subwindow.</param>
+        ///<param name="indicatorShortname">The short name of the indicator which is set in the INDICATOR_SHORTNAME property with the IndicatorSetString() function. To get the short name of an indicator use the ChartIndicatorName() function.</param>
+        /// <returns>
+        ///Returns true if the command has been added to chart queue, otherwise false.
+        /// </returns>
+        public bool ChartIndicatorDelete(long chartId, int subWindow, string indicatorShortname)
+        {
+            var commandParameters = new ArrayList { chartId, subWindow, indicatorShortname };
+            return SendCommand<bool>(MtCommandType.ChartIndicatorDelete, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the short name of the indicator by the number in the indicators list on the specified chart window.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="subWindow">Number of the chart subwindow. 0 denotes the main chart subwindow.</param>
+        ///<param name="index">the index of the indicator in the list of indicators. The numeration of indicators start with zero, i.e. the first indicator in the list has the 0 index. To obtain the number of indicators in the list use the ChartIndicatorsTotal() function.</param>
+        /// <returns>
+        ///The short name of the indicator which is set in the INDICATOR_SHORTNAME property with the IndicatorSetString() function.
+        /// </returns>
+        public string ChartIndicatorName(long chartId, int subWindow, int index)
+        {
+            var commandParameters = new ArrayList { chartId, subWindow, index };
+            return SendCommand<string>(MtCommandType.ChartIndicatorName, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the number of all indicators applied to the specified chart window.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="subWindow">Number of the chart subwindow. 0 denotes the main chart subwindow.</param>
+        /// <returns>
+        ///The number of indicators in the specified chart window.
+        /// </returns>
+        public string ChartIndicatorsTotal(long chartId, int subWindow)
+        {
+            var commandParameters = new ArrayList { chartId, subWindow };
+            return SendCommand<string>(MtCommandType.ChartIndicatorsTotal, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the number (index) of the chart subwindow the Expert Advisor or script has been dropped to. 0 means the main chart window.
+        ///</summary>
+        public int ChartWindowOnDropped()
+        {
+            return SendCommand<int>(MtCommandType.ChartWindowOnDropped, null);
+        }
+
+        ///<summary>
+        ///Returns the price coordinate corresponding to the chart point the Expert Advisor or script has been dropped to.
+        ///</summary>
+        public double ChartPriceOnDropped()
+        {
+            return SendCommand<double>(MtCommandType.ChartPriceOnDropped, null);
+        }
+
+        ///<summary>
+        ///Returns the time coordinate corresponding to the chart point the Expert Advisor or script has been dropped to.
+        ///</summary>
+        public DateTime ChartTimeOnDropped()
+        {
+            var res = SendCommand<int>(MtCommandType.ChartTimeOnDropped, null);
+            return MtApiTimeConverter.ConvertFromMtTime(res);
+        }
+
+        ///<summary>
+        ///Returns the X coordinate of the chart point the Expert Advisor or script has been dropped to.
+        ///</summary>
+        public int ChartXOnDropped()
+        {
+            return SendCommand<int>(MtCommandType.ChartXOnDropped, null);
+        }
+
+        ///<summary>
+        ///Returns the Y coordinateof the chart point the Expert Advisor or script has been dropped to.
+        ///</summary>
+        public int ChartYOnDropped()
+        {
+            return SendCommand<int>(MtCommandType.ChartYOnDropped, null);
+        }
+
+        ///<summary>
+        ///Changes the symbol and period of the specified chart. The function is asynchronous, i.e. it sends the command and does not wait for its execution completion.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="symbol">Chart symbol. NULL value means the current chart symbol (Expert Advisor is attached to)</param>
+        ///<param name="period">Chart period (timeframe). Can be one of the ENUM_TIMEFRAMES values. 0 means the current chart period.</param>
+        /// <returns>
+        ///Returns true if the command has been added to chart queue, otherwise false.
+        /// </returns>
+        public bool ChartSetSymbolPeriod(long chartId, string symbol, ENUM_TIMEFRAMES period)
+        {
+            var commandParameters = new ArrayList { chartId, symbol, (int)period };
+            return SendCommand<bool>(MtCommandType.ChartSetSymbolPeriod, commandParameters);
+        }
+
+        ///<summary>
+        ///Changes the symbol and period of the specified chart. The function is asynchronous, i.e. it sends the command and does not wait for its execution completion.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="symbol">Chart symbol. NULL value means the current chart symbol (Expert Advisor is attached to)</param>
+        ///<param name="period">Chart period (timeframe). Can be one of the ENUM_TIMEFRAMES values. 0 means the current chart period.</param>
+        /// <returns>
+        ///Returns true if the command has been added to chart queue, otherwise false.
+        /// </returns>
+        public bool ChartScreenShot(long chartId, string symbol, ENUM_TIMEFRAMES period)
+        {
+            var commandParameters = new ArrayList { chartId, symbol, (int)period };
+            return SendCommand<bool>(MtCommandType.ChartScreenShot, commandParameters);
+        }
         #endregion
 
         #region Object Functions
