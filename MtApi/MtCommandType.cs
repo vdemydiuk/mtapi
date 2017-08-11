@@ -229,6 +229,7 @@
         ObjectSetText                       = 233,
         ObjectType                          = 234,
 
-        UnlockTicks                         = 235
+        UnlockTicks                         = 235,
+        ChangeAccount                       = 280
     }
 }

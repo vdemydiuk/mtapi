@@ -1424,5 +1424,34 @@ namespace TestApiClientUI
         {
             _apiClient.UnlockTicks();
         }
+
+        private async void button70_Click(object sender, EventArgs e)
+        {
+            var login = textBoxAccountLogin.Text;
+            var password = textBoxAccountPassword.Text;
+            var host = textBoxAccountHost.Text;
+
+            if (string.IsNullOrEmpty(login))
+            {
+                MessageBox.Show(@"Login is not defined!", @"Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                textBoxAccountLogin.Focus();
+                return;
+            }
+            if (string.IsNullOrEmpty(password))
+            {
+                MessageBox.Show(@"Password is not defined!", @"Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                textBoxAccountPassword.Focus();
+                return;
+            }
+            if (string.IsNullOrEmpty(host))
+            {
+                MessageBox.Show(@"Host is not defined!", @"Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                textBoxAccountHost.Focus();
+                return;
+            }
+
+            var result = await Execute(() => _apiClient.ChangeAccount(login, password, host));
+            PrintLog($"ChangeAccount result: {result}");
+        }
     }
 }
