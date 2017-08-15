@@ -275,6 +275,8 @@
         WindowTimeOnDropped                 = 276,
         WindowsTotal                        = 277,
         WindowXOnDropped                    = 278,
-        WindowYOnDropped                    = 279
+        WindowYOnDropped                    = 279,
+
+        ChangeAccount                       = 280
     }
 }

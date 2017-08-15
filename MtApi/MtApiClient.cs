@@ -786,7 +786,7 @@ namespace MtApi
 
         #endregion
 
-        #region Account Information
+        #region Account functions
 
         public double AccountBalance()
         {
@@ -867,6 +867,12 @@ namespace MtApi
         public int AccountStopoutMode()
         {
             return SendCommand<int>(MtCommandType.AccountStopoutMode, null);
+        }
+
+        public bool ChangeAccount(string login, string password, string host)
+        {
+            var commandParameters = new ArrayList { login, password, host};
+            return SendCommand<bool>(MtCommandType.ChangeAccount, commandParameters);
         }
 
         #endregion
