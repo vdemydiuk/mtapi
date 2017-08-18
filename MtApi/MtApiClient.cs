@@ -2113,10 +2113,10 @@ namespace MtApi
         ///<returns>
         ///The number of indicators in the specified chart window.
         ///</returns>
-        public string ChartIndicatorsTotal(long chartId, int subWindow)
+        public int ChartIndicatorsTotal(long chartId, int subWindow)
         {
             var commandParameters = new ArrayList { chartId, subWindow };
-            return SendCommand<string>(MtCommandType.ChartIndicatorsTotal, commandParameters);
+            return SendCommand<int>(MtCommandType.ChartIndicatorsTotal, commandParameters);
         }
 
         ///<summary>
@@ -2176,17 +2176,19 @@ namespace MtApi
         }
 
         ///<summary>
-        ///Changes the symbol and period of the specified chart. The function is asynchronous, i.e. it sends the command and does not wait for its execution completion.
+        ///Saves current chart screen shot as a GIF, PNG or BMP file depending on specified extension.
         ///</summary>
         ///<param name="chartId">Chart ID. 0 means the current chart.</param>
-        ///<param name="symbol">Chart symbol. NULL value means the current chart symbol (Expert Advisor is attached to)</param>
-        ///<param name="period">Chart period (timeframe). Can be one of the ENUM_TIMEFRAMES values. 0 means the current chart period.</param>
+        ///<param name="filename">Screenshot file name. Cannot exceed 63 characters. Screenshot files are placed in the \Files directory.</param>
+        ///<param name="width">Screenshot width in pixels.</param>
+        ///<param name="height">Screenshot height in pixels.</param>
+        ///<param name="alignMode">Output mode of a narrow screenshot.</param>
         ///<returns>
         ///Returns true if the command has been added to chart queue, otherwise false.
         ///</returns>
-        public bool ChartScreenShot(long chartId, string symbol, ENUM_TIMEFRAMES period)
+        public bool ChartScreenShot(long chartId, string filename, int width, int height, EnumAlignMode alignMode = EnumAlignMode.ALIGN_RIGHT)
         {
-            var commandParameters = new ArrayList { chartId, symbol, (int)period };
+            var commandParameters = new ArrayList { chartId, filename, width, height, (int)alignMode };
             return SendCommand<bool>(MtCommandType.ChartScreenShot, commandParameters);
         }
 
@@ -2302,9 +2304,9 @@ namespace MtApi
         ///<returns>
         ///The price of the chart point where Expert Advisor or script was dropped. This value is only valid if the expert or script was dropped by mouse.
         ///</returns>
-        public int WindowPriceOnDropped()
+        public double WindowPriceOnDropped()
         {
-            return SendCommand<int>(MtCommandType.WindowPriceOnDropped, null);
+            return SendCommand<double>(MtCommandType.WindowPriceOnDropped, null);
         }
 
         ///<summary>
