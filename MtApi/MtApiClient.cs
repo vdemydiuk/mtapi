@@ -1980,9 +1980,9 @@ namespace MtApi
         ///<returns>
         ///Returns true if the command has been added to chart queue, otherwise false.
         ///</returns>
-        public bool ChartSetDouble(long chartId, int propId, double value)
+        public bool ChartSetDouble(long chartId, EnumChartPropertyDouble propId, double value)
         {
-            var commandParameters = new ArrayList { chartId, propId, value };
+            var commandParameters = new ArrayList { chartId, (int)propId, value };
             return SendCommand<bool>(MtCommandType.ChartSetDouble, commandParameters);
         }
 
@@ -1995,9 +1995,9 @@ namespace MtApi
         ///<returns>
         ///Returns true if the command has been added to chart queue, otherwise false.
         ///</returns>
-        public bool ChartSetInteger(long chartId, int propId, long value)
+        public bool ChartSetInteger(long chartId, EnumChartPropertyInteger propId, long value)
         {
-            var commandParameters = new ArrayList { chartId, propId, value };
+            var commandParameters = new ArrayList { chartId, (int)propId, value };
             return SendCommand<bool>(MtCommandType.ChartSetInteger, commandParameters);
         }
 
@@ -2010,9 +2010,9 @@ namespace MtApi
         ///<returns>
         ///Returns true if the command has been added to chart queue, otherwise false.
         ///</returns>
-        public bool ChartSetString(long chartId, int propId, string value)
+        public bool ChartSetString(long chartId, EnumChartPropertyString propId, string value)
         {
-            var commandParameters = new ArrayList { chartId, propId, value };
+            var commandParameters = new ArrayList { chartId, (int)propId, value };
             return SendCommand<bool>(MtCommandType.ChartSetString, commandParameters);
         }
 
@@ -2025,9 +2025,9 @@ namespace MtApi
         ///<returns>
         ///The value of double type.
         ///</returns>
-        public double ChartGetDouble(long chartId, int propId, int subWindow = 0)
+        public double ChartGetDouble(long chartId, EnumChartPropertyDouble propId, int subWindow = 0)
         {
-            var commandParameters = new ArrayList { chartId, propId, subWindow };
+            var commandParameters = new ArrayList { chartId, (int)propId, subWindow };
             return SendCommand<double>(MtCommandType.ChartGetDouble, commandParameters);
         }
 
@@ -2040,9 +2040,9 @@ namespace MtApi
         ///<returns>
         ///The value of long type.
         ///</returns>
-        public long ChartGetInteger(long chartId, int propId, int subWindow = 0)
+        public long ChartGetInteger(long chartId, EnumChartPropertyInteger propId, int subWindow = 0)
         {
-            var commandParameters = new ArrayList { chartId, propId, subWindow };
+            var commandParameters = new ArrayList { chartId, (int)propId, subWindow };
             return SendCommand<long>(MtCommandType.ChartGetInteger, commandParameters);
         }
 
@@ -2054,9 +2054,9 @@ namespace MtApi
         ///<returns>
         ///The value of string type.
         ///</returns>
-        public string ChartGetString(long chartId, int propId)
+        public string ChartGetString(long chartId, EnumChartPropertyString propId)
         {
-            var commandParameters = new ArrayList { chartId, propId };
+            var commandParameters = new ArrayList { chartId, (int)propId };
             return SendCommand<string>(MtCommandType.ChartGetString, commandParameters);
         }
 
@@ -2259,7 +2259,7 @@ namespace MtApi
         ///<returns>
         ///Returns true if the chart subwindow is visible, otherwise returns false. The chart subwindow can be hidden due to the visibility properties of the indicator placed in it.
         ///</returns>
-        public bool WindowIsVisible(string index)
+        public bool WindowIsVisible(int index)
         {
             var commandParameters = new ArrayList { index };
             return SendCommand<bool>(MtCommandType.WindowIsVisible, commandParameters);
@@ -2279,23 +2279,27 @@ namespace MtApi
         ///<summary>
         ///Returns the maximal value of the vertical scale of the specified subwindow of the current chart.
         ///</summary>
+        ///<param name="index">Chart subwindow index (0 - main chart window).</param>
         ///<returns>
         ///The maximal value of the vertical scale of the specified subwindow of the current chart.
         ///</returns>
-        public int WindowPriceMax()
+        public int WindowPriceMax(int index = 0)
         {
-            return SendCommand<int>(MtCommandType.WindowPriceMax, null);
+            var commandParameters = new ArrayList { index };
+            return SendCommand<int>(MtCommandType.WindowPriceMax, commandParameters);
         }
 
         ///<summary>
         ///Returns the minimal value of the vertical scale of the specified subwindow of the current chart.
         ///</summary>
+        ///<param name="index">Chart subwindow index (0 - main chart window).</param>
         ///<returns>
         ///The minimal value of the vertical scale of the specified subwindow of the current chart.
         ///</returns>
-        public int WindowPriceMin()
+        public int WindowPriceMin(int index = 0)
         {
-            return SendCommand<int>(MtCommandType.WindowPriceMin, null);
+            var commandParameters = new ArrayList { index };
+            return SendCommand<int>(MtCommandType.WindowPriceMin, commandParameters);
         }
 
         ///<summary>

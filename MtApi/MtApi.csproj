@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChartPeriod.cs" />
+    <Compile Include="EnumAlignMode.cs" />
     <Compile Include="EnumColorFormat.cs" />
     <Compile Include="EnumObject.cs" />
     <Compile Include="EnumObjectPropertyDouble.cs" />
