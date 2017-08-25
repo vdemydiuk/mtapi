@@ -1777,6 +1777,8 @@ void ReadMqlTradeRequestFromCommand(MqlTradeRequest& request)
       request.expiration = (datetime)tmpEnumValue;  
       getStringValue(ExpertHandle, 14, commentValue);         
       request.comment = commentValue;
+      getULongValue(ExpertHandle, 15, request.position);
+      getULongValue(ExpertHandle, 16, request.position_by);
 }
 
 string BoolToString(bool value)
