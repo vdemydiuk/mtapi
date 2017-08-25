@@ -379,6 +379,7 @@ int executeCommand()
    
       sendDoubleResponse(ExpertHandle, PositionGetDouble(property_id));
    }
+   break;
    
    case 10: //PositionGetInteger
    {
