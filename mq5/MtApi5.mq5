@@ -360,6 +360,7 @@ int executeCommand()
    
       sendStringResponse(ExpertHandle, PositionGetSymbol(index));
    }
+   break;
    
    case 8: //PositionSelect
    {
