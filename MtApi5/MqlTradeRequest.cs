@@ -5,7 +5,7 @@ namespace MtApi5
     public class MqlTradeRequest
     {
         public ENUM_TRADE_REQUEST_ACTIONS Action { get; set; }           // Trade operation type
-        public uint Magic { get; set; }                                 // Expert Advisor ID (magic number)
+        public ulong Magic { get; set; }                                 // Expert Advisor ID (magic number)
         public ulong Order { get; set; }                                 // Order ticket
         public string Symbol { get; set; }                               // Trade symbol
         public double Volume { get; set; }                               // Requested volume for a deal in lots
@@ -19,5 +19,7 @@ namespace MtApi5
         public ENUM_ORDER_TYPE_TIME Type_time { get; set; }              // Order expiration type
         public DateTime Expiration { get; set; }                         // Order expiration time (for the orders of ORDER_TIME_SPECIFIED type)
         public string Comment { get; set; }                              // Order comment
+        public ulong Position { get; set; }                              // Position ticket
+        public ulong PositionBy { get; set; }                            // The ticket of an opposite position
     }
 }

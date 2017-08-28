@@ -360,6 +360,7 @@ int executeCommand()
    
       sendStringResponse(ExpertHandle, PositionGetSymbol(index));
    }
+   break;
    
    case 8: //PositionSelect
    {
@@ -379,6 +380,7 @@ int executeCommand()
    
       sendDoubleResponse(ExpertHandle, PositionGetDouble(property_id));
    }
+   break;
    
    case 10: //PositionGetInteger
    {
@@ -1775,6 +1777,8 @@ void ReadMqlTradeRequestFromCommand(MqlTradeRequest& request)
       request.expiration = (datetime)tmpEnumValue;  
       getStringValue(ExpertHandle, 14, commentValue);         
       request.comment = commentValue;
+      getULongValue(ExpertHandle, 15, request.position);
+      getULongValue(ExpertHandle, 16, request.position_by);
 }
 
 string BoolToString(bool value)
