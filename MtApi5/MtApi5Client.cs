@@ -224,6 +224,17 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Selects an open position to work with based on the ticket number specified in the position. If successful, returns true. Returns false if the function failed.
+        ///</summary>
+        ///<param name="ticket">Position ticket.</param>
+        public bool PositionSelectByTicket(ulong ticket)
+        {
+            var commandParameters = new ArrayList { ticket };
+
+            return SendCommand<bool>(Mt5CommandType.PositionSelectByTicket, commandParameters);
+        }
+
+        ///<summary>
         ///The function returns the requested property of an open position, pre-selected using PositionGetSymbol or PositionSelect.
         ///</summary>
         ///<param name="propertyId">Identifier of a position property.</param>
