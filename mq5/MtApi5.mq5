@@ -1719,14 +1719,18 @@ int executeCommand()
    
    case 68: //Print
    {
-        string printMsg;
-        StringInit(printMsg, 1000, 0);
+      string printMsg;
+      StringInit(printMsg, 1000, 0);
 
-        getStringValue(ExpertHandle, 0, printMsg);
+      getStringValue(ExpertHandle, 0, printMsg);
          
-        Print(printMsg);      
-        sendBooleanResponse(ExpertHandle, true);
+      Print(printMsg);      
+      sendBooleanResponse(ExpertHandle, true);
    }
+   break;
+   
+   case 69: //PositionSelectByTicket
+      Execute_PositionSelectByTicket();
    break;
 
    default:
@@ -1736,6 +1740,13 @@ int executeCommand()
    } 
    
    return (commandType);
+}
+
+void Execute_PositionSelectByTicket()
+{
+   ulong ticket;
+   getULongValue(ExpertHandle, 0, ticket);
+   sendBooleanResponse(ExpertHandle, PositionSelectByTicket(ticket));
 }
 
 void PrintParamError(string paramName)
