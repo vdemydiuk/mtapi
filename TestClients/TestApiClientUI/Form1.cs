@@ -42,6 +42,7 @@ namespace TestApiClientUI
             _apiClient.QuoteRemoved += apiClient_QuoteRemoved;
             _apiClient.ConnectionStateChanged += apiClient_ConnectionStateChanged;
             _apiClient.OnLastTimeBar += _apiClient_OnLastTimeBar;
+            _apiClient.OnChartEvent += _apiClient_OnChartEvent;
 
             InitOrderCommandsGroup();
 
@@ -134,7 +135,15 @@ namespace TestApiClientUI
         private void _apiClient_OnLastTimeBar(object sender, TimeBarArgs e)
         {
             var msg =
-                $"TimeBar: Symbol = {e.TimeBar.Symbol}, OpenTime = {e.TimeBar.OpenTime}, CloseTime = {e.TimeBar.CloseTime}, Open = {e.TimeBar.Open}, Close = {e.TimeBar.Close}, High = {e.TimeBar.High}, Low = {e.TimeBar.Low}";
+                $"TimeBar: ExpertHandle = {e.ExpertHandle}, Symbol = {e.TimeBar.Symbol}, OpenTime = {e.TimeBar.OpenTime}, CloseTime = {e.TimeBar.CloseTime}, Open = {e.TimeBar.Open}, Close = {e.TimeBar.Close}, High = {e.TimeBar.High}, Low = {e.TimeBar.Low}";
+            Console.WriteLine(msg);
+            PrintLog(msg);
+        }
+
+        private void _apiClient_OnChartEvent(object sender, ChartEventArgs e)
+        {
+            var msg =
+                $"OnChartEvent: ExpertHandle = {e.ExpertHandle}, ChartId = {e.ChartId}, EventId = {e.EventId}, Lparam = {e.Lparam}, Dparam = {e.Dparam}, Sparam = {e.Sparam}";
             Console.WriteLine(msg);
             PrintLog(msg);
         }

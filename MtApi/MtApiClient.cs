@@ -3068,18 +3068,24 @@ namespace MtApi
             switch(eventType)
             {
                 case MtEventTypes.LastTimeBar:
-                    {
-                        FireOnLastTimeBar(JsonConvert.DeserializeObject<MtTimeBar>(e.Payload));
-                    }
+                    FireOnLastTimeBar(e.ExpertHandle, JsonConvert.DeserializeObject<MtTimeBar>(e.Payload));
+                    break;
+                case MtEventTypes.ChartEvent:
+                    FireOnChartEvent(e.ExpertHandle, JsonConvert.DeserializeObject<MtChartEvent>(e.Payload));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        private void FireOnLastTimeBar(MtTimeBar timeBar)
+        private void FireOnLastTimeBar(int expertHandler, MtTimeBar timeBar)
         {
-            OnLastTimeBar?.Invoke(this, new TimeBarArgs(timeBar));
+            OnLastTimeBar?.Invoke(this, new TimeBarArgs(expertHandler, timeBar));
+        }
+
+        private void FireOnChartEvent(int expertHandler, MtChartEvent chartEvent)
+        {
+            OnChartEvent?.Invoke(this, new ChartEventArgs(expertHandler, chartEvent));
         }
 
         private void BacktestingReady()
@@ -3097,6 +3103,7 @@ namespace MtApi
         public event EventHandler<MtQuoteEventArgs> QuoteRemoved;
         public event EventHandler<MtConnectionEventArgs> ConnectionStateChanged;
         public event EventHandler<TimeBarArgs> OnLastTimeBar;
+        public event EventHandler<ChartEventArgs> OnChartEvent;
 
         #endregion
     }
