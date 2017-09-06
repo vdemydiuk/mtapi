@@ -497,9 +497,10 @@ namespace MtApi5
         ///Closes a position with the specified ticket.
         ///</summary>
         ///<param name="ticket">Ticket of the closed position.</param>
-        public bool PositionClose(int ticket)
+        ///<param name="deviation">Maximal deviation from the current price (in points).</param>
+        public bool PositionClose(ulong ticket, ulong deviation = ulong.MaxValue)
         {
-            var commandParameters = new ArrayList { ticket};
+            var commandParameters = new ArrayList { ticket, deviation };
 
             return SendCommand<bool>(Mt5CommandType.PositionClose, commandParameters);
         }

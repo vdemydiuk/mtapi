@@ -279,12 +279,14 @@ int executeCommand()
 
    case 64: //PositionClose
    {      
-      int ticket;
+      ulong ticket;
+      ulong deviation;
       CTrade trade;
-
-      getIntValue(ExpertHandle, 0, ticket);      
-             
-      sendBooleanResponse(ExpertHandle, trade.PositionClose(ticket));
+      
+      getULongValue(ExpertHandle, 0, ticket);
+      getULongValue(ExpertHandle, 1, deviation);
+      
+      sendBooleanResponse(ExpertHandle, trade.PositionClose(ticket, deviation));
    }
    break;
          
