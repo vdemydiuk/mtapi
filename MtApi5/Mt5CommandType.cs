@@ -114,5 +114,7 @@ namespace MtApi5
 
         //Requests
         MtRequest                           = 155,
+
+        PositionSelectByTicket              = 69
     }
 }
