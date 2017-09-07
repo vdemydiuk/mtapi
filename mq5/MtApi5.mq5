@@ -279,12 +279,14 @@ int executeCommand()
 
    case 64: //PositionClose
    {      
-      int ticket;
+      ulong ticket;
+      ulong deviation;
       CTrade trade;
-
-      getIntValue(ExpertHandle, 0, ticket);      
-             
-      sendBooleanResponse(ExpertHandle, trade.PositionClose(ticket));
+      
+      getULongValue(ExpertHandle, 0, ticket);
+      getULongValue(ExpertHandle, 1, deviation);
+      
+      sendBooleanResponse(ExpertHandle, trade.PositionClose(ticket, deviation));
    }
    break;
          
@@ -1906,7 +1908,7 @@ string OnRequest(string json)
    return response;
 }
 
-string CreateErrorResponse(int code, string message)
+string CreateErrorResponse(int code, string message_er)
 {
    JSONValue* jsonError;
    if (code == 0)
@@ -1914,13 +1916,13 @@ string CreateErrorResponse(int code, string message)
    else
       jsonError = new JSONNumber((long)code);
       
-   JSONObject *joResponse = new JSONObject();   
+   JSONObject *joResponse = new JSONObject();
    joResponse.put("ErrorCode", jsonError);
-   joResponse.put("ErrorMessage", new JSONString(message));
+   joResponse.put("ErrorMessage", new JSONString(message_er));
    
-   string result = joResponse.toString();   
-   delete joResponse;   
-   return result; 
+   string result = joResponse.toString();
+   delete joResponse;
+   return result;
 }
 
 string CreateSuccessResponse(string responseName, JSONValue* responseBody)
