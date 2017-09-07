@@ -80,11 +80,6 @@ namespace MTApiService
                 //init network hosts
                 var dnsHostName = Dns.GetHostName();
                 var ips = Dns.GetHostEntry(dnsHostName);
-                if (ips == null)
-                {
-                    Log.WarnFormat("InitHosts: end. Dns.GetHostEntry has returned null for DNS Host Name {0}", dnsHostName);
-                    return false;
-                }
 
                 foreach (var ipAddress in ips.AddressList)
                 {

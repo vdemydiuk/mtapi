@@ -44,17 +44,16 @@ template <typename T> T Execute(std::function<T()> func, wchar_t* err, T default
 _DLLAPI bool _stdcall initExpert(int expertHandle, int port, wchar_t* symbol, double bid, double ask, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &port, symbol, &bid, &ask]() {
-        MT4Handler^ mtHandler = gcnew MT4Handler();
-        MtAdapter::GetInstance()->InitExpert(expertHandle, port, gcnew String(symbol), bid, ask, mtHandler);
+        auto expert = gcnew MtExpert(expertHandle, gcnew String(symbol), bid, ask, gcnew MT4Handler());
+        MtAdapter::GetInstance()->AddExpert(port, expert);
         return true;
     }, err, false);
-
 }
 
 _DLLAPI bool _stdcall deinitExpert(int expertHandle, wchar_t* err)
 {
     return Execute<bool>([&expertHandle]() {
-        MtAdapter::GetInstance()->DeinitExpert(expertHandle);
+        MtAdapter::GetInstance()->RemoveExpert(expertHandle);
         return true;
     }, err, false);
 }
