@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ComponentModel;
 using MtApi5;
 
@@ -29,7 +26,7 @@ namespace MtApi5TestClient
             }
         }
 
-        public uint Magic
+        public ulong Magic
         {
             get { return TradeRequest.Magic; }
             set
@@ -109,7 +106,7 @@ namespace MtApi5TestClient
             }
         }
 
-        public uint Deviation
+        public ulong Deviation
         {
             get { return TradeRequest.Deviation; }
             set
