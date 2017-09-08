@@ -13,7 +13,7 @@ namespace MtApi5
         public double Stoplimit { get; set; }                            // StopLimit level of the order
         public double Sl { get; set; }                                   // Stop Loss level of the order
         public double Tp { get; set; }                                   // Take Profit level of the order
-        public uint Deviation { get; set; }                             // Maximal possible deviation from the requested price
+        public ulong Deviation { get; set; }                             // Maximal possible deviation from the requested price
         public ENUM_ORDER_TYPE Type { get; set; }                        // Order type
         public ENUM_ORDER_TYPE_FILLING Type_filling { get; set; }        // Order execution type
         public ENUM_ORDER_TYPE_TIME Type_time { get; set; }              // Order expiration type
