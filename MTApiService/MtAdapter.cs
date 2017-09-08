@@ -36,42 +36,6 @@ namespace MTApiService
 
 
         #region Public Methods
-        //public void InitExpert(int expertHandle, int port, string symbol, double bid, double ask, IMetaTraderHandler mtHandler)
-        //{
-        //    if (mtHandler == null)
-        //        throw new ArgumentNullException(nameof(mtHandler));
-
-        //    Log.InfoFormat("InitExpert: begin. symbol = {0}, expertHandle = {1}, port = {2}", symbol, expertHandle, port);
-
-        //    MtServer server;
-        //    lock (_servers)
-        //    {
-        //        if (_servers.ContainsKey(port))
-        //        {
-        //            server = _servers[port];
-        //        }
-        //        else
-        //        {
-        //            server = new MtServer(port);
-        //            server.Stopped += server_Stopped;
-        //            _servers[port] = server;
-
-        //            server.Start();
-        //        }
-        //    }
-
-        //    var expert = new MtExpert(expertHandle, new MtQuote { Instrument = symbol, Bid = bid, Ask = ask, ExpertHandle = expertHandle }, mtHandler);
-
-        //    lock (_experts)
-        //    {
-        //        _experts[expert.Handle] = expert;
-        //    }
-
-        //    server.AddExpert(expert);
-
-        //    Log.Info("InitExpert: end");
-        //}
-
         public void AddExpert(int port, MtExpert expert)
         {
             if (expert == null)
@@ -135,7 +99,7 @@ namespace MTApiService
 
         public void SendQuote(int expertHandle, string symbol, double bid, double ask)
         {
-            Log.DebugFormat("SendQuote: begin. symbol = {0}, bid = {1}, ask = {2}", symbol, bid, ask);
+            Log.DebugFormat("UpdateQuote: begin. symbol = {0}, bid = {1}, ask = {2}", symbol, bid, ask);
 
             MtExpert expert;
             lock (_experts)
@@ -145,14 +109,14 @@ namespace MTApiService
 
             if (expert != null)
             {
-                expert.SendQuote(new MtQuote { Instrument = symbol, Bid = bid, Ask = ask, ExpertHandle = expertHandle });
+                expert.UpdateQuote(new MtQuote { Instrument = symbol, Bid = bid, Ask = ask, ExpertHandle = expertHandle });
             }
             else
             {
-                Log.WarnFormat("SendQuote: expert with id {0} has not been found.", expertHandle);
+                Log.WarnFormat("UpdateQuote: expert with id {0} has not been found.", expertHandle);
             }
 
-            Log.Debug("SendQuote: end");
+            Log.Debug("UpdateQuote: end");
         }
 
         public void SendEvent(int expertHandle, int eventType, string payload)

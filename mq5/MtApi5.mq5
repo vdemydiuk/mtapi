@@ -4,37 +4,38 @@
 #include <json.mqh>
 #include <Trade\SymbolInfo.mqh>
 #include <trade/trade.mqh>
-#property version   "1.1"
+#property version   "1.2"
 #property description "MtApi (MT5) connection expert"
 
 #import "MT5Connector.dll"
-   bool initExpert(int expertHandle, int port, string symbol, double bid, double ask, string& err);
+   bool initExpert(int expertHandle, int port, string symbol, double bid, double ask, int isTestMode, string& err);
    bool deinitExpert(int expertHandle, string& err);
    
    bool updateQuote(int expertHandle, string symbol, double bid, double ask, string& err);
       
-   bool sendIntResponse(int expertHandle, int response);
-   bool sendBooleanResponse(int expertHandle, int response);
-   bool sendDoubleResponse(int expertHandle, double response);
-   bool sendStringResponse(int expertHandle, string response);
-   bool sendVoidResponse(int expertHandle);
-   bool sendDoubleArrayResponse(int expertHandle, double& values[], int size);
-   bool sendIntArrayResponse(int expertHandle, int& values[], int size);   
-   bool sendLongResponse(int expertHandle, long response);
-   bool sendULongResponse(int expertHandle, ulong response);
-   bool sendLongArrayResponse(int expertHandle, long& values[], int size);
-   bool sendMqlRatesArrayResponse(int expertHandle, MqlRates& values[], int size);   
-   bool sendMqlTickResponse(int expertHandle, MqlTick& response);
-   bool sendMqlBookInfoArrayResponse(int expertHandle, MqlBookInfo& values[], int size);   
+   bool sendIntResponse(int expertHandle, int response, string& err);
+   bool sendBooleanResponse(int expertHandle, int response, string& err);
+   bool sendDoubleResponse(int expertHandle, double response, string& err);
+   bool sendStringResponse(int expertHandle, string response, string& err);
+   bool sendVoidResponse(int expertHandle, string& err);
+   bool sendDoubleArrayResponse(int expertHandle, double& values[], int size, string& err);
+   bool sendIntArrayResponse(int expertHandle, int& values[], int size, string& err);   
+   bool sendLongResponse(int expertHandle, long response, string& err);
+   bool sendULongResponse(int expertHandle, ulong response, string& err);
+   bool sendLongArrayResponse(int expertHandle, long& values[], int size, string& err);
+   bool sendMqlRatesArrayResponse(int expertHandle, MqlRates& values[], int size, string& err);   
+   bool sendMqlTickResponse(int expertHandle, MqlTick& response, string& err);
+   bool sendMqlBookInfoArrayResponse(int expertHandle, MqlBookInfo& values[], int size, string& err);   
+   bool sendErrorResponse(int expertHandle, int code, string message, string& err);
    
-   bool getCommandType(int expertHandle, int& res);
-   bool getIntValue(int expertHandle, int paramIndex, int& res);
-   bool getUIntValue(int expertHandle, int paramIndex, uint& res);   
-   bool getULongValue(int expertHandle, int paramIndex, ulong& res);
-   bool getLongValue(int expertHandle, int paramIndex, long& res);
-   bool getDoubleValue(int expertHandle, int paramIndex, double& res);
-   bool getStringValue(int expertHandle, int paramIndex, string& res);
-   bool getBooleanValue(int expertHandle, int paramIndex, bool& res);
+   bool getCommandType(int expertHandle, int& res, string& err);
+   bool getIntValue(int expertHandle, int paramIndex, int& res, string& err);
+   bool getUIntValue(int expertHandle, int paramIndex, uint& res, string& err);   
+   bool getULongValue(int expertHandle, int paramIndex, ulong& res, string& err);
+   bool getLongValue(int expertHandle, int paramIndex, long& res, string& err);
+   bool getDoubleValue(int expertHandle, int paramIndex, double& res, string& err);
+   bool getStringValue(int expertHandle, int paramIndex, string& res, string& err);
+   bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
 input int Port = 8228;
@@ -42,6 +43,8 @@ input int Port = 8228;
 int ExpertHandle;
 
 string message;
+string _error;
+string _response_error;
 bool isCrashed = false;
 
 bool IsRemoteReadyForTesting = false;
@@ -80,6 +83,7 @@ int preinit()
    StringInit(symbolValue, 1000, 0);
    StringInit(commentValue, 1000, 0);
    StringInit(requestValue, 1000, 0);
+   StringInit(_response_error,1000,0);
 
    return (0);
 }
@@ -130,7 +134,7 @@ int init()
    double Bid = last_tick.bid;
    double Ask = last_tick.ask;
    
-   if (!initExpert(ExpertHandle, Port, Symbol(), Bid, Ask, message))
+   if (!initExpert(ExpertHandle, Port, Symbol(), Bid, Ask, IsTesting(), _error))
    {
        MessageBox(message, "MtApi", 0);
        isCrashed = true;
@@ -218,9 +222,9 @@ int executeCommand()
 {
    int commandType = 0;
 
-   if (!getCommandType(ExpertHandle, commandType))
+   if (!getCommandType(ExpertHandle, commandType, _error))
    {
-      Print("[ERROR] getCommandType");
+      Print("[ERROR] ExecuteCommand: Failed to get command type! ", _error);
       return (0);
    }
    
@@ -237,9 +241,9 @@ int executeCommand()
 
    case 155: //Request
    {
-      if (!getStringValue(ExpertHandle, 0, requestValue))
+      if (!getStringValue(ExpertHandle, 0, requestValue, _error))
       {
-         PrintParamError("Request");
+         PrintParamError("Request", "Request", _error);
       }
       
       string response = "";
@@ -250,7 +254,7 @@ int executeCommand()
          response = OnRequest(requestValue);
       }
       
-      sendStringResponse(ExpertHandle, response);      
+      sendStringResponse(ExpertHandle, response, _response_error);      
    }
    break;      
       
@@ -263,7 +267,7 @@ int executeCommand()
       
       bool retVal = OrderSend(request, result);
             
-      sendStringResponse(ExpertHandle, ResultToString(retVal, result));
+      sendStringResponse(ExpertHandle, ResultToString(retVal, result), _response_error);
    }
    break;
 
@@ -273,7 +277,7 @@ int executeCommand()
       
       retVal = OrderCloseAll(); 
       
-      sendBooleanResponse(ExpertHandle, retVal);  
+      sendBooleanResponse(ExpertHandle, retVal, _response_error);  
    }
    break;
 
@@ -283,10 +287,10 @@ int executeCommand()
       ulong deviation;
       CTrade trade;
       
-      getULongValue(ExpertHandle, 0, ticket);
-      getULongValue(ExpertHandle, 1, deviation);
+      getULongValue(ExpertHandle, 0, ticket, _error);
+      getULongValue(ExpertHandle, 1, deviation, _error);
       
-      sendBooleanResponse(ExpertHandle, trade.PositionClose(ticket, deviation));
+      sendBooleanResponse(ExpertHandle, trade.PositionClose(ticket, deviation), _response_error);
    }
    break;
          
@@ -299,16 +303,16 @@ int executeCommand()
       double margin;
       bool retVal;
       
-      getIntValue(ExpertHandle, 0, tmpEnumValue);
+      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);
       action = (ENUM_ORDER_TYPE)tmpEnumValue;   
                
-      getStringValue(ExpertHandle, 1, symbolValue);
-      getDoubleValue(ExpertHandle, 2, volume);
-      getDoubleValue(ExpertHandle, 3, price);      
+      getStringValue(ExpertHandle, 1, symbolValue, _error);
+      getDoubleValue(ExpertHandle, 2, volume, _error);
+      getDoubleValue(ExpertHandle, 3, price, _error);      
       
       retVal = OrderCalcMargin(action, symbolValue, volume, price, margin);
                
-      sendStringResponse(ExpertHandle, ResultToString(retVal, margin));
+      sendStringResponse(ExpertHandle, ResultToString(retVal, margin), _response_error);
    }
    break;
    
@@ -322,17 +326,17 @@ int executeCommand()
       double profit;
       bool retVal;
       
-      getIntValue(ExpertHandle, 0, tmpEnumValue);
+      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);
       action = (ENUM_ORDER_TYPE)tmpEnumValue;   
                
-      getStringValue(ExpertHandle, 1, symbolValue);
-      getDoubleValue(ExpertHandle, 2, volume);
-      getDoubleValue(ExpertHandle, 3, price_open);
-      getDoubleValue(ExpertHandle, 4, price_close);
+      getStringValue(ExpertHandle, 1, symbolValue, _error);
+      getDoubleValue(ExpertHandle, 2, volume, _error);
+      getDoubleValue(ExpertHandle, 3, price_open, _error);
+      getDoubleValue(ExpertHandle, 4, price_close, _error);
       
       retVal = OrderCalcProfit(action, symbolValue, volume, price_open, price_close, profit);
                
-      sendStringResponse(ExpertHandle, ResultToString(retVal, profit));
+      sendStringResponse(ExpertHandle, ResultToString(retVal, profit), _response_error);
    }
    break;
    
@@ -345,30 +349,30 @@ int executeCommand()
       
       bool retVal = OrderCheck(request, result);
             
-      sendStringResponse(ExpertHandle, ResultToString(retVal, result));
+      sendStringResponse(ExpertHandle, ResultToString(retVal, result), _response_error);
    }
    break;  
    
    case 6: //PositionsTotal
    {
-      sendIntResponse(ExpertHandle, PositionsTotal());
+      sendIntResponse(ExpertHandle, PositionsTotal(), _response_error);
    }
    break;  
    
    case 7: //PositionGetSymbol
    {
       int index;
-      getIntValue(ExpertHandle, 0, index);
+      getIntValue(ExpertHandle, 0, index, _error);
    
-      sendStringResponse(ExpertHandle, PositionGetSymbol(index));
+      sendStringResponse(ExpertHandle, PositionGetSymbol(index), _response_error);
    }
    break;
    
    case 8: //PositionSelect
    {
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
    
-      sendBooleanResponse(ExpertHandle, PositionSelect(symbolValue));
+      sendBooleanResponse(ExpertHandle, PositionSelect(symbolValue), _response_error);
    }
    break;  
    
@@ -377,10 +381,10 @@ int executeCommand()
       ENUM_POSITION_PROPERTY_DOUBLE property_id;
       int tmpEnumValue;
       
-      getIntValue(ExpertHandle, 0, tmpEnumValue);      
+      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
       property_id = (ENUM_POSITION_PROPERTY_DOUBLE) tmpEnumValue;
    
-      sendDoubleResponse(ExpertHandle, PositionGetDouble(property_id));
+      sendDoubleResponse(ExpertHandle, PositionGetDouble(property_id), _response_error);
    }
    break;
    
@@ -389,10 +393,10 @@ int executeCommand()
       ENUM_POSITION_PROPERTY_INTEGER property_id;
       int tmpEnumValue;
       
-      getIntValue(ExpertHandle, 0, tmpEnumValue);      
+      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
       property_id = (ENUM_POSITION_PROPERTY_INTEGER) tmpEnumValue;
    
-      sendLongResponse(ExpertHandle, PositionGetInteger(property_id));
+      sendLongResponse(ExpertHandle, PositionGetInteger(property_id), _response_error);
    }
    break;  
    
@@ -401,34 +405,34 @@ int executeCommand()
       ENUM_POSITION_PROPERTY_STRING property_id;
       int tmpEnumValue;
       
-      getIntValue(ExpertHandle, 0, tmpEnumValue);      
+      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
       property_id = (ENUM_POSITION_PROPERTY_STRING) tmpEnumValue;
    
-      sendStringResponse(ExpertHandle, PositionGetString(property_id));
+      sendStringResponse(ExpertHandle, PositionGetString(property_id), _response_error);
    }
    break;  
    
    case 12: //OrdersTotal
    {
-      sendIntResponse(ExpertHandle, OrdersTotal());
+      sendIntResponse(ExpertHandle, OrdersTotal(), _response_error);
    }
    break;
    
    case 13: //OrderGetTicket
    {
       int index;
-      getIntValue(ExpertHandle, 0, index);
+      getIntValue(ExpertHandle, 0, index, _error);
       
-      sendULongResponse(ExpertHandle, OrderGetTicket(index));
+      sendULongResponse(ExpertHandle, OrderGetTicket(index), _response_error);
    }
    break;
    
    case 14: //OrderSelect
    {
       ulong ticket;
-      getULongValue(ExpertHandle, 0, ticket);
+      getULongValue(ExpertHandle, 0, ticket, _error);
       
-      sendBooleanResponse(ExpertHandle, OrderSelect(ticket));
+      sendBooleanResponse(ExpertHandle, OrderSelect(ticket), _response_error);
    }
    break;
    
@@ -437,10 +441,10 @@ int executeCommand()
       ENUM_ORDER_PROPERTY_DOUBLE property_id;
       int tmpEnumValue;
 
-      getIntValue(ExpertHandle, 0, tmpEnumValue);      
+      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
       property_id = (ENUM_ORDER_PROPERTY_DOUBLE) tmpEnumValue;
       
-      sendDoubleResponse(ExpertHandle, OrderGetDouble(property_id));
+      sendDoubleResponse(ExpertHandle, OrderGetDouble(property_id), _response_error);
    }
    break;
    
@@ -449,10 +453,10 @@ int executeCommand()
       ENUM_ORDER_PROPERTY_INTEGER property_id;
       int tmpEnumValue;
 
-      getIntValue(ExpertHandle, 0, tmpEnumValue);      
+      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
       property_id = (ENUM_ORDER_PROPERTY_INTEGER) tmpEnumValue;
       
-      sendLongResponse(ExpertHandle, OrderGetInteger(property_id));
+      sendLongResponse(ExpertHandle, OrderGetInteger(property_id), _response_error);
    }
    break;
    
@@ -461,10 +465,10 @@ int executeCommand()
       ENUM_ORDER_PROPERTY_STRING property_id;
       int tmpEnumValue;
 
-      getIntValue(ExpertHandle, 0, tmpEnumValue);      
+      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
       property_id = (ENUM_ORDER_PROPERTY_STRING) tmpEnumValue;
       
-      sendStringResponse(ExpertHandle, OrderGetString(property_id));
+      sendStringResponse(ExpertHandle, OrderGetString(property_id), _response_error);
    }
    break;
    
@@ -474,46 +478,46 @@ int executeCommand()
       datetime to_date;
       int tmpDateValue;
 
-      getIntValue(ExpertHandle, 0, tmpDateValue);       
+      getIntValue(ExpertHandle, 0, tmpDateValue, _error);       
       from_date = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 1, tmpDateValue);      
+      getIntValue(ExpertHandle, 1, tmpDateValue, _error);      
       to_date = (datetime)tmpDateValue;
       
-      sendBooleanResponse(ExpertHandle, HistorySelect(from_date, to_date));
+      sendBooleanResponse(ExpertHandle, HistorySelect(from_date, to_date), _response_error);
    }
    break;
    
    case 19: //HistorySelectByPosition
    {
       long position_id;
-      getLongValue(ExpertHandle, 0, position_id);
+      getLongValue(ExpertHandle, 0, position_id, _error);
       
-      sendBooleanResponse(ExpertHandle, HistorySelectByPosition(position_id));
+      sendBooleanResponse(ExpertHandle, HistorySelectByPosition(position_id), _response_error);
    }
    break;
    
    case 20: //HistoryOrderSelect
    {
       ulong ticket;
-      getULongValue(ExpertHandle, 0, ticket);
+      getULongValue(ExpertHandle, 0, ticket, _error);
       
-      sendBooleanResponse(ExpertHandle, HistoryOrderSelect(ticket));
+      sendBooleanResponse(ExpertHandle, HistoryOrderSelect(ticket), _response_error);
    }
    break;
    
    case 21: //HistoryOrdersTotal
    {
-      sendIntResponse(ExpertHandle, HistoryOrdersTotal());
+      sendIntResponse(ExpertHandle, HistoryOrdersTotal(), _response_error);
    }
    break;
    
    case 22: //HistoryOrderGetTicket
    {
       int index;
-      getIntValue(ExpertHandle, 0, index);
+      getIntValue(ExpertHandle, 0, index, _error);
       
-      sendULongResponse(ExpertHandle, HistoryOrderGetTicket(index));
+      sendULongResponse(ExpertHandle, HistoryOrderGetTicket(index), _response_error);
    }
    break;
    
@@ -523,11 +527,11 @@ int executeCommand()
       ENUM_ORDER_PROPERTY_DOUBLE property_id;
       int tmpEnumValue;
       
-      getULongValue(ExpertHandle, 0, ticket_number);
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getULongValue(ExpertHandle, 0, ticket_number, _error);
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       property_id = (ENUM_ORDER_PROPERTY_DOUBLE) tmpEnumValue;
       
-      sendDoubleResponse(ExpertHandle, HistoryOrderGetDouble(ticket_number, property_id));
+      sendDoubleResponse(ExpertHandle, HistoryOrderGetDouble(ticket_number, property_id), _response_error);
    }
    break;
    
@@ -537,11 +541,11 @@ int executeCommand()
       ENUM_ORDER_PROPERTY_INTEGER property_id;
       int tmpEnumValue;
       
-      getULongValue(ExpertHandle, 0, ticket_number);
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getULongValue(ExpertHandle, 0, ticket_number, _error);
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       property_id = (ENUM_ORDER_PROPERTY_INTEGER) tmpEnumValue;
       
-      sendULongResponse(ExpertHandle, HistoryOrderGetInteger(ticket_number, property_id));
+      sendULongResponse(ExpertHandle, HistoryOrderGetInteger(ticket_number, property_id), _response_error);
    }
    break;
       
@@ -551,11 +555,11 @@ int executeCommand()
       ENUM_ORDER_PROPERTY_STRING property_id;
       int tmpEnumValue;
       
-      getULongValue(ExpertHandle, 0, ticket_number);
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getULongValue(ExpertHandle, 0, ticket_number, _error);
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       property_id = (ENUM_ORDER_PROPERTY_STRING) tmpEnumValue;
       
-      sendStringResponse(ExpertHandle, HistoryOrderGetString(ticket_number, property_id));
+      sendStringResponse(ExpertHandle, HistoryOrderGetString(ticket_number, property_id), _response_error);
    }
    break;
    
@@ -563,24 +567,24 @@ int executeCommand()
    {
       ulong ticket;
             
-      getULongValue(ExpertHandle, 0, ticket);
+      getULongValue(ExpertHandle, 0, ticket, _error);
       
-      sendBooleanResponse(ExpertHandle, HistoryDealSelect(ticket));
+      sendBooleanResponse(ExpertHandle, HistoryDealSelect(ticket), _response_error);
    }
    break;
    
    case 27: //HistoryDealsTotal
    {
-      sendIntResponse(ExpertHandle, HistoryDealsTotal());
+      sendIntResponse(ExpertHandle, HistoryDealsTotal(), _response_error);
    }
    break;   
    
    case 28: //HistoryDealGetTicket
    {
       uint index;            
-      getIntValue(ExpertHandle, 0, index);
+      getIntValue(ExpertHandle, 0, index, _error);
       
-      sendULongResponse(ExpertHandle, HistoryDealGetTicket(index));
+      sendULongResponse(ExpertHandle, HistoryDealGetTicket(index), _response_error);
    }
    break;   
    
@@ -590,11 +594,11 @@ int executeCommand()
       ENUM_DEAL_PROPERTY_DOUBLE property_id;
       int tmpEnumValue;
       
-      getULongValue(ExpertHandle, 0, ticket_number);
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getULongValue(ExpertHandle, 0, ticket_number, _error);
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       property_id = (ENUM_DEAL_PROPERTY_DOUBLE) tmpEnumValue;
       
-      sendDoubleResponse(ExpertHandle, HistoryDealGetDouble(ticket_number, property_id));
+      sendDoubleResponse(ExpertHandle, HistoryDealGetDouble(ticket_number, property_id), _response_error);
    }
    break;   
    
@@ -604,11 +608,11 @@ int executeCommand()
       ENUM_DEAL_PROPERTY_INTEGER property_id;
       int tmpEnumValue;
       
-      getULongValue(ExpertHandle, 0, ticket_number);
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getULongValue(ExpertHandle, 0, ticket_number, _error);
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       property_id = (ENUM_DEAL_PROPERTY_INTEGER) tmpEnumValue;
       
-      sendLongResponse(ExpertHandle, HistoryDealGetInteger(ticket_number, property_id));
+      sendLongResponse(ExpertHandle, HistoryDealGetInteger(ticket_number, property_id), _response_error);
    }
    break;   
    
@@ -618,11 +622,11 @@ int executeCommand()
       ENUM_DEAL_PROPERTY_STRING property_id;
       int tmpEnumValue;
       
-      getULongValue(ExpertHandle, 0, ticket_number);
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getULongValue(ExpertHandle, 0, ticket_number, _error);
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       property_id = (ENUM_DEAL_PROPERTY_STRING) tmpEnumValue;
       
-      sendStringResponse(ExpertHandle, HistoryDealGetString(ticket_number, property_id));
+      sendStringResponse(ExpertHandle, HistoryDealGetString(ticket_number, property_id), _response_error);
    }
    break;      
 
@@ -631,10 +635,10 @@ int executeCommand()
       ENUM_ACCOUNT_INFO_DOUBLE property_id;
       int tmpEnumValue;
       
-      getIntValue(ExpertHandle, 0, tmpEnumValue);      
+      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
       property_id = (ENUM_ACCOUNT_INFO_DOUBLE) tmpEnumValue;
       
-      sendDoubleResponse(ExpertHandle, AccountInfoDouble(property_id));
+      sendDoubleResponse(ExpertHandle, AccountInfoDouble(property_id), _response_error);
    }
    break;      
 
@@ -643,10 +647,10 @@ int executeCommand()
       ENUM_ACCOUNT_INFO_INTEGER property_id;
       int tmpEnumValue;
       
-      getIntValue(ExpertHandle, 0, tmpEnumValue);      
+      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
       property_id = (ENUM_ACCOUNT_INFO_INTEGER) tmpEnumValue;
       
-      sendLongResponse(ExpertHandle, AccountInfoInteger(property_id));
+      sendLongResponse(ExpertHandle, AccountInfoInteger(property_id), _response_error);
    }
    break;   
 
@@ -655,10 +659,10 @@ int executeCommand()
       ENUM_ACCOUNT_INFO_STRING property_id;
       int tmpEnumValue;
       
-      getIntValue(ExpertHandle, 0, tmpEnumValue);      
+      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
       property_id = (ENUM_ACCOUNT_INFO_STRING) tmpEnumValue;
       
-      sendStringResponse(ExpertHandle, AccountInfoString(property_id));
+      sendStringResponse(ExpertHandle, AccountInfoString(property_id), _response_error);
    }
    break; 
    
@@ -668,15 +672,15 @@ int executeCommand()
       ENUM_SERIES_INFO_INTEGER prop_id;
       int tmpEnumValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);      
+      getStringValue(ExpertHandle, 0, symbolValue, _error);      
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpEnumValue);
+      getIntValue(ExpertHandle, 2, tmpEnumValue, _error);
       prop_id = (ENUM_SERIES_INFO_INTEGER) tmpEnumValue;
       
-      sendLongResponse(ExpertHandle, SeriesInfoInteger(symbolValue, timeframe, prop_id));
+      sendLongResponse(ExpertHandle, SeriesInfoInteger(symbolValue, timeframe, prop_id), _response_error);
    }
    break; 
    
@@ -685,12 +689,12 @@ int executeCommand()
       ENUM_TIMEFRAMES timeframe;
       int tmpEnumValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);      
+      getStringValue(ExpertHandle, 0, symbolValue, _error);      
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
             
-      sendIntResponse(ExpertHandle, Bars(symbolValue, timeframe));
+      sendIntResponse(ExpertHandle, Bars(symbolValue, timeframe), _response_error);
    }
    break; 
    
@@ -702,19 +706,19 @@ int executeCommand()
       int tmpEnumValue;
       int tmpDateValue;      
       
-      getStringValue(ExpertHandle, 0, symbolValue);      
+      getStringValue(ExpertHandle, 0, symbolValue, _error);      
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);       
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);       
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, tmpDateValue);      
+      getIntValue(ExpertHandle, 3, tmpDateValue, _error);      
       stop_time = (datetime)tmpDateValue;
 
             
-      sendIntResponse(ExpertHandle, Bars(symbolValue, timeframe, start_time, stop_time));
+      sendIntResponse(ExpertHandle, Bars(symbolValue, timeframe, start_time, stop_time), _response_error);
    }
    break; 
       
@@ -722,9 +726,9 @@ int executeCommand()
    {
       int indicator_handle;
       
-      getIntValue(ExpertHandle, 0, indicator_handle);
+      getIntValue(ExpertHandle, 0, indicator_handle, _error);
             
-      sendIntResponse(ExpertHandle, BarsCalculated(indicator_handle));
+      sendIntResponse(ExpertHandle, BarsCalculated(indicator_handle), _response_error);
    }
    break; 
    
@@ -736,14 +740,14 @@ int executeCommand()
       int count;
       double buffer[];
 
-      getIntValue(ExpertHandle, 0, indicator_handle);
-      getIntValue(ExpertHandle, 1, buffer_num);
-      getIntValue(ExpertHandle, 2, start_pos);
-      getIntValue(ExpertHandle, 3, count);
+      getIntValue(ExpertHandle, 0, indicator_handle, _error);
+      getIntValue(ExpertHandle, 1, buffer_num, _error);
+      getIntValue(ExpertHandle, 2, start_pos, _error);
+      getIntValue(ExpertHandle, 3, count, _error);
             
       int copied = CopyBuffer(indicator_handle, buffer_num, start_pos, count, buffer);
       
-      sendDoubleArrayResponse(ExpertHandle, buffer, copied);
+      sendDoubleArrayResponse(ExpertHandle, buffer, copied, _response_error);
    }
    break; 
    
@@ -756,15 +760,15 @@ int executeCommand()
       double buffer[];
       int tmpDateValue;
 
-      getIntValue(ExpertHandle, 0, indicator_handle);
-      getIntValue(ExpertHandle, 1, buffer_num);
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 0, indicator_handle, _error);
+      getIntValue(ExpertHandle, 1, buffer_num, _error);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
-      getIntValue(ExpertHandle, 3, count);
+      getIntValue(ExpertHandle, 3, count, _error);
             
       int copied = CopyBuffer(indicator_handle, buffer_num, start_time, count, buffer);
       
-      sendDoubleArrayResponse(ExpertHandle, buffer, copied);
+      sendDoubleArrayResponse(ExpertHandle, buffer, copied, _response_error);
    }
    break; 
    
@@ -777,16 +781,16 @@ int executeCommand()
       double buffer[];
       int tmpDateValue;
 
-      getIntValue(ExpertHandle, 0, indicator_handle);
-      getIntValue(ExpertHandle, 1, buffer_num);
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 0, indicator_handle, _error);
+      getIntValue(ExpertHandle, 1, buffer_num, _error);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
-      getIntValue(ExpertHandle, 3, tmpDateValue);
+      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
       stop_time = (datetime)tmpDateValue;
             
       int copied = CopyBuffer(indicator_handle, buffer_num, start_time, stop_time, buffer);
       
-      sendDoubleArrayResponse(ExpertHandle, buffer, copied);
+      sendDoubleArrayResponse(ExpertHandle, buffer, copied, _response_error);
    }
    break;
    
@@ -798,17 +802,17 @@ int executeCommand()
       int count;
       MqlRates rates[];
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, start_pos);            
-      getIntValue(ExpertHandle, 3, count);         
+      getIntValue(ExpertHandle, 2, start_pos, _error);            
+      getIntValue(ExpertHandle, 3, count, _error);         
       
       int copied = CopyRates(symbolValue, timeframe, start_pos, count, rates);       
 
-      sendMqlRatesArrayResponse(ExpertHandle, rates, copied);
+      sendMqlRatesArrayResponse(ExpertHandle, rates, copied, _response_error);
    }
    break; 
    
@@ -821,19 +825,19 @@ int executeCommand()
       MqlRates rates[];
       int tmpDateValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, count);         
+      getIntValue(ExpertHandle, 3, count, _error);         
       
       int copied = CopyRates(symbolValue, timeframe, start_time, count, rates);       
 
-      sendMqlRatesArrayResponse(ExpertHandle, rates, copied);
+      sendMqlRatesArrayResponse(ExpertHandle, rates, copied, _response_error);
    }
    break; 
    
@@ -846,20 +850,20 @@ int executeCommand()
       MqlRates rates[];
       int tmpDateValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, tmpDateValue);
+      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
       stop_time = (datetime)tmpDateValue;        
       
       int copied = CopyRates(symbolValue, timeframe, start_time, stop_time, rates);       
 
-      sendMqlRatesArrayResponse(ExpertHandle, rates, copied);
+      sendMqlRatesArrayResponse(ExpertHandle, rates, copied, _response_error);
    }
    break;
    
@@ -871,17 +875,17 @@ int executeCommand()
       int count;
       datetime time_array[];
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, start_pos);            
-      getIntValue(ExpertHandle, 3, count);       
+      getIntValue(ExpertHandle, 2, start_pos, _error);            
+      getIntValue(ExpertHandle, 3, count, _error);       
       
       int copied = CopyTime(symbolValue, timeframe, start_pos, count, time_array);       
 
-      sendLongArrayResponse(ExpertHandle, time_array, copied);
+      sendLongArrayResponse(ExpertHandle, time_array, copied, _response_error);
    }
    break;
    
@@ -894,19 +898,19 @@ int executeCommand()
       datetime time_array[];
       int tmpDateValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, count);    
+      getIntValue(ExpertHandle, 3, count, _error);    
       
       int copied = CopyTime(symbolValue, timeframe, start_time, count, time_array);       
 
-      sendLongArrayResponse(ExpertHandle, time_array, copied);
+      sendLongArrayResponse(ExpertHandle, time_array, copied, _response_error);
    }
    break;
    
@@ -919,20 +923,20 @@ int executeCommand()
       datetime time_array[];
       int tmpDateValue;     
        
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, tmpDateValue);
+      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
       stop_time = (datetime)tmpDateValue;    
       
       int copied = CopyTime(symbolValue, timeframe, start_time, stop_time, time_array);       
 
-      sendLongArrayResponse(ExpertHandle, time_array, copied);
+      sendLongArrayResponse(ExpertHandle, time_array, copied, _response_error);
    }
    break;
    
@@ -944,17 +948,17 @@ int executeCommand()
       int count;
       double open_array[];
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, start_pos);            
-      getIntValue(ExpertHandle, 3, count);       
+      getIntValue(ExpertHandle, 2, start_pos, _error);            
+      getIntValue(ExpertHandle, 3, count, _error);       
       
       int copied = CopyOpen(symbolValue, timeframe, start_pos, count, open_array);       
 
-      sendDoubleArrayResponse(ExpertHandle, open_array, copied);
+      sendDoubleArrayResponse(ExpertHandle, open_array, copied, _response_error);
    }
    break;   
    
@@ -967,19 +971,19 @@ int executeCommand()
       double open_array[];
       int tmpDateValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, count); 
+      getIntValue(ExpertHandle, 3, count, _error); 
       
       int copied = CopyOpen(symbolValue, timeframe, start_time, count, open_array);       
 
-      sendDoubleArrayResponse(ExpertHandle, open_array, copied);
+      sendDoubleArrayResponse(ExpertHandle, open_array, copied, _response_error);
    }
    break;     
    
@@ -992,20 +996,20 @@ int executeCommand()
       double open_array[];
       int tmpDateValue;  
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, tmpDateValue);
+      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
       stop_time = (datetime)tmpDateValue;  
       
       int copied = CopyOpen(symbolValue, timeframe, start_time, stop_time, open_array);       
 
-      sendDoubleArrayResponse(ExpertHandle, open_array, copied);
+      sendDoubleArrayResponse(ExpertHandle, open_array, copied, _response_error);
    }
    break;   
    
@@ -1017,17 +1021,17 @@ int executeCommand()
       int count;
       double high_array[];
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, start_pos);            
-      getIntValue(ExpertHandle, 3, count);   
+      getIntValue(ExpertHandle, 2, start_pos, _error);
+      getIntValue(ExpertHandle, 3, count, _error);
       
       int copied = CopyHigh(symbolValue, timeframe, start_pos, count, high_array);       
 
-      sendDoubleArrayResponse(ExpertHandle, high_array, copied);
+      sendDoubleArrayResponse(ExpertHandle, high_array, copied, _response_error);
    }
    break;  
    
@@ -1040,19 +1044,19 @@ int executeCommand()
       double high_array[];
       int tmpDateValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, count);   
+      getIntValue(ExpertHandle, 3, count, _error);
       
       int copied = CopyHigh(symbolValue, timeframe, start_time, count, high_array);       
 
-      sendDoubleArrayResponse(ExpertHandle, high_array, copied);
+      sendDoubleArrayResponse(ExpertHandle, high_array, copied, _response_error);
    }
    break;    
    
@@ -1065,20 +1069,20 @@ int executeCommand()
       double high_array[];
       int tmpDateValue;  
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, tmpDateValue);
+      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
       stop_time = (datetime)tmpDateValue;    
       
       int copied = CopyHigh(symbolValue, timeframe, start_time, stop_time, high_array);       
 
-      sendDoubleArrayResponse(ExpertHandle, high_array, copied);
+      sendDoubleArrayResponse(ExpertHandle, high_array, copied, _response_error);
    }
    break;   
    
@@ -1090,17 +1094,17 @@ int executeCommand()
       int count;
       double low_array[];
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, start_pos);            
-      getIntValue(ExpertHandle, 3, count);   
+      getIntValue(ExpertHandle, 2, start_pos, _error);
+      getIntValue(ExpertHandle, 3, count, _error);
       
       int copied = CopyLow(symbolValue, timeframe, start_pos, count, low_array);       
 
-      sendDoubleArrayResponse(ExpertHandle, low_array, copied);
+      sendDoubleArrayResponse(ExpertHandle, low_array, copied, _response_error);
    }
    break;     
    
@@ -1113,19 +1117,19 @@ int executeCommand()
       double low_array[];
       int tmpDateValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, count);   
+      getIntValue(ExpertHandle, 3, count, _error);
       
       int copied = CopyLow(symbolValue, timeframe, start_time, count, low_array);       
 
-      sendDoubleArrayResponse(ExpertHandle, low_array, copied);
+      sendDoubleArrayResponse(ExpertHandle, low_array, copied, _response_error);
    }
    break;    
    
@@ -1138,20 +1142,20 @@ int executeCommand()
       double low_array[];
       int tmpDateValue;  
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, tmpDateValue);
+      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
       stop_time = (datetime)tmpDateValue;     
       
       int copied = CopyLow(symbolValue, timeframe, start_time, stop_time, low_array);       
 
-      sendDoubleArrayResponse(ExpertHandle, low_array, copied);
+      sendDoubleArrayResponse(ExpertHandle, low_array, copied, _response_error);
    }
    break; 
    
@@ -1163,17 +1167,17 @@ int executeCommand()
       int count;
       double close_array[];
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, start_pos);            
-      getIntValue(ExpertHandle, 3, count);   
+      getIntValue(ExpertHandle, 2, start_pos, _error);
+      getIntValue(ExpertHandle, 3, count, _error);
       
       int copied = CopyClose(symbolValue, timeframe, start_pos, count, close_array);       
 
-      sendDoubleArrayResponse(ExpertHandle, close_array, copied);
+      sendDoubleArrayResponse(ExpertHandle, close_array, copied, _response_error);
    }
    break;  
    
@@ -1186,19 +1190,19 @@ int executeCommand()
       double close_array[];
       int tmpDateValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, count);    
+      getIntValue(ExpertHandle, 3, count, _error);
       
       int copied = CopyClose(symbolValue, timeframe, start_time, count, close_array);       
 
-      sendDoubleArrayResponse(ExpertHandle, close_array, copied);
+      sendDoubleArrayResponse(ExpertHandle, close_array, copied, _response_error);
    }
    break;   
    
@@ -1211,20 +1215,20 @@ int executeCommand()
       double close_array[];
       int tmpDateValue;  
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, tmpDateValue);
+      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
       stop_time = (datetime)tmpDateValue;      
       
       int copied = CopyClose(symbolValue, timeframe, start_time, stop_time, close_array);       
 
-      sendDoubleArrayResponse(ExpertHandle, close_array, copied);
+      sendDoubleArrayResponse(ExpertHandle, close_array, copied, _response_error);
    }
    break; 
    
@@ -1236,17 +1240,17 @@ int executeCommand()
       int count;
       long volume_array[];
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, start_pos);            
-      getIntValue(ExpertHandle, 3, count);   
+      getIntValue(ExpertHandle, 2, start_pos, _error);
+      getIntValue(ExpertHandle, 3, count, _error);
       
       int copied = CopyTickVolume(symbolValue, timeframe, start_pos, count, volume_array);       
 
-      sendLongArrayResponse(ExpertHandle, volume_array, copied);
+      sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error);
    }
    break; 
    
@@ -1259,19 +1263,19 @@ int executeCommand()
       long volume_array[];
       int tmpDateValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, count);    
+      getIntValue(ExpertHandle, 3, count, _response_error);
       
       int copied = CopyTickVolume(symbolValue, timeframe, start_time, count, volume_array);       
 
-      sendLongArrayResponse(ExpertHandle, volume_array, copied);
+      sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error);
    }
    break;       
    
@@ -1284,20 +1288,20 @@ int executeCommand()
       long volume_array[];
       int tmpDateValue;  
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, tmpDateValue);
+      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
       stop_time = (datetime)tmpDateValue;     
       
       int copied = CopyTickVolume(symbolValue, timeframe, start_time, stop_time, volume_array);       
 
-      sendLongArrayResponse(ExpertHandle, volume_array, copied);
+      sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error);
    }
    break;
    
@@ -1309,17 +1313,17 @@ int executeCommand()
       int count;
       long volume_array[];
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, start_pos);            
-      getIntValue(ExpertHandle, 3, count);   
+      getIntValue(ExpertHandle, 2, start_pos, _error);
+      getIntValue(ExpertHandle, 3, count, _error);
       
       int copied = CopyRealVolume(symbolValue, timeframe, start_pos, count, volume_array);       
 
-      sendLongArrayResponse(ExpertHandle, volume_array, copied);
+      sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error);
    }
    break; 
    
@@ -1332,19 +1336,19 @@ int executeCommand()
       long volume_array[];
       int tmpDateValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, count);    
+      getIntValue(ExpertHandle, 3, count, _error);
       
       int copied = CopyRealVolume(symbolValue, timeframe, start_time, count, volume_array);       
 
-      sendLongArrayResponse(ExpertHandle, volume_array, copied);
+      sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error);
    }
    break;   
    
@@ -1357,20 +1361,20 @@ int executeCommand()
       long volume_array[];
       int tmpDateValue;  
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, tmpDateValue);
+      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
       stop_time = (datetime)tmpDateValue;     
       
       int copied = CopyRealVolume(symbolValue, timeframe, start_time, stop_time, volume_array);       
 
-      sendLongArrayResponse(ExpertHandle, volume_array, copied);
+      sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error);
    }
    break;          
    
@@ -1382,17 +1386,17 @@ int executeCommand()
       int count;
       int spread_array[];
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, start_pos);            
-      getIntValue(ExpertHandle, 3, count);   
+      getIntValue(ExpertHandle, 2, start_pos, _error);
+      getIntValue(ExpertHandle, 3, count, _error);
       
       int copied = CopySpread(symbolValue, timeframe, start_pos, count, spread_array);       
 
-      sendIntArrayResponse(ExpertHandle, spread_array, copied);
+      sendIntArrayResponse(ExpertHandle, spread_array, copied, _response_error);
    }
    break; 
    
@@ -1405,19 +1409,19 @@ int executeCommand()
       int spread_array[];
       int tmpDateValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, count);    
+      getIntValue(ExpertHandle, 3, count, _error);
       
       int copied = CopySpread(symbolValue, timeframe, start_time, count, spread_array);       
 
-      sendIntArrayResponse(ExpertHandle, spread_array, copied);
+      sendIntArrayResponse(ExpertHandle, spread_array, copied, _response_error);
    }
    break;   
    
@@ -1430,20 +1434,20 @@ int executeCommand()
       int spread_array[];
       int tmpDateValue;  
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
       
-      getIntValue(ExpertHandle, 2, tmpDateValue);
+      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
       start_time = (datetime)tmpDateValue;
       
-      getIntValue(ExpertHandle, 3, tmpDateValue);
+      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
       stop_time = (datetime)tmpDateValue;     
       
       int copied = CopySpread(symbolValue, timeframe, start_time, stop_time, spread_array);       
 
-      sendIntArrayResponse(ExpertHandle, spread_array, copied);
+      sendIntArrayResponse(ExpertHandle, spread_array, copied, _response_error);
    }
    break;       
 
@@ -1452,11 +1456,11 @@ int executeCommand()
       bool selected;
       int retVal;
       
-      getBooleanValue(ExpertHandle, 0, selected);      
+      getBooleanValue(ExpertHandle, 0, selected, _error);
       
       retVal = SymbolsTotal(selected);       
 
-      sendIntResponse(ExpertHandle, retVal);
+      sendIntResponse(ExpertHandle, retVal, _error);
    }
    break;  
    
@@ -1465,12 +1469,12 @@ int executeCommand()
       bool selected; 
       int pos;     
       
-      getIntValue(ExpertHandle, 0, pos);  
-      getBooleanValue(ExpertHandle, 1, selected);  
+      getIntValue(ExpertHandle, 0, pos, _error);  
+      getBooleanValue(ExpertHandle, 1, selected, _error);
       
       symbolValue = SymbolName(pos, selected);       
 
-      sendStringResponse(ExpertHandle, symbolValue);
+      sendStringResponse(ExpertHandle, symbolValue, _error);
    }
    break;     
    
@@ -1479,12 +1483,12 @@ int executeCommand()
       bool select;
       bool retVal;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
-      getBooleanValue(ExpertHandle, 1, select);     
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
+      getBooleanValue(ExpertHandle, 1, select, _error);     
       
       retVal = SymbolSelect(symbolValue, select);       
 
-      sendBooleanResponse(ExpertHandle, retVal);
+      sendBooleanResponse(ExpertHandle, retVal, _response_error);
    }
    break;  
    
@@ -1492,11 +1496,11 @@ int executeCommand()
    {
       bool retVal;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      retVal = SymbolIsSynchronized(symbolValue);       
+      retVal = SymbolIsSynchronized(symbolValue);
 
-      sendBooleanResponse(ExpertHandle, retVal);
+      sendBooleanResponse(ExpertHandle, retVal, _response_error);
    }
    break;   
    
@@ -1506,14 +1510,14 @@ int executeCommand()
       int tmpEnumValue;
       double retVal;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       prop_id = (ENUM_SYMBOL_INFO_DOUBLE) tmpEnumValue;
       
-      retVal = SymbolInfoDouble(symbolValue, prop_id);       
+      retVal = SymbolInfoDouble(symbolValue, prop_id);
 
-      sendDoubleResponse(ExpertHandle, retVal);
+      sendDoubleResponse(ExpertHandle, retVal, _response_error);
    }
    break;
    
@@ -1523,14 +1527,14 @@ int executeCommand()
       int tmpEnumValue;
       long retVal;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       prop_id = (ENUM_SYMBOL_INFO_INTEGER) tmpEnumValue;
       
-      retVal = SymbolInfoInteger(symbolValue, prop_id);       
+      retVal = SymbolInfoInteger(symbolValue, prop_id);
 
-      sendLongResponse(ExpertHandle, retVal);
+      sendLongResponse(ExpertHandle, retVal, _response_error);
    }
    break;
    
@@ -1540,14 +1544,14 @@ int executeCommand()
       int tmpEnumValue;
       string retVal;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       prop_id = (ENUM_SYMBOL_INFO_STRING) tmpEnumValue;
       
-      retVal = SymbolInfoString(symbolValue, prop_id);       
+      retVal = SymbolInfoString(symbolValue, prop_id);
 
-      sendStringResponse(ExpertHandle, retVal);
+      sendStringResponse(ExpertHandle, retVal, _response_error);
    }
    break; 
    
@@ -1556,17 +1560,17 @@ int executeCommand()
       MqlTick tick={0}; 
       bool retVal;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
       retVal = SymbolInfoTick(symbolValue, tick);       
       
       if (retVal == true)
       {
-         sendMqlTickResponse(ExpertHandle, tick);
+         sendMqlTickResponse(ExpertHandle, tick, _response_error);
       }
       else
       {
-         sendVoidResponse(ExpertHandle);
+         sendVoidResponse(ExpertHandle, _response_error);
       }
    }
    break;     
@@ -1582,17 +1586,17 @@ int executeCommand()
       
       int tmpEnumValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
       day_of_week = (ENUM_DAY_OF_WEEK) tmpEnumValue;
       
-      getUIntValue(ExpertHandle, 2, session_index);
+      getUIntValue(ExpertHandle, 2, session_index, _error);
       
       retVal = SymbolInfoSessionQuote(symbolValue, day_of_week, session_index, from, to);       
 
-      string res = ResultToString(retVal, from, to);      
-      sendStringResponse(ExpertHandle, res);      
+      string res = ResultToString(retVal, from, to);
+      sendStringResponse(ExpertHandle, res, _response_error);
    }
    break;  
    
@@ -1607,17 +1611,17 @@ int executeCommand()
       
       int tmpEnumValue;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
-      getIntValue(ExpertHandle, 1, tmpEnumValue);      
+      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
       day_of_week = (ENUM_DAY_OF_WEEK) tmpEnumValue;
       
-      getUIntValue(ExpertHandle, 2, session_index);
+      getUIntValue(ExpertHandle, 2, session_index, _error);
       
       retVal = SymbolInfoSessionTrade(symbolValue, day_of_week, session_index, from, to);       
 
       string res = ResultToString(retVal, from, to);      
-      sendStringResponse(ExpertHandle, res);      
+      sendStringResponse(ExpertHandle, res, _response_error);
    }
    break; 
    
@@ -1625,11 +1629,11 @@ int executeCommand()
    {
       bool retVal;
             
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
       retVal = MarketBookAdd(symbolValue);       
 
-      sendBooleanResponse(ExpertHandle, retVal);      
+      sendBooleanResponse(ExpertHandle, retVal, _response_error);
    }
    break; 
    
@@ -1637,11 +1641,11 @@ int executeCommand()
    {
       bool retVal;
             
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
       retVal = MarketBookRelease(symbolValue);       
 
-      sendBooleanResponse(ExpertHandle, retVal);      
+      sendBooleanResponse(ExpertHandle, retVal, _response_error);
    }
    break; 
    
@@ -1650,18 +1654,18 @@ int executeCommand()
       MqlBookInfo book[];
       bool retVal;
       
-      getStringValue(ExpertHandle, 0, symbolValue);
+      getStringValue(ExpertHandle, 0, symbolValue, _error);
       
       retVal = MarketBookGet(symbolValue, book); 
       
       if(retVal)
       {
          int size = ArraySize(book);
-         sendMqlBookInfoArrayResponse(ExpertHandle, book, size);
+         sendMqlBookInfoArrayResponse(ExpertHandle, book, size, _response_error);
       }
       else
       {
-         sendVoidResponse(ExpertHandle);
+         sendVoidResponse(ExpertHandle, _response_error);
       }
    }
    break;
@@ -1678,22 +1682,22 @@ int executeCommand()
       string comment;
       StringInit(comment, 1000, 0);
             
-      getStringValue(ExpertHandle, 0, symbol);
+      getStringValue(ExpertHandle, 0, symbol, _error);
       int order_type_int = 0;
-      getIntValue(ExpertHandle, 1, order_type_int);
+      getIntValue(ExpertHandle, 1, order_type_int, _error);
       order_type = (ENUM_ORDER_TYPE) order_type_int;
-      getDoubleValue(ExpertHandle, 2, volume);
-      getDoubleValue(ExpertHandle, 3, price);
-      getDoubleValue(ExpertHandle, 4, sl);
-      getDoubleValue(ExpertHandle, 5, tp);
-      getStringValue(ExpertHandle, 6, comment);
+      getDoubleValue(ExpertHandle, 2, volume, _error);
+      getDoubleValue(ExpertHandle, 3, price, _error);
+      getDoubleValue(ExpertHandle, 4, sl, _error);
+      getDoubleValue(ExpertHandle, 5, tp, _error);
+      getStringValue(ExpertHandle, 6, comment, _error);
       
       PrintFormat("command PositionOpen: symbol = %s, order_type = %d, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
          symbol, order_type, volume, price, sl, tp, comment);
       
       CTrade trade;             
       bool result = trade.PositionOpen(symbol, order_type, volume, price, sl, tp, comment);
-      sendBooleanResponse(ExpertHandle, result);
+      sendBooleanResponse(ExpertHandle, result, _response_error);
       Print("command PositionOpen: result = ", result);
    }
    break;
@@ -1704,18 +1708,18 @@ int executeCommand()
       {
          Print("Remote client is ready for backteting");
          IsRemoteReadyForTesting = true;
-         sendBooleanResponse(ExpertHandle, true);
+         sendBooleanResponse(ExpertHandle, true, _response_error);
       }
       else
       {
-         sendBooleanResponse(ExpertHandle, false);
+         sendBooleanResponse(ExpertHandle, false, _response_error);
       }
    }
    break; 
 
    case 67: //IsTesting
    {
-      sendBooleanResponse(ExpertHandle, IsTesting());
+      sendBooleanResponse(ExpertHandle, IsTesting(), _response_error);
    }
    break;
    
@@ -1724,10 +1728,10 @@ int executeCommand()
       string printMsg;
       StringInit(printMsg, 1000, 0);
 
-      getStringValue(ExpertHandle, 0, printMsg);
+      getStringValue(ExpertHandle, 0, printMsg, _error);
          
       Print(printMsg);      
-      sendBooleanResponse(ExpertHandle, true);
+      sendBooleanResponse(ExpertHandle, true, _response_error);
    }
    break;
    
@@ -1737,7 +1741,7 @@ int executeCommand()
 
    default:
       Print("Unknown command type = ", commandType);
-      sendVoidResponse(ExpertHandle);
+      sendVoidResponse(ExpertHandle, _response_error);
       break;
    } 
    
@@ -1747,8 +1751,17 @@ int executeCommand()
 void Execute_PositionSelectByTicket()
 {
    ulong ticket;
-   getULongValue(ExpertHandle, 0, ticket);
-   sendBooleanResponse(ExpertHandle, PositionSelectByTicket(ticket));
+   if (!getULongValue(ExpertHandle, 0, ticket, _error))
+   {
+      PrintParamError("PositionSelectByTicket", "ticket", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, PositionSelectByTicket(ticket), _response_error))
+   {
+      PrintResponseError("PositionSelectByTicket", _response_error);
+   }
 }
 
 void PrintParamError(string paramName)
@@ -1756,9 +1769,14 @@ void PrintParamError(string paramName)
    Print("[ERROR] parameter: ", paramName);
 }
 
-void PrintResponseError(string commandName)
+void PrintParamError(string commandName, string paramName, string error)
 {
-   Print("[ERROR] response: ", commandName);
+   PrintFormat("[ERROR] Command: %s, parameter: %s. %s", commandName, paramName, error);
+}
+
+void PrintResponseError(string commandName, string error = "")
+{
+   PrintFormat("[ERROR] response: %s. %s", commandName, error);
 }
 
 void ReadMqlTradeRequestFromCommand(MqlTradeRequest& request)
@@ -1766,32 +1784,32 @@ void ReadMqlTradeRequestFromCommand(MqlTradeRequest& request)
       int tmpEnumValue;
       ulong m_magicValue = 0;
                   
-      getIntValue(ExpertHandle, 0, tmpEnumValue);
+      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);
       request.action = (ENUM_TRADE_REQUEST_ACTIONS)tmpEnumValue;      
       
-      getULongValue(ExpertHandle, 1, m_magicValue);     
+      getULongValue(ExpertHandle, 1, m_magicValue, _error);     
       request.magic = m_magicValue;
-      getULongValue(ExpertHandle, 2, request.order);     
-      getStringValue(ExpertHandle, 3, symbolValue);
+      getULongValue(ExpertHandle, 2, request.order, _error);     
+      getStringValue(ExpertHandle, 3, symbolValue, _error);
       request.symbol = symbolValue;
-      getDoubleValue(ExpertHandle, 4, request.volume);
-      getDoubleValue(ExpertHandle, 5, request.price);
-      getDoubleValue(ExpertHandle, 6, request.stoplimit);
-      getDoubleValue(ExpertHandle, 7, request.sl);
-      getDoubleValue(ExpertHandle, 8, request.tp);
-      getULongValue(ExpertHandle, 9, request.deviation);
-      getIntValue(ExpertHandle, 10, tmpEnumValue);      
+      getDoubleValue(ExpertHandle, 4, request.volume, _error);
+      getDoubleValue(ExpertHandle, 5, request.price, _error);
+      getDoubleValue(ExpertHandle, 6, request.stoplimit, _error);
+      getDoubleValue(ExpertHandle, 7, request.sl, _error);
+      getDoubleValue(ExpertHandle, 8, request.tp, _error);
+      getULongValue(ExpertHandle, 9, request.deviation, _error);
+      getIntValue(ExpertHandle, 10, tmpEnumValue, _error);      
       request.type = (ENUM_ORDER_TYPE)tmpEnumValue;      
-      getIntValue(ExpertHandle, 11, tmpEnumValue);
+      getIntValue(ExpertHandle, 11, tmpEnumValue, _error);
       request.type_filling = (ENUM_ORDER_TYPE_FILLING)tmpEnumValue;
-      getIntValue(ExpertHandle, 12, tmpEnumValue);
+      getIntValue(ExpertHandle, 12, tmpEnumValue, _error);
       request.type_time = (ENUM_ORDER_TYPE_TIME)tmpEnumValue;
-      getIntValue(ExpertHandle, 13, tmpEnumValue);
+      getIntValue(ExpertHandle, 13, tmpEnumValue, _error);
       request.expiration = (datetime)tmpEnumValue;  
-      getStringValue(ExpertHandle, 14, commentValue);         
+      getStringValue(ExpertHandle, 14, commentValue, _error);         
       request.comment = commentValue;
-      getULongValue(ExpertHandle, 15, request.position);
-      getULongValue(ExpertHandle, 16, request.position_by);
+      getULongValue(ExpertHandle, 15, request.position, _error);
+      getULongValue(ExpertHandle, 16, request.position_by, _error);
 }
 
 string BoolToString(bool value)

@@ -72,10 +72,11 @@ template <typename T> T Execute(std::function<T()> func, wchar_t* err, T default
     return result;
 }
 
-_DLLAPI int _stdcall initExpert(int expertHandle, int port, wchar_t* symbol, double bid, double ask, wchar_t* err)
+_DLLAPI int _stdcall initExpert(int expertHandle, int port, wchar_t* symbol, double bid, double ask, int isTestMode, wchar_t* err)
 {
-    return Execute<int>([&expertHandle, &port, symbol, &bid, &ask]() {
-        auto expert = gcnew MtExpert(expertHandle, gcnew String(symbol), bid, ask, gcnew MT5Handler());
+    return Execute<int>([&expertHandle, &port, symbol, &bid, &ask, &isTestMode]() {
+        bool isTesting = (isTestMode != 0) ? true : false;
+        auto expert = gcnew Mt5Expert(expertHandle, gcnew String(symbol), bid, ask, gcnew MT5Handler(), isTesting);
         MtAdapter::GetInstance()->AddExpert(port, expert);
         return 1;
     }, err, 0);

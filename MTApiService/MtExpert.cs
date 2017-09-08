@@ -29,7 +29,7 @@ namespace MTApiService
             _mtHadler = mtHandler;
         }
 
-        public void Deinit()
+        public virtual void Deinit()
         {
             Log.Debug("Deinit: begin.");
 
@@ -119,9 +119,13 @@ namespace MTApiService
             Log.Debug("SendEvent: end.");
         }
 
-        public virtual void SendQuote(MtQuote quote)
+        public virtual void UpdateQuote(MtQuote quote)
         {
+            Log.DebugFormat("UpdateQuote: begin. quote = {0}", quote);
+
             Quote = quote;
+
+            Log.Debug("UpdateQuote: end.");
         }
 
         public override string ToString()
