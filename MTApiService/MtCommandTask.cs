@@ -17,7 +17,7 @@ namespace MTApiService
             Command = command;
         }
 
-        public MtCommand Command { get; private set; }
+        public MtCommand Command { get; }
 
         public MtResponse WaitResult(int time)
         {

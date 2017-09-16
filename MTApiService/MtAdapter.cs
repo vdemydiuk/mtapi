@@ -36,12 +36,12 @@ namespace MTApiService
 
 
         #region Public Methods
-        public void InitExpert(int expertHandle, int port, string symbol, double bid, double ask, IMetaTraderHandler mtHandler)
+        public void AddExpert(int port, MtExpert expert)
         {
-            if (mtHandler == null)
-                throw new ArgumentNullException(nameof(mtHandler));
+            if (expert == null)
+                throw new ArgumentNullException(nameof(expert));
 
-            Log.InfoFormat("InitExpert: begin. symbol = {0}, expertHandle = {1}, port = {2}", symbol, expertHandle, port);
+            Log.InfoFormat("AddExpert: begin. expert = {0}", expert);
 
             MtServer server;
             lock (_servers)
@@ -60,8 +60,6 @@ namespace MTApiService
                 }
             }
 
-            var expert = new MtExpert(expertHandle, new MtQuote { Instrument = symbol, Bid = bid, Ask = ask, ExpertHandle = expertHandle }, mtHandler);
-
             lock (_experts)
             {
                 _experts[expert.Handle] = expert;
@@ -69,12 +67,12 @@ namespace MTApiService
 
             server.AddExpert(expert);
 
-            Log.Info("InitExpert: end");
+            Log.Info("AddExpert: end");
         }
 
-        public void DeinitExpert(int expertHandle)
+        public void RemoveExpert(int expertHandle)
         {
-            Log.InfoFormat("DeinitExpert: begin. expertHandle = {0}", expertHandle);
+            Log.InfoFormat("RemoveExpert: begin. expertHandle = {0}", expertHandle);
 
             MtExpert expert = null;
 
@@ -93,15 +91,15 @@ namespace MTApiService
             }
             else
             {
-                Log.WarnFormat("DeinitExpert: expert with id {0} has not been found.", expertHandle);
+                Log.WarnFormat("RemoveExpert: expert with id {0} has not been found.", expertHandle);
             }
 
-            Log.Info("DeinitExpert: end");
+            Log.Info("RemoveExpert: end");
         }
 
         public void SendQuote(int expertHandle, string symbol, double bid, double ask)
         {
-            Log.DebugFormat("SendQuote: begin. symbol = {0}, bid = {1}, ask = {2}", symbol, bid, ask);
+            Log.DebugFormat("UpdateQuote: begin. symbol = {0}, bid = {1}, ask = {2}", symbol, bid, ask);
 
             MtExpert expert;
             lock (_experts)
@@ -111,14 +109,14 @@ namespace MTApiService
 
             if (expert != null)
             {
-                expert.Quote = new MtQuote { Instrument = symbol, Bid = bid, Ask = ask, ExpertHandle = expertHandle };
+                expert.UpdateQuote(new MtQuote { Instrument = symbol, Bid = bid, Ask = ask, ExpertHandle = expertHandle });
             }
             else
             {
-                Log.WarnFormat("SendQuote: expert with id {0} has not been found.", expertHandle);
+                Log.WarnFormat("UpdateQuote: expert with id {0} has not been found.", expertHandle);
             }
 
-            Log.Debug("SendQuote: end");
+            Log.Debug("UpdateQuote: end");
         }
 
         public void SendEvent(int expertHandle, int eventType, string payload)

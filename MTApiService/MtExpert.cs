@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace MTApiService
 {
-    internal class MtExpert: ITaskExecutor
+    public class MtExpert: ITaskExecutor
     {
         public delegate void MtQuoteHandler(MtExpert expert, MtQuote quote);
         public delegate void MtEventHandler(MtExpert expert, MtEvent e);
@@ -19,21 +19,20 @@ namespace MTApiService
         #endregion
 
         #region Public Methods
-        public MtExpert(int handle, MtQuote quote, IMetaTraderHandler mtHandler)
+        public MtExpert(int handle, string symbol, double bid, double ask, IMetaTraderHandler mtHandler)
         {
             if (mtHandler == null)
                 throw new ArgumentNullException(nameof(mtHandler));
 
-            Quote = quote;
+            _quote = new MtQuote { ExpertHandle = handle, Instrument = symbol, Bid = bid, Ask =  ask};
             Handle = handle;
             _mtHadler = mtHandler;
         }
 
-        public void Deinit()
+        public virtual void Deinit()
         {
             Log.Debug("Deinit: begin.");
 
-            IsEnable = false;
             FireOnDeinited();
 
             Log.Debug("Deinit: end.");
@@ -120,9 +119,18 @@ namespace MTApiService
             Log.Debug("SendEvent: end.");
         }
 
+        public virtual void UpdateQuote(MtQuote quote)
+        {
+            Log.DebugFormat("UpdateQuote: begin. quote = {0}", quote);
+
+            Quote = quote;
+
+            Log.Debug("UpdateQuote: end.");
+        }
+
         public override string ToString()
         {
-            return $"ExpertHandle = {Handle}";
+            return $"ExpertHandle = {Handle}, Quote = {Quote}";
         }
 
         #endregion
@@ -153,7 +161,7 @@ namespace MTApiService
                     return _quote;
                 }
             }
-            set
+            private set
             {
                 lock (_locker)
                 {
@@ -165,26 +173,6 @@ namespace MTApiService
         }
 
         public int Handle { get; }
-
-        private bool _isEnable = true;
-        public bool IsEnable
-        {
-            get
-            {
-                lock (_locker)
-                {
-                    return _isEnable;
-                }
-            }
-            private set
-            {
-                lock (_locker)
-                {
-                    _isEnable = value;
-                }
-            }
-        }
-
         #endregion
 
         #region Private Methods
