@@ -53,7 +53,7 @@ void convertSystemString(wchar_t* dest, String^ src)
 {
     pin_ptr<const wchar_t> wch = PtrToStringChars(src);
     memcpy(dest, wch, wcslen(wch) * sizeof(wchar_t));
-    dest[wcslen(wch)] = '\0';
+    dest[wcslen(wch)] = L'\0';
 }
 
 #define _DLLAPI extern "C" __declspec(dllexport)
