@@ -278,7 +278,7 @@ _DLLAPI int _stdcall getStringValue(int expertHandle, int paramIndex, wchar_t* r
 _DLLAPI int _stdcall getULongValue(int expertHandle, int paramIndex, unsigned __int64* res, wchar_t* err)
 {
     return Execute<int>([&expertHandle, &paramIndex, res]() {
-        *res = (unsigned long)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = (unsigned __int64)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
         return 1;
     }, err, 0);
 }
@@ -286,7 +286,7 @@ _DLLAPI int _stdcall getULongValue(int expertHandle, int paramIndex, unsigned __
 _DLLAPI int _stdcall getLongValue(int expertHandle, int paramIndex, __int64* res, wchar_t* err)
 {
     return Execute<int>([&expertHandle, &paramIndex, res]() {
-        *res = (long)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = (__int64)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
         return 1;
     }, err, 0);
 }
