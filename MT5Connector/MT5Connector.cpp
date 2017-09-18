@@ -51,9 +51,15 @@ public struct CMqlBookInfo
 
 void convertSystemString(wchar_t* dest, String^ src)
 {
-    pin_ptr<const wchar_t> wch = PtrToStringChars(src);
-    memcpy(dest, wch, wcsnlen(wch, 1000) * sizeof(wchar_t));
-    dest[wcsnlen(wch, 1000)] = L'\0';
+    if (src != nullptr) {
+        pin_ptr<const wchar_t> wch = PtrToStringChars(src);
+        memcpy(dest, wch, wcsnlen(wch, 1000) * sizeof(wchar_t));
+        dest[wcsnlen(wch, 1000)] = L'\0';
+    }
+    else
+    {
+        dest[0] = L'\0';
+    }
 }
 
 #define _DLLAPI extern "C" __declspec(dllexport)
