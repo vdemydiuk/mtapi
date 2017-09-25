@@ -149,7 +149,7 @@ namespace MtApi5
 
             return new ArrayList { (int)request.Action, request.Magic, request.Order, request.Symbol, request.Volume
                 , request.Price, request.Stoplimit, request.Sl, request.Tp, request.Deviation, (int)request.Type
-                , (int)request.Type_filling, (int)request.Type_time, exp, request.Comment };
+                , (int)request.Type_filling, (int)request.Type_time, exp, request.Comment, request.Position, request.PositionBy };
         }
 
         #endregion

@@ -9,9 +9,9 @@ namespace MTApiService
         [DataMember]
         public int Action { get; set; }
         [DataMember]
-        public uint Magic { get; set; }
+        public ulong Magic { get; set; }
         [DataMember]
-        public uint Order { get; set; }
+        public ulong Order { get; set; }
         [DataMember]
         public string Symbol { get; set; }
         [DataMember]
@@ -25,7 +25,7 @@ namespace MTApiService
         [DataMember]
         public double Tp { get; set; }
         [DataMember]
-        public uint Deviation { get; set; }
+        public ulong Deviation { get; set; }
         [DataMember]
         public int Type { get; set; }
         [DataMember]
@@ -36,5 +36,9 @@ namespace MTApiService
         public DateTime Expiration { get; set; }
         [DataMember]
         public string Comment { get; set; }
+        [DataMember]
+        public ulong Position { get; set; }
+        [DataMember]
+        public ulong PositionBy { get; set; }
     }
 }

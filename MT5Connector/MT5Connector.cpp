@@ -51,9 +51,15 @@ public struct CMqlBookInfo
 
 void convertSystemString(wchar_t* dest, String^ src)
 {
-    pin_ptr<const wchar_t> wch = PtrToStringChars(src);
-    memcpy(dest, wch, wcslen(wch) * sizeof(wchar_t));
-    dest[wcslen(wch)] = '\0';
+    if (src != nullptr) {
+        pin_ptr<const wchar_t> wch = PtrToStringChars(src);
+        memcpy(dest, wch, wcsnlen(wch, 1000) * sizeof(wchar_t));
+        dest[wcsnlen(wch, 1000)] = L'\0';
+    }
+    else
+    {
+        dest[0] = L'\0';
+    }
 }
 
 #define _DLLAPI extern "C" __declspec(dllexport)
@@ -278,7 +284,7 @@ _DLLAPI int _stdcall getStringValue(int expertHandle, int paramIndex, wchar_t* r
 _DLLAPI int _stdcall getULongValue(int expertHandle, int paramIndex, unsigned __int64* res, wchar_t* err)
 {
     return Execute<int>([&expertHandle, &paramIndex, res]() {
-        *res = (unsigned long)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = (unsigned __int64)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
         return 1;
     }, err, 0);
 }
@@ -286,7 +292,7 @@ _DLLAPI int _stdcall getULongValue(int expertHandle, int paramIndex, unsigned __
 _DLLAPI int _stdcall getLongValue(int expertHandle, int paramIndex, __int64* res, wchar_t* err)
 {
     return Execute<int>([&expertHandle, &paramIndex, res]() {
-        *res = (long)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = (__int64)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
         return 1;
     }, err, 0);
 }
