@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace MtApi5
+﻿namespace MtApi5
 {
     internal enum Mt5CommandType
     {
@@ -115,6 +110,25 @@ namespace MtApi5
         //Requests
         MtRequest                           = 155,
 
-        PositionSelectByTicket              = 69
+        PositionSelectByTicket              = 69,
+
+        ObjectCreate                        = 70,
+        ObjectName                          = 71,
+        ObjectDelete                        = 72,
+        ObjectsDeleteAll                    = 73,
+        ObjectFind                          = 74,
+        ObjectGetTimeByValue                = 75,
+        ObjectGetValueByTime                = 76,
+        ObjectMove                          = 77,
+        ObjectsTotal                        = 78,
+        ObjectGetDouble                     = 79,
+        ObjectGetInteger                    = 80,
+        ObjectGetString                     = 81,
+        ObjectSetDouble                     = 82,
+        ObjectSetInteger                    = 83,
+        ObjectSetString                     = 84,
+        TextSetFont                         = 85,
+        TextOut                             = 86,
+        TextGetSize                         = 87
     }
 }

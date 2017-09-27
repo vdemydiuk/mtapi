@@ -1419,9 +1419,141 @@ namespace MtApi5
 
             return SendCommand<bool>(Mt5CommandType.Print, commandParameters);
         }
-        #endregion
+        #endregion // Common Functions
 
-        #endregion
+        #region Object Functions
+
+        ///<summary>
+        ///The function creates an object with the specified name, type, and the initial coordinates in the specified chart subwindow. 
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="name">Name of the object. The name must be unique within a chart, including its subwindows.</param>
+        ///<param name="type">Object type. The value can be one of the values of the ENUM_OBJECT enumeration.</param>
+        ///<param name="nwin">Number of the chart subwindow. 0 means the main chart window. The specified subwindow must exist, otherwise the function returns false.</param>
+        ///<param name="time">The time coordinate of the first anchor.</param>
+        ///<param name="price">The price coordinate of the first anchor point.</param>
+        public bool ObjectCreate(long chartId, string name, ENUM_OBJECT type, int nwin, DateTime time, double price)
+        {
+            var commandParameters = new ArrayList { chartId, name, (int)type, nwin, Mt5TimeConverter.ConvertToMtTime(time), price };
+            return SendCommand<bool>(Mt5CommandType.ObjectCreate, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the name of the corresponding object in the specified chart, in the specified subwindow, of the specified type.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="pos">Ordinal number of the object according to the specified filter by the number and type of the subwindow.</param>
+        ///<param name="subWindow">umber of the chart subwindow. 0 means the main chart window, -1 means all the subwindows of the chart, including the main window.</param>
+        ///<param name="type">Type of the object. The value can be one of the values of the ENUM_OBJECT enumeration. -1 means all types.</param>
+        public string ObjectName(long chartId, int pos, int subWindow = -1, int type = -1)
+        {
+            var commandParameters = new ArrayList { chartId, pos, subWindow, type };
+            return SendCommand<string>(Mt5CommandType.ObjectName, commandParameters);
+        }
+
+        ///<summary>
+        ///The function removes the object with the specified name from the specified chart.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="name">Name of object to be deleted.</param>
+        public bool ObjectDelete(long chartId, string name)
+        {
+            var commandParameters = new ArrayList { chartId, name };
+            return SendCommand<bool>(Mt5CommandType.ObjectDelete, commandParameters);
+        }
+
+        ///<summary>
+        ///The function removes the object with the specified name from the specified chart.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="subWindow">Number of the chart subwindow. 0 means the main chart window, -1 means all the subwindows of the chart, including the main window.</param>
+        ///<param name="type">Type of the object. The value can be one of the values of the ENUM_OBJECT enumeration. -1 means all types.</param>
+        public int ObjectsDeleteAll(long chartId, int subWindow = -1, int type = -1)
+        {
+            var commandParameters = new ArrayList { chartId, subWindow, type };
+            return SendCommand<int>(Mt5CommandType.ObjectsDeleteAll, commandParameters);
+        }
+
+        ///<summary>
+        ///The function searches for an object with the specified name in the chart with the specified ID.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="name">The name of the searched object.</param>
+        public int ObjectFind(long chartId, string name)
+        {
+            var commandParameters = new ArrayList { chartId, name };
+            return SendCommand<int>(Mt5CommandType.ObjectFind, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the time value for the specified price value of the specified object.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="name">Name of the object.</param>
+        ///<param name="value">Price value.</param>
+        ///<param name="lineId">Line identifier.</param>
+        public DateTime ObjectGetTimeByValue(long chartId, string name, double value, int lineId)
+        {
+            var commandParameters = new ArrayList { chartId, name, value, lineId };
+            var res = SendCommand<int>(Mt5CommandType.ObjectGetTimeByValue, commandParameters);
+            return Mt5TimeConverter.ConvertFromMtTime(res);
+        }
+
+        ///<summary>
+        ///The function returns the price value for the specified time value of the specified object.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="name">Name of the object.</param>
+        ///<param name="time">Time value.</param>
+        ///<param name="lineId">Line identifier.</param>
+        public double ObjectGetValueByTime(long chartId, string name, DateTime time, int lineId)
+        {
+            var commandParameters = new ArrayList { chartId, name, Mt5TimeConverter.ConvertToMtTime(time), lineId };
+            return SendCommand<double>(Mt5CommandType.ObjectGetValueByTime, commandParameters);
+        }
+
+        ///<summary>
+        ///The function changes coordinates of the specified anchor point of the object.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="name">Name of the object.</param>
+        ///<param name="pointIndex">Index of the anchor point. The number of anchor points depends on the type of object.</param>
+        ///<param name="time">Time coordinate of the selected anchor point.</param>
+        ///<param name="price">Price coordinate of the selected anchor point.</param>
+        public bool ObjectMove(long chartId, string name, int pointIndex, DateTime time, double price)
+        {
+            var commandParameters = new ArrayList { chartId, name, pointIndex, Mt5TimeConverter.ConvertToMtTime(time), price };
+            return SendCommand<bool>(Mt5CommandType.ObjectMove, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the number of objects in the specified chart, specified subwindow, of the specified type.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="subWindow">Number of the chart subwindow. 0 means the main chart window, -1 means all the subwindows of the chart, including the main window.</param>
+        ///<param name="type">Type of the object. The value can be one of the values of the ENUM_OBJECT enumeration. -1 means all types.</param>
+        public int ObjectsTotal(long chartId, int subWindow = -1, int type = -1)
+
+        {
+            var commandParameters = new ArrayList { chartId, subWindow, type };
+            return SendCommand<int>(Mt5CommandType.ObjectsTotal, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the number of objects in the specified chart, specified subwindow, of the specified type.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="name">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the ENUM_OBJECT_PROPERTY_DOUBLE enumeration.</param>
+        ///<param name="propValue">The value of the property.</param>
+        public bool ObjectSetDouble(long chartId, string name, ENUM_OBJECT_PROPERTY_DOUBLE propId, double propValue)
+
+        {
+            var commandParameters = new ArrayList { chartId, name, (int)propId, propValue };
+            return SendCommand<bool>(Mt5CommandType.ObjectsTotal, commandParameters);
+        }
+
+        #endregion //Object Functions
 
         #region Properties
         ///<summary>

@@ -657,4 +657,17 @@
     }
 
     #endregion // Object Types
-}
+
+    #region Object Properties
+
+    public enum ENUM_OBJECT_PROPERTY_DOUBLE
+    {
+        OBJPROP_PRICE = 9,          // Price coordinate
+        OBJPROP_LEVELVALUE = 204,   // Level value
+        OBJPROP_SCALE = 1006,       // Scale (properties of Gann objects and Fibonacci Arcs)
+        OBJPROP_ANGLE = 1007,       // Angle.  For the objects with no angle specified, created from a program, the value is equal to EMPTY_VALUE
+        OBJPROP_DEVIATION = 1010    // Deviation for the Standard Deviation Channel
+    }
+
+    #endregion
+    }
