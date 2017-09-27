@@ -669,5 +669,79 @@
         OBJPROP_DEVIATION = 1010    // Deviation for the Standard Deviation Channel
     }
 
-    #endregion
+    public enum ENUM_OBJECT_PROPERTY_INTEGER
+    {
+        OBJPROP_COLOR = 0,          // Color
+        OBJPROP_STYLE = 1,          // Style
+        OBJPROP_WIDTH = 2,          // Line thickness
+        OBJPROP_BACK = 3,           // Object in the background
+        OBJPROP_ZORDER = 207,       // Priority of a graphical object for receiving events of clicking on a chart (CHARTEVENT_CLICK). The default zero value is set when creating an object; the priority can be increased if necessary. When objects are placed one atop another, only one of them with the highest priority will receive the CHARTEVENT_CLICK event.
+        OBJPROP_FILL = 1031,        // Fill an object with color (for OBJ_RECTANGLE, OBJ_TRIANGLE, OBJ_ELLIPSE, OBJ_CHANNEL, OBJ_STDDEVCHANNEL, OBJ_REGRESSION)
+        OBJPROP_HIDDEN = 208,       // Prohibit showing of the name of a graphical object in the list of objects from the terminal menu "Charts" - "Objects" - "List of objects". The true value allows to hide an object from the list. By default, true is set to the objects that display calendar events, trading history and to the objects created from MQL5 programs. To see such graphical objects and access their properties, click on the "All" button in the "List of objects" window.
+        OBJPROP_SELECTED = 4,       // Object is selected
+        OBJPROP_READONLY = 1028,    // Ability to edit text in the Edit object
+        OBJPROP_TYPE = 7,           // Object type
+        OBJPROP_TIME = 8,           // Time coordinate
+        OBJPROP_SELECTABLE = 10,    // Object availability
+        OBJPROP_CREATETIME = 11,    // Time of object creation
+        OBJPROP_LEVELS = 200,       // Number of levels
+        OBJPROP_LEVELCOLOR = 201,   // Color of the line-level
+        OBJPROP_LEVELSTYLE = 202,   // Style of the line-level
+        OBJPROP_LEVELWIDTH = 203,   // Thickness of the line-level
+        OBJPROP_ALIGN = 1036,       // Horizontal text alignment in the "Edit" object (OBJ_EDIT)
+        OBJPROP_FONTSIZE = 1002,    // Font size
+        OBJPROP_RAY_LEFT = 1003,    // Ray goes to the left
+        OBJPROP_RAY_RIGHT = 1004,   // Ray goes to the right
+        OBJPROP_RAY = 1032,         // A vertical line goes through all the windows of a chart
+        OBJPROP_ELLIPSE = 1005,     // Showing the full ellipse of the Fibonacci Arc object (OBJ_FIBOARC)
+        OBJPROP_ARROWCODE = 1008,   // Arrow code for the Arrow object
+        OBJPROP_TIMEFRAMES = 12,    // Visibility of an object at timeframes
+        OBJPROP_ANCHOR = 1011,      // Location of the anchor point of a graphical object
+        OBJPROP_XDISTANCE = 1012,   // The distance in pixels along the X axis from the binding corner
+        OBJPROP_YDISTANCE = 1013,   // The distance in pixels along the Y axis from the binding corner
+        OBJPROP_DIRECTION = 1014,   // Trend of the Gann object
+        OBJPROP_DEGREE = 1015,      // Level of the Elliott Wave Marking
+        OBJPROP_DRAWLINES = 1016,   // Displaying lines for marking the Elliott Wave
+        OBJPROP_STATE = 1018,       // Button state (pressed / depressed)
+        OBJPROP_CHART_ID = 1030,    // ID of the "Chart" object (OBJ_CHART). It allows working with the properties of this object like with a normal chart using the functions described in Chart Operations, but there some exceptions.
+        OBJPROP_XSIZE = 1019,       // The object's width along the X axis in pixels. Specified for  OBJ_LABEL (read only), OBJ_BUTTON, OBJ_CHART, OBJ_BITMAP, OBJ_BITMAP_LABEL, OBJ_EDIT, OBJ_RECTANGLE_LABEL objects.
+        OBJPROP_YSIZE = 1020,       // The object's height along the Y axis in pixels. Specified for  OBJ_LABEL (read only), OBJ_BUTTON, OBJ_CHART, OBJ_BITMAP, OBJ_BITMAP_LABEL, OBJ_EDIT, OBJ_RECTANGLE_LABEL objects.
+        OBJPROP_XOFFSET = 1033,     // The X coordinate of the upper left corner of the rectangular visible area in the graphical objects "Bitmap Label" and "Bitmap" (OBJ_BITMAP_LABEL and OBJ_BITMAP). The value is set in pixels relative to the upper left corner of the original image.
+        OBJPROP_YOFFSET = 1034,     // The Y coordinate of the upper left corner of the rectangular visible area in the graphical objects "Bitmap Label" and "Bitmap" (OBJ_BITMAP_LABEL and OBJ_BITMAP). The value is set in pixels relative to the upper left corner of the original image.
+        OBJPROP_PERIOD = 1022,      // Timeframe for the Chart object
+        OBJPROP_DATE_SCALE = 1023,  // Displaying the time scale for the Chart object
+        OBJPROP_PRICE_SCALE = 1024, // Displaying the price scale for the Chart object
+        OBJPROP_CHART_SCALE = 1027, // The scale for the Chart object
+        OBJPROP_BGCOLOR = 1025,     // The background color for  OBJ_EDIT, OBJ_BUTTON, OBJ_RECTANGLE_LABEL
+        OBJPROP_CORNER = 1026,      // The corner of the chart to link a graphical object
+        OBJPROP_BORDER_TYPE = 1029, // Border type for the "Rectangle label" object
+        OBJPROP_BORDER_COLOR = 1035 // Border color for the OBJ_EDIT and OBJ_BUTTON objects
     }
+
+    public enum ENUM_OBJECT_PROPERTY_STRING
+    {
+        OBJPROP_NAME = 5,           // Object name
+        OBJPROP_TEXT = 6,           // Description of the object (the text contained in the object)
+        OBJPROP_TOOLTIP = 206,      // The text of a tooltip. If the property is not set, then the tooltip generated automatically by the terminal is shown. A tooltip can be disabled by setting the "\n" (line feed) value to it
+        OBJPROP_LEVELTEXT = 205,    // Level description
+        OBJPROP_FONT = 1001,        // Font
+        OBJPROP_BMPFILE = 1017,     // The name of BMP-file for Bitmap Label.
+        OBJPROP_SYMBOL = 1021       // Symbol for the Chart object
+    }
+
+    public enum ENUM_BORDER_TYPE
+    {
+        BORDER_FLAT = 0,    // Flat form
+        BORDER_RAISED = 1,  // Prominent form
+        BORDER_SUNKEN = 2   // Concave form
+    }
+
+    public enum ENUM_ALIGN_MODE
+    {
+        ALIGN_LEFT = 1,     // Left alignment
+        ALIGN_CENTER = 2,   // Centered (only for the Edit object)
+        ALIGN_RIGHT = 0,    // Right alignment
+    }
+
+    #endregion
+}
