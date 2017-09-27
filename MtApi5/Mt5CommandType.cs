@@ -127,8 +127,8 @@
         ObjectSetDouble                     = 82,
         ObjectSetInteger                    = 83,
         ObjectSetString                     = 84,
-        TextSetFont                         = 85,
-        TextOut                             = 86,
-        TextGetSize                         = 87
+        //TextSetFont                         = 85,
+        //TextOut                             = 86,
+        //TextGetSize                         = 87
     }
 }

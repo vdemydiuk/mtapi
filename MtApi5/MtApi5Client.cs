@@ -1540,7 +1540,7 @@ namespace MtApi5
         }
 
         ///<summary>
-        ///The function returns the number of objects in the specified chart, specified subwindow, of the specified type.
+        ///The function sets the value of the corresponding object property. The object property must be of the double type.
         ///</summary>
         ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
         ///<param name="name">Name of the object.</param>
@@ -1550,10 +1550,76 @@ namespace MtApi5
 
         {
             var commandParameters = new ArrayList { chartId, name, (int)propId, propValue };
-            return SendCommand<bool>(Mt5CommandType.ObjectsTotal, commandParameters);
+            return SendCommand<bool>(Mt5CommandType.ObjectSetDouble, commandParameters);
+        }
+
+        ///<summary>
+        ///The function sets the value of the corresponding object property. The object property must be of the datetime, int, color, bool or char type.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="name">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the ENUM_OBJECT_PROPERTY_INTEGER enumeration.</param>
+        ///<param name="propValue">The value of the property.</param>
+        public bool ObjectSetInteger(long chartId, string name, ENUM_OBJECT_PROPERTY_INTEGER propId, long propValue)
+
+        {
+            var commandParameters = new ArrayList { chartId, name, (int)propId, propValue };
+            return SendCommand<bool>(Mt5CommandType.ObjectSetInteger, commandParameters);
+        }
+
+        ///<summary>
+        ///The function sets the value of the corresponding object property. The object property must be of the string type.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="name">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the ENUM_OBJECT_PROPERTY_STRING enumeration.</param>
+        ///<param name="propValue">The value of the property.</param>
+        public bool ObjectSetString(long chartId, string name, ENUM_OBJECT_PROPERTY_STRING propId, string propValue)
+
+        {
+            var commandParameters = new ArrayList { chartId, name, (int)propId, propValue };
+            return SendCommand<bool>(Mt5CommandType.ObjectSetString, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the value of the corresponding object property. The object property must be of the double type.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="name">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the ENUM_OBJECT_PROPERTY_DOUBLE enumeration.</param>
+        public double ObjectGetDouble(long chartId, string name, ENUM_OBJECT_PROPERTY_DOUBLE propId)
+        {
+            var commandParameters = new ArrayList { chartId, name, (int)propId };
+            return SendCommand<double>(Mt5CommandType.ObjectGetDouble, commandParameters);
+        }
+
+        ///<summary>
+        ///he function returns the value of the corresponding object property. The object property must be of the datetime, int, color, bool or char type.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="name">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the ENUM_OBJECT_PROPERTY_INTEGER enumeration.</param>
+        public long ObjectGetInteger(long chartId, string name, ENUM_OBJECT_PROPERTY_INTEGER propId)
+        {
+            var commandParameters = new ArrayList { chartId, name, (int)propId };
+            return SendCommand<long>(Mt5CommandType.ObjectGetInteger, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the value of the corresponding object property. The object property must be of the string type.
+        ///</summary>
+        ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
+        ///<param name="name">Name of the object.</param>
+        ///<param name="propId">ID of the object property. The value can be one of the values of the ENUM_OBJECT_PROPERTY_STRING enumeration.</param>
+        public string ObjectGetString(long chartId, string name, ENUM_OBJECT_PROPERTY_STRING propId)
+        {
+            var commandParameters = new ArrayList { chartId, name, (int)propId };
+            return SendCommand<string>(Mt5CommandType.ObjectGetString, commandParameters);
         }
 
         #endregion //Object Functions
+
+        #endregion // Public Methods
 
         #region Properties
         ///<summary>

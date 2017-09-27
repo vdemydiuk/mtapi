@@ -742,6 +742,5 @@
         ALIGN_CENTER = 2,   // Centered (only for the Edit object)
         ALIGN_RIGHT = 0,    // Right alignment
     }
-
     #endregion
 }
