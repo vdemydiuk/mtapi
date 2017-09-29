@@ -1,11 +1,12 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      ""
 
+#property version   "1.3"
+#property description "MtApi (MT5) connection expert"
+
 #include <json.mqh>
 #include <Trade\SymbolInfo.mqh>
 #include <trade/trade.mqh>
-#property version   "1.2"
-#property description "MtApi (MT5) connection expert"
 
 #import "MT5Connector.dll"
    bool initExpert(int expertHandle, int port, string symbol, double bid, double ask, int isTestMode, string& err);
@@ -49,9 +50,7 @@ bool isCrashed = false;
 
 bool IsRemoteReadyForTesting = false;
 
-string symbolValue;
 string commentValue;
-string requestValue;
 
 string PARAM_SEPARATOR = ";";
 
@@ -80,9 +79,7 @@ void OnTick()
 int preinit()
 {
    StringInit(message, 1000, 0);
-   StringInit(symbolValue, 1000, 0);
    StringInit(commentValue, 1000, 0);
-   StringInit(requestValue, 1000, 0);
    StringInit(_response_error,1000,0);
 
    return (0);
@@ -238,1503 +235,267 @@ int executeCommand()
    case 0:
       //NoCommand         
       break;
-
    case 155: //Request
-   {
-      if (!getStringValue(ExpertHandle, 0, requestValue, _error))
-      {
-         PrintParamError("Request", "Request", _error);
-      }
-      
-      string response = "";
-
-      if (requestValue != "")
-      {
-         Print("executeCommand: incoming request = ", requestValue);
-         response = OnRequest(requestValue);
-      }
-      
-      sendStringResponse(ExpertHandle, response, _response_error);      
-   }
-   break;      
-      
+      Execute_Request();
+   break;
    case 1: // OrderSend
-   {
-      MqlTradeRequest request={0};      
-      ReadMqlTradeRequestFromCommand(request);
-      
-      MqlTradeResult result={0};
-      
-      bool retVal = OrderSend(request, result);
-            
-      sendStringResponse(ExpertHandle, ResultToString(retVal, result), _response_error);
-   }
+      Execute_OrderSend();
    break;
-
    case 63: //OrderCloseAll
-   {
-      bool retVal;            
-      
-      retVal = OrderCloseAll(); 
-      
-      sendBooleanResponse(ExpertHandle, retVal, _response_error);  
-   }
+      Execute_OrderCloseAll();
    break;
-
    case 64: //PositionClose
-   {      
-      ulong ticket;
-      ulong deviation;
-      CTrade trade;
-      
-      getULongValue(ExpertHandle, 0, ticket, _error);
-      getULongValue(ExpertHandle, 1, deviation, _error);
-      
-      sendBooleanResponse(ExpertHandle, trade.PositionClose(ticket, deviation), _response_error);
-   }
+      Execute_PositionClose();
    break;
-         
    case 2: // OrderCalcMargin
-   {
-      ENUM_ORDER_TYPE action;
-      double volume;
-      double price;      
-      int tmpEnumValue;
-      double margin;
-      bool retVal;
-      
-      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);
-      action = (ENUM_ORDER_TYPE)tmpEnumValue;   
-               
-      getStringValue(ExpertHandle, 1, symbolValue, _error);
-      getDoubleValue(ExpertHandle, 2, volume, _error);
-      getDoubleValue(ExpertHandle, 3, price, _error);      
-      
-      retVal = OrderCalcMargin(action, symbolValue, volume, price, margin);
-               
-      sendStringResponse(ExpertHandle, ResultToString(retVal, margin), _response_error);
-   }
+      Execute_OrderCalcMargin();
    break;
-   
    case 3: //OrderCalcProfit
-   {
-      int tmpEnumValue;
-      ENUM_ORDER_TYPE action;
-      double volume;
-      double price_open;            
-      double price_close;
-      double profit;
-      bool retVal;
-      
-      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);
-      action = (ENUM_ORDER_TYPE)tmpEnumValue;   
-               
-      getStringValue(ExpertHandle, 1, symbolValue, _error);
-      getDoubleValue(ExpertHandle, 2, volume, _error);
-      getDoubleValue(ExpertHandle, 3, price_open, _error);
-      getDoubleValue(ExpertHandle, 4, price_close, _error);
-      
-      retVal = OrderCalcProfit(action, symbolValue, volume, price_open, price_close, profit);
-               
-      sendStringResponse(ExpertHandle, ResultToString(retVal, profit), _response_error);
-   }
+      Execute_OrderCalcProfit();
    break;
-   
    case 4: //OrderCheck
-   {
-      MqlTradeRequest request={0};      
-      ReadMqlTradeRequestFromCommand(request);
-      
-      MqlTradeCheckResult result={0};
-      
-      bool retVal = OrderCheck(request, result);
-            
-      sendStringResponse(ExpertHandle, ResultToString(retVal, result), _response_error);
-   }
-   break;  
-   
+      Execute_OrderCheck();
+   break;
    case 6: //PositionsTotal
-   {
-      sendIntResponse(ExpertHandle, PositionsTotal(), _response_error);
-   }
-   break;  
-   
+      Execute_PositionsTotal();
+   break;
    case 7: //PositionGetSymbol
-   {
-      int index;
-      getIntValue(ExpertHandle, 0, index, _error);
-   
-      sendStringResponse(ExpertHandle, PositionGetSymbol(index), _response_error);
-   }
+      Execute_PositionGetSymbol();
    break;
-   
    case 8: //PositionSelect
-   {
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-   
-      sendBooleanResponse(ExpertHandle, PositionSelect(symbolValue), _response_error);
-   }
-   break;  
-   
+      Execute_PositionSelect();
+   break;
    case 9: //PositionGetDouble
-   {
-      ENUM_POSITION_PROPERTY_DOUBLE property_id;
-      int tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
-      property_id = (ENUM_POSITION_PROPERTY_DOUBLE) tmpEnumValue;
-   
-      sendDoubleResponse(ExpertHandle, PositionGetDouble(property_id), _response_error);
-   }
+      Execute_PositionGetDouble();
    break;
-   
    case 10: //PositionGetInteger
-   {
-      ENUM_POSITION_PROPERTY_INTEGER property_id;
-      int tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
-      property_id = (ENUM_POSITION_PROPERTY_INTEGER) tmpEnumValue;
-   
-      sendLongResponse(ExpertHandle, PositionGetInteger(property_id), _response_error);
-   }
-   break;  
-   
+      Execute_PositionGetInteger();
+   break;
    case 11: //PositionGetString
-   {
-      ENUM_POSITION_PROPERTY_STRING property_id;
-      int tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
-      property_id = (ENUM_POSITION_PROPERTY_STRING) tmpEnumValue;
-   
-      sendStringResponse(ExpertHandle, PositionGetString(property_id), _response_error);
-   }
-   break;  
-   
+      Execute_PositionGetString();
+   break;
    case 12: //OrdersTotal
-   {
-      sendIntResponse(ExpertHandle, OrdersTotal(), _response_error);
-   }
+      Execute_OrdersTotal();
    break;
-   
    case 13: //OrderGetTicket
-   {
-      int index;
-      getIntValue(ExpertHandle, 0, index, _error);
-      
-      sendULongResponse(ExpertHandle, OrderGetTicket(index), _response_error);
-   }
+      Execute_OrderGetTicket();
    break;
-   
    case 14: //OrderSelect
-   {
-      ulong ticket;
-      getULongValue(ExpertHandle, 0, ticket, _error);
-      
-      sendBooleanResponse(ExpertHandle, OrderSelect(ticket), _response_error);
-   }
+      Execute_OrderSelect();
    break;
-   
    case 15: //OrderGetDouble
-   {
-      ENUM_ORDER_PROPERTY_DOUBLE property_id;
-      int tmpEnumValue;
-
-      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
-      property_id = (ENUM_ORDER_PROPERTY_DOUBLE) tmpEnumValue;
-      
-      sendDoubleResponse(ExpertHandle, OrderGetDouble(property_id), _response_error);
-   }
+      Execute_OrderGetDouble();
    break;
-   
    case 16: //OrderGetInteger
-   {
-      ENUM_ORDER_PROPERTY_INTEGER property_id;
-      int tmpEnumValue;
-
-      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
-      property_id = (ENUM_ORDER_PROPERTY_INTEGER) tmpEnumValue;
-      
-      sendLongResponse(ExpertHandle, OrderGetInteger(property_id), _response_error);
-   }
+      Execute_OrderGetInteger();
    break;
-   
    case 17: //OrderGetString
-   {
-      ENUM_ORDER_PROPERTY_STRING property_id;
-      int tmpEnumValue;
-
-      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
-      property_id = (ENUM_ORDER_PROPERTY_STRING) tmpEnumValue;
-      
-      sendStringResponse(ExpertHandle, OrderGetString(property_id), _response_error);
-   }
+      Execute_OrderGetString();
    break;
-   
    case 18: //HistorySelect
-   {
-      datetime from_date;
-      datetime to_date;
-      int tmpDateValue;
-
-      getIntValue(ExpertHandle, 0, tmpDateValue, _error);       
-      from_date = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 1, tmpDateValue, _error);      
-      to_date = (datetime)tmpDateValue;
-      
-      sendBooleanResponse(ExpertHandle, HistorySelect(from_date, to_date), _response_error);
-   }
+      Execute_HistorySelect();
    break;
-   
    case 19: //HistorySelectByPosition
-   {
-      long position_id;
-      getLongValue(ExpertHandle, 0, position_id, _error);
-      
-      sendBooleanResponse(ExpertHandle, HistorySelectByPosition(position_id), _response_error);
-   }
+      Execute_HistorySelectByPosition();
    break;
-   
    case 20: //HistoryOrderSelect
-   {
-      ulong ticket;
-      getULongValue(ExpertHandle, 0, ticket, _error);
-      
-      sendBooleanResponse(ExpertHandle, HistoryOrderSelect(ticket), _response_error);
-   }
+      Execute_HistoryOrderSelect();
    break;
-   
    case 21: //HistoryOrdersTotal
-   {
-      sendIntResponse(ExpertHandle, HistoryOrdersTotal(), _response_error);
-   }
+      Execute_HistoryOrdersTotal();
    break;
-   
    case 22: //HistoryOrderGetTicket
-   {
-      int index;
-      getIntValue(ExpertHandle, 0, index, _error);
-      
-      sendULongResponse(ExpertHandle, HistoryOrderGetTicket(index), _response_error);
-   }
+      Execute_HistoryOrderGetTicket();
    break;
-   
    case 23: //HistoryOrderGetDouble
-   {
-      ulong ticket_number;
-      ENUM_ORDER_PROPERTY_DOUBLE property_id;
-      int tmpEnumValue;
-      
-      getULongValue(ExpertHandle, 0, ticket_number, _error);
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      property_id = (ENUM_ORDER_PROPERTY_DOUBLE) tmpEnumValue;
-      
-      sendDoubleResponse(ExpertHandle, HistoryOrderGetDouble(ticket_number, property_id), _response_error);
-   }
+      Execute_HistoryOrderGetDouble();
    break;
-   
    case 24: //HistoryOrderGetInteger
-   {
-      ulong ticket_number;
-      ENUM_ORDER_PROPERTY_INTEGER property_id;
-      int tmpEnumValue;
-      
-      getULongValue(ExpertHandle, 0, ticket_number, _error);
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      property_id = (ENUM_ORDER_PROPERTY_INTEGER) tmpEnumValue;
-      
-      sendULongResponse(ExpertHandle, HistoryOrderGetInteger(ticket_number, property_id), _response_error);
-   }
+      Execute_HistoryOrderGetInteger();
    break;
-      
    case 25: //HistoryOrderGetString
-   {
-      ulong ticket_number;
-      ENUM_ORDER_PROPERTY_STRING property_id;
-      int tmpEnumValue;
-      
-      getULongValue(ExpertHandle, 0, ticket_number, _error);
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      property_id = (ENUM_ORDER_PROPERTY_STRING) tmpEnumValue;
-      
-      sendStringResponse(ExpertHandle, HistoryOrderGetString(ticket_number, property_id), _response_error);
-   }
+      Execute_HistoryOrderGetString();
    break;
-   
    case 26: //HistoryDealSelect
-   {
-      ulong ticket;
-            
-      getULongValue(ExpertHandle, 0, ticket, _error);
-      
-      sendBooleanResponse(ExpertHandle, HistoryDealSelect(ticket), _response_error);
-   }
+      Execute_HistoryDealSelect();
    break;
-   
    case 27: //HistoryDealsTotal
-   {
-      sendIntResponse(ExpertHandle, HistoryDealsTotal(), _response_error);
-   }
-   break;   
-   
+      Execute_HistoryDealsTotal();
+   break;
    case 28: //HistoryDealGetTicket
-   {
-      uint index;            
-      getIntValue(ExpertHandle, 0, index, _error);
-      
-      sendULongResponse(ExpertHandle, HistoryDealGetTicket(index), _response_error);
-   }
-   break;   
-   
+      Execute_HistoryDealGetTicket();
+   break;
    case 29: //HistoryDealGetDouble
-   {
-      ulong ticket_number;
-      ENUM_DEAL_PROPERTY_DOUBLE property_id;
-      int tmpEnumValue;
-      
-      getULongValue(ExpertHandle, 0, ticket_number, _error);
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      property_id = (ENUM_DEAL_PROPERTY_DOUBLE) tmpEnumValue;
-      
-      sendDoubleResponse(ExpertHandle, HistoryDealGetDouble(ticket_number, property_id), _response_error);
-   }
-   break;   
-   
+      Execute_HistoryDealGetDouble();
+   break;
    case 30: //HistoryDealGetInteger
-   {
-      ulong ticket_number;
-      ENUM_DEAL_PROPERTY_INTEGER property_id;
-      int tmpEnumValue;
-      
-      getULongValue(ExpertHandle, 0, ticket_number, _error);
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      property_id = (ENUM_DEAL_PROPERTY_INTEGER) tmpEnumValue;
-      
-      sendLongResponse(ExpertHandle, HistoryDealGetInteger(ticket_number, property_id), _response_error);
-   }
-   break;   
-   
+      Execute_HistoryDealGetInteger();
+   break;      
    case 31: //HistoryDealGetString
-   {
-      ulong ticket_number;
-      ENUM_DEAL_PROPERTY_STRING property_id;
-      int tmpEnumValue;
-      
-      getULongValue(ExpertHandle, 0, ticket_number, _error);
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      property_id = (ENUM_DEAL_PROPERTY_STRING) tmpEnumValue;
-      
-      sendStringResponse(ExpertHandle, HistoryDealGetString(ticket_number, property_id), _response_error);
-   }
-   break;      
-
+      Execute_HistoryDealGetString();
+   break;
    case 32: //AccountInfoDouble
-   {
-      ENUM_ACCOUNT_INFO_DOUBLE property_id;
-      int tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
-      property_id = (ENUM_ACCOUNT_INFO_DOUBLE) tmpEnumValue;
-      
-      sendDoubleResponse(ExpertHandle, AccountInfoDouble(property_id), _response_error);
-   }
-   break;      
-
+      Execute_AccountInfoDouble();
+   break;
    case 33: //AccountInfoInteger
-   {
-      ENUM_ACCOUNT_INFO_INTEGER property_id;
-      int tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
-      property_id = (ENUM_ACCOUNT_INFO_INTEGER) tmpEnumValue;
-      
-      sendLongResponse(ExpertHandle, AccountInfoInteger(property_id), _response_error);
-   }
-   break;   
-
+      Execute_AccountInfoInteger();
+   break;
    case 34: //AccountInfoString
-   {
-      ENUM_ACCOUNT_INFO_STRING property_id;
-      int tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);      
-      property_id = (ENUM_ACCOUNT_INFO_STRING) tmpEnumValue;
-      
-      sendStringResponse(ExpertHandle, AccountInfoString(property_id), _response_error);
-   }
-   break; 
-   
+      Execute_AccountInfoString();
+   break;    
    case 35: //SeriesInfoInteger
-   {
-      ENUM_TIMEFRAMES timeframe;
-      ENUM_SERIES_INFO_INTEGER prop_id;
-      int tmpEnumValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);      
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpEnumValue, _error);
-      prop_id = (ENUM_SERIES_INFO_INTEGER) tmpEnumValue;
-      
-      sendLongResponse(ExpertHandle, SeriesInfoInteger(symbolValue, timeframe, prop_id), _response_error);
-   }
-   break; 
-   
+      Execute_SeriesInfoInteger();
+   break;    
    case 36: //Bars
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);      
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-            
-      sendIntResponse(ExpertHandle, Bars(symbolValue, timeframe), _response_error);
-   }
-   break; 
-   
+      Execute_Bars();
+   break;    
    case 1036: //Bars2
-   {
-      ENUM_TIMEFRAMES timeframe;      
-      datetime start_time;
-      datetime stop_time;
-      int tmpEnumValue;
-      int tmpDateValue;      
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);      
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);       
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, tmpDateValue, _error);      
-      stop_time = (datetime)tmpDateValue;
-
-            
-      sendIntResponse(ExpertHandle, Bars(symbolValue, timeframe, start_time, stop_time), _response_error);
-   }
-   break; 
-      
+      Execute_Bars2();
+   break;       
    case 37: //BarsCalculated
-   {
-      int indicator_handle;
-      
-      getIntValue(ExpertHandle, 0, indicator_handle, _error);
-            
-      sendIntResponse(ExpertHandle, BarsCalculated(indicator_handle), _response_error);
-   }
-   break; 
-   
+      Execute_BarsCalculated();
+   break;    
    case 40: //CopyBuffer
-   {
-      int indicator_handle;
-      int buffer_num;
-      int start_pos;
-      int count;
-      double buffer[];
-
-      getIntValue(ExpertHandle, 0, indicator_handle, _error);
-      getIntValue(ExpertHandle, 1, buffer_num, _error);
-      getIntValue(ExpertHandle, 2, start_pos, _error);
-      getIntValue(ExpertHandle, 3, count, _error);
-            
-      int copied = CopyBuffer(indicator_handle, buffer_num, start_pos, count, buffer);
-      
-      sendDoubleArrayResponse(ExpertHandle, buffer, copied, _response_error);
-   }
-   break; 
-   
+      Execute_CopyBuffer();
+   break;    
    case 1040: //CopyBuffer1
-   {
-      int indicator_handle;
-      int buffer_num;
-      datetime start_time;
-      int count;
-      double buffer[];
-      int tmpDateValue;
-
-      getIntValue(ExpertHandle, 0, indicator_handle, _error);
-      getIntValue(ExpertHandle, 1, buffer_num, _error);
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      getIntValue(ExpertHandle, 3, count, _error);
-            
-      int copied = CopyBuffer(indicator_handle, buffer_num, start_time, count, buffer);
-      
-      sendDoubleArrayResponse(ExpertHandle, buffer, copied, _response_error);
-   }
-   break; 
-   
+      Execute_CopyBuffer1();
+   break;    
    case 1140: //CopyBuffer2
-   {
-      int indicator_handle;
-      int buffer_num;
-      datetime start_time;
-      datetime stop_time;
-      double buffer[];
-      int tmpDateValue;
-
-      getIntValue(ExpertHandle, 0, indicator_handle, _error);
-      getIntValue(ExpertHandle, 1, buffer_num, _error);
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
-      stop_time = (datetime)tmpDateValue;
-            
-      int copied = CopyBuffer(indicator_handle, buffer_num, start_time, stop_time, buffer);
-      
-      sendDoubleArrayResponse(ExpertHandle, buffer, copied, _response_error);
-   }
-   break;
-   
+      Execute_CopyBuffer2();
+   break;   
    case 41: //CopyRates
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      int start_pos;
-      int count;
-      MqlRates rates[];
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, start_pos, _error);            
-      getIntValue(ExpertHandle, 3, count, _error);         
-      
-      int copied = CopyRates(symbolValue, timeframe, start_pos, count, rates);       
-
-      sendMqlRatesArrayResponse(ExpertHandle, rates, copied, _response_error);
-   }
-   break; 
-   
+      Execute_CopyRates();
+   break;    
    case 1041: //CopyRates1
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      int count;
-      MqlRates rates[];
-      int tmpDateValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, count, _error);         
-      
-      int copied = CopyRates(symbolValue, timeframe, start_time, count, rates);       
-
-      sendMqlRatesArrayResponse(ExpertHandle, rates, copied, _response_error);
-   }
-   break; 
-   
+      Execute_CopyRates1();
+   break;    
    case 1141: //CopyRates2
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      datetime stop_time;
-      MqlRates rates[];
-      int tmpDateValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
-      stop_time = (datetime)tmpDateValue;        
-      
-      int copied = CopyRates(symbolValue, timeframe, start_time, stop_time, rates);       
-
-      sendMqlRatesArrayResponse(ExpertHandle, rates, copied, _response_error);
-   }
-   break;
-   
+      Execute_CopyRates2();
+   break;   
    case 42: //CopyTime
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      int start_pos;
-      int count;
-      datetime time_array[];
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, start_pos, _error);            
-      getIntValue(ExpertHandle, 3, count, _error);       
-      
-      int copied = CopyTime(symbolValue, timeframe, start_pos, count, time_array);       
-
-      sendLongArrayResponse(ExpertHandle, time_array, copied, _response_error);
-   }
-   break;
-   
+      Execute_CopyTime();
+   break;   
    case 1042: //CopyTime1
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      int count;
-      datetime time_array[];
-      int tmpDateValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, count, _error);    
-      
-      int copied = CopyTime(symbolValue, timeframe, start_time, count, time_array);       
-
-      sendLongArrayResponse(ExpertHandle, time_array, copied, _response_error);
-   }
-   break;
-   
+      Execute_CopyTime1();
+   break;   
    case 1142: //CopyTime2
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      datetime stop_time;
-      datetime time_array[];
-      int tmpDateValue;     
-       
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
-      stop_time = (datetime)tmpDateValue;    
-      
-      int copied = CopyTime(symbolValue, timeframe, start_time, stop_time, time_array);       
-
-      sendLongArrayResponse(ExpertHandle, time_array, copied, _response_error);
-   }
-   break;
-   
+      Execute_CopyTime2();
+   break;   
    case 43: //CopyOpen
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      int start_pos;
-      int count;
-      double open_array[];
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, start_pos, _error);            
-      getIntValue(ExpertHandle, 3, count, _error);       
-      
-      int copied = CopyOpen(symbolValue, timeframe, start_pos, count, open_array);       
-
-      sendDoubleArrayResponse(ExpertHandle, open_array, copied, _response_error);
-   }
-   break;   
-   
+      Execute_CopyOpen();
+   break;      
    case 1043: //CopyOpen1
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      int count;
-      double open_array[];
-      int tmpDateValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, count, _error); 
-      
-      int copied = CopyOpen(symbolValue, timeframe, start_time, count, open_array);       
-
-      sendDoubleArrayResponse(ExpertHandle, open_array, copied, _response_error);
-   }
-   break;     
-   
+      Execute_CopyOpen1();
+   break;        
    case 1143: //CopyOpen2
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      datetime stop_time;
-      double open_array[];
-      int tmpDateValue;  
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
-      stop_time = (datetime)tmpDateValue;  
-      
-      int copied = CopyOpen(symbolValue, timeframe, start_time, stop_time, open_array);       
-
-      sendDoubleArrayResponse(ExpertHandle, open_array, copied, _response_error);
-   }
-   break;   
-   
+      Execute_CopyOpen2();
+   break;      
    case 44: //CopyHigh
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      int start_pos;
-      int count;
-      double high_array[];
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, start_pos, _error);
-      getIntValue(ExpertHandle, 3, count, _error);
-      
-      int copied = CopyHigh(symbolValue, timeframe, start_pos, count, high_array);       
-
-      sendDoubleArrayResponse(ExpertHandle, high_array, copied, _response_error);
-   }
-   break;  
-   
+      Execute_CopyHigh();
+   break;     
    case 1044: //CopyHigh1
-   {      
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      int count;
-      double high_array[];
-      int tmpDateValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, count, _error);
-      
-      int copied = CopyHigh(symbolValue, timeframe, start_time, count, high_array);       
-
-      sendDoubleArrayResponse(ExpertHandle, high_array, copied, _response_error);
-   }
-   break;    
-   
+      Execute_CopyHigh1();
+   break;       
    case 1144: //CopyHigh2
-   {      
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      datetime stop_time;
-      double high_array[];
-      int tmpDateValue;  
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
-      stop_time = (datetime)tmpDateValue;    
-      
-      int copied = CopyHigh(symbolValue, timeframe, start_time, stop_time, high_array);       
-
-      sendDoubleArrayResponse(ExpertHandle, high_array, copied, _response_error);
-   }
-   break;   
-   
+      Execute_CopyHigh2();
+   break;      
    case 45: //CopyLow
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      int start_pos;
-      int count;
-      double low_array[];
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, start_pos, _error);
-      getIntValue(ExpertHandle, 3, count, _error);
-      
-      int copied = CopyLow(symbolValue, timeframe, start_pos, count, low_array);       
-
-      sendDoubleArrayResponse(ExpertHandle, low_array, copied, _response_error);
-   }
-   break;     
-   
+      Execute_CopyLow();
+   break;        
    case 1045: //CopyLow1
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      int count;
-      double low_array[];
-      int tmpDateValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, count, _error);
-      
-      int copied = CopyLow(symbolValue, timeframe, start_time, count, low_array);       
-
-      sendDoubleArrayResponse(ExpertHandle, low_array, copied, _response_error);
-   }
-   break;    
-   
+      Execute_CopyLow1();
+   break;       
    case 1145: //CopyLow2
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      datetime stop_time;
-      double low_array[];
-      int tmpDateValue;  
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
-      stop_time = (datetime)tmpDateValue;     
-      
-      int copied = CopyLow(symbolValue, timeframe, start_time, stop_time, low_array);       
-
-      sendDoubleArrayResponse(ExpertHandle, low_array, copied, _response_error);
-   }
-   break; 
-   
+      Execute_CopyLow2();
+   break;    
    case 46: //CopyClose
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      int start_pos;
-      int count;
-      double close_array[];
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, start_pos, _error);
-      getIntValue(ExpertHandle, 3, count, _error);
-      
-      int copied = CopyClose(symbolValue, timeframe, start_pos, count, close_array);       
-
-      sendDoubleArrayResponse(ExpertHandle, close_array, copied, _response_error);
-   }
-   break;  
-   
+      Execute_CopyClose();
+   break;     
    case 1046: //CopyClose1
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      int count;
-      double close_array[];
-      int tmpDateValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, count, _error);
-      
-      int copied = CopyClose(symbolValue, timeframe, start_time, count, close_array);       
-
-      sendDoubleArrayResponse(ExpertHandle, close_array, copied, _response_error);
-   }
-   break;   
-   
+      Execute_CopyClose1();
+   break;      
    case 1146: //CopyClose2
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      datetime stop_time;
-      double close_array[];
-      int tmpDateValue;  
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
-      stop_time = (datetime)tmpDateValue;      
-      
-      int copied = CopyClose(symbolValue, timeframe, start_time, stop_time, close_array);       
-
-      sendDoubleArrayResponse(ExpertHandle, close_array, copied, _response_error);
-   }
-   break; 
-   
-  case 47: //CopyTickVolume
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      int start_pos;
-      int count;
-      long volume_array[];
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, start_pos, _error);
-      getIntValue(ExpertHandle, 3, count, _error);
-      
-      int copied = CopyTickVolume(symbolValue, timeframe, start_pos, count, volume_array);       
-
-      sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error);
-   }
-   break; 
-   
-  case 1047: //CopyTickVolume1
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      int count;
-      long volume_array[];
-      int tmpDateValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, count, _response_error);
-      
-      int copied = CopyTickVolume(symbolValue, timeframe, start_time, count, volume_array);       
-
-      sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error);
-   }
-   break;       
-   
-  case 1147: //CopyTickVolume2
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      datetime stop_time;
-      long volume_array[];
-      int tmpDateValue;  
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
-      stop_time = (datetime)tmpDateValue;     
-      
-      int copied = CopyTickVolume(symbolValue, timeframe, start_time, stop_time, volume_array);       
-
-      sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error);
-   }
-   break;
-   
-  case 48: //CopyRealVolume
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      int start_pos;
-      int count;
-      long volume_array[];
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, start_pos, _error);
-      getIntValue(ExpertHandle, 3, count, _error);
-      
-      int copied = CopyRealVolume(symbolValue, timeframe, start_pos, count, volume_array);       
-
-      sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error);
-   }
-   break; 
-   
-  case 1048: //CopyRealVolume1
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      int count;
-      long volume_array[];
-      int tmpDateValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, count, _error);
-      
-      int copied = CopyRealVolume(symbolValue, timeframe, start_time, count, volume_array);       
-
-      sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error);
-   }
-   break;   
-   
-  case 1148: //CopyRealVolume2
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      datetime stop_time;
-      long volume_array[];
-      int tmpDateValue;  
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
-      stop_time = (datetime)tmpDateValue;     
-      
-      int copied = CopyRealVolume(symbolValue, timeframe, start_time, stop_time, volume_array);       
-
-      sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error);
-   }
+      Execute_CopyClose2();
+   break;    
+   case 47: //CopyTickVolume
+      Execute_CopyTickVolume();
+   break;    
+   case 1047: //CopyTickVolume1
+      Execute_CopyTickVolume1();
    break;          
-   
-  case 49: //CopySpread
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      int start_pos;
-      int count;
-      int spread_array[];
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, start_pos, _error);
-      getIntValue(ExpertHandle, 3, count, _error);
-      
-      int copied = CopySpread(symbolValue, timeframe, start_pos, count, spread_array);       
-
-      sendIntArrayResponse(ExpertHandle, spread_array, copied, _response_error);
-   }
-   break; 
-   
-  case 1049: //CopySpread1
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      int count;
-      int spread_array[];
-      int tmpDateValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, count, _error);
-      
-      int copied = CopySpread(symbolValue, timeframe, start_time, count, spread_array);       
-
-      sendIntArrayResponse(ExpertHandle, spread_array, copied, _response_error);
-   }
+   case 1147: //CopyTickVolume2
+      Execute_CopyTickVolume2();
    break;   
-   
-  case 1149: //CopySpread2
-   {
-      ENUM_TIMEFRAMES timeframe;
-      int tmpEnumValue;
-      datetime start_time;
-      datetime stop_time;
-      int spread_array[];
-      int tmpDateValue;  
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      timeframe = (ENUM_TIMEFRAMES) tmpEnumValue;
-      
-      getIntValue(ExpertHandle, 2, tmpDateValue, _error);
-      start_time = (datetime)tmpDateValue;
-      
-      getIntValue(ExpertHandle, 3, tmpDateValue, _error);
-      stop_time = (datetime)tmpDateValue;     
-      
-      int copied = CopySpread(symbolValue, timeframe, start_time, stop_time, spread_array);       
-
-      sendIntArrayResponse(ExpertHandle, spread_array, copied, _response_error);
-   }
+   case 48: //CopyRealVolume
+      Execute_CopyRealVolume();
+   break;    
+   case 1048: //CopyRealVolume1
+      Execute_CopyRealVolume1();
+   break;      
+   case 1148: //CopyRealVolume2
+      Execute_CopyRealVolume2();
+   break;             
+   case 49: //CopySpread
+      Execute_CopySpread();
+   break;    
+   case 1049: //CopySpread1
+      Execute_CopySpread1();
+   break;      
+   case 1149: //CopySpread2
+      Execute_CopySpread2();
    break;       
-
    case 50: //SymbolsTotal
-   {
-      bool selected;
-      int retVal;
-      
-      getBooleanValue(ExpertHandle, 0, selected, _error);
-      
-      retVal = SymbolsTotal(selected);       
-
-      sendIntResponse(ExpertHandle, retVal, _error);
-   }
-   break;  
-   
+      Execute_SymbolsTotal();
+   break;     
    case 51: //SymbolName
-   {
-      bool selected; 
-      int pos;     
-      
-      getIntValue(ExpertHandle, 0, pos, _error);  
-      getBooleanValue(ExpertHandle, 1, selected, _error);
-      
-      symbolValue = SymbolName(pos, selected);       
-
-      sendStringResponse(ExpertHandle, symbolValue, _error);
-   }
-   break;     
-   
+      Execute_SymbolName();
+   break;        
    case 52: //SymbolSelect
-   {
-      bool select;
-      bool retVal;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      getBooleanValue(ExpertHandle, 1, select, _error);     
-      
-      retVal = SymbolSelect(symbolValue, select);       
-
-      sendBooleanResponse(ExpertHandle, retVal, _response_error);
-   }
-   break;  
-   
-   case 53: //SymbolIsSynchronized
-   {
-      bool retVal;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      retVal = SymbolIsSynchronized(symbolValue);
-
-      sendBooleanResponse(ExpertHandle, retVal, _response_error);
-   }
-   break;   
-   
-   case 54: //SymbolInfoDouble
-   {
-      ENUM_SYMBOL_INFO_DOUBLE prop_id;
-      int tmpEnumValue;
-      double retVal;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      prop_id = (ENUM_SYMBOL_INFO_DOUBLE) tmpEnumValue;
-      
-      retVal = SymbolInfoDouble(symbolValue, prop_id);
-
-      sendDoubleResponse(ExpertHandle, retVal, _response_error);
-   }
-   break;
-   
-   case 55: //SymbolInfoInteger
-   {
-      ENUM_SYMBOL_INFO_INTEGER prop_id;
-      int tmpEnumValue;
-      long retVal;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      prop_id = (ENUM_SYMBOL_INFO_INTEGER) tmpEnumValue;
-      
-      retVal = SymbolInfoInteger(symbolValue, prop_id);
-
-      sendLongResponse(ExpertHandle, retVal, _response_error);
-   }
-   break;
-   
-   case 56: //SymbolInfoString
-   {
-      ENUM_SYMBOL_INFO_STRING prop_id;
-      int tmpEnumValue;
-      string retVal;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      prop_id = (ENUM_SYMBOL_INFO_STRING) tmpEnumValue;
-      
-      retVal = SymbolInfoString(symbolValue, prop_id);
-
-      sendStringResponse(ExpertHandle, retVal, _response_error);
-   }
-   break; 
-   
-   case 57: //SymbolInfoTick
-   {
-      MqlTick tick={0}; 
-      bool retVal;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      retVal = SymbolInfoTick(symbolValue, tick);       
-      
-      if (retVal == true)
-      {
-         sendMqlTickResponse(ExpertHandle, tick, _response_error);
-      }
-      else
-      {
-         sendVoidResponse(ExpertHandle, _response_error);
-      }
-   }
+      Execute_SymbolSelect();
    break;     
-
+   case 53: //SymbolIsSynchronized
+      Execute_SymbolIsSynchronized();
+   break;      
+   case 54: //SymbolInfoDouble
+      Execute_SymbolInfoDouble();
+   break;   
+   case 55: //SymbolInfoInteger
+      Execute_SymbolInfoInteger();
+   break;   
+   case 56: //SymbolInfoString
+      Execute_SymbolInfoString();
+   break;    
+   case 57: //SymbolInfoTick
+      Execute_SymbolInfoTick();
+   break;
    case 58: //SymbolInfoSessionQuote
-   {
-      ENUM_DAY_OF_WEEK day_of_week;
-      uint session_index;
-      
-      datetime from;
-      datetime to;
-      bool retVal;
-      
-      int tmpEnumValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);
-      day_of_week = (ENUM_DAY_OF_WEEK) tmpEnumValue;
-      
-      getUIntValue(ExpertHandle, 2, session_index, _error);
-      
-      retVal = SymbolInfoSessionQuote(symbolValue, day_of_week, session_index, from, to);       
-
-      string res = ResultToString(retVal, from, to);
-      sendStringResponse(ExpertHandle, res, _response_error);
-   }
-   break;  
-   
+      Execute_SymbolInfoSessionQuote();
+   break;     
    case 59: //SymbolInfoSessionTrade
-   {
-      ENUM_DAY_OF_WEEK day_of_week;
-      uint session_index;
-      
-      datetime from;
-      datetime to;
-      bool retVal;
-      
-      int tmpEnumValue;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      getIntValue(ExpertHandle, 1, tmpEnumValue, _error);      
-      day_of_week = (ENUM_DAY_OF_WEEK) tmpEnumValue;
-      
-      getUIntValue(ExpertHandle, 2, session_index, _error);
-      
-      retVal = SymbolInfoSessionTrade(symbolValue, day_of_week, session_index, from, to);       
-
-      string res = ResultToString(retVal, from, to);      
-      sendStringResponse(ExpertHandle, res, _response_error);
-   }
-   break; 
-   
+      Execute_SymbolInfoSessionTrade();
+   break;    
    case 60: //MarketBookAdd
-   {
-      bool retVal;
-            
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      retVal = MarketBookAdd(symbolValue);       
-
-      sendBooleanResponse(ExpertHandle, retVal, _response_error);
-   }
-   break; 
-   
+      Execute_MarketBookAdd();
+   break;    
    case 61: //MarketBookRelease
-   {
-      bool retVal;
-            
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      retVal = MarketBookRelease(symbolValue);       
-
-      sendBooleanResponse(ExpertHandle, retVal, _response_error);
-   }
-   break; 
-   
+      Execute_MarketBookRelease();
+   break;    
    case 62: //MarketBookGet
-   {
-      MqlBookInfo book[];
-      bool retVal;
-      
-      getStringValue(ExpertHandle, 0, symbolValue, _error);
-      
-      retVal = MarketBookGet(symbolValue, book); 
-      
-      if(retVal)
-      {
-         int size = ArraySize(book);
-         sendMqlBookInfoArrayResponse(ExpertHandle, book, size, _response_error);
-      }
-      else
-      {
-         sendVoidResponse(ExpertHandle, _response_error);
-      }
-   }
-   break;
-   
+      Execute_MarketBookGet();
+   break;   
    case 65: //PositionOpen
-   {      
-      string symbol;
-      StringInit(symbol, 50, 0);
-      ENUM_ORDER_TYPE order_type;
-      double volume;
-      double price;
-      double sl;
-      double tp;
-      string comment;
-      StringInit(comment, 1000, 0);
-            
-      getStringValue(ExpertHandle, 0, symbol, _error);
-      int order_type_int = 0;
-      getIntValue(ExpertHandle, 1, order_type_int, _error);
-      order_type = (ENUM_ORDER_TYPE) order_type_int;
-      getDoubleValue(ExpertHandle, 2, volume, _error);
-      getDoubleValue(ExpertHandle, 3, price, _error);
-      getDoubleValue(ExpertHandle, 4, sl, _error);
-      getDoubleValue(ExpertHandle, 5, tp, _error);
-      getStringValue(ExpertHandle, 6, comment, _error);
-      
-      PrintFormat("command PositionOpen: symbol = %s, order_type = %d, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
-         symbol, order_type, volume, price, sl, tp, comment);
-      
-      CTrade trade;             
-      bool result = trade.PositionOpen(symbol, order_type, volume, price, sl, tp, comment);
-      sendBooleanResponse(ExpertHandle, result, _response_error);
-      Print("command PositionOpen: result = ", result);
-   }
-   break;
-   
+      Execute_PositionOpen();
+   break;   
    case 66: //BacktestingReady
-   {
-      if (IsTesting())
-      {
-         Print("Remote client is ready for backteting");
-         IsRemoteReadyForTesting = true;
-         sendBooleanResponse(ExpertHandle, true, _response_error);
-      }
-      else
-      {
-         sendBooleanResponse(ExpertHandle, false, _response_error);
-      }
-   }
+      Execute_BacktestingReady();
    break; 
-
    case 67: //IsTesting
-   {
-      sendBooleanResponse(ExpertHandle, IsTesting(), _response_error);
-   }
-   break;
-   
+      Execute_IsTesting();
+   break;   
    case 68: //Print
-   {
-      string printMsg;
-      StringInit(printMsg, 1000, 0);
-
-      getStringValue(ExpertHandle, 0, printMsg, _error);
-         
-      Print(printMsg);      
-      sendBooleanResponse(ExpertHandle, true, _response_error);
-   }
-   break;
-   
+      Execute_Print();
+   break;   
    case 69: //PositionSelectByTicket
       Execute_PositionSelectByTicket();
    break;
@@ -1746,6 +507,2498 @@ int executeCommand()
    } 
    
    return (commandType);
+}
+
+void Execute_Request()
+{
+   string request;
+   StringInit(request, 1000, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, request, _error))
+   {
+      PrintParamError("Request", "Request", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+      
+   string response = "";
+   if (request != "")
+   {
+      Print("Execute_Request: incoming request = ", request);
+      response = OnRequest(request);
+   }
+   
+   if (!sendStringResponse(ExpertHandle, response, _response_error))
+   {
+      PrintResponseError("Request", _response_error);
+   }
+}
+
+void Execute_OrderSend()
+{
+   MqlTradeRequest request={0};      
+   ReadMqlTradeRequestFromCommand(request);
+   
+   MqlTradeResult result={0};
+   
+   bool retVal = OrderSend(request, result);
+         
+   if (!sendStringResponse(ExpertHandle, ResultToString(retVal, result), _response_error))
+   {
+      PrintResponseError("OrderSend", _response_error);
+   }
+}
+
+void Execute_OrderCloseAll()
+{
+   if (!sendBooleanResponse(ExpertHandle, OrderCloseAll(), _response_error))
+   {
+      PrintResponseError("OrderCloseAll", _response_error);
+   }
+}
+
+void Execute_PositionClose()
+{
+   ulong ticket;
+   ulong deviation;
+   CTrade trade;
+      
+   if (!getULongValue(ExpertHandle, 0, ticket, _error))
+   {
+      PrintParamError("PositionClose", "ticket", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getULongValue(ExpertHandle, 1, deviation, _error))
+   {
+      PrintParamError("PositionClose", "deviation", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+      
+   if (!sendBooleanResponse(ExpertHandle, trade.PositionClose(ticket, deviation), _response_error))
+   {
+      PrintResponseError("PositionClose", _response_error);
+   }
+}
+
+void Execute_OrderCalcMargin()
+{
+   int action;
+   string symbol;
+   double volume;
+   double price;
+   StringInit(symbol, 100, 0);
+   
+   if (!getIntValue(ExpertHandle, 0, action, _error))
+   {
+      PrintParamError("OrderCalcMargin", "action", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 1, symbol, _error))
+   {
+      PrintParamError("OrderCalcMargin", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 2, volume, _error))
+   {
+      PrintParamError("OrderCalcMargin", "volume", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 3, price, _error))
+   {
+      PrintParamError("OrderCalcMargin", "price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   double margin;
+   bool retVal = OrderCalcMargin((ENUM_ORDER_TYPE)action, symbol, volume, price, margin);
+               
+   if (!sendStringResponse(ExpertHandle, ResultToString(retVal, margin), _response_error))
+   {
+      PrintResponseError("OrderCalcMargin", _response_error);
+   }
+}
+
+void Execute_OrderCalcProfit()
+{
+   int action;
+   string symbol;
+   double volume;
+   double price_open;            
+   double price_close;
+   StringInit(symbol, 100, 0);
+   
+   if (!getIntValue(ExpertHandle, 0, action, _error))
+   {
+      PrintParamError("OrderCalcProfit", "action", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }            
+   if (!getStringValue(ExpertHandle, 1, symbol, _error))
+   {
+      PrintParamError("OrderCalcProfit", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 2, volume, _error))
+   {
+      PrintParamError("OrderCalcProfit", "volume", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 3, price_open, _error))
+   {
+      PrintParamError("OrderCalcProfit", "price_open", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 4, price_close, _error))
+   {
+      PrintParamError("OrderCalcProfit", "price_close", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   double profit;
+   bool retVal = OrderCalcProfit((ENUM_ORDER_TYPE)action, symbol, volume, price_open, price_close, profit);
+            
+   if (!sendStringResponse(ExpertHandle, ResultToString(retVal, profit), _response_error))
+   {
+      PrintResponseError("OrderCalcProfit", _response_error);
+   }
+}
+
+void Execute_OrderCheck()
+{
+   MqlTradeRequest request={0};      
+   ReadMqlTradeRequestFromCommand(request);
+   
+   MqlTradeCheckResult result={0};
+   
+   bool retVal = OrderCheck(request, result);
+         
+   if (!sendStringResponse(ExpertHandle, ResultToString(retVal, result), _response_error))
+   {
+      PrintResponseError("OrderCheck", _response_error);
+   }
+}
+
+void Execute_PositionsTotal()
+{
+   if (!sendIntResponse(ExpertHandle, PositionsTotal(), _response_error))
+   {
+      PrintResponseError("PositionsTotal", _response_error);
+   }
+}
+
+void Execute_PositionGetSymbol()
+{
+   int index;
+   if (!getIntValue(ExpertHandle, 0, index, _error))
+   {
+      PrintParamError("PositionGetSymbol", "index", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendStringResponse(ExpertHandle, PositionGetSymbol(index), _response_error))
+   {
+      PrintResponseError("PositionGetSymbol", _response_error);
+   }
+}
+
+void Execute_PositionSelect()
+{
+   string symbol;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("PositionSelect", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, PositionSelect(symbol), _response_error))
+   {
+      PrintResponseError("PositionSelect", _response_error);
+   }
+}
+
+void Execute_PositionGetDouble()
+{
+   int property_id;
+   
+   if (!getIntValue(ExpertHandle, 0, property_id, _error))
+   {
+      PrintParamError("PositionGetDouble", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendDoubleResponse(ExpertHandle, PositionGetDouble((ENUM_POSITION_PROPERTY_DOUBLE)property_id), _response_error))
+   {
+      PrintResponseError("PositionGetDouble", _response_error);
+   }
+}
+
+void Execute_PositionGetInteger()
+{
+   int property_id;
+   
+   if (!getIntValue(ExpertHandle, 0, property_id, _error))
+   {
+      PrintParamError("PositionGetInteger", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;      
+   }
+
+   if (!sendLongResponse(ExpertHandle, PositionGetInteger((ENUM_POSITION_PROPERTY_INTEGER)property_id), _response_error))
+   {
+      PrintResponseError("PositionGetInteger", _response_error);
+   }
+}
+
+void Execute_PositionGetString()
+{
+   int property_id;
+   
+   if (!getIntValue(ExpertHandle, 0, property_id, _error))
+   {
+      PrintParamError("PositionGetString", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;      
+   }
+
+   if (!sendStringResponse(ExpertHandle, PositionGetString((ENUM_POSITION_PROPERTY_STRING)property_id), _response_error))
+   {
+      PrintResponseError("PositionGetString", _response_error);
+   }
+}
+
+void Execute_OrdersTotal()
+{
+   if (!sendIntResponse(ExpertHandle, OrdersTotal(), _response_error))
+   {
+      PrintResponseError("OrdersTotal", _response_error);
+   }
+}
+
+void Execute_OrderGetTicket()
+{
+   int index;
+   if (!getIntValue(ExpertHandle, 0, index, _error))
+   {
+      PrintParamError("OrderGetTicket", "index", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendULongResponse(ExpertHandle, OrderGetTicket(index), _response_error))
+   {
+      PrintResponseError("OrderGetTicket", _response_error);
+   }
+}
+
+void Execute_OrderSelect()
+{
+   ulong ticket;
+   if (!getULongValue(ExpertHandle, 0, ticket, _error))
+   {
+      PrintParamError("OrderSelect", "ticket", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, OrderSelect(ticket), _response_error))
+   {
+      PrintResponseError("OrderSelect", _response_error);
+   }
+}
+
+void Execute_OrderGetDouble()
+{
+   int property_id;
+   if (!getIntValue(ExpertHandle, 0, property_id, _error))
+   {
+      PrintParamError("OrderGetDouble", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendDoubleResponse(ExpertHandle, OrderGetDouble((ENUM_ORDER_PROPERTY_DOUBLE)property_id), _response_error))
+   {
+      PrintResponseError("OrderGetDouble", _response_error);
+   }
+}
+
+void Execute_OrderGetInteger()
+{
+   int property_id;
+
+   if (!getIntValue(ExpertHandle, 0, property_id, _error))
+   {
+      PrintParamError("OrderGetInteger", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendLongResponse(ExpertHandle, OrderGetInteger((ENUM_ORDER_PROPERTY_INTEGER)property_id), _response_error))
+   {
+      PrintResponseError("OrderGetInteger", _response_error);
+   }
+}
+
+void Execute_OrderGetString()
+{
+   int property_id;
+
+   if (!getIntValue(ExpertHandle, 0, property_id, _error))
+   {
+      PrintParamError("OrderGetString", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendStringResponse(ExpertHandle, OrderGetString((ENUM_ORDER_PROPERTY_STRING)property_id), _response_error))
+   {
+      PrintResponseError("OrderGetString", _response_error);
+   }
+}
+
+void Execute_HistorySelect()
+{
+   int from_date;
+   int to_date;
+
+   if (!getIntValue(ExpertHandle, 0, from_date, _error))
+   {
+      PrintParamError("HistorySelect", "from_date", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!getIntValue(ExpertHandle, 1, to_date, _error))
+   {
+      PrintParamError("HistorySelect", "to_date", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, HistorySelect((datetime)from_date, (datetime)to_date), _response_error))
+   {
+      PrintResponseError("HistorySelect", _response_error);
+   }
+}
+
+void Execute_HistorySelectByPosition()
+{
+   long position_id;
+   if (!getLongValue(ExpertHandle, 0, position_id, _error))
+   {
+      PrintParamError("HistorySelectByPosition", "position_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, HistorySelectByPosition(position_id), _response_error))
+   {
+      PrintResponseError("HistorySelectByPosition", _response_error);
+   }
+}
+
+void Execute_HistoryOrderSelect()
+{
+   ulong ticket;
+   if (!getULongValue(ExpertHandle, 0, ticket, _error))
+   {
+      PrintParamError("HistoryOrderSelect", "ticket", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, HistoryOrderSelect(ticket), _response_error))
+   {
+      PrintResponseError("HistoryOrderSelect", _response_error);
+   }
+}
+
+void Execute_HistoryOrdersTotal()
+{
+   if (!sendIntResponse(ExpertHandle, HistoryOrdersTotal(), _response_error))
+   {
+      PrintResponseError("HistoryOrdersTotal", _response_error);
+   }
+}
+
+void Execute_HistoryOrderGetTicket()
+{
+   int index;
+   if (!getIntValue(ExpertHandle, 0, index, _error))
+   {
+      PrintParamError("HistoryOrderGetTicket", "index", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;   
+   }
+   
+   if (!sendULongResponse(ExpertHandle, HistoryOrderGetTicket(index), _response_error))
+   {
+      PrintResponseError("HistoryOrderGetTicket", _response_error);
+   }
+}
+
+void Execute_HistoryOrderGetDouble()
+{
+   ulong ticket_number;
+   int property_id;
+   
+   if (!getULongValue(ExpertHandle, 0, ticket_number, _error))
+   {
+      PrintParamError("HistoryOrderGetDouble", "ticket_number", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, property_id, _error))
+   {
+      PrintParamError("HistoryOrderGetDouble", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendDoubleResponse(ExpertHandle, HistoryOrderGetDouble(ticket_number, (ENUM_ORDER_PROPERTY_DOUBLE)property_id), _response_error))
+   {
+      PrintResponseError("HistoryOrderGetDouble", _response_error);
+   }
+}
+
+void Execute_HistoryOrderGetInteger()
+{
+   ulong ticket_number;
+   int property_id;
+   
+   if (!getULongValue(ExpertHandle, 0, ticket_number, _error))
+   {
+      PrintParamError("HistoryOrderGetInteger", "ticket_number", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, property_id, _error))
+   {
+      PrintParamError("HistoryOrderGetInteger", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendULongResponse(ExpertHandle, HistoryOrderGetInteger(ticket_number, (ENUM_ORDER_PROPERTY_INTEGER)property_id), _response_error))
+   {
+      PrintResponseError("HistoryOrderGetInteger", _response_error);
+   }
+}
+
+void Execute_HistoryOrderGetString()
+{
+   ulong ticket_number;
+   int property_id;
+   
+   if (!getULongValue(ExpertHandle, 0, ticket_number, _error))
+   {
+      PrintParamError("HistoryOrderGetString", "ticket_number", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, property_id, _error))
+   {
+      PrintParamError("HistoryOrderGetString", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendStringResponse(ExpertHandle, HistoryOrderGetString(ticket_number, (ENUM_ORDER_PROPERTY_STRING)property_id), _response_error))
+   {
+      PrintResponseError("HistoryOrderGetString", _response_error);
+   }
+}
+
+void Execute_HistoryDealSelect()
+{
+   ulong ticket;
+         
+   if (!getULongValue(ExpertHandle, 0, ticket, _error))
+   {
+      PrintParamError("HistoryDealSelect", "ticket", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, HistoryDealSelect(ticket), _response_error))
+   {
+      PrintResponseError("HistoryDealSelect", _response_error);
+   }
+}
+
+void Execute_HistoryDealsTotal()
+{
+   if (!sendIntResponse(ExpertHandle, HistoryDealsTotal(), _response_error))
+   {
+      PrintResponseError("HistoryDealsTotal", _response_error);
+   }
+}
+
+void Execute_HistoryDealGetTicket()
+{
+   uint index;
+   
+   if (!getIntValue(ExpertHandle, 0, index, _error))
+   {
+      PrintParamError("HistoryDealGetTicket", "index", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;   
+   }
+   
+   if (!sendULongResponse(ExpertHandle, HistoryDealGetTicket(index), _response_error))
+   {
+      PrintResponseError("HistoryDealGetTicket", _response_error);
+   }
+}
+
+void Execute_HistoryDealGetDouble()
+{
+   ulong ticket_number;
+   int property_id;
+   
+   if (!getULongValue(ExpertHandle, 0, ticket_number, _error))
+   {
+      PrintParamError("HistoryDealGetDouble", "ticket_number", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;    
+   }
+   if (!getIntValue(ExpertHandle, 1, property_id, _error))
+   {
+      PrintParamError("HistoryDealGetDouble", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;    
+   }
+   
+   if (!sendDoubleResponse(ExpertHandle, HistoryDealGetDouble(ticket_number, (ENUM_DEAL_PROPERTY_DOUBLE)property_id), _response_error))
+   {
+      PrintResponseError("HistoryDealGetDouble", _response_error);
+   }
+}
+
+void Execute_HistoryDealGetInteger()
+{
+   ulong ticket_number;
+   int property_id;
+   
+   if (!getULongValue(ExpertHandle, 0, ticket_number, _error))
+   {
+      PrintParamError("HistoryDealGetInteger", "ticket_number", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;   
+   }
+   if (!getIntValue(ExpertHandle, 1, property_id, _error))
+   {
+      PrintParamError("HistoryDealGetInteger", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;   
+   }
+   
+   if (!sendLongResponse(ExpertHandle, HistoryDealGetInteger(ticket_number, (ENUM_DEAL_PROPERTY_INTEGER)property_id), _response_error))
+   {
+      PrintResponseError("HistoryDealGetInteger", _response_error);
+   }
+}
+
+void Execute_HistoryDealGetString()
+{
+   ulong ticket_number;
+   int property_id;
+   
+   if (!getULongValue(ExpertHandle, 0, ticket_number, _error))
+   {
+      PrintParamError("HistoryDealGetString", "ticket_number", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return; 
+   }
+   if (!getIntValue(ExpertHandle, 1, property_id, _error))
+   {
+      PrintParamError("HistoryDealGetString", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return; 
+   }
+   
+   if (!sendStringResponse(ExpertHandle, HistoryDealGetString(ticket_number, (ENUM_DEAL_PROPERTY_STRING)property_id), _response_error))
+   {
+      PrintResponseError("HistoryDealGetString", _response_error);
+   }
+}
+
+void Execute_AccountInfoDouble()
+{
+   int property_id;
+   
+   if (!getIntValue(ExpertHandle, 0, property_id, _error))
+   {
+      PrintParamError("AccountInfoDouble", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return; 
+   }
+   
+   if (!sendDoubleResponse(ExpertHandle, AccountInfoDouble((ENUM_ACCOUNT_INFO_DOUBLE)property_id), _response_error))
+   {
+      PrintResponseError("AccountInfoDouble", _response_error);
+   }
+}
+
+void Execute_AccountInfoInteger()
+{
+   int property_id;
+   
+   if (!getIntValue(ExpertHandle, 0, property_id, _error))
+   {
+      PrintParamError("AccountInfoInteger", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendLongResponse(ExpertHandle, AccountInfoInteger((ENUM_ACCOUNT_INFO_INTEGER)property_id), _response_error))
+   {
+      PrintResponseError("AccountInfoInteger", _response_error);
+   }
+}
+
+void Execute_AccountInfoString()
+{
+   int property_id;
+   
+   if (!getIntValue(ExpertHandle, 0, property_id, _error))
+   {
+      PrintParamError("AccountInfoString", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendStringResponse(ExpertHandle, AccountInfoString((ENUM_ACCOUNT_INFO_STRING)property_id), _response_error))
+   {
+      PrintResponseError("AccountInfoString", _response_error);
+   }
+}
+
+void Execute_SeriesInfoInteger()
+{
+   string symbol;
+   int timeframe;
+   int prop_id;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("SeriesInfoInteger", "property_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("SeriesInfoInteger", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 2, prop_id, _error))
+   {
+      PrintParamError("SeriesInfoInteger", "prop_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendLongResponse(ExpertHandle, SeriesInfoInteger(symbol, (ENUM_TIMEFRAMES)timeframe, (ENUM_SERIES_INFO_INTEGER)prop_id), _response_error))
+   {
+      PrintResponseError("SeriesInfoInteger", _response_error);
+   }
+}
+
+void Execute_Bars()
+{
+   string symbol;
+   int timeframe;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("Bars", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("Bars", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+         
+   if (!sendIntResponse(ExpertHandle, Bars(symbol, (ENUM_TIMEFRAMES)timeframe), _response_error))
+   {
+      PrintResponseError("Bars", _response_error);
+   }
+}
+
+void Execute_Bars2()
+{
+   string symbol;
+   int timeframe;      
+   int start_time;
+   int stop_time;
+   StringInit(symbol, 100, 0);  
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("Bars", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("Bars", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("Bars", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, stop_time, _error))
+   {
+      PrintParamError("Bars", "stop_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+         
+   if (!sendIntResponse(ExpertHandle, Bars(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time), _response_error))
+   {
+      PrintResponseError("Bars", _response_error);
+   }
+}
+
+void Execute_BarsCalculated()
+{
+   int indicator_handle;
+   
+   if (!getIntValue(ExpertHandle, 0, indicator_handle, _error))
+   {
+      PrintParamError("BarsCalculated", "indicator_handle", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle, BarsCalculated(indicator_handle), _response_error))
+   {
+      PrintResponseError("BarsCalculated", _response_error);
+   }
+}
+
+void Execute_CopyBuffer()
+{
+   int indicator_handle;
+   int buffer_num;
+   int start_pos;
+   int count;
+   double buffer[];
+
+   if (!getIntValue(ExpertHandle, 0, indicator_handle, _error))
+   {
+      PrintParamError("CopyBuffer", "indicator_handle", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, buffer_num, _error))
+   {
+      PrintParamError("CopyBuffer", "buffer_num", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_pos, _error))
+   {
+      PrintParamError("CopyBuffer", "start_pos", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyBuffer", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+         
+   int copied = CopyBuffer(indicator_handle, buffer_num, start_pos, count, buffer);
+   
+   if (!sendDoubleArrayResponse(ExpertHandle, buffer, copied, _response_error))
+   {
+      PrintResponseError("CopyBuffer", _response_error);
+   }
+}
+
+void Execute_CopyBuffer1()
+{
+   int indicator_handle;
+   int buffer_num;
+   int start_time;
+   int count;
+
+   if (!getIntValue(ExpertHandle, 0, indicator_handle, _error))
+   {
+      PrintParamError("CopyBuffer", "indicator_handle", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, buffer_num, _error))
+   {
+      PrintParamError("CopyBuffer", "buffer_num", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyBuffer", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyBuffer", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   double buffer[];
+   int copied = CopyBuffer(indicator_handle, buffer_num, (datetime)start_time, count, buffer);
+   
+   if (!sendDoubleArrayResponse(ExpertHandle, buffer, copied, _response_error))
+   {
+      PrintResponseError("CopyBuffer", _response_error);
+   }
+}
+
+void Execute_CopyBuffer2()
+{
+   int indicator_handle;
+   int buffer_num;
+   int start_time;
+   int stop_time;
+
+   if (!getIntValue(ExpertHandle, 0, indicator_handle, _error))
+   {
+      PrintParamError("CopyBuffer", "indicator_handle", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, buffer_num, _error))
+   {
+      PrintParamError("CopyBuffer", "buffer_num", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyBuffer", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, stop_time, _error))
+   {
+      PrintParamError("CopyBuffer", "stop_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+         
+   double buffer[];
+   int copied = CopyBuffer(indicator_handle, buffer_num, (datetime)start_time, (datetime)stop_time, buffer);
+   
+   if (!sendDoubleArrayResponse(ExpertHandle, buffer, copied, _response_error))
+   {
+      PrintResponseError("CopyBuffer", _response_error);
+   }
+}
+
+void Execute_CopyRates()
+{
+   string symbol;
+   int timeframe;
+   int start_pos;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyRates", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyRates", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 2, start_pos, _error))
+   {
+      PrintParamError("CopyRates", "start_pos", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyRates", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   MqlRates rates[];
+   int copied = CopyRates(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, rates);       
+
+   if (!sendMqlRatesArrayResponse(ExpertHandle, rates, copied, _response_error))
+   {
+      PrintResponseError("CopyRates", _response_error);
+   }
+}
+
+void Execute_CopyRates1()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyRates", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;   
+   }   
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyRates", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyRates", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyRates", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   MqlRates rates[];
+   int copied = CopyRates(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, rates);       
+
+   if (!sendMqlRatesArrayResponse(ExpertHandle, rates, copied, _response_error))
+   {
+      PrintResponseError("CopyRates", _response_error);
+   }
+}
+
+void Execute_CopyRates2()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int stop_time;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyRates", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyRates", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyRates", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 3, stop_time, _error))
+   {
+      PrintParamError("CopyRates", "stop_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   MqlRates rates[];
+   int copied = CopyRates(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, rates);       
+
+   if (!sendMqlRatesArrayResponse(ExpertHandle, rates, copied, _response_error))
+   {
+      PrintResponseError("CopyRates", _response_error);
+   }
+}
+
+void Execute_CopyTime()
+{
+   string symbol;
+   int timeframe;
+   int start_pos;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyTime", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyTime", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 2, start_pos, _error))
+   {
+      PrintParamError("CopyTime", "start_pos", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyTime", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   datetime time_array[];
+   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, time_array);       
+
+   if (!sendLongArrayResponse(ExpertHandle, time_array, copied, _response_error))
+   {
+      PrintResponseError("CopyTime", _response_error);
+   }
+}
+
+void Execute_CopyTime1()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyTime", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyTime", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyTime", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyTime", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   datetime time_array[];
+   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, time_array);       
+
+   if (!sendLongArrayResponse(ExpertHandle, time_array, copied, _response_error))
+   {
+      PrintResponseError("CopyTime", _response_error);
+   }
+}
+
+void Execute_CopyTime2()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int stop_time;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyTime", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyTime", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyTime", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 3, stop_time, _error))
+   {
+      PrintParamError("CopyTime", "stop_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   datetime time_array[];
+   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, time_array);       
+
+   if (!sendLongArrayResponse(ExpertHandle, time_array, copied, _response_error))
+   {
+      PrintResponseError("CopyTime", _response_error);
+   }
+}
+
+void Execute_CopyOpen()
+{
+   string symbol;
+   int timeframe;
+   int start_pos;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyOpen", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyOpen", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_pos, _error))
+   {
+      PrintParamError("CopyOpen", "start_pos", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyOpen", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   double open_array[];
+   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, open_array);       
+
+   if (!sendDoubleArrayResponse(ExpertHandle, open_array, copied, _response_error))
+   {
+      PrintResponseError("CopyOpen", _response_error);
+   }
+}
+
+void Execute_CopyOpen1()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyOpen", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyOpen", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyOpen", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyOpen", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   double open_array[];
+   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, open_array);       
+
+   if (!sendDoubleArrayResponse(ExpertHandle, open_array, copied, _response_error))
+   {
+      PrintResponseError("CopyOpen", _response_error);
+   }
+}
+
+void Execute_CopyOpen2()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int stop_time;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyOpen", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyOpen", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyOpen", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 3, stop_time, _error))
+   {
+      PrintParamError("CopyOpen", "stop_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   double open_array[];
+   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, open_array);       
+
+   if (!sendDoubleArrayResponse(ExpertHandle, open_array, copied, _response_error))
+   {
+      PrintResponseError("CopyOpen", _response_error);
+   }
+}
+
+void Execute_CopyHigh()
+{
+   string symbol;
+   int timeframe;
+   int start_pos;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyHigh", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyHigh", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_pos, _error))
+   {
+      PrintParamError("CopyHigh", "start_pos", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyHigh", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   double high_array[];
+   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, high_array);       
+
+   if (!sendDoubleArrayResponse(ExpertHandle, high_array, copied, _response_error))
+   {
+      PrintResponseError("CopyHigh", _response_error);
+   }
+}
+
+void Execute_CopyHigh1()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyHigh", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyHigh", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyHigh", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyHigh", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   double high_array[];
+   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, high_array);       
+
+   if (!sendDoubleArrayResponse(ExpertHandle, high_array, copied, _response_error))
+   {
+      PrintResponseError("CopyHigh", _response_error);
+   }
+}
+
+void Execute_CopyHigh2()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int stop_time;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyHigh", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyHigh", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyHigh", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, stop_time, _error))
+   {
+      PrintParamError("CopyHigh", "stop_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   double high_array[];
+   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, high_array);       
+
+   if (!sendDoubleArrayResponse(ExpertHandle, high_array, copied, _response_error))
+   {
+      PrintResponseError("CopyHigh", _response_error);
+   }
+}
+
+void Execute_CopyLow()
+{
+   string symbol;
+   int timeframe;
+   int start_pos;
+   int count;
+   StringInit(symbol, 100, 0);
+      
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyLow", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyLow", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 2, start_pos, _error))
+   {
+      PrintParamError("CopyLow", "start_pos", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyLow", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   double low_array[];   
+   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, low_array);       
+
+   if (!sendDoubleArrayResponse(ExpertHandle, low_array, copied, _response_error))
+   {
+      PrintResponseError("CopyLow", _response_error);
+   }
+}
+
+void Execute_CopyLow1()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyLow", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyLow", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyLow", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyLow", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   double low_array[];
+   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, low_array);       
+
+   if (!sendDoubleArrayResponse(ExpertHandle, low_array, copied, _response_error))
+   {
+      PrintResponseError("CopyLow", _response_error);
+   }
+}
+
+void Execute_CopyLow2()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int stop_time;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyLow", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyLow", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyLow", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, stop_time, _error))
+   {
+      PrintParamError("CopyLow", "stop_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   double low_array[];
+   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, low_array);       
+
+   if (!sendDoubleArrayResponse(ExpertHandle, low_array, copied, _response_error))
+   {
+      PrintResponseError("CopyLow", _response_error);
+   }
+}
+
+void Execute_CopyClose()
+{
+   string symbol;
+   int timeframe;
+   int start_pos;
+   int count;
+   StringInit(symbol, 100, 0);
+      
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyClose", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyClose", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_pos, _error))
+   {
+      PrintParamError("CopyClose", "start_pos", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyClose", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   double close_array[];
+   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, close_array);       
+
+   if (!sendDoubleArrayResponse(ExpertHandle, close_array, copied, _response_error))
+   {
+      PrintResponseError("CopyClose", _response_error);
+   }
+}
+
+void Execute_CopyClose1()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyClose", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyClose", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyClose", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyClose", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   double close_array[];
+   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, close_array);       
+
+   if (!sendDoubleArrayResponse(ExpertHandle, close_array, copied, _response_error))
+   {
+      PrintResponseError("CopyClose", _response_error);
+   }
+}
+
+void Execute_CopyClose2()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int stop_time;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyClose", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyClose", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyClose", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, stop_time, _error))
+   {
+      PrintParamError("CopyClose", "stop_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   double close_array[];
+   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, close_array);       
+
+   if (!sendDoubleArrayResponse(ExpertHandle, close_array, copied, _response_error))
+   {
+      PrintResponseError("CopyClose", _response_error);
+   }
+}
+
+void Execute_CopyTickVolume()
+{
+   string symbol;
+   int timeframe;
+   int start_pos;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyTickVolume", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyTickVolume", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_pos, _error))
+   {
+      PrintParamError("CopyTickVolume", "start_pos", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyTickVolume", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   long volume_array[];
+   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, volume_array);       
+
+   if (!sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error))
+   {
+      PrintResponseError("CopyTickVolume", _response_error);
+   }
+}
+
+void Execute_CopyTickVolume1()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyTickVolume", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyTickVolume", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyTickVolume", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _response_error))
+   {
+      PrintParamError("CopyTickVolume", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   long volume_array[];
+   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, volume_array);       
+
+   if (!sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error))
+   {
+      PrintResponseError("CopyTickVolume", _response_error);
+   }
+}
+
+void Execute_CopyTickVolume2()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int stop_time;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyTickVolume", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyTickVolume", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyTickVolume", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, stop_time, _error))
+   {
+      PrintParamError("CopyTickVolume", "stop_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   long volume_array[];
+   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, volume_array);       
+
+   if (!sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error))
+   {
+      PrintResponseError("CopyTickVolume", _response_error);
+   }
+}
+
+void Execute_CopyRealVolume()
+{
+   string symbol;
+   int timeframe;
+   int start_pos;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyRealVolume", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyRealVolume", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_pos, _error))
+   {
+      PrintParamError("CopyRealVolume", "start_pos", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyRealVolume", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   long volume_array[];
+   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, volume_array);       
+
+   if (!sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error))
+   {
+      PrintResponseError("CopyRealVolume", _response_error);
+   }
+}
+
+void Execute_CopyRealVolume1()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyRealVolume", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyRealVolume", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyRealVolume", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopyRealVolume", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   long volume_array[];
+   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, volume_array);       
+
+   if (!sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error))
+   {
+      PrintResponseError("CopyRealVolume", _response_error);
+   }
+}
+
+void Execute_CopyRealVolume2()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int stop_time;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopyRealVolume", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopyRealVolume", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopyRealVolume", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, stop_time, _error))
+   {
+      PrintParamError("CopyRealVolume", "stop_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   long volume_array[];
+   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, volume_array);       
+
+   if (!sendLongArrayResponse(ExpertHandle, volume_array, copied, _response_error))
+   {
+      PrintResponseError("CopyRealVolume", _response_error);
+   }
+}
+
+void Execute_CopySpread()
+{
+   string symbol;
+   int timeframe;
+   int start_pos;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopySpread", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopySpread", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_pos, _error))
+   {
+      PrintParamError("CopySpread", "start_pos", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopySpread", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   int spread_array[];
+   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, spread_array);       
+
+   if (!sendIntArrayResponse(ExpertHandle, spread_array, copied, _response_error))
+   {
+      PrintResponseError("CopySpread", _response_error);
+   }
+}
+
+void Execute_CopySpread1()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int count;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopySpread", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopySpread", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopySpread", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, count, _error))
+   {
+      PrintParamError("CopySpread", "count", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   int spread_array[];
+   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, spread_array);       
+
+   if (!sendIntArrayResponse(ExpertHandle, spread_array, copied, _response_error))
+   {
+      PrintResponseError("CopySpread", _response_error);
+   }
+}
+
+void Execute_CopySpread2()
+{
+   string symbol;
+   int timeframe;
+   int start_time;
+   int stop_time;
+   StringInit(symbol, 100, 0);   
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("CopySpread", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("CopySpread", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, start_time, _error))
+   {
+      PrintParamError("CopySpread", "start_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, stop_time, _error))
+   {
+      PrintParamError("CopySpread", "stop_time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   int spread_array[];
+   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, spread_array);       
+
+   if (!sendIntArrayResponse(ExpertHandle, spread_array, copied, _response_error))
+   {
+      PrintResponseError("CopySpread", _response_error);
+   }
+}
+
+void Execute_SymbolsTotal()
+{
+   bool selected;
+   
+   if (!getBooleanValue(ExpertHandle, 0, selected, _error))
+   {
+      PrintParamError("SymbolsTotal", "selected", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle, SymbolsTotal(selected), _error))
+   {
+      PrintResponseError("SymbolsTotal", _response_error);
+   }
+}
+
+void Execute_SymbolName()
+{
+   bool selected; 
+   int pos;     
+   
+   if (!getIntValue(ExpertHandle, 0, pos, _error))
+   {
+      PrintParamError("SymbolName", "pos", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getBooleanValue(ExpertHandle, 1, selected, _error))
+   {
+      PrintParamError("SymbolName", "selected", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendStringResponse(ExpertHandle, SymbolName(pos, selected), _error))
+   {
+      PrintResponseError("SymbolName", _response_error);
+   }
+}
+
+void Execute_SymbolSelect()
+{
+   string symbol;
+   bool select;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("SymbolSelect", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getBooleanValue(ExpertHandle, 1, select, _error))
+   {
+      PrintParamError("SymbolSelect", "select", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendBooleanResponse(ExpertHandle, SymbolSelect(symbol, select), _response_error))
+   {
+      PrintResponseError("SymbolSelect", _response_error);
+   }
+}
+
+void Execute_SymbolIsSynchronized()
+{
+   string symbol;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("SymbolIsSynchronized", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, SymbolIsSynchronized(symbol), _response_error))
+   {
+      PrintResponseError("SymbolIsSynchronized", _response_error);
+   }
+}
+
+void Execute_SymbolInfoDouble()
+{
+   string symbol;
+   int prop_id;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("SymbolInfoDouble", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, prop_id, _error))
+   {
+      PrintParamError("SymbolInfoDouble", "prop_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendDoubleResponse(ExpertHandle, SymbolInfoDouble(symbol, (ENUM_SYMBOL_INFO_DOUBLE)prop_id), _response_error))
+   {
+      PrintResponseError("SymbolInfoDouble", _response_error);
+   }
+}
+
+void Execute_SymbolInfoInteger()
+{
+   string symbol;
+   int prop_id;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("SymbolInfoInteger", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, prop_id, _error))
+   {
+      PrintParamError("SymbolInfoInteger", "prop_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendLongResponse(ExpertHandle, SymbolInfoInteger(symbol, (ENUM_SYMBOL_INFO_INTEGER)prop_id), _response_error))
+   {
+      PrintResponseError("SymbolInfoInteger", _response_error);
+   }
+}
+
+void Execute_SymbolInfoString()
+{
+   string symbol;
+   int prop_id;
+   StringInit(symbol, 100, 0);
+  
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("SymbolInfoString", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, prop_id, _error))
+   {
+      PrintParamError("SymbolInfoString", "prop_id", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendStringResponse(ExpertHandle, SymbolInfoString(symbol, (ENUM_SYMBOL_INFO_STRING)prop_id), _response_error))
+   {
+      PrintResponseError("SymbolInfoString", _response_error);
+   }
+}
+
+void Execute_SymbolInfoTick()
+{
+   string symbol;
+   StringInit(symbol, 100, 0);
+      
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("SymbolInfoTick", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   MqlTick tick={0}; 
+   bool ok = SymbolInfoTick(symbol, tick);       
+   
+   if (ok)
+   {
+      if (!sendMqlTickResponse(ExpertHandle, tick, _response_error))
+      {
+         PrintResponseError("SymbolInfoTick", _response_error);
+      }
+   }
+   else
+   {
+      if (!sendVoidResponse(ExpertHandle, _response_error))
+      {
+         PrintResponseError("SymbolInfoTick", _response_error);
+      }
+   }
+}
+
+void Execute_SymbolInfoSessionQuote()
+{
+   string symbol;
+   int day_of_week;
+   uint session_index;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("SymbolInfoSessionQuote", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, day_of_week, _error))
+   {
+      PrintParamError("SymbolInfoSessionQuote", "day_of_week", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getUIntValue(ExpertHandle, 2, session_index, _error))
+   {
+      PrintParamError("SymbolInfoSessionQuote", "session_index", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   datetime from;
+   datetime to;   
+   bool retVal = SymbolInfoSessionQuote(symbol, (ENUM_DAY_OF_WEEK)day_of_week, session_index, from, to);
+   
+   if (!sendStringResponse(ExpertHandle, ResultToString(retVal, from, to), _response_error))
+   {
+      PrintResponseError("SymbolInfoSessionQuote", _response_error);
+   }
+}
+
+void Execute_SymbolInfoSessionTrade()
+{
+   string symbol;
+   int day_of_week;
+   uint session_index;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("SymbolInfoSessionTrade", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, day_of_week, _error))
+   {
+      PrintParamError("SymbolInfoSessionTrade", "day_of_week", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getUIntValue(ExpertHandle, 2, session_index, _error))
+   {
+      PrintParamError("SymbolInfoSessionTrade", "session_index", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   datetime from;
+   datetime to;
+   bool retVal = SymbolInfoSessionTrade(symbol, (ENUM_DAY_OF_WEEK)day_of_week, session_index, from, to);       
+
+   if (!sendStringResponse(ExpertHandle, ResultToString(retVal, from, to), _response_error))
+   {
+      PrintResponseError("SymbolInfoSessionTrade", _response_error);
+   }
+}
+
+void Execute_MarketBookAdd()
+{
+   string symbol;
+   StringInit(symbol, 100, 0);
+         
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("MarketBookAdd", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle,  MarketBookAdd(symbol), _response_error))
+   {
+      PrintResponseError("MarketBookAdd", _response_error);
+   }
+}
+
+void Execute_MarketBookRelease()
+{
+   string symbol;
+   StringInit(symbol, 100, 0);
+         
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("MarketBookRelease", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendBooleanResponse(ExpertHandle, MarketBookRelease(symbol), _response_error))
+   {
+      PrintResponseError("MarketBookRelease", _response_error);
+   }
+}
+
+void Execute_MarketBookGet()
+{
+   string symbol;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("MarketBookGet", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   MqlBookInfo book[];
+   bool retVal = MarketBookGet(symbol, book); 
+   
+   if(retVal)
+   {
+      int size = ArraySize(book);
+      if (!sendMqlBookInfoArrayResponse(ExpertHandle, book, size, _response_error))
+      {
+         PrintResponseError("MarketBookGet", _response_error);
+      }
+   }
+   else
+   {
+      if (!sendVoidResponse(ExpertHandle, _response_error))
+      {
+         PrintResponseError("MarketBookGet", _response_error);
+      }
+   }
+}
+
+void Execute_PositionOpen()
+{      
+   string symbol;
+   int order_type;
+   double volume;
+   double price;
+   double sl;
+   double tp;
+   string comment;
+   StringInit(symbol, 100, 0);
+   StringInit(comment, 1000, 0);
+         
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("PositionOpen", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, order_type, _error))
+   {
+      PrintParamError("PositionOpen", "order_type", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 2, volume, _error))
+   {
+      PrintParamError("PositionOpen", "volume", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 3, price, _error))
+   {
+      PrintParamError("PositionOpen", "price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 4, sl, _error))
+   {
+      PrintParamError("PositionOpen", "sl", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 5, tp, _error))
+   {
+      PrintParamError("PositionOpen", "tp", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 6, comment, _error))
+   {
+      PrintParamError("PositionOpen", "comment", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   PrintFormat("Execute_PositionOpen: symbol = %s, order_type = %d, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
+      symbol, order_type, volume, price, sl, tp, comment);
+   
+   CTrade trade;
+   bool result = trade.PositionOpen(symbol, (ENUM_ORDER_TYPE)order_type, volume, price, sl, tp, comment);
+   if (!sendBooleanResponse(ExpertHandle, result, _response_error))
+   {
+      PrintResponseError("PositionOpen", _response_error);
+   }
+   
+   Print("command PositionOpen: result = ", result);
+}
+
+void Execute_BacktestingReady()
+{
+   bool retVal = false;
+   if (IsTesting())
+   {
+      Print("Remote client is ready for backteting");
+      IsRemoteReadyForTesting = true;
+      retVal = true;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, retVal, _response_error))
+   {
+      PrintResponseError("BacktestingReady", _response_error);
+   }
+}
+
+void Execute_IsTesting()
+{
+   if (!sendBooleanResponse(ExpertHandle, IsTesting(), _response_error))
+   {
+      PrintResponseError("IsTesting", _response_error);
+   }
+}
+
+void Execute_Print()
+{
+   string printMsg;
+   StringInit(printMsg, 1000, 0);
+
+   if (!getStringValue(ExpertHandle, 0, printMsg, _error))
+   {
+      PrintParamError("Print", "printMsg", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+      
+   Print(printMsg);      
+   if (!sendBooleanResponse(ExpertHandle, true, _response_error))
+   {
+      PrintResponseError("Print", _response_error);
+   }
 }
 
 void Execute_PositionSelectByTicket()
@@ -1763,7 +3016,7 @@ void Execute_PositionSelectByTicket()
       PrintResponseError("PositionSelectByTicket", _response_error);
    }
 }
-
+   
 void PrintParamError(string paramName)
 {
    Print("[ERROR] parameter: ", paramName);
@@ -1781,35 +3034,37 @@ void PrintResponseError(string commandName, string error = "")
 
 void ReadMqlTradeRequestFromCommand(MqlTradeRequest& request)
 {
-      int tmpEnumValue;
-      ulong m_magicValue = 0;
-                  
-      getIntValue(ExpertHandle, 0, tmpEnumValue, _error);
-      request.action = (ENUM_TRADE_REQUEST_ACTIONS)tmpEnumValue;      
-      
-      getULongValue(ExpertHandle, 1, m_magicValue, _error);     
-      request.magic = m_magicValue;
-      getULongValue(ExpertHandle, 2, request.order, _error);     
-      getStringValue(ExpertHandle, 3, symbolValue, _error);
-      request.symbol = symbolValue;
-      getDoubleValue(ExpertHandle, 4, request.volume, _error);
-      getDoubleValue(ExpertHandle, 5, request.price, _error);
-      getDoubleValue(ExpertHandle, 6, request.stoplimit, _error);
-      getDoubleValue(ExpertHandle, 7, request.sl, _error);
-      getDoubleValue(ExpertHandle, 8, request.tp, _error);
-      getULongValue(ExpertHandle, 9, request.deviation, _error);
-      getIntValue(ExpertHandle, 10, tmpEnumValue, _error);      
-      request.type = (ENUM_ORDER_TYPE)tmpEnumValue;      
-      getIntValue(ExpertHandle, 11, tmpEnumValue, _error);
-      request.type_filling = (ENUM_ORDER_TYPE_FILLING)tmpEnumValue;
-      getIntValue(ExpertHandle, 12, tmpEnumValue, _error);
-      request.type_time = (ENUM_ORDER_TYPE_TIME)tmpEnumValue;
-      getIntValue(ExpertHandle, 13, tmpEnumValue, _error);
-      request.expiration = (datetime)tmpEnumValue;  
-      getStringValue(ExpertHandle, 14, commentValue, _error);         
-      request.comment = commentValue;
-      getULongValue(ExpertHandle, 15, request.position, _error);
-      getULongValue(ExpertHandle, 16, request.position_by, _error);
+   string symbol;
+   int tmpEnumValue;
+   ulong m_magicValue = 0;
+   StringInit(symbol, 100, 0);
+               
+   getIntValue(ExpertHandle, 0, tmpEnumValue, _error);
+   request.action = (ENUM_TRADE_REQUEST_ACTIONS)tmpEnumValue;      
+   
+   getULongValue(ExpertHandle, 1, m_magicValue, _error);     
+   request.magic = m_magicValue;
+   getULongValue(ExpertHandle, 2, request.order, _error);     
+   getStringValue(ExpertHandle, 3, symbol, _error);
+   request.symbol = symbol;
+   getDoubleValue(ExpertHandle, 4, request.volume, _error);
+   getDoubleValue(ExpertHandle, 5, request.price, _error);
+   getDoubleValue(ExpertHandle, 6, request.stoplimit, _error);
+   getDoubleValue(ExpertHandle, 7, request.sl, _error);
+   getDoubleValue(ExpertHandle, 8, request.tp, _error);
+   getULongValue(ExpertHandle, 9, request.deviation, _error);
+   getIntValue(ExpertHandle, 10, tmpEnumValue, _error);      
+   request.type = (ENUM_ORDER_TYPE)tmpEnumValue;      
+   getIntValue(ExpertHandle, 11, tmpEnumValue, _error);
+   request.type_filling = (ENUM_ORDER_TYPE_FILLING)tmpEnumValue;
+   getIntValue(ExpertHandle, 12, tmpEnumValue, _error);
+   request.type_time = (ENUM_ORDER_TYPE_TIME)tmpEnumValue;
+   getIntValue(ExpertHandle, 13, tmpEnumValue, _error);
+   request.expiration = (datetime)tmpEnumValue;  
+   getStringValue(ExpertHandle, 14, commentValue, _error);         
+   request.comment = commentValue;
+   getULongValue(ExpertHandle, 15, request.position, _error);
+   getULongValue(ExpertHandle, 16, request.position_by, _error);
 }
 
 string BoolToString(bool value)
