@@ -495,6 +495,51 @@ int executeCommand()
    case 69: //PositionSelectByTicket
       Execute_PositionSelectByTicket();
    break;
+   case 70: //ObjectCreate
+      Execute_ObjectCreate();
+   break;
+   case 71: //ObjectName
+      Execute_ObjectName();
+   break;
+   case 72: //ObjectDelete
+      Execute_ObjectDelete();
+   break;
+   case 73: //ObjectsDeleteAll
+      Execute_ObjectsDeleteAll();
+   break;
+   case 74: //ObjectFind
+      Execute_ObjectFind();
+   break;
+   case 75: //ObjectGetTimeByValue
+      Execute_ObjectGetTimeByValue();
+   break;
+   case 76: //ObjectGetValueByTime
+      Execute_ObjectGetValueByTime();
+   break;
+   case 77: //ObjectMove
+      Execute_ObjectMove();
+   break;
+   case 78: //ObjectsTotal
+      Execute_ObjectsTotal();
+   break;
+   case 79: //ObjectGetDouble
+      Execute_ObjectGetDouble();
+   break;
+   case 80: //ObjectGetInteger
+      Execute_ObjectGetInteger();
+   break;
+   case 81: //ObjectGetString
+      Execute_ObjectGetString();
+   break;
+   case 82: //ObjectSetDouble
+      Execute_ObjectSetDouble();
+   break;
+   case 83: //ObjectSetInteger
+      Execute_ObjectSetInteger();
+   break;
+   case 84: //ObjectSetString
+      Execute_ObjectSetString();
+   break;
 
    default:
       Print("Unknown command type = ", commandType);
@@ -3010,6 +3055,547 @@ void Execute_PositionSelectByTicket()
    if (!sendBooleanResponse(ExpertHandle, PositionSelectByTicket(ticket), _response_error))
    {
       PrintResponseError("PositionSelectByTicket", _response_error);
+   }
+}
+
+void Execute_ObjectCreate()
+{
+   long chartId;
+   string name;
+   int type;
+   int nwin;
+   int time;
+   double price;
+   StringInit(name, 200, 0);
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectCreate", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 1, name, _error))
+   {
+      PrintParamError("ObjectCreate", "name", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, type, _error))
+   {
+      PrintParamError("ObjectCreate", "type", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, nwin, _error))
+   {
+      PrintParamError("ObjectCreate", "nwin", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 4, time, _error))
+   {
+      PrintParamError("ObjectCreate", "time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 5, price, _error))
+   {
+      PrintParamError("ObjectCreate", "price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, ObjectCreate(chartId, name, (ENUM_OBJECT)type, nwin, (datetime)time, price), _response_error))
+   {
+      PrintResponseError("ObjectCreate", _response_error);
+   }
+}
+
+void Execute_ObjectName()
+{
+   long chartId;
+   int pos;
+   int subWindow;
+   int type;
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectName", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, pos, _error))
+   {
+      PrintParamError("ObjectName", "pos", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, subWindow, _error))
+   {
+      PrintParamError("ObjectName", "subWindow", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, type, _error))
+   {
+      PrintParamError("ObjectName", "type", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendStringResponse(ExpertHandle, ObjectName(chartId, pos, subWindow, type), _error))
+   {
+      PrintResponseError("ObjectName", _response_error);
+   }
+}
+
+void Execute_ObjectDelete()
+{
+   long chartId;
+   string name;
+   StringInit(name, 200, 0);
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectDelete", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 1, name, _error))
+   {
+      PrintParamError("ObjectDelete", "name", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, ObjectDelete(chartId, name), _response_error))
+   {
+      PrintResponseError("ObjectDelete", _response_error);
+   }   
+}
+
+void Execute_ObjectsDeleteAll()
+{
+   long chartId;
+   int subWindow;
+   int type;
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectsDeleteAll", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, subWindow, _error))
+   {
+      PrintParamError("ObjectsDeleteAll", "subWindow", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, type, _error))
+   {
+      PrintParamError("ObjectsDeleteAll", "type", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendIntResponse(ExpertHandle, ObjectsDeleteAll(chartId, subWindow, type), _error))
+   {
+      PrintResponseError("ObjectsDeleteAll", _response_error);
+   }
+}
+
+void Execute_ObjectFind()
+{
+   long chartId;
+   string name;
+   StringInit(name, 200, 0);
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectFind", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 1, name, _error))
+   {
+      PrintParamError("ObjectFind", "name", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendIntResponse(ExpertHandle, ObjectFind(chartId, name), _error))
+   {
+      PrintResponseError("ObjectFind", _response_error);
+   }
+}
+
+void Execute_ObjectGetTimeByValue()
+{
+   long chartId;
+   string name;
+   double value;
+   int lineId;
+   StringInit(name, 200, 0);
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectGetTimeByValue", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 1, name, _error))
+   {
+      PrintParamError("ObjectGetTimeByValue", "name", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 2, value, _error))
+   {
+      PrintParamError("ObjectGetTimeByValue", "value", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, lineId, _error))
+   {
+      PrintParamError("ObjectGetTimeByValue", "lineId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle, (int)ObjectGetTimeByValue(chartId, name, value, lineId), _error))
+   {
+      PrintResponseError("ObjectGetTimeByValue", _response_error);
+   }
+}
+
+void Execute_ObjectGetValueByTime()
+{
+   long chartId;
+   string name;
+   int time;
+   int lineId;
+   StringInit(name, 200, 0);
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectGetValueByTime", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 1, name, _error))
+   {
+      PrintParamError("ObjectGetValueByTime", "name", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, time, _error))
+   {
+      PrintParamError("ObjectGetValueByTime", "time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, lineId, _error))
+   {
+      PrintParamError("ObjectGetValueByTime", "lineId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendDoubleResponse(ExpertHandle, ObjectGetValueByTime(chartId, name, (datetime)time, lineId), _error))
+   {
+      PrintResponseError("ObjectGetValueByTime", _response_error);
+   }
+}
+
+void Execute_ObjectMove()
+{
+   long chartId;
+   string name;
+   int pointIndex;
+   int time;
+   double price;
+   StringInit(name, 200, 0);
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectMove", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 1, name, _error))
+   {
+      PrintParamError("ObjectMove", "name", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, pointIndex, _error))
+   {
+      PrintParamError("ObjectMove", "pointIndex", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, time, _error))
+   {
+      PrintParamError("ObjectMove", "time", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 4, price, _error))
+   {
+      PrintParamError("ObjectMove", "price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, ObjectMove(chartId, name, pointIndex, (datetime)time, price), _error))
+   {
+      PrintResponseError("ObjectMove", _response_error);
+   }
+}
+
+void Execute_ObjectsTotal()
+{
+   long chartId;
+   int subWindow;
+   int type;
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectsTotal", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, subWindow, _error))
+   {
+      PrintParamError("ObjectsTotal", "subWindow", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, type, _error))
+   {
+      PrintParamError("ObjectsTotal", "type", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendIntResponse(ExpertHandle, ObjectsTotal(chartId, subWindow, type), _error))
+   {
+      PrintResponseError("ObjectsTotal", _response_error);
+   }
+}
+
+void Execute_ObjectGetDouble()
+{
+   long chartId;
+   string name;
+   int propId;
+   StringInit(name, 200, 0);
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectGetDouble", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 1, name, _error))
+   {
+      PrintParamError("ObjectGetDouble", "name", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, propId, _error))
+   {
+      PrintParamError("ObjectGetDouble", "propId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendDoubleResponse(ExpertHandle, ObjectGetDouble(chartId, name, (ENUM_OBJECT_PROPERTY_DOUBLE)propId), _error))
+   {
+      PrintResponseError("ObjectGetDouble", _response_error);
+   }
+}
+
+void Execute_ObjectGetInteger()
+{
+   long chartId;
+   string name;
+   int propId;
+   StringInit(name, 200, 0);
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectGetInteger", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 1, name, _error))
+   {
+      PrintParamError("ObjectGetInteger", "name", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, propId, _error))
+   {
+      PrintParamError("ObjectGetInteger", "propId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendLongResponse(ExpertHandle, ObjectGetInteger(chartId, name, (ENUM_OBJECT_PROPERTY_INTEGER)propId), _error))
+   {
+      PrintResponseError("ObjectGetInteger", _response_error);
+   }
+}
+
+void Execute_ObjectGetString()
+{
+   long chartId;
+   string name;
+   int propId;
+   StringInit(name, 200, 0);
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectGetString", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 1, name, _error))
+   {
+      PrintParamError("ObjectGetString", "name", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, propId, _error))
+   {
+      PrintParamError("ObjectGetString", "propId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendStringResponse(ExpertHandle, ObjectGetString(chartId, name, (ENUM_OBJECT_PROPERTY_STRING)propId), _error))
+   {
+      PrintResponseError("ObjectGetString", _response_error);
+   }
+}
+
+void Execute_ObjectSetDouble()
+{
+   long chartId;
+   string name;
+   int propId;
+   double propValue;
+   StringInit(name, 200, 0);
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectSetDouble", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 1, name, _error))
+   {
+      PrintParamError("ObjectSetDouble", "name", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, propId, _error))
+   {
+      PrintParamError("ObjectSetDouble", "propId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 3, propValue, _error))
+   {
+      PrintParamError("ObjectSetDouble", "propValue", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, ObjectSetDouble(chartId, name, (ENUM_OBJECT_PROPERTY_DOUBLE)propId, propValue), _error))
+   {
+      PrintResponseError("ObjectSetDouble", _response_error);
+   }
+}
+
+void Execute_ObjectSetInteger()
+{
+   long chartId;
+   string name;
+   int propId;
+   long propValue;
+   StringInit(name, 200, 0);
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectSetInteger", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 1, name, _error))
+   {
+      PrintParamError("ObjectSetInteger", "name", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, propId, _error))
+   {
+      PrintParamError("ObjectSetInteger", "propId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getLongValue(ExpertHandle, 3, propValue, _error))
+   {
+      PrintParamError("ObjectSetInteger", "propValue", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, ObjectSetInteger(chartId, name, (ENUM_OBJECT_PROPERTY_INTEGER)propId, propValue), _error))
+   {
+      PrintResponseError("ObjectSetInteger", _response_error);
+   }
+}
+
+void Execute_ObjectSetString()
+{
+   long chartId;
+   string name;
+   int propId;
+   string propValue;
+   StringInit(name, 200, 0);
+   StringInit(propValue, 1000, 0);
+   
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   {
+      PrintParamError("ObjectSetString", "chartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 1, name, _error))
+   {
+      PrintParamError("ObjectSetString", "name", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, propId, _error))
+   {
+      PrintParamError("ObjectSetString", "propId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getStringValue(ExpertHandle, 3, propValue, _error))
+   {
+      PrintParamError("ObjectSetString", "propValue", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle, ObjectSetString(chartId, name, (ENUM_OBJECT_PROPERTY_STRING)propId, propValue), _error))
+   {
+      PrintResponseError("ObjectSetString", _response_error);
    }
 }
    
