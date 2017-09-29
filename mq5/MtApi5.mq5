@@ -43,14 +43,12 @@ input int Port = 8228;
 
 int ExpertHandle;
 
-string message;
+//string message;
 string _error;
 string _response_error;
 bool isCrashed = false;
 
 bool IsRemoteReadyForTesting = false;
-
-string commentValue;
 
 string PARAM_SEPARATOR = ";";
 
@@ -78,8 +76,6 @@ void OnTick()
 
 int preinit()
 {
-   StringInit(message, 1000, 0);
-   StringInit(commentValue, 1000, 0);
    StringInit(_response_error,1000,0);
 
    return (0);
@@ -133,7 +129,7 @@ int init()
    
    if (!initExpert(ExpertHandle, Port, Symbol(), Bid, Ask, IsTesting(), _error))
    {
-       MessageBox(message, "MtApi", 0);
+       MessageBox(_error, "MtApi", 0);
        isCrashed = true;
        return(1);
    }
@@ -175,9 +171,9 @@ int deinit()
 {
    if (isCrashed == 0) 
    {
-      if (!deinitExpert(ExpertHandle, message)) 
+      if (!deinitExpert(ExpertHandle, _error)) 
       {
-         MessageBox(message, "MtApi", 0);
+         MessageBox(_error, "MtApi", 0);
          isCrashed = true;
          return (1);
       }
@@ -194,9 +190,9 @@ int start()
    double Bid = last_tick.bid;
    double Ask = last_tick.ask;
    
-   if (!updateQuote(ExpertHandle, Symbol(), Bid, Ask, message)) 
+   if (!updateQuote(ExpertHandle, Symbol(), Bid, Ask, _error)) 
    {
-      Print("updateQuote: [ERROR] ", message);
+      Print("updateQuote: [ERROR] ", _error);
    }
 
    return (0);
@@ -3035,15 +3031,17 @@ void PrintResponseError(string commandName, string error = "")
 void ReadMqlTradeRequestFromCommand(MqlTradeRequest& request)
 {
    string symbol;
+   string comment;
    int tmpEnumValue;
-   ulong m_magicValue = 0;
+   ulong magic = 0;
    StringInit(symbol, 100, 0);
+   StringInit(comment, 1000, 0);
                
    getIntValue(ExpertHandle, 0, tmpEnumValue, _error);
    request.action = (ENUM_TRADE_REQUEST_ACTIONS)tmpEnumValue;      
    
-   getULongValue(ExpertHandle, 1, m_magicValue, _error);     
-   request.magic = m_magicValue;
+   getULongValue(ExpertHandle, 1, magic, _error);     
+   request.magic = magic;
    getULongValue(ExpertHandle, 2, request.order, _error);     
    getStringValue(ExpertHandle, 3, symbol, _error);
    request.symbol = symbol;
@@ -3061,8 +3059,8 @@ void ReadMqlTradeRequestFromCommand(MqlTradeRequest& request)
    request.type_time = (ENUM_ORDER_TYPE_TIME)tmpEnumValue;
    getIntValue(ExpertHandle, 13, tmpEnumValue, _error);
    request.expiration = (datetime)tmpEnumValue;  
-   getStringValue(ExpertHandle, 14, commentValue, _error);         
-   request.comment = commentValue;
+   getStringValue(ExpertHandle, 14, comment, _error);         
+   request.comment = comment;
    getULongValue(ExpertHandle, 15, request.position, _error);
    getULongValue(ExpertHandle, 16, request.position_by, _error);
 }
