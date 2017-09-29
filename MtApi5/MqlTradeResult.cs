@@ -23,6 +23,11 @@
         public double Bid { get; private set; }            // Current Bid price
         public double Ask { get; private set; }            // Current Ask price
         public string Comment { get; private set; }        // Broker comment to operation (by default it is filled by the operation description)
-        public uint Request_id { get; private set; }       // Request ID set by the terminal during the dispatch 
+        public uint Request_id { get; private set; }       // Request ID set by the terminal during the dispatch
+
+        public override string ToString()
+        {
+            return $"Retcode={Retcode}; Deal={Deal}; Order={Order}; Volume={Volume}; Price={Price}; Bid={Bid}; Ask={Ask}; Comment={Comment}; Request_id={Request_id}";
+        }
     }
 }

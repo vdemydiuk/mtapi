@@ -745,13 +745,14 @@ namespace MtApi5TestClient
             const string symbol = "EURUSD";
             const ENUM_ORDER_TYPE orderType = ENUM_ORDER_TYPE.ORDER_TYPE_BUY;
             const double volume = 0.1;
-            const double price = 1.013;
-            const double sl = 1.00;
-            const double tp = 1.020;
+            const double price = 1.18129;
+            const double sl = 1.1811;
+            const double tp = 1.1814;
             const string comment = "Test PositionOpen";
+            MqlTradeResult tradeResult = null;
 
-            var retVal = await Execute (() => _mtApiClient.PositionOpen(symbol, orderType, volume, price, sl, tp, comment));
-            AddLog($"PositionOpen: symbol EURUSD result = {retVal}");
+            var retVal = await Execute (() => _mtApiClient.PositionOpen(symbol, orderType, volume, price, sl, tp, comment, out tradeResult));
+            AddLog($"PositionOpen: symbol EURUSD retVal = {retVal}, result = {tradeResult}");
         }
 
         private async void ExecutePrint(object obj)
