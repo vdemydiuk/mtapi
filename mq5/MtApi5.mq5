@@ -479,13 +479,16 @@ int executeCommand()
    break;    
    case 62: //MarketBookGet
       Execute_MarketBookGet();
-   break;   
+   break;
    case 65: //PositionOpen
-      Execute_PositionOpen();
+      Execute_PositionOpen(false);
+   break;
+   case 1065: //PositionOpenWithResult
+      Execute_PositionOpen(true);
    break;   
    case 66: //BacktestingReady
       Execute_BacktestingReady();
-   break; 
+   break;
    case 67: //IsTesting
       Execute_IsTesting();
    break;   
@@ -2931,8 +2934,8 @@ void Execute_MarketBookGet()
    }
 }
 
-void Execute_PositionOpen()
-{      
+void Execute_PositionOpen(bool isTradeResultRequired)
+{
    string symbol;
    int order_type;
    double volume;
@@ -2990,13 +2993,25 @@ void Execute_PositionOpen()
       symbol, order_type, volume, price, sl, tp, comment);
    
    CTrade trade;
-   bool result = trade.PositionOpen(symbol, (ENUM_ORDER_TYPE)order_type, volume, price, sl, tp, comment);
-   if (!sendBooleanResponse(ExpertHandle, result, _response_error))
+   bool ok = trade.PositionOpen(symbol, (ENUM_ORDER_TYPE)order_type, volume, price, sl, tp, comment);
+   if (isTradeResultRequired)
    {
-      PrintResponseError("PositionOpen", _response_error);
+      MqlTradeResult tradeResult={0};
+      trade.Result(tradeResult);
+      if (!sendStringResponse(ExpertHandle, ResultToString(ok, tradeResult), _response_error))
+      {
+         PrintResponseError("PositionOpen", _response_error);
+      }
+   }
+   else
+   {
+      if (!sendBooleanResponse(ExpertHandle, ok, _response_error))
+      {
+         PrintResponseError("PositionOpen", _response_error);
+      }
    }
    
-   Print("command PositionOpen: result = ", result);
+   Print("command PositionOpen: result = ", ok);
 }
 
 void Execute_BacktestingReady()

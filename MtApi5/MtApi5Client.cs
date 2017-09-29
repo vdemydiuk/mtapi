@@ -522,6 +522,25 @@ namespace MtApi5
 
             return SendCommand<bool>(Mt5CommandType.PositionOpen, commandParameters);
         }
+
+        /// <summary>
+        /// Opens a position with the specified parameters.
+        /// </summary>
+        /// <param name="symbol">symbol</param>
+        /// <param name="orderType">order type to open position </param>
+        /// <param name="volume">position volume</param>
+        /// <param name="price">execution price</param>
+        /// <param name="sl">Stop Loss price</param>
+        /// <param name="tp">Take Profit price</param>
+        /// <param name="comment">comment</param>
+        /// <returns>true - successful check of the basic structures, otherwise - false.</returns>
+        public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, string comment , out MqlTradeResult result)
+        {
+            var commandParameters = new ArrayList { symbol, (int)orderType, volume, price, sl, tp, comment };
+
+            var strResult = SendCommand<string>(Mt5CommandType.PositionOpenWithResult, commandParameters);
+            return strResult.ParseResult(ParamSeparator, out result);
+        }
         #endregion
 
         #region Account Information functions

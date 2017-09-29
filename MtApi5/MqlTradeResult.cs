@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
-
-namespace MtApi5
+﻿namespace MtApi5
 {
     public class MqlTradeResult
     {

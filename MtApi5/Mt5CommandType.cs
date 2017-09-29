@@ -100,6 +100,7 @@
         //CTrade
         PositionClose                       = 64,
         PositionOpen                        = 65,
+        PositionOpenWithResult              = 1065,
 
         //Backtesting
         BacktestingReady                    = 66,
