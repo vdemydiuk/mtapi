@@ -1888,8 +1888,7 @@ namespace MtApi5
 
         private void OnConnected()
         {
-            // INFO: disabled backtesting mode while solution of window handle in testing mode is not found
-            //_isBacktestingMode = IsTestMode();
+            _isBacktestingMode = IsTesting();
 
             if (_isBacktestingMode)
             {
