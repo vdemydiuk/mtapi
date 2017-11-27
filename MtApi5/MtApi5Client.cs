@@ -1638,6 +1638,556 @@ namespace MtApi5
 
         #endregion //Object Functions
 
+        #region Technical Indicators
+
+        #endregion //Technical Indicators
+
+        ///<summary>
+        ///The function creates Accelerator Oscillator in a global cache of the client terminal and returns its handle.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        public int iAC(string symbol, ENUM_TIMEFRAMES period)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period };
+            return SendCommand<int>(Mt5CommandType.iAC, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Average Directional Movement Index indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="adxPeriod">Period to calculate the index.</param>
+        public int iADX(string symbol, ENUM_TIMEFRAMES period, int adxPeriod)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, adxPeriod };
+            return SendCommand<int>(Mt5CommandType.iADX, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of Average Directional Movement Index by Welles Wilder.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="adxPeriod">Period to calculate the index.</param>
+        public int iADXWilder(string symbol, ENUM_TIMEFRAMES period, int adxPeriod)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, adxPeriod };
+            return SendCommand<int>(Mt5CommandType.iADXWilder, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Alligator indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="jawPeriod">Averaging period for the blue line (Alligator's Jaw).</param>
+        ///<param name="jawShift">The shift of the blue line relative to the price chart.</param>
+        ///<param name="teethPeriod">Averaging period for the red line (Alligator's Teeth).</param>
+        ///<param name="teethShift">The shift of the red line relative to the price chart.</param>
+        ///<param name="lipsPeriod">Averaging period for the green line (Alligator's lips).</param>
+        ///<param name="lipsShift">The shift of the green line relative to the price chart.</param>
+        ///<param name="maMethod">The method of averaging. Can be any of the ENUM_MA_METHOD values.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iAlligator(string symbol, ENUM_TIMEFRAMES period, int jawPeriod, int jawShift, int teethPeriod, 
+            int teethShift, int lipsPeriod, int lipsShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, jawPeriod, jawShift, teethPeriod, teethShift, lipsPeriod, lipsShift, (int)maMethod, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iAlligator, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Adaptive Moving Average indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="amaPeriod">The calculation period, on which the efficiency coefficient is calculated.</param>
+        ///<param name="fastMaPeriod">Fast period for the smoothing coefficient calculation for a rapid market.</param>
+        ///<param name="slowMaPeriod">Slow period for the smoothing coefficient calculation in the absence of trend.</param>
+        ///<param name="amaShift">Shift of the indicator relative to the price chart.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iAMA(string symbol, ENUM_TIMEFRAMES period, int amaPeriod, int fastMaPeriod, int slowMaPeriod, int amaShift, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, amaPeriod, fastMaPeriod, slowMaPeriod, amaShift, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iAMA, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Awesome Oscillator indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        public int iAO(string symbol, ENUM_TIMEFRAMES period)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period };
+            return SendCommand<int>(Mt5CommandType.iAO, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Average True Range indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">The value of the averaging period for the indicator calculation.</param>
+        public int iATR(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
+            return SendCommand<int>(Mt5CommandType.iATR, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Bears Power indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">The value of the averaging period for the indicator calculation.</param>
+        public int iBearsPower(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
+            return SendCommand<int>(Mt5CommandType.iBearsPower, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Bollinger Bands® indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="bandsPeriod">The averaging period of the main line of the indicator.</param>
+        ///<param name="bandsShift">The shift the indicator relative to the price chart.</param>
+        ///<param name="deviation">Deviation from the main line.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iBands(string symbol, ENUM_TIMEFRAMES period, int bandsPeriod, int bandsShift, double deviation, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, bandsPeriod, bandsShift, deviation, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iBands, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Bulls Power indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">The averaging period for the indicator calculation.</param>
+        public int iBullsPower(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
+            return SendCommand<int>(Mt5CommandType.iBullsPower, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Commodity Channel Index indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">The averaging period for the indicator calculation.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iCCI(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iCCI, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Bulls Power indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="fastMaPeriod">Fast averaging period for calculations.</param>
+        ///<param name="slowMaPeriod">Slow averaging period for calculations.</param>
+        ///<param name="maMethod">Smoothing type. Can be one of the averaging constants of ENUM_MA_METHOD.</param>
+        ///<param name="appliedVolume">The volume used. Can be one of the constants of ENUM_APPLIED_VOLUME.</param>
+        public int iChaikin(string symbol, ENUM_TIMEFRAMES period, int fastMaPeriod, int slowMaPeriod, ENUM_MA_METHOD maMethod, ENUM_APPLIED_VOLUME appliedVolume)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, fastMaPeriod, slowMaPeriod, (int)maMethod, (int)appliedVolume };
+            return SendCommand<int>(Mt5CommandType.iChaikin, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Bulls Power indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">Averaging period (bars count) for calculations.</param>
+        ///<param name="maShift">Shift of the indicator relative to the price chart.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iDEMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iDEMA, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the DeMarker indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">Averaging period (bars count) for calculations.</param>
+        public int iDeMarker(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
+            return SendCommand<int>(Mt5CommandType.iDeMarker, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Envelopes indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">Averaging period for the main line.</param>
+        ///<param name="maShift">The shift of the indicator relative to the price chart.</param>
+        ///<param name="maMethod">Smoothing type. Can be one of the values of ENUM_MA_METHOD.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        ///<param name="deviation">The deviation from the main line (in percents).</param>
+        public int iEnvelopes(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice, double deviation)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)maMethod, (int)appliedPrice, deviation };
+            return SendCommand<int>(Mt5CommandType.iEnvelopes, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Force Index indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">Averaging period for the indicator calculations.</param>
+        ///<param name="maMethod">Smoothing type. Can be one of the values of ENUM_MA_METHOD.</param>
+        ///<param name="appliedVolume">The volume used. Can be one of the values of ENUM_APPLIED_VOLUME.</param>
+        public int iForce(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_MA_METHOD maMethod, ENUM_APPLIED_VOLUME appliedVolume)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)maMethod, (int)appliedVolume };
+            return SendCommand<int>(Mt5CommandType.iForce, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Force Index indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        public int iForce(string symbol, ENUM_TIMEFRAMES period)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period };
+            return SendCommand<int>(Mt5CommandType.iForce, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Fractal Adaptive Moving Average indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">Period (bars count) for the indicator calculations.</param>
+        ///<param name="maShift">Shift of the indicator in the price chart.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iFrAMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iFrAMA, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Gator indicator. The Oscillator shows the difference between the blue and red lines of Alligator (upper histogram) and difference between red and green lines (lower histogram).
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="jawPeriod">Averaging period for the blue line (Alligator's Jaw).</param>
+        ///<param name="jawShift">The shift of the blue line relative to the price chart. It isn't directly connected with the visual shift of the indicator histogram.</param>
+        ///<param name="teethPeriod">Averaging period for the red line (Alligator's Teeth).</param>
+        ///<param name="teethShift">The shift of the red line relative to the price chart. It isn't directly connected with the visual shift of the indicator histogram.</param>
+        ///<param name="lipsPeriod">Averaging period for the green line (Alligator's lips).</param>
+        ///<param name="lipsShift">The shift of the green line relative to the price charts. It isn't directly connected with the visual shift of the indicator histogram.</param>
+        ///<param name="maMethod">Smoothing type. Can be one of the values of ENUM_MA_METHOD.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iGator(string symbol, ENUM_TIMEFRAMES period, int jawPeriod, int jawShift, int teethPeriod, 
+            int teethShift, int lipsPeriod, int lipsShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, jawPeriod, jawShift, teethPeriod, teethShift, lipsPeriod, lipsShift, (int)maMethod, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iGator, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Ichimoku Kinko Hyo indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="tenkanSen">Averaging period for Tenkan Sen.</param>
+        ///<param name="kijunSen">Averaging period for Kijun Sen.</param>
+        ///<param name="senkouSpanB">Averaging period for Senkou Span B.</param>
+        public int iIchimoku(string symbol, ENUM_TIMEFRAMES period, int tenkanSen, int kijunSen, int senkouSpanB)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, tenkanSen, kijunSen, senkouSpanB };
+            return SendCommand<int>(Mt5CommandType.iIchimoku, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Market Facilitation Index indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="appliedVolume">The volume used. Can be one of the constants of ENUM_APPLIED_VOLUME.</param>
+        public int iBWMFI(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, (int)appliedVolume };
+            return SendCommand<int>(Mt5CommandType.iBWMFI, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Momentum indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="momPeriod">Averaging period (bars count) for the calculation of the price change.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iMomentum(string symbol, ENUM_TIMEFRAMES period, int momPeriod, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, momPeriod, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iMomentum, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Money Flow Index indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">Averaging period (bars count) for the calculation.</param>
+        ///<param name="appliedVolume">The volume used. Can be any of the ENUM_APPLIED_VOLUME values.</param>
+        public int iMFI(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_VOLUME appliedVolume)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)appliedVolume };
+            return SendCommand<int>(Mt5CommandType.iMFI, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Moving Average indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">Averaging period for the calculation of the moving average.</param>
+        ///<param name="maShift">Shift of the indicator relative to the price chart.</param>
+        ///<param name="maMethod">Smoothing type. Can be one of the ENUM_MA_METHOD values.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)maMethod, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iMA, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Moving Average of Oscillator indicator. The OsMA oscillator shows the difference between values of MACD and its signal line. 
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="fastEmaPeriod">Period for Fast Moving Average calculation.</param>
+        ///<param name="slowEmaPeriod">Period for Slow Moving Average calculation.</param>
+        ///<param name="signalPeriod">Averaging period for signal line calculation.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iOsMA(string symbol, ENUM_TIMEFRAMES period, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, fastEmaPeriod, slowEmaPeriod, signalPeriod, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iOsMA, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Moving Averages Convergence/Divergence indicator. In systems where OsMA is called MACD Histogram, this indicator is shown as two lines. In the client terminal the Moving Averages Convergence/Divergence looks like a histogram.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="fastEmaPeriod">Period for Fast Moving Average calculation.</param>
+        ///<param name="slowEmaPeriod">Period for Slow Moving Average calculation.</param>
+        ///<param name="signalPeriod">Averaging period for signal line calculation.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iMACD(string symbol, ENUM_TIMEFRAMES period, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, fastEmaPeriod, slowEmaPeriod, signalPeriod, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iMACD, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the On Balance Volume indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="appliedVolume">The volume used. Can be any of the ENUM_APPLIED_VOLUME values.</param>
+        public int iOBV(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, (int)appliedVolume };
+            return SendCommand<int>(Mt5CommandType.iOBV, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Parabolic Stop and Reverse system indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="step">The step of price increment, usually  0.02.</param>
+        ///<param name="maximum">The maximum step, usually 0.2.</param>
+        public int iSAR(string symbol, ENUM_TIMEFRAMES period, double step, double maximum)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, step, maximum };
+            return SendCommand<int>(Mt5CommandType.iSAR, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Relative Strength Index indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">Averaging period for the RSI calculation.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iRSI(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iRSI, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Relative Vigor Index indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">Averaging period for the RVI calculation.</param>
+        public int iRVI(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
+            return SendCommand<int>(Mt5CommandType.iRVI, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Standard Deviation indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">Averaging period for the RVI calculation.</param>
+        ///<param name="maShift">Shift of the indicator relative to the price chart.</param>
+        ///<param name="maMethod">Type of averaging. Can be any of the ENUM_MA_METHOD values.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iStdDev(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)maMethod, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iStdDev, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Stochastic Oscillator indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="Kperiod">Averaging period (bars count) for the %K line calculation.</param>
+        ///<param name="Dperiod">Averaging period (bars count) for the %D line calculation.</param>
+        ///<param name="slowing">Slowing value.</param>
+        ///<param name="maMethod">Type of averaging. Can be any of the ENUM_MA_METHOD values.</param>
+        ///<param name="priceField">Parameter of price selection for calculations. Can be one of the ENUM_STO_PRICE values.</param>
+        public int iStochastic(string symbol, ENUM_TIMEFRAMES period, int Kperiod, int Dperiod, int slowing, ENUM_MA_METHOD maMethod, ENUM_STO_PRICE priceField)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, Kperiod, Dperiod, slowing, (int)maMethod, (int)priceField };
+            return SendCommand<int>(Mt5CommandType.iStochastic, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Triple Exponential Moving Average indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">Averaging period (bars count) for calculation.</param>
+        ///<param name="maShift">Shift of indicator relative to the price chart.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iTEMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iTEMA, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Triple Exponential Moving Averages Oscillator indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="maPeriod">Averaging period (bars count) for calculation.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iTriX(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iTriX, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Larry Williams' Percent Range indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="calcPeriod">Period (bars count) for the indicator calculation.</param>
+        public int iWPR(string symbol, ENUM_TIMEFRAMES period, int calcPeriod)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, calcPeriod };
+            return SendCommand<int>(Mt5CommandType.iWPR, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Variable Index Dynamic Average indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="cmoPeriod">Period (bars count) for the Chande Momentum Oscillator calculation.</param>
+        ///<param name="emaPeriod">EMA period (bars count) for smoothing factor calculation.</param>
+        ///<param name="maShift">Shift of the indicator relative to the price chart.</param>
+        ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
+        public int iVIDyA(string symbol, ENUM_TIMEFRAMES period, int cmoPeriod, int emaPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, cmoPeriod, emaPeriod, maShift, (int)appliedPrice };
+            return SendCommand<int>(Mt5CommandType.iVIDyA, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Volumes indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="appliedVolume">The volume used. Can be any of the ENUM_APPLIED_VOLUME values.</param>
+        public int iVolumes(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, (int)appliedVolume };
+            return SendCommand<int>(Mt5CommandType.iVolumes, commandParameters);
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Volumes indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="name">The name of the custom indicator, with path relative to the root directory of indicators (MQL5/Indicators/). If an indicator is located in a subdirectory, for example, in MQL5/Indicators/Examples, its name must be specified like: "Examples\\indicator_name" (it is necessary to use a double slash instead of the single slash as a separator).</param>
+        ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
+        public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, double[] parameters)
+        {
+            var response = SendRequest<ICustomResponse>(new ICustomRequest
+            {
+                Symbol = symbol,
+                Timeframe = (int)period,
+                Name = name,
+                Params = new ArrayList(parameters),
+                ParamsType = ICustomRequest.ParametersType.Double
+            });
+            return response?.Value ?? 0;
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Volumes indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="name">The name of the custom indicator, with path relative to the root directory of indicators (MQL5/Indicators/). If an indicator is located in a subdirectory, for example, in MQL5/Indicators/Examples, its name must be specified like: "Examples\\indicator_name" (it is necessary to use a double slash instead of the single slash as a separator).</param>
+        ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
+        public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, int[] parameters)
+        {
+            var response = SendRequest<ICustomResponse>(new ICustomRequest
+            {
+                Symbol = symbol,
+                Timeframe = (int)period,
+                Name = name,
+                Params = new ArrayList(parameters),
+                ParamsType = ICustomRequest.ParametersType.Int
+            });
+            return response?.Value ?? 0;
+        }
+
         #endregion // Public Methods
 
         #region Properties

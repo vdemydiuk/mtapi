@@ -67,9 +67,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Mt5Quote.cs" />
     <Compile Include="Requests\CopyTicksRequest.cs" />
+    <Compile Include="Requests\ICustomRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />
     <Compile Include="Requests\RequestType.cs" />
     <Compile Include="Responses\CopyTicksResponse.cs" />
+    <Compile Include="Responses\ICustomResponse.cs" />
     <Compile Include="Responses\ResponseBase.cs" />
   </ItemGroup>
   <ItemGroup>

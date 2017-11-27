@@ -742,5 +742,44 @@
         ALIGN_CENTER = 2,   // Centered (only for the Edit object)
         ALIGN_RIGHT = 0,    // Right alignment
     }
-    #endregion
-}
+    #endregion //Object Properties
+
+    #region Price Constants
+
+    public enum ENUM_APPLIED_PRICE
+    {
+        PRICE_CLOSE = 1,    //Close price
+        PRICE_OPEN = 2,     //Open price
+        PRICE_HIGH = 3,     //The maximum price for the period
+        PRICE_LOW = 4,      //The minimum price for the period
+        PRICE_MEDIAN = 5,   //Median price, (high + low)/2
+        PRICE_TYPICAL = 6,  //Typical price, (high + low + close)/3
+        PRICE_WEIGHTED = 7  //Average price, (high + low + close + close)/4
+    }
+
+    public enum ENUM_APPLIED_VOLUME
+    {
+        VOLUME_TICK = 0,    //Tick volume
+        VOLUME_REAL = 1     //Trade volume
+    }
+
+    public enum ENUM_STO_PRICE
+    {
+        STO_LOWHIGH = 0,    //Calculation is based on Low/High prices
+        STO_CLOSECLOSE = 1  //Calculation is based on Close/Close prices
+    }
+
+    #endregion //Price Constants
+
+    #region Smoothing Methods
+
+    public enum ENUM_MA_METHOD
+    {
+        MODE_SMA = 0,   //Simple averaging
+        MODE_EMA = 1,   //Exponential averaging
+        MODE_SMMA = 2,  //Smoothed averaging
+        MODE_LWMA = 3   //Linear-weighted averaging
+    }
+
+    #endregion //Smoothing Methods
+    }
