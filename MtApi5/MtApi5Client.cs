@@ -456,7 +456,7 @@ namespace MtApi5
         ///<param name="propertyId"> Identifier of a deal property.</param>
         public double HistoryDealGetDouble(ulong ticketNumber, ENUM_DEAL_PROPERTY_DOUBLE propertyId)
         {
-            var commandParameters = new ArrayList { ticketNumber, propertyId };
+            var commandParameters = new ArrayList { ticketNumber, (int)propertyId };
 
             return SendCommand<double>(Mt5CommandType.HistoryDealGetDouble, commandParameters);
         }
@@ -468,7 +468,7 @@ namespace MtApi5
         ///<param name="propertyId"> Identifier of a deal property.</param>
         public long HistoryDealGetInteger(ulong ticketNumber, ENUM_DEAL_PROPERTY_INTEGER propertyId)
         {
-            var commandParameters = new ArrayList { ticketNumber, propertyId };
+            var commandParameters = new ArrayList { ticketNumber, (int)propertyId };
 
             return SendCommand<long>(Mt5CommandType.HistoryDealGetInteger, commandParameters);
         }
@@ -480,7 +480,7 @@ namespace MtApi5
         ///<param name="propertyId"> Identifier of a deal property.</param>
         public string HistoryDealGetString(ulong ticketNumber, ENUM_DEAL_PROPERTY_STRING propertyId)
         {
-            var commandParameters = new ArrayList { ticketNumber, propertyId };
+            var commandParameters = new ArrayList { ticketNumber, (int)propertyId };
 
             return SendCommand<string>(Mt5CommandType.HistoryDealGetString, commandParameters);
         }
