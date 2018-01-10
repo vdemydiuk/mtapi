@@ -541,7 +541,122 @@ int executeCommand()
    case 84: //ObjectSetString
       Execute_ObjectSetString();
    break;
-
+   case 88: //iAC
+      Execute_iAC();
+   break;
+   case 89: //iAD
+      Execute_iAD();
+   break;
+   case 90: //iADX
+      Execute_iADX();
+   break;
+   case 91: //iADXWilder
+      Execute_iADXWilder();
+   break;
+   case 92: //iAlligator
+      Execute_iAlligator();
+   break;
+   case 93: //iAMA
+      Execute_iAMA();
+   break;
+   case 94: //iAO
+      Execute_iAO();
+   break;
+   case 95: //iATR
+      Execute_iATR();
+   break;
+   case 96: //iBearsPower
+      Execute_iBearsPower();
+   break;
+   case 97: //iBands
+      Execute_iBands();
+   break;
+   case 98: //iBullsPower
+      Execute_iBullsPower();
+   break;
+   case 99: //iCCI
+      Execute_iCCI();
+   break;
+   case 100: //iChaikin
+      Execute_iChaikin();
+   break;
+//   case 101: //iCustom
+//   break;
+   case 102: //iDEMA
+      Execute_iDEMA();
+   break;
+   case 103: //iDeMarker
+      Execute_iDeMarker();
+   break;
+   case 104: //iEnvelopes
+      Execute_iEnvelopes();
+   break;
+   case 105: //iForce
+      Execute_iForce();
+   break;
+   case 106: //iFractals
+      Execute_iFractals();
+   break;
+   case 107: //iFrAMA
+      Execute_iFrAMA();
+   break;
+   case 108: //iGator
+      Execute_iGator();
+   break;
+   case 109: //iIchimoku
+      Execute_iIchimoku();
+   break;
+   case 110: //iBWMFI
+      Execute_iBWMFI();
+   break;
+   case 111: //iMomentum
+      Execute_iMomentum();
+   break;
+   case 112: //iMFI
+      Execute_iMFI();
+   break;
+   case 113: //iMA
+      Execute_iMA();
+   break;
+   case 114: //iOsMA
+      Execute_iOsMA();
+   break;
+   case 115: //iMACD
+      Execute_iMACD();
+   break;
+   case 116: //iOBV
+      Execute_iOBV();
+   break;
+   case 117: //iSAR
+      Execute_iSAR();
+   break;
+   case 118: //iRSI
+      Execute_iRSI();
+   break;
+   case 119: //iRVI
+      Execute_iRVI();
+   break;
+   case 120: //iStdDev
+      Execute_iStdDev();
+   break;
+   case 121: //iStochastic
+      Execute_iStochastic();
+   break;
+   case 122: //iTEMA
+      Execute_iTEMA();
+   break;
+   case 123: //iTriX
+      Execute_iTriX();
+   break;
+   case 124: //iWPR
+      Execute_iWPR();
+   break;
+   case 125: //iVIDyA
+      Execute_iVIDyA();
+   break;
+   case 126: //iVolumes
+      Execute_iVolumes();
+   break;
    default:
       Print("Unknown command type = ", commandType);
       sendVoidResponse(ExpertHandle, _response_error);
@@ -3611,6 +3726,1694 @@ void Execute_ObjectSetString()
       PrintResponseError("ObjectSetString", _response_error);
    }
 }
+
+void Execute_iAC()
+{
+   string symbol;
+   int period;   
+   StringInit(symbol, 200, 0);
+ 
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iAC", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iAC", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle, iAC(symbol, (ENUM_TIMEFRAMES)period), _error))
+   {
+      PrintResponseError("iAC", _response_error);
+   }
+}
+
+void Execute_iAD()
+{
+   string symbol;
+   int period;
+   int applied_volume;
+   StringInit(symbol, 200, 0);
+ 
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iAD", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iAD", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, applied_volume, _error))
+   {
+      PrintParamError("iAD", "applied_volume", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendIntResponse(ExpertHandle, 
+      iAD(symbol, (ENUM_TIMEFRAMES)period, (ENUM_APPLIED_VOLUME)applied_volume), 
+         _error))
+   {
+      PrintResponseError("iAD", _response_error);
+   }
+}
+
+void Execute_iADX()
+{
+   string symbol;
+   int period;
+   int adx_period;
+   StringInit(symbol, 200, 0);
+ 
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iADX", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iADX", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, adx_period, _error))
+   {
+      PrintParamError("iADX", "adx_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendIntResponse(ExpertHandle, 
+      iADX(symbol, (ENUM_TIMEFRAMES)period, adx_period), 
+      _error))
+   {
+      PrintResponseError("iADX", _response_error);
+   }
+}
+
+void Execute_iADXWilder()
+{
+   string symbol;
+   int period;
+   int adx_period;
+   StringInit(symbol, 200, 0);
+ 
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iADXWilder", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iADXWilder", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, adx_period, _error))
+   {
+      PrintParamError("iADXWilder", "adx_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendIntResponse(ExpertHandle, 
+      iADXWilder(symbol, (ENUM_TIMEFRAMES)period, adx_period), 
+         _error))
+   {
+      PrintResponseError("iADXWilder", _response_error);
+   }
+}
+
+void Execute_iAlligator()
+{
+   string symbol;
+   int period;
+   int jaw_period;
+   int jaw_shift;
+   int teeth_period;
+   int teeth_shift;
+   int lips_period;
+   int lips_shift;
+   int ma_method;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iAlligator", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iAlligator", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, jaw_period, _error))
+   {
+      PrintParamError("iAlligator", "jaw_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, jaw_shift, _error))
+   {
+      PrintParamError("iAlligator", "jaw_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 4, teeth_period, _error))
+   {
+      PrintParamError("iAlligator", "teeth_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 5, teeth_shift, _error))
+   {
+      PrintParamError("iAlligator", "teeth_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 6, lips_period, _error))
+   {
+      PrintParamError("iAlligator", "lips_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 7, lips_shift, _error))
+   {
+      PrintParamError("iAlligator", "lips_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 8, ma_method, _error))
+   {
+      PrintParamError("iAlligator", "ma_method", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 9, applied_price, _error))
+   {
+      PrintParamError("iAlligator", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendIntResponse(ExpertHandle, 
+      iAlligator(symbol, (ENUM_TIMEFRAMES)period, jaw_period, jaw_shift, teeth_period, teeth_shift, 
+         lips_period, lips_shift, (ENUM_MA_METHOD)ma_method, (ENUM_APPLIED_PRICE)applied_price), 
+      _error))
+   {
+      PrintResponseError("iAlligator", _response_error);
+   }
+}
+
+void Execute_iAMA()
+{
+   string symbol;
+   int period;
+   int ama_period;
+   int fast_ma_period;
+   int slow_ma_period;
+   int ama_shift;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iAMA", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iAMA", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ama_period, _error))
+   {
+      PrintParamError("iAMA", "ama_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, fast_ma_period, _error))
+   {
+      PrintParamError("iAMA", "fast_ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 4, slow_ma_period, _error))
+   {
+      PrintParamError("iAMA", "slow_ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 5, ama_shift, _error))
+   {
+      PrintParamError("iAMA", "ama_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 6, applied_price, _error))
+   {
+      PrintParamError("iAMA", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendIntResponse(ExpertHandle, 
+      iAMA(symbol, (ENUM_TIMEFRAMES)period, ama_period, fast_ma_period, slow_ma_period, ama_shift, (ENUM_APPLIED_PRICE)applied_price), 
+      _error))
+   {
+      PrintResponseError("iAMA", _response_error);
+   }
+}
+
+void Execute_iAO()
+{
+   string symbol;
+   int period;
+   StringInit(symbol, 200, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iAO", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iAO", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle, 
+      iAO(symbol, (ENUM_TIMEFRAMES)period), 
+         _error))
+   {
+      PrintResponseError("iAO", _response_error);
+   }
+}
+
+void Execute_iATR()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   StringInit(symbol, 200, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iATR", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iATR", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iATR", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+
+   if (!sendIntResponse(ExpertHandle, 
+      iATR(symbol, (ENUM_TIMEFRAMES)period, ma_period), 
+         _error))
+   {
+      PrintResponseError("iATR", _response_error);
+   }
+}
+
+void Execute_iBearsPower()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   StringInit(symbol, 200, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iBearsPower", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iBearsPower", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iBearsPower", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+
+   if (!sendIntResponse(ExpertHandle, 
+      iBearsPower(symbol, (ENUM_TIMEFRAMES)period, ma_period), 
+         _error))
+   {
+      PrintResponseError("iBearsPower", _response_error);
+   }
+}
+
+void Execute_iBands()
+{
+   string symbol;
+   int period;
+   int bands_period;
+   int bands_shift;
+   double deviation;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iBands", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iBands", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, bands_period, _error))
+   {
+      PrintParamError("iBands", "bands_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   if (!getIntValue(ExpertHandle, 3, bands_shift, _error))
+   {
+      PrintParamError("iBands", "bands_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   if (!getDoubleValue(ExpertHandle, 4, deviation, _error))
+   {
+      PrintParamError("iBands", "deviation", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   if (!getIntValue(ExpertHandle, 5, applied_price, _error))
+   {
+      PrintParamError("iBands", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   
+   if (!sendIntResponse(ExpertHandle, 
+      iBands(symbol, (ENUM_TIMEFRAMES)period, bands_period, bands_shift, deviation, (ENUM_APPLIED_PRICE)applied_price), 
+         _error))
+   {
+      PrintResponseError("iBands", _response_error);
+   }   
+}
+
+void Execute_iBullsPower()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   StringInit(symbol, 200, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iBullsPower", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iBullsPower", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iBullsPower", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+
+   if (!sendIntResponse(ExpertHandle, 
+      iBearsPower(symbol, (ENUM_TIMEFRAMES)period, ma_period), 
+         _error))
+   {
+      PrintResponseError("iBullsPower", _response_error);
+   }
+}
+
+void Execute_iCCI()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iCCI", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iCCI", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iCCI", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   if (!getIntValue(ExpertHandle, 3, applied_price, _error))
+   {
+      PrintParamError("iCCI", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+
+   if (!sendIntResponse(ExpertHandle, 
+      iCCI(symbol, (ENUM_TIMEFRAMES)period, ma_period, (ENUM_APPLIED_PRICE) applied_price), 
+         _error))
+   {
+      PrintResponseError("iCCI", _response_error);
+   }
+}
+
+void Execute_iChaikin()
+{
+   string symbol;
+   int period;
+   int fast_ma_period;
+   int slow_ma_period;
+   int ma_period;
+   int applied_volume;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iChaikin", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iChaikin", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, fast_ma_period, _error))
+   {
+      PrintParamError("iChaikin", "fast_ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, slow_ma_period, _error))
+   {
+      PrintParamError("iChaikin", "slow_ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 4, ma_period, _error))
+   {
+      PrintParamError("iChaikin", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   if (!getIntValue(ExpertHandle, 5, applied_volume, _error))
+   {
+      PrintParamError("iChaikin", "applied_volume", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   
+   if (!sendIntResponse(ExpertHandle, 
+      iChaikin(symbol, (ENUM_TIMEFRAMES)period, fast_ma_period, slow_ma_period, (ENUM_MA_METHOD)ma_period, (ENUM_APPLIED_VOLUME) applied_volume), 
+         _error))
+   {
+      PrintResponseError("iChaikin", _response_error);
+   }   
+}
+
+void Execute_iDEMA()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   int ma_shift;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iDEMA", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iDEMA", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iDEMA", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   if (!getIntValue(ExpertHandle, 3, ma_shift, _error))
+   {
+      PrintParamError("iDEMA", "ma_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   if (!getIntValue(ExpertHandle, 4, applied_price, _error))
+   {
+      PrintParamError("iDEMA", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+
+   if (!sendIntResponse(ExpertHandle, 
+      iDEMA(symbol, (ENUM_TIMEFRAMES)period, ma_period, ma_shift, (ENUM_APPLIED_PRICE) applied_price), 
+         _error))
+   {
+      PrintResponseError("iDEMA", _response_error);
+   }
+}
+
+void Execute_iDeMarker()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   StringInit(symbol, 200, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iDeMarker", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iDeMarker", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iDeMarker", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   
+   if (!sendIntResponse(ExpertHandle, 
+      iDeMarker(symbol, (ENUM_TIMEFRAMES)period, ma_period), 
+         _error))
+   {
+      PrintResponseError("iDeMarker", _response_error);
+   }
+}
+
+void Execute_iEnvelopes()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   int ma_shift;
+   int ma_method;
+   int applied_price;
+   double deviation;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iEnvelopes", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iEnvelopes", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iEnvelopes", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   if (!getIntValue(ExpertHandle, 3, ma_shift, _error))
+   {
+      PrintParamError("iEnvelopes", "ma_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   if (!getIntValue(ExpertHandle, 4, ma_method, _error))
+   {
+      PrintParamError("iEnvelopes", "ma_method", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   if (!getIntValue(ExpertHandle, 5, applied_price, _error))
+   {
+      PrintParamError("iEnvelopes", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   if (!getDoubleValue(ExpertHandle, 6, deviation, _error))
+   {
+      PrintParamError("iEnvelopes", "deviation", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+
+   if (!sendIntResponse(ExpertHandle, 
+      iEnvelopes(symbol, (ENUM_TIMEFRAMES)period, ma_period, ma_shift, (ENUM_MA_METHOD)ma_method, (ENUM_APPLIED_PRICE)applied_price, deviation), 
+         _error))
+   {
+      PrintResponseError("iEnvelopes", _response_error);
+   }
+}
+
+void Execute_iForce()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   int ma_method;
+   int applied_volume;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iForce", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iForce", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iForce", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   if (!getIntValue(ExpertHandle, 3, ma_method, _error))
+   {
+      PrintParamError("iForce", "ma_method", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+   if (!getIntValue(ExpertHandle, 4, applied_volume, _error))
+   {
+      PrintParamError("iForce", "applied_volume", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+   }
+
+   if (!sendIntResponse(ExpertHandle, 
+      iForce(symbol, (ENUM_TIMEFRAMES)period, ma_period, (ENUM_MA_METHOD)ma_method, (ENUM_APPLIED_VOLUME)applied_volume), 
+         _error))
+   {
+      PrintResponseError("iForce", _response_error);
+   }
+}
+
+void Execute_iFractals()
+{
+   string symbol;
+   int period;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iFractals", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iFractals", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iFractals(symbol, (ENUM_TIMEFRAMES)period), 
+         _error))
+   {
+      PrintResponseError("iFractals", _response_error);
+   }
+}
+
+void Execute_iFrAMA()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   int ma_shift;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iFrAMA", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iFrAMA", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iFrAMA", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, ma_shift, _error))
+   {
+      PrintParamError("iFrAMA", "ma_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 4, applied_price, _error))
+   {
+      PrintParamError("iFrAMA", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iFrAMA(symbol, (ENUM_TIMEFRAMES)period, ma_period, ma_shift, (ENUM_APPLIED_PRICE)applied_price), 
+         _error))
+   {
+      PrintResponseError("iFrAMA", _response_error);
+   }
+}
+   
+void Execute_iGator()
+{
+   string symbol;
+   int period;
+   int jaw_period;
+   int jaw_shift;
+   int teeth_period;
+   int teeth_shift;
+   int lips_period;
+   int lips_shift;
+   int ma_method;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iGator", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iGator", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, jaw_period, _error))
+   {
+      PrintParamError("iGator", "jaw_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, jaw_shift, _error))
+   {
+      PrintParamError("iGator", "jaw_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 4, teeth_period, _error))
+   {
+      PrintParamError("iGator", "teeth_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 5, teeth_shift, _error))
+   {
+      PrintParamError("iGator", "teeth_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 6, lips_period, _error))
+   {
+      PrintParamError("iGator", "lips_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 7, lips_shift, _error))
+   {
+      PrintParamError("iGator", "lips_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 8, ma_method, _error))
+   {
+      PrintParamError("iGator", "ma_method", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 9, applied_price, _error))
+   {
+      PrintParamError("iGator", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iGator(symbol, (ENUM_TIMEFRAMES)period, jaw_period, jaw_shift, teeth_period, teeth_shift, lips_period, lips_shift, (ENUM_MA_METHOD)ma_method, (ENUM_APPLIED_PRICE)applied_price), 
+         _error))
+   {
+      PrintResponseError("iGator", _response_error);
+   }
+}
+
+void Execute_iIchimoku()
+{
+   string symbol;
+   int period;
+   int tenkan_sen;
+   int kijun_sen;
+   int senkou_span_b;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iIchimoku", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iIchimoku", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, tenkan_sen, _error))
+   {
+      PrintParamError("iIchimoku", "tenkan_sen", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, kijun_sen, _error))
+   {
+      PrintParamError("iIchimoku", "kijun_sen", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 4, senkou_span_b, _error))
+   {
+      PrintParamError("iIchimoku", "senkou_span_b", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iIchimoku(symbol, (ENUM_TIMEFRAMES)period, tenkan_sen, kijun_sen, senkou_span_b), 
+         _error))
+   {
+      PrintResponseError("iIchimoku", _response_error);
+   }
+}
+
+void Execute_iBWMFI()
+{
+   string symbol;
+   int period;
+   int applied_volume;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iBWMFI", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iBWMFI", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, applied_volume, _error))
+   {
+      PrintParamError("iBWMFI", "applied_volume", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iBWMFI(symbol, (ENUM_TIMEFRAMES)period, (ENUM_APPLIED_VOLUME)applied_volume), 
+         _error))
+   {
+      PrintResponseError("iBWMFI", _response_error);
+   }
+}
+
+void Execute_iMomentum()
+{
+   string symbol;
+   int period;
+   int mom_period;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iMomentum", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iMomentum", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, mom_period, _error))
+   {
+      PrintParamError("iMomentum", "mom_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, applied_price, _error))
+   {
+      PrintParamError("iMomentum", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iMomentum(symbol, (ENUM_TIMEFRAMES)period, mom_period, (ENUM_APPLIED_PRICE)applied_price), 
+         _error))
+   {
+      PrintResponseError("iMomentum", _response_error);
+   }
+}
+
+void Execute_iMFI()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   int applied_volume;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iMFI", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iMFI", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iMFI", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, applied_volume, _error))
+   {
+      PrintParamError("iMFI", "applied_volume", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iMFI(symbol, (ENUM_TIMEFRAMES)period, ma_period, (ENUM_APPLIED_VOLUME)applied_volume), 
+         _error))
+   {
+      PrintResponseError("iMFI", _response_error);
+   }
+}
+
+void Execute_iMA()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   int ma_shift;
+   int ma_method;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iMA", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iMA", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iMA", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 3, ma_shift, _error))
+   {
+      PrintParamError("iMA", "ma_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 4, ma_method, _error))
+   {
+      PrintParamError("iMA", "ma_method", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 5, applied_price, _error))
+   {
+      PrintParamError("iMA", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iMA(symbol, (ENUM_TIMEFRAMES)period, ma_period, ma_shift, (ENUM_MA_METHOD)ma_method, (ENUM_APPLIED_PRICE)applied_price), 
+         _error))
+   {
+      PrintResponseError("iMA", _response_error);
+   }
+}
+
+void Execute_iOsMA()
+{
+   string symbol;
+   int period;
+   int fast_ema_period;
+   int slow_ema_period;
+   int signal_period;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iOsMA", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iOsMA", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, fast_ema_period, _error))
+   {
+      PrintParamError("iOsMA", "fast_ema_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, slow_ema_period, _error))
+   {
+      PrintParamError("iOsMA", "slow_ema_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 4, signal_period, _error))
+   {
+      PrintParamError("iOsMA", "signal_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 5, applied_price, _error))
+   {
+      PrintParamError("iOsMA", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iOsMA(symbol, (ENUM_TIMEFRAMES)period, fast_ema_period, slow_ema_period, signal_period, (ENUM_APPLIED_PRICE)applied_price), 
+         _error))
+   {
+      PrintResponseError("iOsMA", _response_error);
+   }
+}
+
+void Execute_iMACD()
+{
+   string symbol;
+   int period;
+   int fast_ema_period;
+   int slow_ema_period;
+   int signal_period;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iMACD", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iMACD", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, fast_ema_period, _error))
+   {
+      PrintParamError("iMACD", "fast_ema_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, slow_ema_period, _error))
+   {
+      PrintParamError("iMACD", "slow_ema_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 4, signal_period, _error))
+   {
+      PrintParamError("iMACD", "signal_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 5, applied_price, _error))
+   {
+      PrintParamError("iMACD", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iMACD(symbol, (ENUM_TIMEFRAMES)period, fast_ema_period, slow_ema_period, signal_period, (ENUM_APPLIED_PRICE)applied_price), 
+         _error))
+   {
+      PrintResponseError("iMACD", _response_error);
+   }
+}
+
+void Execute_iOBV()
+{
+   string symbol;
+   int period;
+   int applied_volume;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iOBV", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iOBV", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, applied_volume, _error))
+   {
+      PrintParamError("iOBV", "applied_volume", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendIntResponse(ExpertHandle,
+      iOBV(symbol, (ENUM_TIMEFRAMES)period, (ENUM_APPLIED_VOLUME)applied_volume), 
+         _error))
+   {
+      PrintResponseError("iOBV", _response_error);
+   }
+}
+
+void Execute_iSAR()
+{
+   string symbol;
+   int period;
+   double step;
+   double maximum;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iSAR", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iSAR", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 2, step, _error))
+   {
+      PrintParamError("iSAR", "step", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 3, maximum, _error))
+   {
+      PrintParamError("iSAR", "maximum", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iSAR(symbol, (ENUM_TIMEFRAMES)period, step, maximum), 
+         _error))
+   {
+      PrintResponseError("iSAR", _response_error);
+   }
+}
+
+void Execute_iRSI()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iRSI", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iRSI", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iRSI", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, applied_price, _error))
+   {
+      PrintParamError("iRSI", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendIntResponse(ExpertHandle,
+      iRSI(symbol, (ENUM_TIMEFRAMES)period, ma_period, (ENUM_APPLIED_PRICE)applied_price), 
+         _error))
+   {
+      PrintResponseError("iRSI", _response_error);
+   }   
+}
+
+void Execute_iRVI()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iRVI", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iRVI", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iRVI", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendIntResponse(ExpertHandle,
+      iRVI(symbol, (ENUM_TIMEFRAMES)period, ma_period), 
+         _error))
+   {
+      PrintResponseError("iRVI", _response_error);
+   } 
+}
+
+void Execute_iStdDev()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   int ma_shift;
+   int ma_method;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iStdDev", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iStdDev", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iStdDev", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, ma_shift, _error))
+   {
+      PrintParamError("iStdDev", "ma_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 4, ma_method, _error))
+   {
+      PrintParamError("iStdDev", "ma_method", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 5, applied_price, _error))
+   {
+      PrintParamError("iStdDev", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iStdDev(symbol, (ENUM_TIMEFRAMES)period, ma_period, ma_shift, (ENUM_MA_METHOD)ma_method, (ENUM_APPLIED_PRICE)applied_price), 
+         _error))
+   {
+      PrintResponseError("iStdDev", _response_error);
+   }
+}
+
+void Execute_iStochastic()
+{
+   string symbol;
+   int period;
+   int Kperiod;
+   int Dperiod;
+   int slowing;
+   int ma_method;
+   int price_field;
+   StringInit(symbol, 200, 0);
+
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iStochastic", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iStochastic", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, Kperiod, _error))
+   {
+      PrintParamError("iStochastic", "Kperiod", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, Dperiod, _error))
+   {
+      PrintParamError("iStochastic", "Dperiod", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 4, slowing, _error))
+   {
+      PrintParamError("iStochastic", "slowing", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 5, ma_method, _error))
+   {
+      PrintParamError("iStochastic", "ma_method", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 6, price_field, _error))
+   {
+      PrintParamError("iStochastic", "price_field", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iStochastic(symbol, (ENUM_TIMEFRAMES)period, Kperiod, Dperiod, slowing, (ENUM_MA_METHOD)slowing, (ENUM_STO_PRICE)price_field), 
+         _error))
+   {
+      PrintResponseError("iStochastic", _response_error);
+   }
+}
+
+void Execute_iTEMA()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   int ma_shift;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iTEMA", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iTEMA", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iTEMA", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, ma_shift, _error))
+   {
+      PrintParamError("iTEMA", "ma_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 4, applied_price, _error))
+   {
+      PrintParamError("iTEMA", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iTEMA(symbol, (ENUM_TIMEFRAMES)period, ma_period, ma_shift, (ENUM_APPLIED_PRICE)applied_price), 
+         _error))
+   {
+      PrintResponseError("iTEMA", _response_error);
+   }
+}
+
+void Execute_iTriX()
+{
+   string symbol;
+   int period;
+   int ma_period;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iTriX", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iTriX", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, ma_period, _error))
+   {
+      PrintParamError("iTriX", "ma_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 3, applied_price, _error))
+   {
+      PrintParamError("iTriX", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iTriX(symbol, (ENUM_TIMEFRAMES)period, ma_period, (ENUM_APPLIED_PRICE)applied_price), 
+         _error))
+   {
+      PrintResponseError("iTriX", _response_error);
+   }
+}
+
+void Execute_iWPR()
+{
+   string symbol;
+   int period;
+   int calc_period;
+   StringInit(symbol, 200, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iWPR", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iWPR", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, calc_period, _error))
+   {
+      PrintParamError("iWPR", "calc_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!sendIntResponse(ExpertHandle,
+      iWPR(symbol, (ENUM_TIMEFRAMES)period, calc_period), 
+         _error))
+   {
+      PrintResponseError("iWPR", _response_error);
+   }
+}
+
+void Execute_iVIDyA()
+{
+   string symbol;
+   int period;
+   int cmo_period;
+   int ema_period;
+   int ma_shift;
+   int applied_price;
+   StringInit(symbol, 200, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iVIDyA", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iVIDyA", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, cmo_period, _error))
+   {
+      PrintParamError("iVIDyA", "cmo_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 3, ema_period, _error))
+   {
+      PrintParamError("iVIDyA", "ema_period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }  
+   if (!getIntValue(ExpertHandle, 4, ma_shift, _error))
+   {
+      PrintParamError("iVIDyA", "ma_shift", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 5, applied_price, _error))
+   {
+      PrintParamError("iVIDyA", "applied_price", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iVIDyA(symbol, (ENUM_TIMEFRAMES)period, cmo_period, ema_period, ma_shift, (ENUM_APPLIED_PRICE)applied_price), 
+         _error))
+   {
+      PrintResponseError("iVIDyA", _response_error);
+   }
+}
+
+void Execute_iVolumes()
+{
+   string symbol;
+   int period;
+   int applied_volume;
+   StringInit(symbol, 200, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("iVolumes", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 1, period, _error))
+   {
+      PrintParamError("iVolumes", "period", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getIntValue(ExpertHandle, 2, applied_volume, _error))
+   {
+      PrintParamError("iVolumes", "applied_volume", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   if (!sendIntResponse(ExpertHandle,
+      iVolumes(symbol, (ENUM_TIMEFRAMES)period, (ENUM_APPLIED_VOLUME)applied_volume), 
+         _error))
+   {
+      PrintResponseError("iVolumes", _response_error);
+   }
+}
    
 void PrintParamError(string paramName)
 {
@@ -3763,6 +5566,9 @@ string OnRequest(string json)
             case 1: //CopyTicks
                response = ExecuteRequest_CopyTicks(jo);
                break;
+            case 2: //iCustom
+               response = ExecuteRequest_iCustom(jo);
+               break;
             default:
                PrintFormat("OnRequest [WARNING]: Unknown request type %d", requestType);
                response = CreateErrorResponse(-1, "Unknown request type");
@@ -3849,4 +5655,109 @@ string ExecuteRequest_CopyTicks(JSONObject *jo)
    }
         
    return CreateSuccessResponse("Ticks", jaTicks);;
+}
+
+string ExecuteRequest_iCustom(JSONObject *jo)
+{
+   if (jo.getValue("Symbol") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Symbol");
+   if (jo.getValue("Timeframe") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Timeframe");
+   if (jo.getValue("Name") == NULL)
+      return CreateErrorResponse(-1, "Undefinded mandatory parameter Name");
+   
+   string symbol = jo.getString("Symbol");   
+   int timeframe = jo.getInt("Timeframe");
+   string name = jo.getString("Name");
+
+   int result;
+   
+   if (jo.getValue("Params") == NULL)
+   {
+      result = iCustom(symbol, (ENUM_TIMEFRAMES)timeframe, name);
+   }
+   else
+   {
+      JSONArray *jaParams = jo.getArray("Params");
+      int size = jaParams.size();
+
+      if (size < 0 || size > 10)
+         return CreateErrorResponse(-1, "Parameter's count is out of range.");
+
+      if (jo.getValue("ParamsType") == NULL)
+         return CreateErrorResponse(-1, "Undefinded mandatory parameter ParamsType");
+
+      int paramsType =  jo.getInt("ParamsType");
+      switch (paramsType)
+      {
+      case 0: //Int
+      {
+         int intParams[];
+         ArrayResize(intParams, size);
+         for (int i = 0; i < size; i++)
+         {
+            intParams[i] = jaParams.getInt(i);
+         }
+         result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, intParams, size);
+      }
+      break;
+      case 1: //Double
+      {
+         int doubleParams[];
+         ArrayResize(doubleParams, size);
+         result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, doubleParams, size);
+      }
+      break;
+      case 2: //String
+      {
+         string stringParams[];
+         ArrayResize(stringParams, size);
+         result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, stringParams, size);
+      }
+      break;
+      case 3: //Boolean
+      {
+         string boolParams[];
+         ArrayResize(boolParams, size);
+         result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, boolParams, size);
+      }
+      break;
+      default:
+         return CreateErrorResponse(-1, "Unsupported type of iCustom parameters.");
+      }
+   }
+
+   return CreateSuccessResponse("Value", new JSONNumber((long)result));
+}
+
+template<typename T>
+int iCustomT(string symbol, ENUM_TIMEFRAMES timeframe, string name, T &p[], int count)
+{
+   switch(count)
+   {
+   case 0:
+      return iCustom(symbol, timeframe, name);
+   case 1:
+      return iCustom(symbol, timeframe, name, p[0]);
+   case 2:
+      return iCustom(symbol, timeframe, name, p[0], p[1]);
+   case 3:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2]);
+   case 4:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3]);
+   case 5:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3], p[4]);
+   case 6:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3], p[4], p[5]);
+   case 7:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3], p[4], p[5], p[6]);
+   case 8:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
+   case 9:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8]);
+   case 10:
+      return iCustom(symbol, timeframe, name, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9]);
+   default:
+         return 0;
+   }
 }

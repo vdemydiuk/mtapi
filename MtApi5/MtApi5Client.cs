@@ -1654,6 +1654,18 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///The function returns the handle of the Accumulation/Distribution indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="appliedVolume">The volume used. Can be any of ENUM_APPLIED_VOLUME values.</param>
+        public int iAD(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
+        {
+            var commandParameters = new ArrayList { symbol, (int)period, (int)appliedVolume };
+            return SendCommand<int>(Mt5CommandType.iAD, commandParameters);
+        }
+
+        ///<summary>
         ///The function returns the handle of the Average Directional Movement Index indicator.
         ///</summary>
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>

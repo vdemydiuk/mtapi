@@ -145,7 +145,7 @@
         iBullsPower                         = 98,
         iCCI                                = 99,
         iChaikin                            = 100,
-        iCustom                             = 101,
+        //iCustom                             = 101,
         iDEMA                               = 102,
         iDeMarker                           = 103,
         iEnvelopes                          = 104,
