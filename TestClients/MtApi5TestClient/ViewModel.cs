@@ -16,6 +16,9 @@ namespace MtApi5TestClient
         public DelegateCommand DisconnectCommand { get; private set; }
 
         public DelegateCommand OrderSendCommand { get; private set; }
+        public DelegateCommand HistoryDealGetDoubleCommand { get; private set; }
+        public DelegateCommand HistoryDealGetIntegerCommand { get; private set; }
+        public DelegateCommand HistoryDealGetStringCommand { get; private set; }
 
         public DelegateCommand AccountInfoDoubleCommand { get; private set; }
         public DelegateCommand AccountInfoIntegerCommand { get; private set; }
@@ -193,6 +196,9 @@ namespace MtApi5TestClient
             DisconnectCommand = new DelegateCommand(ExecuteDisconnect, CanExecuteDisconnect);
 
             OrderSendCommand = new DelegateCommand(ExecuteOrderSend);
+            HistoryDealGetDoubleCommand = new DelegateCommand(ExecuteHistoryDealGetDouble);
+            HistoryDealGetIntegerCommand = new DelegateCommand(ExecuteHistoryDealGetInteger);
+            HistoryDealGetStringCommand = new DelegateCommand(ExecuteHistoryDealGetString);
 
             AccountInfoDoubleCommand = new DelegateCommand(ExecuteAccountInfoDouble);
             AccountInfoIntegerCommand = new DelegateCommand(ExecuteAccountInfoInteger);
@@ -269,6 +275,36 @@ namespace MtApi5TestClient
 
             var message = retVal != null ? $"OrderSend successed. {MqlTradeResultToString(retVal)}" : "OrderSend failed.";
             AddLog(message);
+        }
+
+        private async void ExecuteHistoryDealGetDouble(object o)
+        {
+            const ulong ticket = 12345;
+            const ENUM_DEAL_PROPERTY_DOUBLE propertyId = ENUM_DEAL_PROPERTY_DOUBLE.DEAL_PROFIT;
+
+            var retVal = await Execute(() => _mtApiClient.HistoryDealGetDouble(ticket, propertyId));
+
+            AddLog($"HistoryDealGetDouble: {retVal}");
+        }
+
+        private async void ExecuteHistoryDealGetInteger(object o)
+        {
+            const ulong ticket = 12345;
+            const ENUM_DEAL_PROPERTY_INTEGER propertyId = ENUM_DEAL_PROPERTY_INTEGER.DEAL_TICKET;
+
+            var retVal = await Execute(() => _mtApiClient.HistoryDealGetInteger(ticket, propertyId));
+
+            AddLog($"HistoryDealGetInteger: {retVal}");
+        }
+
+        private async void ExecuteHistoryDealGetString(object o)
+        {
+            const ulong ticket = 12345;
+            const ENUM_DEAL_PROPERTY_STRING propertyId = ENUM_DEAL_PROPERTY_STRING.DEAL_SYMBOL;
+
+            var retVal = await Execute(() => _mtApiClient.HistoryDealGetString(ticket, propertyId));
+
+            AddLog($"HistoryDealGetString: {retVal}");
         }
 
         private async void ExecuteAccountInfoDouble(object o)

@@ -254,8 +254,11 @@
                             </Grid>
                         </Expander>
 
-                        <StackPanel Grid.Row="1" Orientation="Horizontal">
-                            <Button Content="OrderSend" Command="{Binding OrderSendCommand}" Width="100" Height="25"/>
+                        <StackPanel Grid.Row="1" Orientation="Vertical">
+                            <Button Content="OrderSend" Command="{Binding OrderSendCommand}" Width="100" Height="25" HorizontalAlignment="Left" Margin="4"/>
+                            <Button Content="HistoryDealGetDouble" Command="{Binding HistoryDealGetDoubleCommand}" Height="25" HorizontalAlignment="Left"  Margin="4"/>
+                            <Button Content="HistoryDealGetInteger" Command="{Binding HistoryDealGetIntegerCommand}" Height="25" HorizontalAlignment="Left" Margin="4"/>
+                            <Button Content="HistoryDealGetString" Command="{Binding HistoryDealGetStringCommand}" Height="25" HorizontalAlignment="Left" Margin="4"/>
                         </StackPanel>
 
                     </Grid>
