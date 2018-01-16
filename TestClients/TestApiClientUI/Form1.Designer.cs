@@ -113,6 +113,13 @@
             this.label22 = new System.Windows.Forms.Label();
             this.textBoxErrorCode = new System.Windows.Forms.TextBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.button70 = new System.Windows.Forms.Button();
+            this.label33 = new System.Windows.Forms.Label();
+            this.label32 = new System.Windows.Forms.Label();
+            this.label31 = new System.Windows.Forms.Label();
+            this.textBoxAccountHost = new System.Windows.Forms.TextBox();
+            this.textBoxAccountPassword = new System.Windows.Forms.TextBox();
+            this.textBoxAccountLogin = new System.Windows.Forms.TextBox();
             this.button67 = new System.Windows.Forms.Button();
             this.button66 = new System.Windows.Forms.Button();
             this.button65 = new System.Windows.Forms.Button();
@@ -182,6 +189,7 @@
             this.button14 = new System.Windows.Forms.Button();
             this.button13 = new System.Windows.Forms.Button();
             this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.button71 = new System.Windows.Forms.Button();
             this.button23 = new System.Windows.Forms.Button();
             this.iCustomBtn = new System.Windows.Forms.Button();
             this.tabPage8 = new System.Windows.Forms.TabPage();
@@ -202,13 +210,6 @@
             this.button4 = new System.Windows.Forms.Button();
             this.tabPage11 = new System.Windows.Forms.TabPage();
             this.button69 = new System.Windows.Forms.Button();
-            this.textBoxAccountLogin = new System.Windows.Forms.TextBox();
-            this.textBoxAccountPassword = new System.Windows.Forms.TextBox();
-            this.label31 = new System.Windows.Forms.Label();
-            this.label32 = new System.Windows.Forms.Label();
-            this.textBoxAccountHost = new System.Windows.Forms.TextBox();
-            this.label33 = new System.Windows.Forms.Label();
-            this.button70 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -1154,6 +1155,64 @@
             this.tabPage3.Text = "Account Information";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
+            // button70
+            // 
+            this.button70.Location = new System.Drawing.Point(371, 292);
+            this.button70.Name = "button70";
+            this.button70.Size = new System.Drawing.Size(97, 23);
+            this.button70.TabIndex = 18;
+            this.button70.Text = "ChangeAccount";
+            this.button70.UseVisualStyleBackColor = true;
+            this.button70.Click += new System.EventHandler(this.button70_Click);
+            // 
+            // label33
+            // 
+            this.label33.AutoSize = true;
+            this.label33.Location = new System.Drawing.Point(168, 269);
+            this.label33.Name = "label33";
+            this.label33.Size = new System.Drawing.Size(66, 13);
+            this.label33.TabIndex = 17;
+            this.label33.Text = "MT4 Server:";
+            // 
+            // label32
+            // 
+            this.label32.AutoSize = true;
+            this.label32.Location = new System.Drawing.Point(168, 241);
+            this.label32.Name = "label32";
+            this.label32.Size = new System.Drawing.Size(56, 13);
+            this.label32.TabIndex = 17;
+            this.label32.Text = "Password:";
+            // 
+            // label31
+            // 
+            this.label31.AutoSize = true;
+            this.label31.Location = new System.Drawing.Point(168, 214);
+            this.label31.Name = "label31";
+            this.label31.Size = new System.Drawing.Size(36, 13);
+            this.label31.TabIndex = 17;
+            this.label31.Text = "Login:";
+            // 
+            // textBoxAccountHost
+            // 
+            this.textBoxAccountHost.Location = new System.Drawing.Point(234, 266);
+            this.textBoxAccountHost.Name = "textBoxAccountHost";
+            this.textBoxAccountHost.Size = new System.Drawing.Size(238, 20);
+            this.textBoxAccountHost.TabIndex = 17;
+            // 
+            // textBoxAccountPassword
+            // 
+            this.textBoxAccountPassword.Location = new System.Drawing.Point(234, 238);
+            this.textBoxAccountPassword.Name = "textBoxAccountPassword";
+            this.textBoxAccountPassword.Size = new System.Drawing.Size(238, 20);
+            this.textBoxAccountPassword.TabIndex = 16;
+            // 
+            // textBoxAccountLogin
+            // 
+            this.textBoxAccountLogin.Location = new System.Drawing.Point(232, 212);
+            this.textBoxAccountLogin.Name = "textBoxAccountLogin";
+            this.textBoxAccountLogin.Size = new System.Drawing.Size(238, 20);
+            this.textBoxAccountLogin.TabIndex = 15;
+            // 
             // button67
             // 
             this.button67.Location = new System.Drawing.Point(157, 33);
@@ -1836,6 +1895,7 @@
             // 
             // tabPage7
             // 
+            this.tabPage7.Controls.Add(this.button71);
             this.tabPage7.Controls.Add(this.button23);
             this.tabPage7.Controls.Add(this.iCustomBtn);
             this.tabPage7.Location = new System.Drawing.Point(4, 40);
@@ -1845,6 +1905,16 @@
             this.tabPage7.TabIndex = 7;
             this.tabPage7.Text = "Technical Indicators";
             this.tabPage7.UseVisualStyleBackColor = true;
+            // 
+            // button71
+            // 
+            this.button71.Location = new System.Drawing.Point(6, 64);
+            this.button71.Name = "button71";
+            this.button71.Size = new System.Drawing.Size(107, 23);
+            this.button71.TabIndex = 17;
+            this.button71.Text = "iBarShift";
+            this.button71.UseVisualStyleBackColor = true;
+            this.button71.Click += new System.EventHandler(this.button71_Click);
             // 
             // button23
             // 
@@ -2075,64 +2145,6 @@
             this.button69.Text = "UnlockTicks";
             this.button69.UseVisualStyleBackColor = true;
             this.button69.Click += new System.EventHandler(this.button69_Click);
-            // 
-            // textBoxAccountLogin
-            // 
-            this.textBoxAccountLogin.Location = new System.Drawing.Point(232, 212);
-            this.textBoxAccountLogin.Name = "textBoxAccountLogin";
-            this.textBoxAccountLogin.Size = new System.Drawing.Size(238, 20);
-            this.textBoxAccountLogin.TabIndex = 15;
-            // 
-            // textBoxAccountPassword
-            // 
-            this.textBoxAccountPassword.Location = new System.Drawing.Point(234, 238);
-            this.textBoxAccountPassword.Name = "textBoxAccountPassword";
-            this.textBoxAccountPassword.Size = new System.Drawing.Size(238, 20);
-            this.textBoxAccountPassword.TabIndex = 16;
-            // 
-            // label31
-            // 
-            this.label31.AutoSize = true;
-            this.label31.Location = new System.Drawing.Point(168, 214);
-            this.label31.Name = "label31";
-            this.label31.Size = new System.Drawing.Size(36, 13);
-            this.label31.TabIndex = 17;
-            this.label31.Text = "Login:";
-            // 
-            // label32
-            // 
-            this.label32.AutoSize = true;
-            this.label32.Location = new System.Drawing.Point(168, 241);
-            this.label32.Name = "label32";
-            this.label32.Size = new System.Drawing.Size(56, 13);
-            this.label32.TabIndex = 17;
-            this.label32.Text = "Password:";
-            // 
-            // textBoxAccountHost
-            // 
-            this.textBoxAccountHost.Location = new System.Drawing.Point(234, 266);
-            this.textBoxAccountHost.Name = "textBoxAccountHost";
-            this.textBoxAccountHost.Size = new System.Drawing.Size(238, 20);
-            this.textBoxAccountHost.TabIndex = 17;
-            // 
-            // label33
-            // 
-            this.label33.AutoSize = true;
-            this.label33.Location = new System.Drawing.Point(168, 269);
-            this.label33.Name = "label33";
-            this.label33.Size = new System.Drawing.Size(66, 13);
-            this.label33.TabIndex = 17;
-            this.label33.Text = "MT4 Server:";
-            // 
-            // button70
-            // 
-            this.button70.Location = new System.Drawing.Point(371, 292);
-            this.button70.Name = "button70";
-            this.button70.Size = new System.Drawing.Size(97, 23);
-            this.button70.TabIndex = 18;
-            this.button70.Text = "ChangeAccount";
-            this.button70.UseVisualStyleBackColor = true;
-            this.button70.Click += new System.EventHandler(this.button70_Click);
             // 
             // Form1
             // 
@@ -2366,6 +2378,7 @@
         private System.Windows.Forms.TextBox textBoxAccountPassword;
         private System.Windows.Forms.TextBox textBoxAccountLogin;
         private System.Windows.Forms.Button button70;
+        private System.Windows.Forms.Button button71;
     }
 }
 

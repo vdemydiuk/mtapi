@@ -1462,5 +1462,21 @@ namespace TestApiClientUI
             var result = await Execute(() => _apiClient.ChangeAccount(login, password, host));
             PrintLog($"ChangeAccount result: {result}");
         }
+
+        //iBarShift
+        private async void button71_Click(object sender, EventArgs e)
+        {
+            const string symbol = "EURUSD";
+            const ChartPeriod timeframe = ChartPeriod.PERIOD_D1;
+
+            var time1 = _apiClient.TimeCurrent();
+            var time2 = _apiClient.iTime(symbol, timeframe, 5);
+
+            var result1 = await Execute(() => _apiClient.iBarShift(symbol, timeframe, time1, true));
+            var result2 = await Execute(() => _apiClient.iBarShift(symbol, timeframe, time2, true));
+
+            PrintLog($"iBarShift result1 = {result1}, time = {time1}");
+            PrintLog($"iBarShift result2 = {result2}, time = {time2}");
+        }
     }
 }
