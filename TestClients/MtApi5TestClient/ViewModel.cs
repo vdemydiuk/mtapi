@@ -16,6 +16,7 @@ namespace MtApi5TestClient
         public DelegateCommand DisconnectCommand { get; private set; }
 
         public DelegateCommand OrderSendCommand { get; private set; }
+        public DelegateCommand HistoryOrderGetIntegerCommand { get; private set; }
         public DelegateCommand HistoryDealGetDoubleCommand { get; private set; }
         public DelegateCommand HistoryDealGetIntegerCommand { get; private set; }
         public DelegateCommand HistoryDealGetStringCommand { get; private set; }
@@ -196,6 +197,7 @@ namespace MtApi5TestClient
             DisconnectCommand = new DelegateCommand(ExecuteDisconnect, CanExecuteDisconnect);
 
             OrderSendCommand = new DelegateCommand(ExecuteOrderSend);
+            HistoryOrderGetIntegerCommand = new DelegateCommand(ExecuteHistoryOrderGetInteger);
             HistoryDealGetDoubleCommand = new DelegateCommand(ExecuteHistoryDealGetDouble);
             HistoryDealGetIntegerCommand = new DelegateCommand(ExecuteHistoryDealGetInteger);
             HistoryDealGetStringCommand = new DelegateCommand(ExecuteHistoryDealGetString);
@@ -275,6 +277,16 @@ namespace MtApi5TestClient
 
             var message = retVal != null ? $"OrderSend successed. {MqlTradeResultToString(retVal)}" : "OrderSend failed.";
             AddLog(message);
+        }
+
+        private async void ExecuteHistoryOrderGetInteger(object o)
+        {
+            const ulong ticket = 12345;
+            const ENUM_ORDER_PROPERTY_INTEGER propertyId = ENUM_ORDER_PROPERTY_INTEGER.ORDER_POSITION_ID;
+
+            var retVal = await Execute(() => _mtApiClient.HistoryOrderGetInteger(ticket, propertyId));
+
+            AddLog($"HistoryOrderGetInteger: {retVal}");
         }
 
         private async void ExecuteHistoryDealGetDouble(object o)

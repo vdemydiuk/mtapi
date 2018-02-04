@@ -1,7 +1,7 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      ""
 
-#property version   "1.3"
+#property version   "1.4"
 #property description "MtApi (MT5) connection expert"
 
 #include <json.mqh>
@@ -38,6 +38,8 @@
    bool getStringValue(int expertHandle, int paramIndex, string& res, string& err);
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
+
+//#define __DEBUG_LOG__
 
 input int Port = 8228;
 
@@ -92,7 +94,9 @@ bool IsDemo()
 bool IsTesting()
 {  
    bool isTesting = MQLInfoInteger(MQL_TESTER);
+#ifdef __DEBUG_LOG__
    PrintFormat("IsTesting: %s", isTesting ? "true" : "false");
+#endif
    return isTesting;
 }
 
@@ -141,7 +145,9 @@ int init()
       return (1);
    }
    
+#ifdef __DEBUG_LOG__
    PrintFormat("Expert Handle = %d", ExpertHandle);
+#endif
    
    //--- Backtesting mode
     if (IsTesting())
@@ -219,10 +225,12 @@ int executeCommand()
       return (0);
    }
    
+#ifdef __DEBUG_LOG__
    if (commandType > 0)
    {
       Print("executeCommand: commnad type = ", commandType);
    }
+#endif 
   
    switch (commandType) 
    {
@@ -681,7 +689,9 @@ void Execute_Request()
    string response = "";
    if (request != "")
    {
+#ifdef __DEBUG_LOG__
       Print("Execute_Request: incoming request = ", request);
+#endif
       response = OnRequest(request);
    }
    
@@ -1151,7 +1161,7 @@ void Execute_HistoryOrderGetInteger()
       return;
    }
    
-   if (!sendULongResponse(ExpertHandle, HistoryOrderGetInteger(ticket_number, (ENUM_ORDER_PROPERTY_INTEGER)property_id), _response_error))
+   if (!sendLongResponse(ExpertHandle, HistoryOrderGetInteger(ticket_number, (ENUM_ORDER_PROPERTY_INTEGER)property_id), _response_error))
    {
       PrintResponseError("HistoryOrderGetInteger", _response_error);
    }

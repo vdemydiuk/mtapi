@@ -259,6 +259,7 @@
                             <Button Content="HistoryDealGetDouble" Command="{Binding HistoryDealGetDoubleCommand}" Height="25" HorizontalAlignment="Left"  Margin="4"/>
                             <Button Content="HistoryDealGetInteger" Command="{Binding HistoryDealGetIntegerCommand}" Height="25" HorizontalAlignment="Left" Margin="4"/>
                             <Button Content="HistoryDealGetString" Command="{Binding HistoryDealGetStringCommand}" Height="25" HorizontalAlignment="Left" Margin="4"/>
+                            <Button Content="HistoryOrderGetInteger" Command="{Binding HistoryOrderGetIntegerCommand}" Height="25" HorizontalAlignment="Left" Margin="4"/>
                         </StackPanel>
 
                     </Grid>
