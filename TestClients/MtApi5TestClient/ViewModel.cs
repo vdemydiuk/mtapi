@@ -20,6 +20,7 @@ namespace MtApi5TestClient
         public DelegateCommand HistoryDealGetDoubleCommand { get; private set; }
         public DelegateCommand HistoryDealGetIntegerCommand { get; private set; }
         public DelegateCommand HistoryDealGetStringCommand { get; private set; }
+        public DelegateCommand HistoryDealMethodsCommand { get; private set; }
 
         public DelegateCommand AccountInfoDoubleCommand { get; private set; }
         public DelegateCommand AccountInfoIntegerCommand { get; private set; }
@@ -201,6 +202,7 @@ namespace MtApi5TestClient
             HistoryDealGetDoubleCommand = new DelegateCommand(ExecuteHistoryDealGetDouble);
             HistoryDealGetIntegerCommand = new DelegateCommand(ExecuteHistoryDealGetInteger);
             HistoryDealGetStringCommand = new DelegateCommand(ExecuteHistoryDealGetString);
+            HistoryDealMethodsCommand = new DelegateCommand(ExecuteHistoryDealMethods);
 
             AccountInfoDoubleCommand = new DelegateCommand(ExecuteAccountInfoDouble);
             AccountInfoIntegerCommand = new DelegateCommand(ExecuteAccountInfoInteger);
@@ -317,6 +319,26 @@ namespace MtApi5TestClient
             var retVal = await Execute(() => _mtApiClient.HistoryDealGetString(ticket, propertyId));
 
             AddLog($"HistoryDealGetString: {retVal}");
+        }
+
+        private async void ExecuteHistoryDealMethods(object o)
+        {
+            try
+            {
+                var posId = await Execute(() => _mtApiClient.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_IDENTIFIER)); // posId = 7247951
+                var history = await Execute(() => _mtApiClient.HistorySelectByPosition(posId)); // history = true
+                var historyDealsTotal = await Execute(() => _mtApiClient.HistoryDealsTotal()); // historyDealsCount  = 4
+                var histDealTicket = await Execute(() => _mtApiClient.HistoryDealGetTicket(0)); //  histDealTicket = 6632442
+                var histDealPrice = await Execute(() => _mtApiClient.HistoryDealGetDouble(histDealTicket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_PRICE)); // Exception
+            }
+            catch (Exception ex)
+            {
+                // ex.Messsage = "Service connection failed! Ошибка сериализации параметра http://tempuri.org/:command. Сообщение InnerException было \"Тип \"MtApi5.ENUM_DEAL_PROPERTY_DOUBLE\" с именем контракта данных \"ENUM_DEAL_PROPERTY_DOUBLE:http://schemas.datacontract.org/2004/07/MtApi5\" не ожидается. Попробуйте использовать DataContractResolver, если вы используете DataContractSerializer, или добавьте любые статически неизвестные типы в список известных типов - например, используя атрибут KnownTypeAttribute или путем их добавления в список известных типов, передаваемый в сериализатор.\".  Подробнее см. InnerException."
+                AddLog(ex.Message);
+                return;
+            }
+
+            AddLog("ExecuteHistoryDealMethods: success.");
         }
 
         private async void ExecuteAccountInfoDouble(object o)
