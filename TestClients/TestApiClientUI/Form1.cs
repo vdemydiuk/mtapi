@@ -34,6 +34,7 @@ namespace TestApiClientUI
             comboBox9.DataSource = Enum.GetNames(typeof(EnumTerminalInfoInteger));
             comboBox10.DataSource = Enum.GetNames(typeof(EnumTerminalInfoDouble));
             comboBox11.DataSource = Enum.GetNames(typeof(EnumObject));
+            comboBox12.DataSource = Enum.GetNames(typeof(ENUM_TERMINAL_INFO_STRING));
             comboBoxAccountInfoCmd.DataSource = Enum.GetNames(typeof(TradeOperation));
 
             _apiClient.QuoteUpdated += apiClient_QuoteUpdated;
@@ -1127,6 +1128,16 @@ namespace TestApiClientUI
 
             var result = await Execute(() => _apiClient.TerminalInfoDouble(propId));
             PrintLog($"TerminalInfoDouble: result = {result}");
+        }
+
+        //TerminalInfoString
+        private async void button72_Click(object sender, EventArgs e)
+        {
+            ENUM_TERMINAL_INFO_STRING propId;
+            Enum.TryParse(comboBox12.Text, out propId);
+
+            var result = await Execute(() => _apiClient.TerminalInfoString(propId));
+            PrintLog($"TerminalInfoString: result = {result}");
         }
 
         private void checkBox2_CheckedChanged(object sender, EventArgs e)

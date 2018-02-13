@@ -210,6 +210,8 @@
             this.button4 = new System.Windows.Forms.Button();
             this.tabPage11 = new System.Windows.Forms.TabPage();
             this.button69 = new System.Windows.Forms.Button();
+            this.button72 = new System.Windows.Forms.Button();
+            this.comboBox12 = new System.Windows.Forms.ComboBox();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -1427,6 +1429,8 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.comboBox12);
+            this.tabPage4.Controls.Add(this.button72);
             this.tabPage4.Controls.Add(this.button36);
             this.tabPage4.Controls.Add(this.comboBox10);
             this.tabPage4.Controls.Add(this.comboBox9);
@@ -2146,6 +2150,25 @@
             this.button69.UseVisualStyleBackColor = true;
             this.button69.Click += new System.EventHandler(this.button69_Click);
             // 
+            // button72
+            // 
+            this.button72.Location = new System.Drawing.Point(208, 186);
+            this.button72.Name = "button72";
+            this.button72.Size = new System.Drawing.Size(111, 23);
+            this.button72.TabIndex = 37;
+            this.button72.Text = "TerminalInfoString";
+            this.button72.UseVisualStyleBackColor = true;
+            this.button72.Click += new System.EventHandler(this.button72_Click);
+            // 
+            // comboBox12
+            // 
+            this.comboBox12.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox12.FormattingEnabled = true;
+            this.comboBox12.Location = new System.Drawing.Point(13, 188);
+            this.comboBox12.Name = "comboBox12";
+            this.comboBox12.Size = new System.Drawing.Size(186, 21);
+            this.comboBox12.TabIndex = 38;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2379,6 +2402,8 @@
         private System.Windows.Forms.TextBox textBoxAccountLogin;
         private System.Windows.Forms.Button button70;
         private System.Windows.Forms.Button button71;
+        private System.Windows.Forms.ComboBox comboBox12;
+        private System.Windows.Forms.Button button72;
     }
 }
 
