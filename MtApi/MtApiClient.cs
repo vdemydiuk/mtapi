@@ -994,6 +994,12 @@ namespace MtApi
             return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
         }
 
+        public DateTime TimeGMT()
+        {
+            var commandResponse = SendCommand<int>(MtCommandType.TimeGMT, null);
+            return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
+        }
+
         public int TimeDay(DateTime date)
         {
             var commandParameters = new ArrayList { MtApiTimeConverter.ConvertToMtTime(date) };

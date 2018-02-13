@@ -111,6 +111,7 @@
         TimeSeconds                         = 86,
         TimeYear                            = 87,
         Year                                = 88,
+        TimeGMT                             = 281,
 
         //Global Variables
         GlobalVariableCheck                 = 89,

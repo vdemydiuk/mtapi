@@ -616,18 +616,28 @@ namespace TestApiClientUI
             listBoxProceHistory.DataSource = items;
         }
 
+        //TimeCurrent
         private void button13_Click(object sender, EventArgs e)
         {
             var retVal = _apiClient.TimeCurrent();
             PrintLog($"TimeCurrent result: {retVal}");
         }
 
+        //TimeLocal
         private void button14_Click(object sender, EventArgs e)
         {
             var retVal = _apiClient.TimeLocal();
             PrintLog($"TimeLocal result: {retVal}");
         }
 
+        //TimeGMT
+        private void button73_Click(object sender, EventArgs e)
+        {
+            var retVal = _apiClient.TimeGMT();
+            PrintLog($"TimeGMT result: {retVal}");
+        }
+
+        //RefreshRates
         private void buttonRefreshRates_Click(object sender, EventArgs e)
         {
             var retVal = _apiClient.RefreshRates();

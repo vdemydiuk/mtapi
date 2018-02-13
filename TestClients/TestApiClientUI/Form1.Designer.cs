@@ -143,6 +143,8 @@
             this.label23 = new System.Windows.Forms.Label();
             this.textBoxAccountInfoSymbol = new System.Windows.Forms.TextBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.comboBox12 = new System.Windows.Forms.ComboBox();
+            this.button72 = new System.Windows.Forms.Button();
             this.button36 = new System.Windows.Forms.Button();
             this.comboBox10 = new System.Windows.Forms.ComboBox();
             this.comboBox9 = new System.Windows.Forms.ComboBox();
@@ -210,8 +212,7 @@
             this.button4 = new System.Windows.Forms.Button();
             this.tabPage11 = new System.Windows.Forms.TabPage();
             this.button69 = new System.Windows.Forms.Button();
-            this.button72 = new System.Windows.Forms.Button();
-            this.comboBox12 = new System.Windows.Forms.ComboBox();
+            this.button73 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -1454,6 +1455,25 @@
             this.tabPage4.Text = "MarketInfo";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // comboBox12
+            // 
+            this.comboBox12.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox12.FormattingEnabled = true;
+            this.comboBox12.Location = new System.Drawing.Point(13, 188);
+            this.comboBox12.Name = "comboBox12";
+            this.comboBox12.Size = new System.Drawing.Size(186, 21);
+            this.comboBox12.TabIndex = 38;
+            // 
+            // button72
+            // 
+            this.button72.Location = new System.Drawing.Point(208, 186);
+            this.button72.Name = "button72";
+            this.button72.Size = new System.Drawing.Size(111, 23);
+            this.button72.TabIndex = 37;
+            this.button72.Text = "TerminalInfoString";
+            this.button72.UseVisualStyleBackColor = true;
+            this.button72.Click += new System.EventHandler(this.button72_Click);
+            // 
             // button36
             // 
             this.button36.Location = new System.Drawing.Point(208, 157);
@@ -1848,6 +1868,7 @@
             // 
             // tabPage6
             // 
+            this.tabPage6.Controls.Add(this.button73);
             this.tabPage6.Controls.Add(this.textBoxPrint);
             this.tabPage6.Controls.Add(this.button27);
             this.tabPage6.Controls.Add(this.button14);
@@ -1862,14 +1883,14 @@
             // 
             // textBoxPrint
             // 
-            this.textBoxPrint.Location = new System.Drawing.Point(13, 86);
+            this.textBoxPrint.Location = new System.Drawing.Point(13, 108);
             this.textBoxPrint.Name = "textBoxPrint";
             this.textBoxPrint.Size = new System.Drawing.Size(386, 20);
             this.textBoxPrint.TabIndex = 3;
             // 
             // button27
             // 
-            this.button27.Location = new System.Drawing.Point(405, 84);
+            this.button27.Location = new System.Drawing.Point(405, 106);
             this.button27.Name = "button27";
             this.button27.Size = new System.Drawing.Size(75, 23);
             this.button27.TabIndex = 2;
@@ -2150,24 +2171,15 @@
             this.button69.UseVisualStyleBackColor = true;
             this.button69.Click += new System.EventHandler(this.button69_Click);
             // 
-            // button72
+            // button73
             // 
-            this.button72.Location = new System.Drawing.Point(208, 186);
-            this.button72.Name = "button72";
-            this.button72.Size = new System.Drawing.Size(111, 23);
-            this.button72.TabIndex = 37;
-            this.button72.Text = "TerminalInfoString";
-            this.button72.UseVisualStyleBackColor = true;
-            this.button72.Click += new System.EventHandler(this.button72_Click);
-            // 
-            // comboBox12
-            // 
-            this.comboBox12.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBox12.FormattingEnabled = true;
-            this.comboBox12.Location = new System.Drawing.Point(13, 188);
-            this.comboBox12.Name = "comboBox12";
-            this.comboBox12.Size = new System.Drawing.Size(186, 21);
-            this.comboBox12.TabIndex = 38;
+            this.button73.Location = new System.Drawing.Point(13, 74);
+            this.button73.Name = "button73";
+            this.button73.Size = new System.Drawing.Size(75, 23);
+            this.button73.TabIndex = 4;
+            this.button73.Text = "TimeGMT";
+            this.button73.UseVisualStyleBackColor = true;
+            this.button73.Click += new System.EventHandler(this.button73_Click);
             // 
             // Form1
             // 
@@ -2404,6 +2416,7 @@
         private System.Windows.Forms.Button button71;
         private System.Windows.Forms.ComboBox comboBox12;
         private System.Windows.Forms.Button button72;
+        private System.Windows.Forms.Button button73;
     }
 }
 
