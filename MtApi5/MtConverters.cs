@@ -6,14 +6,18 @@ namespace MtApi5
 {
     internal static class MtConverters
     {
+        private static readonly MtLog Log = LogConfigurator.GetLogger(typeof(MtConverters));
+
         #region Values Converters
         public static Mt5Quote Parse(this MtQuote quote)
         {
-            return (quote != null) ? new Mt5Quote(quote.Instrument, quote.Bid, quote.Ask) : null;
+            return quote != null ? new Mt5Quote(quote.Instrument, quote.Bid, quote.Ask) : null;
         }
 
         public static bool ParseResult(this string inputString, char separator, out MqlTradeResult result)
         {
+            Log.Debug($"ParseResult: inputString = {inputString}, separator = {separator}");
+
             var retVal = false;
             result = null;
 
@@ -38,10 +42,16 @@ namespace MtApi5
 
                         result = new MqlTradeResult(retcode, deal, order, volume, price, bid, ask, comment, requestId);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        Log.Error($"ParseResult: {ex.Message}");
+                        retVal = false;
                     }
                 }
+            }
+            else
+            {
+                Log.Warn("ParseResult: input srting is null or empty!");
             }
 
             return retVal;
@@ -49,6 +59,8 @@ namespace MtApi5
 
         public static bool ParseResult(this string inputString, char separator, out MqlTradeCheckResult result)
         {
+            Log.Debug($"ParseResult: inputString = {inputString}, separator = {separator}");
+
             var retVal = false;
             result = null;
 
@@ -72,11 +84,16 @@ namespace MtApi5
 
                         result = new MqlTradeCheckResult(retcode, balance, equity, profit, margin, marginFree, marginLevel, comment);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                         retVal = false;
+                        Log.Error($"ParseResult: {ex.Message}");
                     }
                 }
+            }
+            else
+            {
+                Log.Warn("ParseResult: input srting is null or empty!");
             }
 
             return retVal;
@@ -84,6 +101,8 @@ namespace MtApi5
 
         public static bool ParseResult(this string inputString, char separator, out double result)
         {
+            Log.Debug($"ParseResult: inputString = {inputString}, separator = {separator}");
+
             var retVal = false;
             result = 0;
 
@@ -98,11 +117,16 @@ namespace MtApi5
 
                         result = double.Parse(values[1]);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                         retVal = false;
+                        Log.Error($"ParseResult: {ex.Message}");
                     }
                 }
+            }
+            else
+            {
+                Log.Warn("ParseResult: input srting is null or empty!");
             }
 
             return retVal;
@@ -110,6 +134,8 @@ namespace MtApi5
 
         public static bool ParseResult(this string inputString, char separator, out DateTime from, out DateTime to)
         {
+            Log.Debug($"ParseResult: inputString = {inputString}, separator = {separator}");
+
             var retVal = false;
 
             from = new DateTime();
@@ -130,11 +156,16 @@ namespace MtApi5
                         var iTo= int.Parse(values[2]);
                         to = Mt5TimeConverter.ConvertFromMtTime(iTo);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                         retVal = false;
+                        Log.Error($"ParseResult: {ex.Message}");
                     }
                 }
+            }
+            else
+            {
+                Log.Warn("ParseResult: input srting is null or empty!");
             }
 
             return retVal;

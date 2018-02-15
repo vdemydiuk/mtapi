@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MTApiService;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.ServiceModel;
 using MtApi5.Requests;
 using MtApi5.Responses;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace MtApi5
 {
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class MtApi5Client
     {
         #region MT Constants
@@ -32,9 +34,11 @@ namespace MtApi5
 
 
         #region Private Fields
+        private static readonly MtLog Log = LogConfigurator.GetLogger(typeof(MtApi5Client));
+
         private MtClient _client;
         private readonly object _locker = new object();
-        private volatile bool _isBacktestingMode = false;
+        private volatile bool _isBacktestingMode;
         private Mt5ConnectionState _connectionState = Mt5ConnectionState.Disconnected;
         private int _executorHandle;
         #endregion
@@ -78,7 +82,7 @@ namespace MtApi5
         public IEnumerable<Mt5Quote> GetQuotes()
         {
             var client = Client;
-            var quotes = client != null ? client.GetQuotes() : null;
+            var quotes = client?.GetQuotes();
             return quotes?.Select(q => q.Parse());
         }
 
@@ -533,6 +537,7 @@ namespace MtApi5
         /// <param name="sl">Stop Loss price</param>
         /// <param name="tp">Take Profit price</param>
         /// <param name="comment">comment</param>
+        /// <param name="result">output result</param>
         /// <returns>true - successful check of the basic structures, otherwise - false.</returns>
         public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, string comment , out MqlTradeResult result)
         {
