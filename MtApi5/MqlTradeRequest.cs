@@ -21,5 +21,10 @@ namespace MtApi5
         public string Comment { get; set; }                              // Order comment
         public ulong Position { get; set; }                              // Position ticket
         public ulong PositionBy { get; set; }                            // The ticket of an opposite position
+
+        public override string ToString()
+        {
+            return $"{Symbol}|{Volume}|{Price}|{Volume}|{Action}";
+        }
     }
 }

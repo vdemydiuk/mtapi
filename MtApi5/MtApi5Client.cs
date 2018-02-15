@@ -108,8 +108,11 @@ namespace MtApi5
         /// </returns>
         public bool OrderSend(MqlTradeRequest request, out MqlTradeResult result)
         {
+            Log.Debug($"OrderSend: request = {request}");
+
             if (request == null)
             {
+                Log.Warn("OrderSend: request is not defined!");
                 result = null;
                 return false;
             }
@@ -117,6 +120,8 @@ namespace MtApi5
             var commandParameters = request.ToArrayList();
 
             var strResult = SendCommand<string>(Mt5CommandType.OrderSend, commandParameters);
+
+            Log.Debug($"OrderSend: strResult = {strResult}");
 
             return strResult.ParseResult(ParamSeparator, out result); 
         }
