@@ -1,9 +1,9 @@
-﻿using System;
+﻿// ReSharper disable InconsistentNaming
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MTApiService;
 using System.Collections;
-using System.Diagnostics.CodeAnalysis;
 using System.ServiceModel;
 using MtApi5.Requests;
 using MtApi5.Responses;
@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 
 namespace MtApi5
 {
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class MtApi5Client
     {
         #region MT Constants
@@ -117,13 +116,22 @@ namespace MtApi5
                 return false;
             }
 
-            var commandParameters = request.ToArrayList();
+            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
+            {
+                TradeRequest = request
+            });
 
-            var strResult = SendCommand<string>(Mt5CommandType.OrderSend, commandParameters);
+            result = response?.Value?.TradeResult;
+            return response?.Value != null && response.Value.RetVal;
 
-            Log.Debug($"OrderSend: strResult = {strResult}");
 
-            return strResult.ParseResult(ParamSeparator, out result); 
+            //var commandParameters = request.ToArrayList();
+
+            //var strResult = SendCommand<string>(Mt5CommandType.OrderSend, commandParameters);
+
+            //Log.Debug($"OrderSend: strResult = {strResult}");
+
+            //return strResult.ParseResult(ParamSeparator, out result); 
         }
 
         ///<summary>
@@ -2398,7 +2406,7 @@ namespace MtApi5
             }
 
             var responseValue = response.GetValue();
-            return responseValue != null ? (T)responseValue : default(T);
+            return (T) responseValue;
         }
 
         private T SendRequest<T>(RequestBase request) where T : ResponseBase, new()

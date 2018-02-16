@@ -1,4 +1,5 @@
-﻿namespace MtApi5.Responses
+﻿// ReSharper disable InconsistentNaming
+namespace MtApi5.Responses
 {
     internal class ICustomResponse: ResponseBase
     {

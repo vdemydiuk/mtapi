@@ -73,6 +73,7 @@
     <Compile Include="Requests\RequestType.cs" />
     <Compile Include="Responses\CopyTicksResponse.cs" />
     <Compile Include="Responses\ICustomResponse.cs" />
+    <Compile Include="Responses\OrderSendResponse.cs" />
     <Compile Include="Responses\ResponseBase.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -269,15 +269,14 @@ namespace MtApi5TestClient
         private async void ExecuteOrderSend(object o)
         {
             var request = TradeRequest.GetMqlTradeRequest();
-            
+            MqlTradeResult result = null;
             var retVal = await Execute(() =>
             {
-                MqlTradeResult result;
                 var ok = _mtApiClient.OrderSend(request, out result);
-                return ok ? result : null;
+                return ok;
             });
 
-            var message = retVal != null ? $"OrderSend successed. {MqlTradeResultToString(retVal)}" : "OrderSend failed.";
+            var message = retVal ? $"OrderSend excute successed. {MqlTradeResultToString(result)}" : $"OrderSend execute failed. {MqlTradeResultToString(result)}";
             AddLog(message);
         }
 

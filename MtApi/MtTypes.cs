@@ -1,4 +1,6 @@
-﻿namespace MtApi
+﻿// ReSharper disable InconsistentNaming
+
+namespace MtApi
 {
     public enum ENUM_TERMINAL_INFO_STRING
     {

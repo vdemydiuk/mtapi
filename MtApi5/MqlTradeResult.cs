@@ -1,4 +1,6 @@
-﻿namespace MtApi5
+﻿// ReSharper disable InconsistentNaming
+
+namespace MtApi5
 {
     public class MqlTradeResult
     {
@@ -15,15 +17,28 @@
             Request_id = request_id;
         }
 
-        public uint Retcode { get; private set; }          // Operation return code
-        public ulong Deal { get; private set; }            // Deal ticket, if it is performed
-        public ulong Order { get; private set; }           // Order ticket, if it is placed
-        public double Volume { get; private set; }         // Deal volume, confirmed by broker
-        public double Price { get; private set; }          // Deal price, confirmed by broker
-        public double Bid { get; private set; }            // Current Bid price
-        public double Ask { get; private set; }            // Current Ask price
-        public string Comment { get; private set; }        // Broker comment to operation (by default it is filled by the operation description)
-        public uint Request_id { get; private set; }       // Request ID set by the terminal during the dispatch
+        internal MqlTradeResult(MqlTradeResult o)
+        {
+            Retcode = o.Retcode;
+            Deal = o.Deal;
+            Order = o.Order;
+            Volume = o.Volume;
+            Price = o.Price;
+            Bid = o.Bid;
+            Ask = o.Ask;
+            Comment = o.Comment;
+            Request_id = o.Request_id;
+        }
+
+        public uint Retcode { get; }          // Operation return code
+        public ulong Deal { get; }            // Deal ticket, if it is performed
+        public ulong Order { get; }           // Order ticket, if it is placed
+        public double Volume { get; }         // Deal volume, confirmed by broker
+        public double Price { get; }          // Deal price, confirmed by broker
+        public double Bid { get; }            // Current Bid price
+        public double Ask { get; }            // Current Ask price
+        public string Comment { get; }        // Broker comment to operation (by default it is filled by the operation description)
+        public uint Request_id { get; }       // Request ID set by the terminal during the dispatch
 
         public override string ToString()
         {

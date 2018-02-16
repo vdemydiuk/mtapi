@@ -1,4 +1,6 @@
-﻿namespace MtApi5
+﻿// ReSharper disable InconsistentNaming
+
+namespace MtApi5
 {
 
     // Chart Constants:

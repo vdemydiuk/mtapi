@@ -1,4 +1,5 @@
-﻿using System;
+﻿// ReSharper disable InconsistentNaming
+using System;
 
 namespace MtApi5
 {
@@ -21,6 +22,8 @@ namespace MtApi5
         public string Comment { get; set; }                              // Order comment
         public ulong Position { get; set; }                              // Position ticket
         public ulong PositionBy { get; set; }                            // The ticket of an opposite position
+
+        public int MtExpiration => Mt5TimeConverter.ConvertToMtTime(Expiration);
 
         public override string ToString()
         {
