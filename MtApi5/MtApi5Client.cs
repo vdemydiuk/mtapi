@@ -123,15 +123,6 @@ namespace MtApi5
 
             result = response?.Value?.TradeResult;
             return response?.Value != null && response.Value.RetVal;
-
-
-            //var commandParameters = request.ToArrayList();
-
-            //var strResult = SendCommand<string>(Mt5CommandType.OrderSend, commandParameters);
-
-            //Log.Debug($"OrderSend: strResult = {strResult}");
-
-            //return strResult.ParseResult(ParamSeparator, out result); 
         }
 
         ///<summary>
@@ -205,7 +196,7 @@ namespace MtApi5
 
             var commandParameters = request.ToArrayList();
 
-            var strResult = SendCommand<string>(Mt5CommandType.OrderSend, commandParameters);
+            var strResult = SendCommand<string>(Mt5CommandType.OrderCheck, commandParameters);
 
             return strResult.ParseResult(ParamSeparator, out result); 
         }

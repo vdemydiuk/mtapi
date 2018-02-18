@@ -5,7 +5,7 @@
         //NoCommand = 0
 
         //trade operations
-        OrderSend                           = 1,
+        //OrderSend                           = 1,
         OrderCalcMargin                     = 2,
         OrderCalcProfit                     = 3,
         OrderCheck                          = 4,

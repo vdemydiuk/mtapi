@@ -39,7 +39,7 @@
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
-#define __DEBUG_LOG__
+//#define __DEBUG_LOG__
 
 input int Port = 8228;
 
@@ -5833,8 +5833,8 @@ bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
    CHECK_JSON_VALUE(jo, "Type_time", false);
    request.type_time = (ENUM_ORDER_TYPE_TIME)jo.getInt("Type_time");
    
-   //Expiration
-   CHECK_JSON_VALUE(jo, "Expiration", false);
+   //MtExpiration
+   CHECK_JSON_VALUE(jo, "MtExpiration", false);
    request.expiration = (datetime)jo.getInt("MtExpiration");
 
    //Comment
