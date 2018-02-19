@@ -60,6 +60,11 @@ namespace MtApi5TestClient
         public DelegateCommand PrintCommand { get; private set; }
 
         public DelegateCommand iCustomCommand { get; private set; }
+
+        public DelegateCommand TimeCurrentCommand { get; private set; }
+        public DelegateCommand TimeTradeServerCommand { get; private set; }
+        public DelegateCommand TimeLocalCommand { get; private set; }
+        public DelegateCommand TimeGMTCommand { get; private set; }
         #endregion
 
         #region Properties
@@ -246,6 +251,11 @@ namespace MtApi5TestClient
             PrintCommand = new DelegateCommand(ExecutePrint);
 
             iCustomCommand = new DelegateCommand(ExecuteICustom);
+
+            TimeCurrentCommand = new DelegateCommand(ExecuteTimeCurrent);
+            TimeTradeServerCommand = new DelegateCommand(ExecuteTimeTradeServer);
+            TimeLocalCommand = new DelegateCommand(ExecuteTimeLocal);
+            TimeGMTCommand = new DelegateCommand(ExecuteTimeGMT);
         }
 
         private bool CanExecuteConnect(object o)
@@ -864,6 +874,30 @@ namespace MtApi5TestClient
 
             var retVal = await Execute(() => _mtApiClient.iCustom(symbol, timeframe, name, parameters));
             AddLog($"Custom Moving Average: result - {retVal}");
+        }
+
+        private async void ExecuteTimeCurrent(object o)
+        {
+            var retVal = await Execute(() => _mtApiClient.TimeCurrent());
+            AddLog($"TimeCurrent: {retVal}");
+        }
+
+        private async void ExecuteTimeTradeServer(object o)
+        {
+            var retVal = await Execute(() => _mtApiClient.TimeTradeServer());
+            AddLog($"TimeTradeServer: {retVal}");
+        }
+
+        private async void ExecuteTimeLocal(object o)
+        {
+            var retVal = await Execute(() => _mtApiClient.TimeLocal());
+            AddLog($"TimeLocal: {retVal}");
+        }
+
+        private async void ExecuteTimeGMT(object o)
+        {
+            var retVal = await Execute(() => _mtApiClient.TimeGMT());
+            AddLog($"TimeGMT: {retVal}");
         }
 
         private static void RunOnUiThread(Action action)

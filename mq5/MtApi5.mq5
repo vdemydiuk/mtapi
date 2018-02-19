@@ -489,9 +489,9 @@ int executeCommand()
    case 65: //PositionOpen
       Execute_PositionOpen(false);
    break;
-   case 1065: //PositionOpenWithResult
-      Execute_PositionOpen(true);
-   break;   
+//   case 1065: //PositionOpenWithResult
+//      Execute_PositionOpen(true);
+//   break;   
    case 66: //BacktestingReady
       Execute_BacktestingReady();
    break;
@@ -665,6 +665,18 @@ int executeCommand()
    case 126: //iVolumes
       Execute_iVolumes();
    break;
+   case 127: //TimeCurrent
+      Execute_TimeCurrent();
+   break;
+   case 128: //TimeTradeServer
+      Execute_TimeTradeServer();
+   break;
+   case 129: //TimeLocal
+      Execute_TimeLocal();
+   break;
+   case 130: //TimeGMT
+      Execute_TimeGMT();
+   break;   
    default:
       Print("Unknown command type = ", commandType);
       sendVoidResponse(ExpertHandle, _response_error);
@@ -5425,6 +5437,38 @@ void Execute_iVolumes()
          _error))
    {
       PrintResponseError("iVolumes", _response_error);
+   }
+}
+
+void Execute_TimeCurrent()
+{
+   if (!sendLongResponse(ExpertHandle, TimeCurrent(), _response_error))
+   {
+      PrintResponseError("TimeCurrent", _response_error);
+   }
+}
+
+void Execute_TimeTradeServer()
+{
+   if (!sendLongResponse(ExpertHandle, TimeTradeServer(), _response_error))
+   {
+      PrintResponseError("TimeTradeServer", _response_error);
+   }
+}
+
+void Execute_TimeLocal()
+{
+   if (!sendLongResponse(ExpertHandle, TimeLocal(), _response_error))
+   {
+      PrintResponseError("TimeLocal", _response_error);
+   }
+}
+
+void Execute_TimeGMT()
+{
+   if (!sendLongResponse(ExpertHandle, TimeGMT(), _response_error))
+   {
+      PrintResponseError("TimeGMT", _response_error);
    }
 }
    

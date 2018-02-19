@@ -171,6 +171,12 @@ namespace MtApi5
         iTriX                               = 123,
         iWPR                                = 124,
         iVIDyA                              = 125,
-        iVolumes                            = 126
+        iVolumes                            = 126,
+
+        //Date and Time
+        TimeCurrent                         = 127,
+        TimeTradeServer                     = 128,
+        TimeLocal                           = 129,
+        TimeGMT                             = 130
     }
 }

@@ -1667,8 +1667,6 @@ namespace MtApi5
 
         #region Technical Indicators
 
-        #endregion //Technical Indicators
-
         ///<summary>
         ///The function creates Accelerator Oscillator in a global cache of the client terminal and returns its handle.
         ///</summary>
@@ -2196,6 +2194,7 @@ namespace MtApi5
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, double[] parameters)
         {
+            Log.Debug("iCustom: called.");
             var response = SendRequest<int>(new ICustomRequest
             {
                 Symbol = symbol,
@@ -2204,6 +2203,7 @@ namespace MtApi5
                 Params = new ArrayList(parameters),
                 ParamsType = ICustomRequest.ParametersType.Double
             });
+            Log.Debug($"iCustom: response = {response}.");
             return response;
         }
 
@@ -2216,6 +2216,7 @@ namespace MtApi5
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, int[] parameters)
         {
+            Log.Debug("iCustom: called.");
             var response = SendRequest<int>(new ICustomRequest
             {
                 Symbol = symbol,
@@ -2224,6 +2225,7 @@ namespace MtApi5
                 Params = new ArrayList(parameters),
                 ParamsType = ICustomRequest.ParametersType.Int
             });
+            Log.Debug($"iCustom: response = {response}.");
             return response;
         }
 
@@ -2236,6 +2238,7 @@ namespace MtApi5
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, string[] parameters)
         {
+            Log.Debug("iCustom: called.");
             var response = SendRequest<int>(new ICustomRequest
             {
                 Symbol = symbol,
@@ -2244,6 +2247,7 @@ namespace MtApi5
                 Params = new ArrayList(parameters),
                 ParamsType = ICustomRequest.ParametersType.Int
             });
+            Log.Debug($"iCustom: response = {response}.");
             return response;
         }
 
@@ -2256,6 +2260,7 @@ namespace MtApi5
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, bool[] parameters)
         {
+            Log.Debug("iCustom: called.");
             var response = SendRequest<int>(new ICustomRequest
             {
                 Symbol = symbol,
@@ -2264,8 +2269,59 @@ namespace MtApi5
                 Params = new ArrayList(parameters),
                 ParamsType = ICustomRequest.ParametersType.Int
             });
+            Log.Debug($"iCustom: response = {response}.");
             return response;
         }
+
+        #endregion //Technical Indicators
+
+        #region Date and Time
+
+        ///<summary>
+        ///Returns the last known server time, time of the last quote receipt for one of the symbols selected in the "Market Watch" window.
+        ///</summary>
+        public DateTime TimeCurrent()
+        {
+            Log.Debug("TimeCurrent: called.");
+            var response = SendCommand<long>(Mt5CommandType.TimeCurrent, null);
+            Log.Debug($"TimeCurrent: response = {response}.");
+            return Mt5TimeConverter.ConvertFromMtTime(response);
+        }
+
+        ///<summary>
+        ///Returns the calculated current time of the trade server. Unlike TimeCurrent(), the calculation of the time value is performed in the client terminal and depends on the time settings on your computer.
+        ///</summary>
+        public DateTime TimeTradeServer()
+        {
+            Log.Debug("TimeTradeServer: called.");
+            var response = SendCommand<long>(Mt5CommandType.TimeTradeServer, null);
+            Log.Debug($"TimeTradeServer: response = {response}.");
+            return Mt5TimeConverter.ConvertFromMtTime(response);
+        }
+
+        ///<summary>
+        ///Returns the local time of a computer, where the client terminal is running.
+        ///</summary>
+        public DateTime TimeLocal()
+        {
+            Log.Debug("TimeLocal: called.");
+            var response = SendCommand<long>(Mt5CommandType.TimeLocal, null);
+            Log.Debug($"TimeLocal: response = {response}.");
+            return Mt5TimeConverter.ConvertFromMtTime(response);
+        }
+
+        ///<summary>
+        ///Returns the GMT, which is calculated taking into account the DST switch by the local time on the computer where the client terminal is running.
+        ///</summary>
+        public DateTime TimeGMT()
+        {
+            Log.Debug("TimeGMT: called.");
+            var response = SendCommand<long>(Mt5CommandType.TimeGMT, null);
+            Log.Debug($"TimeGMT: response = {response}.");
+            return Mt5TimeConverter.ConvertFromMtTime(response);
+        }
+
+        #endregion //Date and Time
 
         #endregion // Public Methods
 

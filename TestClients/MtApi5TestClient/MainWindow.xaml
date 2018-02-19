@@ -389,6 +389,15 @@
                     <Button Command="{Binding iCustomCommand}" Content="iCustom" Margin="2"/>
                 </WrapPanel>
             </TabItem>
+
+            <TabItem Header="Time and Date">
+                <WrapPanel VerticalAlignment="Top" Margin="5">
+                    <Button Command="{Binding TimeCurrentCommand}" Content="TimeCurrent" Margin="2"/>
+                    <Button Command="{Binding TimeTradeServerCommand}" Content="TimeTradeServer" Margin="2"/>
+                    <Button Command="{Binding TimeLocalCommand}" Content="TimeLocal" Margin="2"/>
+                    <Button Command="{Binding TimeGMTCommand}" Content="TimeGMT" Margin="2"/>
+                </WrapPanel>
+            </TabItem>
         </TabControl>
 
         <Expander Grid.Row="2" Header="Console" IsExpanded="True">
