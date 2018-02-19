@@ -74,6 +74,7 @@ void OnDeinit(const int reason)
 void OnTick()
 {
    start();
+   if (IsTesting()) OnTimer();
 }
 
 int preinit()
@@ -94,9 +95,6 @@ bool IsDemo()
 bool IsTesting()
 {  
    bool isTesting = MQLInfoInteger(MQL_TESTER);
-#ifdef __DEBUG_LOG__
-   PrintFormat("IsTesting: %s", isTesting ? "true" : "false");
-#endif
    return isTesting;
 }
 
@@ -147,6 +145,7 @@ int init()
    
 #ifdef __DEBUG_LOG__
    PrintFormat("Expert Handle = %d", ExpertHandle);
+   PrintFormat("IsTesting: %s", IsTesting() ? "true" : "false");
 #endif
    
    //--- Backtesting mode
