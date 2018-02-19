@@ -1,4 +1,5 @@
-﻿namespace MtApi5
+﻿// ReSharper disable InconsistentNaming
+namespace MtApi5
 {
     internal enum Mt5CommandType
     {

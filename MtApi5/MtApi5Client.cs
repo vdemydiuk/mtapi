@@ -719,7 +719,7 @@ namespace MtApi5
 
             return ratesArray?.Length ?? 0;
         }
-
+            
         ///<summary>
         ///Gets history data of MqlRates structure of a specified symbol-period in specified quantity into the ratesArray array. The elements ordering of the copied data is from present to the past, i.e., starting position of 0 means the current bar.
         ///</summary>
