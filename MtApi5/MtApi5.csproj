@@ -71,8 +71,8 @@
     <Compile Include="Requests\OrderSendRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />
     <Compile Include="Requests\RequestType.cs" />
-    <Compile Include="Responses\OrderSendResult.cs" />
-    <Compile Include="Responses\Response.cs" />
+    <Compile Include="Requests\OrderSendResult.cs" />
+    <Compile Include="Requests\Response.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MTApiService\MTApiService.csproj">
@@ -83,6 +83,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
