@@ -69,6 +69,7 @@
     <Compile Include="Requests\CopyTicksRequest.cs" />
     <Compile Include="Requests\ICustomRequest.cs" />
     <Compile Include="Requests\OrderSendRequest.cs" />
+    <Compile Include="Requests\PositionOpenRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />
     <Compile Include="Requests\RequestType.cs" />
     <Compile Include="Requests\OrderSendResult.cs" />

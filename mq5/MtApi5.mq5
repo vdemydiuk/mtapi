@@ -39,7 +39,7 @@
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
-//#define __DEBUG_LOG__
+#define __DEBUG_LOG__
 
 input int Port = 8228;
 
@@ -3112,8 +3112,11 @@ void Execute_PositionOpen(bool isTradeResultRequired)
       return;
    }
    
-   PrintFormat("Execute_PositionOpen: symbol = %s, order_type = %d, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
-      symbol, order_type, volume, price, sl, tp, comment);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: symbol = %s, order_type = %d, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
+      __FUNCTION__, symbol, order_type, volume, price, sl, tp, comment);
+#endif       
    
    CTrade trade;
    bool ok = trade.PositionOpen(symbol, (ENUM_ORDER_TYPE)order_type, volume, price, sl, tp, comment);
@@ -5582,6 +5585,9 @@ string OnRequest(string json)
             case 3: //OrderSend
                response = ExecuteRequest_OrderSend(jo);
                break;
+            case 4: //PositionOpen
+               response = ExecuteRequest_PositionOpen(jo);
+               break;
             default:
                PrintFormat("%s [WARNING]: Unknown request type %d", __FUNCTION__, requestType);
                response = CreateErrorResponse(-1, "Unknown request type");
@@ -5838,9 +5844,11 @@ bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
    request.expiration = (datetime)jo.getInt("MtExpiration");
 
    //Comment
-   CHECK_JSON_VALUE(jo, "Comment", false);
-   StringInit(request.comment, 1000, 0);
-   request.comment = jo.getString("Comment");
+   if (jo.getValue("Comment") != NULL)
+   {
+      StringInit(request.comment, 1000, 0);
+      request.comment = jo.getString("Comment");
+   }
    
    //Position
    CHECK_JSON_VALUE(jo, "Position", false);
@@ -5890,4 +5898,55 @@ string ExecuteRequest_OrderSend(JSONObject *jo)
 #endif    
       
    return CreateSuccessResponse("Value", result_value_jo);
+}
+
+string ExecuteRequest_PositionOpen(JSONObject *jo)
+{   
+   //Symbol
+   CHECK_JSON_VALUE(jo, "Symbol", CreateErrorResponse(-1, "Undefinded mandatory parameter Symbol"));
+   string symbol = jo.getString("Symbol");
+     
+   //OrderType 
+   CHECK_JSON_VALUE(jo, "OrderType", CreateErrorResponse(-1, "Undefinded mandatory parameter OrderType"));
+   ENUM_ORDER_TYPE order_type = (ENUM_ORDER_TYPE) jo.getInt("OrderType");
+   
+   //Volume
+   CHECK_JSON_VALUE(jo, "Volume", CreateErrorResponse(-1, "Undefinded mandatory parameter Volume"));
+   double volume = jo.getDouble("Volume");
+
+   //Price
+   CHECK_JSON_VALUE(jo, "Price", CreateErrorResponse(-1, "Undefinded mandatory parameter Price"));
+   double price = jo.getDouble("Price");
+
+   //Sl
+   CHECK_JSON_VALUE(jo, "Sl", CreateErrorResponse(-1, "Undefinded mandatory parameter Sl"));
+   double sl = jo.getDouble("Sl");
+   
+   //Tp
+   CHECK_JSON_VALUE(jo, "Tp", CreateErrorResponse(-1, "Undefinded mandatory parameter Tp"));
+   double tp = jo.getDouble("Tp");
+   
+   //Comment
+   string comment;
+   if (jo.getValue("Comment") != NULL)
+   {
+      comment = jo.getString("Comment");
+   }   
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: symbol = %s, order_type = %d, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
+      __FUNCTION__, symbol, order_type, volume, price, sl, tp, comment);
+#endif
+
+   CTrade trade;
+   bool ok = trade.PositionOpen(symbol, order_type, volume, price, sl, tp, comment);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse("Value", result_value_jo);   
 }

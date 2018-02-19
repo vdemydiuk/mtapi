@@ -42,7 +42,7 @@ namespace MtApi5
 
         public override string ToString()
         {
-            return $"Retcode={Retcode}; Deal={Deal}; Order={Order}; Volume={Volume}; Price={Price}; Bid={Bid}; Ask={Ask}; Comment={Comment}; Request_id={Request_id}";
+            return $"Retcode={Retcode}; Comment={Comment}; Deal={Deal}; Order={Order}; Volume={Volume}; Price={Price}; Bid={Bid}; Ask={Ask}; Request_id={Request_id}";
         }
     }
 }

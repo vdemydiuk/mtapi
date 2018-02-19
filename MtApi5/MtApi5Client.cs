@@ -544,10 +544,26 @@ namespace MtApi5
         /// <returns>true - successful check of the basic structures, otherwise - false.</returns>
         public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, string comment , out MqlTradeResult result)
         {
-            var commandParameters = new ArrayList { symbol, (int)orderType, volume, price, sl, tp, comment };
+            Log.Debug($"PositionOpen: symbol = {symbol}, orderType = {orderType}, volume = {volume}, price = {price}, sl = {sl}, tp = {tp}, comment = {comment}");
 
-            var strResult = SendCommand<string>(Mt5CommandType.PositionOpenWithResult, commandParameters);
-            return strResult.ParseResult(ParamSeparator, out result);
+            var response = SendRequest<OrderSendResult>(new PositionOpenRequest
+            {
+                Symbol = symbol,
+                OrderType = orderType,
+                Volume = volume,
+                Price = price,
+                Sl = sl,
+                Tp = tp,
+                Comment = comment
+            });
+
+            result = response?.TradeResult;
+            return response != null && response.RetVal;
+
+            //var commandParameters = new ArrayList { symbol, (int)orderType, volume, price, sl, tp, comment };
+
+            //var strResult = SendCommand<string>(Mt5CommandType.PositionOpenWithResult, commandParameters);
+            //return strResult.ParseResult(ParamSeparator, out result);
         }
         #endregion
 
