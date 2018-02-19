@@ -9,7 +9,7 @@ namespace MtApi5
         //OrderSend                           = 1,
         OrderCalcMargin                     = 2,
         OrderCalcProfit                     = 3,
-        OrderCheck                          = 4,
+        //OrderCheck                          = 4,
         //OrderSendAsync                      = 5,
         PositionsTotal                      = 6,
         PositionGetSymbol                   = 7,
@@ -101,7 +101,7 @@ namespace MtApi5
         //CTrade
         PositionClose                       = 64,
         PositionOpen                        = 65,
-        PositionOpenWithResult              = 1065,
+        //PositionOpenWithResult              = 1065,
 
         //Backtesting
         BacktestingReady                    = 66,

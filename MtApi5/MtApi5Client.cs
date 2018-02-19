@@ -187,17 +187,22 @@ namespace MtApi5
         /// </returns>
         public bool OrderCheck(MqlTradeRequest request, out MqlTradeCheckResult result)
         {
+            Log.Debug($"OrderCheck: request = {request}");
+
             if (request == null)
             {
+                Log.Warn("OrderCheck: request is not defined!");
                 result = null;
                 return false;
             }
 
-            var commandParameters = request.ToArrayList();
+            var response = SendRequest<OrderCheckResult>(new OrderCheckRequest
+            {
+                TradeRequest = request
+            });
 
-            var strResult = SendCommand<string>(Mt5CommandType.OrderCheck, commandParameters);
-
-            return strResult.ParseResult(ParamSeparator, out result); 
+            result = response?.TradeCheckResult;
+            return response != null && response.RetVal;
         }
 
         ///<summary>
@@ -559,11 +564,6 @@ namespace MtApi5
 
             result = response?.TradeResult;
             return response != null && response.RetVal;
-
-            //var commandParameters = new ArrayList { symbol, (int)orderType, volume, price, sl, tp, comment };
-
-            //var strResult = SendCommand<string>(Mt5CommandType.PositionOpenWithResult, commandParameters);
-            //return strResult.ParseResult(ParamSeparator, out result);
         }
         #endregion
 

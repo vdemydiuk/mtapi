@@ -31,5 +31,10 @@ namespace MtApi5
             Margin_level = margin_level;
             Comment = comment;
         }
+
+        public override string ToString()
+        {
+            return $"Retcode={Retcode}; Comment={Comment}; Balance={Balance}; Equity={Equity}; Profit={Profit}; Margin={Margin}; Margin_free={Margin_free}; Margin_level={Margin_level}";
+        }
     }
 }

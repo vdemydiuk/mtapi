@@ -4,7 +4,7 @@
         xmlns:mtapi5="clr-namespace:MtApi5;assembly=MtApi5"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:mtApi5TestClient="clr-namespace:MtApi5TestClient"
-        Title="MainWindow" Height="700" Width="650"
+        Title="MainWindow" Height="700" Width="700"
         Closing="Window_Closing">
     <Window.Resources>
         <DataTemplate x:Key="ConnectionTextBlockTemplate" DataType="{x:Type mtapi5:Mt5ConnectionState}">
@@ -100,58 +100,33 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Expander ExpandDirection="Right" IsExpanded="True"
-                      Grid.Row="0" Grid.Column="0" Margin="5">
-                <Expander.Header>
-                    <TextBlock Text="Connection" RenderTransformOrigin="0.5,0.5" Margin="0,0,0,0" Width="Auto">
-                        <TextBlock.LayoutTransform>
-                            <TransformGroup>
-                                <ScaleTransform ScaleX="1" ScaleY="1"/>
-                                <SkewTransform AngleX="0" AngleY="0"/>
-                                <RotateTransform Angle="-90"/>
-                                <TranslateTransform X="0" Y="0"/>
-                            </TransformGroup>
-                        </TextBlock.LayoutTransform>
-                        <TextBlock.RenderTransform>
-                            <TransformGroup>
-                                <ScaleTransform ScaleX="1" ScaleY="1"/>
-                                <SkewTransform AngleX="0" AngleY="0"/>
-                                <RotateTransform Angle="0"/>
-                                <TranslateTransform X="0" Y="0"/>
-                            </TransformGroup>
-                        </TextBlock.RenderTransform>
-                    </TextBlock>
-                </Expander.Header>
-                <Expander.Content>
-                    <Grid Margin="10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="150"/>
-                        </Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="150"/>
+                </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Host"/>
-                        <TextBox Grid.Row="0" Grid.Column="1" 
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Host"/>
+                <TextBox Grid.Row="0" Grid.Column="1" 
                          Margin="5,0,0,0"
                          Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}"/>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Port"/>
-                        <TextBox Grid.Row="1" Grid.Column="1" 
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Port"/>
+                <TextBox Grid.Row="1" Grid.Column="1" 
                          Margin="5,0,0,0"
                          Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"/>
 
-                        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="5" Orientation="Horizontal">
-                            <Button Content="Connect" Width="70" Command="{Binding ConnectCommand}" />
-                            <Button Margin="5,0,0,0" Width="70" Content="Disconnect" Command="{Binding DisconnectCommand}" />
-                        </StackPanel>
-                    </Grid>
-                </Expander.Content>
-            </Expander>           
+                <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="5" Orientation="Horizontal">
+                    <Button Content="Connect" Width="70" Command="{Binding ConnectCommand}" />
+                    <Button Margin="5,0,0,0" Width="70" Content="Disconnect" Command="{Binding DisconnectCommand}" />
+                </StackPanel>
+            </Grid>
 
             <ListView Grid.Row="0" Grid.Column="1" 
                       ItemsSource="{Binding Quotes}" 
@@ -255,12 +230,18 @@
                         </Expander>
 
                         <StackPanel Grid.Row="1" Orientation="Vertical">
-                            <Button Content="OrderSend" Command="{Binding OrderSendCommand}" Width="100" Height="25" HorizontalAlignment="Left" Margin="4"/>
-                            <Button Content="HistoryDealGetDouble" Command="{Binding HistoryDealGetDoubleCommand}" Height="25" HorizontalAlignment="Left"  Margin="4"/>
-                            <Button Content="HistoryDealGetInteger" Command="{Binding HistoryDealGetIntegerCommand}" Height="25" HorizontalAlignment="Left" Margin="4"/>
-                            <Button Content="HistoryDealGetString" Command="{Binding HistoryDealGetStringCommand}" Height="25" HorizontalAlignment="Left" Margin="4"/>
-                            <Button Content="HistoryOrderGetInteger" Command="{Binding HistoryOrderGetIntegerCommand}" Height="25" HorizontalAlignment="Left" Margin="4"/>
-                            <Button Content="HistoryDealMethods" Command="{Binding HistoryDealMethodsCommand}" Height="25" HorizontalAlignment="Left" Margin="4"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="OrderSend" Command="{Binding OrderSendCommand}" Width="100" Height="25" HorizontalAlignment="Left" Margin="4"/>
+                                <Button Content="OrderCheck" Command="{Binding OrderCheckCommand}" Width="100" Height="25" HorizontalAlignment="Left" Margin="4"/>
+                            </StackPanel>
+
+                            <WrapPanel>
+                                <Button Content="HistoryDealGetDouble" Command="{Binding HistoryDealGetDoubleCommand}" Height="25" HorizontalAlignment="Left"  Margin="4"/>
+                                <Button Content="HistoryDealGetInteger" Command="{Binding HistoryDealGetIntegerCommand}" Height="25" HorizontalAlignment="Left" Margin="4"/>
+                                <Button Content="HistoryDealGetString" Command="{Binding HistoryDealGetStringCommand}" Height="25" HorizontalAlignment="Left" Margin="4"/>
+                                <Button Content="HistoryOrderGetInteger" Command="{Binding HistoryOrderGetIntegerCommand}" Height="25" HorizontalAlignment="Left" Margin="4"/>
+                                <Button Content="HistoryDealMethods" Command="{Binding HistoryDealMethodsCommand}" Height="25" HorizontalAlignment="Left" Margin="4"/>
+                            </WrapPanel>
                         </StackPanel>
 
                     </Grid>
@@ -410,8 +391,8 @@
             </TabItem>
         </TabControl>
 
-        <Expander Grid.Row="2" Header="History" IsExpanded="True">
-            <ListBox mtApi5TestClient:ListBoxBehavior.ScrollOnNewItem="true" Height="200" ItemsSource="{Binding History}"/>
+        <Expander Grid.Row="2" Header="Console" IsExpanded="True">
+            <ListBox mtApi5TestClient:ListBoxBehavior.ScrollOnNewItem="true" Height="180" ItemsSource="{Binding History}"/>
         </Expander>
 
         <StatusBar Grid.Row="3">

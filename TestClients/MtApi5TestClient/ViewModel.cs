@@ -1,4 +1,5 @@
-﻿using System;
+﻿// ReSharper disable InconsistentNaming
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
@@ -16,6 +17,8 @@ namespace MtApi5TestClient
         public DelegateCommand DisconnectCommand { get; private set; }
 
         public DelegateCommand OrderSendCommand { get; private set; }
+        public DelegateCommand OrderCheckCommand { get; private set; }
+
         public DelegateCommand HistoryOrderGetIntegerCommand { get; private set; }
         public DelegateCommand HistoryDealGetDoubleCommand { get; private set; }
         public DelegateCommand HistoryDealGetIntegerCommand { get; private set; }
@@ -200,6 +203,8 @@ namespace MtApi5TestClient
             DisconnectCommand = new DelegateCommand(ExecuteDisconnect, CanExecuteDisconnect);
 
             OrderSendCommand = new DelegateCommand(ExecuteOrderSend);
+            OrderCheckCommand = new DelegateCommand(ExecuteOrderCheck);
+
             HistoryOrderGetIntegerCommand = new DelegateCommand(ExecuteHistoryOrderGetInteger);
             HistoryDealGetDoubleCommand = new DelegateCommand(ExecuteHistoryDealGetDouble);
             HistoryDealGetIntegerCommand = new DelegateCommand(ExecuteHistoryDealGetInteger);
@@ -280,7 +285,22 @@ namespace MtApi5TestClient
                 return ok;
             });
 
-            var message = retVal ? $"OrderSend excute successed. {MqlTradeResultToString(result)}" : $"OrderSend execute failed. {MqlTradeResultToString(result)}";
+            var message = retVal ? $"OrderSend: success. {result}" : $"OrderSend: fail. {result}";
+            AddLog(message);
+        }
+
+
+        private async void ExecuteOrderCheck(object obj)
+        {
+            var request = TradeRequest.GetMqlTradeRequest();
+            MqlTradeCheckResult result = null;
+            var retVal = await Execute(() =>
+            {
+                var ok = _mtApiClient.OrderCheck(request, out result);
+                return ok;
+            });
+
+            var message = retVal ? $"OrderCheck: success. {result}" : $"OrderCheck: fail. {result}";
             AddLog(message);
         }
 
@@ -328,15 +348,14 @@ namespace MtApi5TestClient
         {
             try
             {
-                var posId = await Execute(() => _mtApiClient.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_IDENTIFIER)); // posId = 7247951
-                var history = await Execute(() => _mtApiClient.HistorySelectByPosition(posId)); // history = true
-                var historyDealsTotal = await Execute(() => _mtApiClient.HistoryDealsTotal()); // historyDealsCount  = 4
-                var histDealTicket = await Execute(() => _mtApiClient.HistoryDealGetTicket(0)); //  histDealTicket = 6632442
-                var histDealPrice = await Execute(() => _mtApiClient.HistoryDealGetDouble(histDealTicket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_PRICE)); // Exception
+                var posId = await Execute(() => _mtApiClient.PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER.POSITION_IDENTIFIER));
+                var history = await Execute(() => _mtApiClient.HistorySelectByPosition(posId));
+                var historyDealsTotal = await Execute(() => _mtApiClient.HistoryDealsTotal());
+                var histDealTicket = await Execute(() => _mtApiClient.HistoryDealGetTicket(0));
+                var histDealPrice = await Execute(() => _mtApiClient.HistoryDealGetDouble(histDealTicket, ENUM_DEAL_PROPERTY_DOUBLE.DEAL_PRICE));
             }
             catch (Exception ex)
             {
-                // ex.Messsage = "Service connection failed! Ошибка сериализации параметра http://tempuri.org/:command. Сообщение InnerException было \"Тип \"MtApi5.ENUM_DEAL_PROPERTY_DOUBLE\" с именем контракта данных \"ENUM_DEAL_PROPERTY_DOUBLE:http://schemas.datacontract.org/2004/07/MtApi5\" не ожидается. Попробуйте использовать DataContractResolver, если вы используете DataContractSerializer, или добавьте любые статически неизвестные типы в список известных типов - например, используя атрибут KnownTypeAttribute или путем их добавления в список известных типов, передаваемый в сериализатор.\".  Подробнее см. InnerException."
                 AddLog(ex.Message);
                 return;
             }
@@ -967,20 +986,6 @@ namespace MtApi5TestClient
         {
             _quotesMap.Clear();
             Quotes.Clear();
-        }
-
-        private static string MqlTradeResultToString(MqlTradeResult result)
-        {
-            return result != null ?
-                "Retcode = " + result.Retcode + ";"
-                + " Comment = " + result.Comment + ";"
-                + " Order = " + result.Order + ";"
-                + " Volume = " + result.Volume + ";"
-                + " Price = " + result.Price + ";"
-                + " Deal = " + result.Deal + ";"
-                + " Request_id = " + result.Request_id + ";"
-                + " Bid = " + result.Bid + ";"
-                + " Ask = " + result.Ask + ";" : string.Empty;
         }
 
         private void OnSelectedQuoteChanged()

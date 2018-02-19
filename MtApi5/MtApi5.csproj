@@ -68,6 +68,8 @@
     <Compile Include="Mt5Quote.cs" />
     <Compile Include="Requests\CopyTicksRequest.cs" />
     <Compile Include="Requests\ICustomRequest.cs" />
+    <Compile Include="Requests\OrderCheckRequest.cs" />
+    <Compile Include="Requests\OrderCheckResult.cs" />
     <Compile Include="Requests\OrderSendRequest.cs" />
     <Compile Include="Requests\PositionOpenRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />

@@ -39,7 +39,7 @@
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
-#define __DEBUG_LOG__
+//#define __DEBUG_LOG__
 
 input int Port = 8228;
 
@@ -5588,6 +5588,9 @@ string OnRequest(string json)
             case 4: //PositionOpen
                response = ExecuteRequest_PositionOpen(jo);
                break;
+            case 5: //OrderCheck
+               response = ExecuteRequest_OrderCheck(jo);
+               break;
             default:
                PrintFormat("%s [WARNING]: Unknown request type %d", __FUNCTION__, requestType);
                response = CreateErrorResponse(-1, "Unknown request type");
@@ -5948,5 +5951,43 @@ string ExecuteRequest_PositionOpen(JSONObject *jo)
    result_value_jo.put("RetVal", new JSONBool(ok));
    result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
 
+   return CreateSuccessResponse("Value", result_value_jo);   
+}
+
+JSONObject* MqlTradeCheckResultToJson(MqlTradeCheckResult& result)
+{
+   JSONObject* jo = new JSONObject();
+   
+   jo.put("Retcode", new JSONNumber(result.retcode));
+   jo.put("Balance", new JSONNumber(result.balance));
+   jo.put("Equity", new JSONNumber(result.equity));
+   jo.put("Profit", new JSONNumber(result.profit));
+   jo.put("Margin", new JSONNumber(result.margin));
+   jo.put("Margin_free", new JSONNumber(result.margin_free));
+   jo.put("Margin_level", new JSONNumber(result.margin_level));
+   jo.put("Comment", new JSONString(result.comment));
+   
+   return jo;
+}
+
+string ExecuteRequest_OrderCheck(JSONObject *jo)
+{
+   CHECK_JSON_VALUE(jo, "TradeRequest", CreateErrorResponse(-1, "Undefinded mandatory parameter TradeRequest"));
+   JSONObject* trade_request_jo = jo.getObject("TradeRequest");
+      
+   MqlTradeRequest trade_request = {0};
+   JsonToMqlTradeRequest(trade_request_jo, trade_request);
+   
+   MqlTradeCheckResult trade_check_result = {0};   
+   bool ok = OrderCheck(trade_request, trade_check_result);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: return value = %s", __FUNCTION__, ok ? "true" : "false");
+#endif    
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("TradeCheckResult", MqlTradeCheckResultToJson(trade_check_result));
+   
    return CreateSuccessResponse("Value", result_value_jo);   
 }

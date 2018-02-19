@@ -8,6 +8,7 @@ namespace MtApi5.Requests
         CopyTicks       = 1,
         iCustom         = 2,
         OrderSend       = 3,
-        PositionOpen    = 4
+        PositionOpen    = 4,
+        OrderCheck      = 5
     }
 }

@@ -14,49 +14,6 @@ namespace MtApi5
             return quote != null ? new Mt5Quote(quote.Instrument, quote.Bid, quote.Ask) : null;
         }
 
-        //public static bool ParseResult(this string inputString, char separator, out MqlTradeResult result)
-        //{
-        //    Log.Debug($"ParseResult: inputString = {inputString}, separator = {separator}");
-
-        //    var retVal = false;
-        //    result = null;
-
-        //    if (string.IsNullOrEmpty(inputString) == false)
-        //    {
-        //        var values = inputString.Split(separator);
-        //        if (values.Length == 10)
-        //        {
-        //            try
-        //            {
-        //                retVal = int.Parse(values[0]) != 0;
-
-        //                var retcode = uint.Parse(values[1]);
-        //                var deal = ulong.Parse(values[2]);
-        //                var order = ulong.Parse(values[3]);
-        //                var volume = double.Parse(values[4]);
-        //                var price = double.Parse(values[5]);
-        //                var bid = double.Parse(values[6]);
-        //                var ask = double.Parse(values[7]);
-        //                var comment = values[8];
-        //                var requestId = uint.Parse(values[9]);
-
-        //                result = new MqlTradeResult(retcode, deal, order, volume, price, bid, ask, comment, requestId);
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Log.Error($"ParseResult: {ex.Message}");
-        //                retVal = false;
-        //            }
-        //        }
-        //    }
-        //    else
-        //    {
-        //        Log.Warn("ParseResult: input srting is null or empty!");
-        //    }
-
-        //    return retVal;
-        //}
-
         public static bool ParseResult(this string inputString, char separator, out MqlTradeCheckResult result)
         {
             Log.Debug($"ParseResult: inputString = {inputString}, separator = {separator}");
