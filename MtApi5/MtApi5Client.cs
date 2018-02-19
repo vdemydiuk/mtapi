@@ -6,7 +6,6 @@ using MTApiService;
 using System.Collections;
 using System.ServiceModel;
 using MtApi5.Requests;
-using MtApi5.Responses;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 
@@ -2293,6 +2292,7 @@ namespace MtApi5
 
         #region Events
         public event QuoteHandler QuoteUpdated;
+        public event EventHandler<Mt5QuoteEventArgs> QuoteUpdate;
         public event EventHandler<Mt5QuoteEventArgs> QuoteAdded;
         public event EventHandler<Mt5QuoteEventArgs> QuoteRemoved;
         public event EventHandler<Mt5ConnectionEventArgs> ConnectionStateChanged;
@@ -2476,6 +2476,7 @@ namespace MtApi5
         {
             if (quote != null)
             {
+                QuoteUpdate?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote(quote.Instrument, quote.Bid, quote.Ask)));
                 QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
             }
         }

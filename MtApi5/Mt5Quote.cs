@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace MtApi5
+﻿namespace MtApi5
 {
     public class Mt5Quote
     {
-        public string Instrument { get; private set; }
-        public double Bid { get; private set; }
-        public double Ask { get; private set; }
+        public string Instrument { get; }
+        public double Bid { get; }
+        public double Ask { get; }
 
         public Mt5Quote(string instrument, double bid, double ask)
         {
