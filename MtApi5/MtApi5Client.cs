@@ -81,7 +81,7 @@ namespace MtApi5
         {
             var client = Client;
             var quotes = client?.GetQuotes();
-            return quotes?.Select(q => q.Parse());
+            return quotes?.Select(q => q.Convert());
         }
 
         ///<summary>
@@ -2490,11 +2490,9 @@ namespace MtApi5
 
         private void _client_QuoteUpdated(MtQuote quote)
         {
-            if (quote != null)
-            {
-                QuoteUpdate?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote(quote.Instrument, quote.Bid, quote.Ask)));
-                QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
-            }
+            if (quote == null) return;
+            QuoteUpdate?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote(quote.Instrument, quote.Bid, quote.Ask)));
+            QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
         }
 
         private void _client_ServerDisconnected(object sender, EventArgs e)
@@ -2509,12 +2507,18 @@ namespace MtApi5
 
         private void _client_QuoteRemoved(MtQuote quote)
         {
-            QuoteRemoved?.Invoke(this, new Mt5QuoteEventArgs(quote.Parse()));
+            if (quote != null)
+            {
+                QuoteRemoved?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote(quote.Instrument, quote.Bid, quote.Ask)));
+            }
         }
 
         private void _client_QuoteAdded(MtQuote quote)
         {
-            QuoteAdded?.Invoke(this, new Mt5QuoteEventArgs(quote.Parse()));
+            if (quote != null)
+            {
+                QuoteAdded?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote(quote.Instrument, quote.Bid, quote.Ask)));
+            }
         }
 
         private void OnConnected()

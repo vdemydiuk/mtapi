@@ -9,51 +9,9 @@ namespace MtApi5
         private static readonly MtLog Log = LogConfigurator.GetLogger(typeof(MtConverters));
 
         #region Values Converters
-        public static Mt5Quote Parse(this MtQuote quote)
+        public static Mt5Quote Convert(this MtQuote quote)
         {
             return quote != null ? new Mt5Quote(quote.Instrument, quote.Bid, quote.Ask) : null;
-        }
-
-        public static bool ParseResult(this string inputString, char separator, out MqlTradeCheckResult result)
-        {
-            Log.Debug($"ParseResult: inputString = {inputString}, separator = {separator}");
-
-            var retVal = false;
-            result = null;
-
-            if (string.IsNullOrEmpty(inputString) == false)
-            {
-                var values = inputString.Split(separator);
-                if (values.Length == 10)
-                {
-                    try
-                    {
-                        retVal = int.Parse(values[0]) != 0;
-
-                        var retcode = uint.Parse(values[1]);
-                        var balance = double.Parse(values[2]);
-                        var equity = double.Parse(values[3]);
-                        var profit = double.Parse(values[4]);
-                        var margin = double.Parse(values[5]);
-                        var marginFree = double.Parse(values[6]);
-                        var marginLevel = double.Parse(values[7]);
-                        var comment = values[8];
-
-                        result = new MqlTradeCheckResult(retcode, balance, equity, profit, margin, marginFree, marginLevel, comment);
-                    }
-                    catch (Exception ex)
-                    {
-                        retVal = false;
-                        Log.Error($"ParseResult: {ex.Message}");
-                    }
-                }
-            }
-            else
-            {
-                Log.Warn("ParseResult: input srting is null or empty!");
-            }
-
-            return retVal;
         }
 
         public static bool ParseResult(this string inputString, char separator, out double result)
