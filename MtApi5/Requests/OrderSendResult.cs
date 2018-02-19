@@ -1,13 +1,8 @@
-﻿namespace MtApi5.Responses
+﻿namespace MtApi5.Requests
 {
     internal class OrderSendResult
     {
         public bool RetVal { get; set; }
         public MqlTradeResult TradeResult { get; set; }
-    }
-
-    internal class OrderSendResponse: ResponseBase
-    {
-        public OrderSendResult Value { get; set; }
     }
 }

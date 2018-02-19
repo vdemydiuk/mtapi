@@ -55,6 +55,8 @@ namespace MtApi5TestClient
         public DelegateCommand PositionOpenCommand { get; private set; }
 
         public DelegateCommand PrintCommand { get; private set; }
+
+        public DelegateCommand iCustomCommand { get; private set; }
         #endregion
 
         #region Properties
@@ -237,6 +239,8 @@ namespace MtApi5TestClient
             PositionOpenCommand = new DelegateCommand(ExecutePositionOpen);
 
             PrintCommand = new DelegateCommand(ExecutePrint);
+
+            iCustomCommand = new DelegateCommand(ExecuteICustom);
         }
 
         private bool CanExecuteConnect(object o)
@@ -830,6 +834,17 @@ namespace MtApi5TestClient
 
             var retVal = await Execute(() => _mtApiClient.Print(message));
             AddLog($"Print: message print in MetaTrader - {retVal}");
+        }
+
+        private async void ExecuteICustom(object o)
+        {
+            const string symbol = "EURUSD";
+            const ENUM_TIMEFRAMES timeframe = ENUM_TIMEFRAMES.PERIOD_H1;
+            const string name = @"Examples\Custom Moving Average";
+            int[] parameters = { 0, 21, (int)ENUM_APPLIED_PRICE.PRICE_CLOSE };
+
+            var retVal = await Execute(() => _mtApiClient.iCustom(symbol, timeframe, name, parameters));
+            AddLog($"Custom Moving Average: result - {retVal}");
         }
 
         private static void RunOnUiThread(Action action)

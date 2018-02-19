@@ -5667,7 +5667,7 @@ string ExecuteRequest_CopyTicks(JSONObject *jo)
       jaTicks.put(i, Serialize(ticks[i]));
    }
         
-   return CreateSuccessResponse("Ticks", jaTicks);;
+   return CreateSuccessResponse("Value", jaTicks);;
 }
 
 string ExecuteRequest_iCustom(JSONObject *jo)

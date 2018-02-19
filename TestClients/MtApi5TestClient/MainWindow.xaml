@@ -402,6 +402,12 @@
                     <Button Command="{Binding PositionOpenCommand}" Content="PositionOpen" Margin="2"/>
                 </WrapPanel>
             </TabItem>
+
+            <TabItem Header="Indicators">
+                <WrapPanel VerticalAlignment="Top" Margin="5">
+                    <Button Command="{Binding iCustomCommand}" Content="iCustom" Margin="2"/>
+                </WrapPanel>
+            </TabItem>
         </TabControl>
 
         <Expander Grid.Row="2" Header="History" IsExpanded="True">

@@ -116,13 +116,13 @@ namespace MtApi5
                 return false;
             }
 
-            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
+            var response = SendRequest<OrderSendResult>(new OrderSendRequest
             {
                 TradeRequest = request
             });
 
-            result = response?.Value?.TradeResult;
-            return response?.Value != null && response.Value.RetVal;
+            result = response?.TradeResult;
+            return response != null && response.RetVal;
         }
 
         ///<summary>
@@ -1238,11 +1238,14 @@ namespace MtApi5
         ///<see href="https://www.mql5.com/en/docs/series/copyticks"/>
         public List<MqlTick> CopyTicks(string symbolName, CopyTicksFlag flags = CopyTicksFlag.All, ulong from = 0, uint count = 0)
         {
-            var response = SendRequest<CopyTicksResponse>(new CopyTicksRequest
+            var response = SendRequest<List<MqlTick>>(new CopyTicksRequest
             {
-                SymbolName = symbolName, Flags = (int)flags, From = from, Count = count
+                SymbolName = symbolName,
+                Flags = (int)flags,
+                From = from,
+                Count = count
             });
-            return response.Ticks;
+            return response;
         }
         #endregion
 
@@ -2178,7 +2181,7 @@ namespace MtApi5
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, double[] parameters)
         {
-            var response = SendRequest<ICustomResponse>(new ICustomRequest
+            var response = SendRequest<int>(new ICustomRequest
             {
                 Symbol = symbol,
                 Timeframe = (int)period,
@@ -2186,7 +2189,7 @@ namespace MtApi5
                 Params = new ArrayList(parameters),
                 ParamsType = ICustomRequest.ParametersType.Double
             });
-            return response?.Value ?? 0;
+            return response;
         }
 
         ///<summary>
@@ -2198,7 +2201,7 @@ namespace MtApi5
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, int[] parameters)
         {
-            var response = SendRequest<ICustomResponse>(new ICustomRequest
+            var response = SendRequest<int>(new ICustomRequest
             {
                 Symbol = symbol,
                 Timeframe = (int)period,
@@ -2206,7 +2209,47 @@ namespace MtApi5
                 Params = new ArrayList(parameters),
                 ParamsType = ICustomRequest.ParametersType.Int
             });
-            return response?.Value ?? 0;
+            return response;
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Volumes indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="name">The name of the custom indicator, with path relative to the root directory of indicators (MQL5/Indicators/). If an indicator is located in a subdirectory, for example, in MQL5/Indicators/Examples, its name must be specified like: "Examples\\indicator_name" (it is necessary to use a double slash instead of the single slash as a separator).</param>
+        ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
+        public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, string[] parameters)
+        {
+            var response = SendRequest<int>(new ICustomRequest
+            {
+                Symbol = symbol,
+                Timeframe = (int)period,
+                Name = name,
+                Params = new ArrayList(parameters),
+                ParamsType = ICustomRequest.ParametersType.Int
+            });
+            return response;
+        }
+
+        ///<summary>
+        ///The function returns the handle of the Volumes indicator.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
+        ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
+        ///<param name="name">The name of the custom indicator, with path relative to the root directory of indicators (MQL5/Indicators/). If an indicator is located in a subdirectory, for example, in MQL5/Indicators/Examples, its name must be specified like: "Examples\\indicator_name" (it is necessary to use a double slash instead of the single slash as a separator).</param>
+        ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
+        public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, bool[] parameters)
+        {
+            var response = SendRequest<int>(new ICustomRequest
+            {
+                Symbol = symbol,
+                Timeframe = (int)period,
+                Name = name,
+                Params = new ArrayList(parameters),
+                ParamsType = ICustomRequest.ParametersType.Int
+            });
+            return response;
         }
 
         #endregion // Public Methods
@@ -2400,7 +2443,7 @@ namespace MtApi5
             return (T) responseValue;
         }
 
-        private T SendRequest<T>(RequestBase request) where T : ResponseBase, new()
+        private T SendRequest<T>(RequestBase request)
         {
             if (request == null)
                 return default(T);
@@ -2419,13 +2462,13 @@ namespace MtApi5
                 throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
             }
 
-            var response = JsonConvert.DeserializeObject<T>(res);
+            var response = JsonConvert.DeserializeObject<Response<T>>(res);
             if (response.ErrorCode != 0)
             {
                 throw new ExecutionException((ErrorCode)response.ErrorCode, response.ErrorMessage);
             }
 
-            return response;
+            return response.Value;
         }
 
 

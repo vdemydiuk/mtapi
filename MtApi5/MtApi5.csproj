@@ -71,10 +71,8 @@
     <Compile Include="Requests\OrderSendRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />
     <Compile Include="Requests\RequestType.cs" />
-    <Compile Include="Responses\CopyTicksResponse.cs" />
-    <Compile Include="Responses\ICustomResponse.cs" />
-    <Compile Include="Responses\OrderSendResponse.cs" />
-    <Compile Include="Responses\ResponseBase.cs" />
+    <Compile Include="Responses\OrderSendResult.cs" />
+    <Compile Include="Responses\Response.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MTApiService\MTApiService.csproj">
