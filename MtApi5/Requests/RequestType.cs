@@ -9,6 +9,7 @@ namespace MtApi5.Requests
         iCustom         = 2,
         OrderSend       = 3,
         PositionOpen    = 4,
-        OrderCheck      = 5
+        OrderCheck      = 5,
+        MarketBookGet   = 6
     }
 }

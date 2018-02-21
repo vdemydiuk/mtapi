@@ -807,14 +807,14 @@ namespace MtApi5TestClient
 
         private async void ExecuteMarketBookAdd(object o)
         {
-            var retVal = await Execute(() => _mtApiClient.MarketBookAdd("CHFJPY"));
-            AddLog($"MarketBookAdd(CHFJPY): result = {retVal}");
+            var retVal = await Execute(() => _mtApiClient.MarketBookAdd("EURUSD"));
+            AddLog($"MarketBookAdd(EURUSD): result = {retVal}");
         }
 
         private async void ExecuteMarketBookRelease(object o)
         {
-            var retVal = await Execute(() => _mtApiClient.MarketBookRelease("CHFJPY"));
-            AddLog($"MarketBookRelease(CHFJPY): result = {retVal}");
+            var retVal = await Execute(() => _mtApiClient.MarketBookRelease("EURUSD"));
+            AddLog($"MarketBookRelease(EURUSD): result = {retVal}");
         }
 
         private async void ExecuteMarketBookGet(object o)
@@ -832,13 +832,11 @@ namespace MtApi5TestClient
                 return;
             }
 
-            AddLog("MarketBookGet(EURUSD): success");
+            AddLog($"MarketBookGet(EURUSD): success. Count = {result.Length}");
 
             for (var i = 0; i < result.Length; i++)
             {
-                AddLog($"MarketBookGet: book[{i}].price = {result[i].price}");
-                AddLog($"MarketBookGet: book[{i}].price = {result[i].volume}");
-                AddLog($"MarketBookGet: book[{i}].price = {result[i].type}");
+                AddLog($"MarketBookGet: [{i}] - {result[i].price} | {result[i].volume} | {result[i].type}");
             }
         }
 
@@ -1038,6 +1036,10 @@ namespace MtApi5TestClient
                 try
                 {
                     result = func();
+                }
+                catch (ExecutionException ex)
+                {
+                    AddLog($"Exception: {ex.ErrorCode} - {ex.Message}");
                 }
                 catch (Exception ex)
                 {

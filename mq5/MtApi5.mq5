@@ -45,7 +45,6 @@ input int Port = 8228;
 
 int ExpertHandle;
 
-//string message;
 string _error;
 string _response_error;
 bool isCrashed = false;
@@ -482,9 +481,8 @@ int executeCommand()
    case 61: //MarketBookRelease
       Execute_MarketBookRelease();
    break;    
-   case 62: //MarketBookGet
-      Execute_MarketBookGet();
-   break;
+//   case 62: //MarketBookGet
+//   break;
    case 65: //PositionOpen
       Execute_PositionOpen(false);
    break;
@@ -3033,38 +3031,6 @@ void Execute_MarketBookRelease()
    if (!sendBooleanResponse(ExpertHandle, MarketBookRelease(symbol), _response_error))
    {
       PrintResponseError("MarketBookRelease", _response_error);
-   }
-}
-
-void Execute_MarketBookGet()
-{
-   string symbol;
-   StringInit(symbol, 100, 0);
-   
-   if (!getStringValue(ExpertHandle, 0, symbol, _error))
-   {
-      PrintParamError("MarketBookGet", "symbol", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
-   
-   MqlBookInfo book[];
-   bool retVal = MarketBookGet(symbol, book); 
-   
-   if(retVal)
-   {
-      int size = ArraySize(book);
-      if (!sendMqlBookInfoArrayResponse(ExpertHandle, book, size, _response_error))
-      {
-         PrintResponseError("MarketBookGet", _response_error);
-      }
-   }
-   else
-   {
-      if (!sendVoidResponse(ExpertHandle, _response_error))
-      {
-         PrintResponseError("MarketBookGet", _response_error);
-      }
    }
 }
 
@@ -5634,6 +5600,9 @@ string OnRequest(string json)
             case 5: //OrderCheck
                response = ExecuteRequest_OrderCheck(jo);
                break;
+            case 6: //MarketBookGet
+               response = ExecuteRequest_MarketBookGet(jo);
+               break;
             default:
                PrintFormat("%s [WARNING]: Unknown request type %d", __FUNCTION__, requestType);
                response = CreateErrorResponse(-1, "Unknown request type");
@@ -5719,7 +5688,7 @@ string ExecuteRequest_CopyTicks(JSONObject *jo)
       jaTicks.put(i, Serialize(ticks[i]));
    }
         
-   return CreateSuccessResponse("Value", jaTicks);;
+   return CreateSuccessResponse("Value", jaTicks);
 }
 
 string ExecuteRequest_iCustom(JSONObject *jo)
@@ -6033,4 +6002,42 @@ string ExecuteRequest_OrderCheck(JSONObject *jo)
    result_value_jo.put("TradeCheckResult", MqlTradeCheckResultToJson(trade_check_result));
    
    return CreateSuccessResponse("Value", result_value_jo);   
+}
+
+JSONObject* MqlBookInfoToJson(MqlBookInfo& info)
+{
+    JSONObject *jo = new JSONObject();
+    jo.put("type", new JSONNumber((int)info.type));
+    jo.put("price", new JSONNumber(info.price));
+    jo.put("volume", new JSONNumber(info.volume));
+    return jo;
+}
+
+string ExecuteRequest_MarketBookGet(JSONObject *jo)
+{
+   CHECK_JSON_VALUE(jo, "Symbol", CreateErrorResponse(-1, "Undefinded mandatory parameter Symbol"));
+   string symbol = jo.getString("Symbol");
+   
+   MqlBookInfo info_array[];
+   bool ok = MarketBookGet(symbol, info_array); 
+
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: return value = %s.", __FUNCTION__, ok ? "true" : "false");
+#endif
+   
+   if (!ok)
+      return CreateErrorResponse(GetLastError(), "MarketBookGet failed");
+   
+   int size = ArraySize(info_array);
+   JSONArray* book_ja = new JSONArray();
+   for(int i = 0; i < size; i++)
+   {
+      book_ja.put(i, MqlBookInfoToJson(info_array[i]));
+   }
+
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: array size = %d.", __FUNCTION__, size);
+#endif   
+        
+   return CreateSuccessResponse("Value", book_ja);
 }

@@ -1434,22 +1434,13 @@ namespace MtApi5
         ///<param name="book">Reference to an array of Depth of Market records.</param>        
         public bool MarketBookGet(string symbol, out MqlBookInfo[] book)
         {
-            var commandParameters = new ArrayList { symbol };
-
-            var retVal = SendCommand<MtMqlBookInfo[]>(Mt5CommandType.MarketBookGet, commandParameters);
-
-            book = null; 
-            if (retVal != null)
+            var response = SendRequest<List<MqlBookInfo>>(new MarketBookGetRequest
             {
-                book = new MqlBookInfo[retVal.Length];
+                Symbol = symbol
+            });
 
-                foreach (var t in retVal)
-                {
-                    book[0] = new MqlBookInfo((ENUM_BOOK_TYPE)t.type, t.price, t.volume);
-                }
-            }
-
-            return book != null;
+            book = response?.ToArray();
+            return response != null;
         }
 
         #endregion
