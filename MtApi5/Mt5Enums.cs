@@ -784,4 +784,68 @@ namespace MtApi5
     }
 
     #endregion //Smoothing Methods
+
+    #region Indicator constants
+
+    public enum ENUM_INDICATOR
+    {
+        IND_AC          = 5,    // Accelerator Oscillator
+        IND_AD          = 6,    // Accumulation/Distribution
+        IND_ADX         = 8,    // Average Directional Index
+        IND_ADXW        = 9,    // ADX by Welles Wilder
+        IND_ALLIGATOR   = 7,    // Alligator
+        IND_AMA         = 40,   // Adaptive Moving Average
+        IND_AO          = 11,   // Awesome Oscillator
+        IND_ATR         = 10,   // Average True Range
+        IND_BANDS       = 13,   // Bollinger Bands®
+        IND_BEARS       = 12,   // Bears Power
+        IND_BULLS       = 14,   // Bulls Power
+        IND_BWMFI       = 22,   // Market Facilitation Index
+        IND_CCI         = 15,   // Commodity Channel Index
+        IND_CHAIKIN     = 41,   // Chaikin Oscillator
+        IND_CUSTOM      = 43,   // Custom indicator
+        IND_DEMA        = 36,   // Double Exponential Moving Average
+        IND_DEMARKER    = 16,   // DeMarker
+        IND_ENVELOPES   = 17,   // Envelopes
+        IND_FORCE       = 18,   // Force Index
+        IND_FRACTALS    = 19,   // Fractals
+        IND_FRAMA       = 39,   // Fractal Adaptive Moving Average
+        IND_GATOR       = 20,   // Gator Oscillator
+        IND_ICHIMOKU    = 21,   // Ichimoku Kinko Hyo
+        IND_MA          = 26,   // Moving Average
+        IND_MACD        = 23,   // MACD
+        IND_MFI         = 25,   // Money Flow Index
+        IND_MOMENTUM    = 24,   // Momentum
+        IND_OBV         = 28,   // On Balance Volume
+        IND_OSMA        = 27,   // OsMA
+        IND_RSI         = 30,   // Relative Strength Index
+        IND_RVI         = 31,   // Relative Vigor Index
+        IND_SAR         = 29,   // Parabolic SAR
+        IND_STDDEV      = 32,   // Standard Deviation
+        IND_STOCHASTIC  = 33,   // Stochastic Oscillator
+        IND_TEMA        = 37,   // Triple Exponential Moving Average
+        IND_TRIX        = 38,   // Triple Exponential Moving Averages Oscillator
+        IND_VIDYA       = 42,   // Variable Index Dynamic Average
+        IND_VOLUMES     = 34,   // Volumes
+        IND_WPR         = 35    // Williams' Percent Ranges
     }
+
+    public enum ENUM_DATATYPE
+    {
+        TYPE_BOOL       = 1,
+        TYPE_CHAR       = 2,
+        TYPE_UCHAR      = 3,
+        TYPE_SHORT      = 4,
+        TYPE_USHORT     = 5,
+        TYPE_COLOR      = 6,
+        TYPE_INT        = 7,
+        TYPE_UINT       = 8,
+        TYPE_DATETIME   = 9,
+        TYPE_LONG       = 10,
+        TYPE_ULONG      = 11,
+        TYPE_FLOAT      = 12,
+        TYPE_DOUBLE     = 13,
+        TYPE_STRING     = 14
+    }
+    #endregion
+}

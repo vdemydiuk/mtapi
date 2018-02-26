@@ -10,6 +10,7 @@ namespace MtApi5.Requests
         OrderSend       = 3,
         PositionOpen    = 4,
         OrderCheck      = 5,
-        MarketBookGet   = 6
+        MarketBookGet   = 6,
+        IndicatorCreate = 7
     }
 }

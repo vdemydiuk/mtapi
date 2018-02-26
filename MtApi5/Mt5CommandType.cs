@@ -177,6 +177,8 @@ namespace MtApi5
         TimeCurrent                         = 127,
         TimeTradeServer                     = 128,
         TimeLocal                           = 129,
-        TimeGMT                             = 130
+        TimeGMT                             = 130,
+
+        IndicatorRelease                    = 131
     }
 }

@@ -7,6 +7,7 @@ using MtApi5;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 
 namespace MtApi5TestClient
 {
@@ -35,6 +36,8 @@ namespace MtApi5TestClient
         public DelegateCommand CopyHighCommand { get; private set; }
         public DelegateCommand CopyLowCommand { get; private set; }
         public DelegateCommand CopyCloseCommand { get; private set; }
+        public DelegateCommand IndicatorCreateCommand { get; private set; }
+        public DelegateCommand IndicatorReleaseCommand { get; private set; }
 
         public DelegateCommand CopyTickVolumeCommand { get; private set; }
         public DelegateCommand CopyRealVolumeCommand { get; private set; }
@@ -226,6 +229,8 @@ namespace MtApi5TestClient
             CopyHighCommand = new DelegateCommand(ExecuteCopyHigh);
             CopyLowCommand = new DelegateCommand(ExecuteCopyLow);
             CopyCloseCommand = new DelegateCommand(ExecuteCopyClose);
+            IndicatorCreateCommand = new DelegateCommand(ExecuteIndicatorCreate);
+            IndicatorReleaseCommand = new DelegateCommand(ExecuteIndicatorRelease);
 
             CopyTickVolumeCommand = new DelegateCommand(ExecuteCopyTickVolume);
             CopyRealVolumeCommand = new DelegateCommand(ExecuteCopyRealVolume);
@@ -546,6 +551,50 @@ namespace MtApi5TestClient
             });
 
             AddLog("CopyClose: success");
+        }
+
+        private async void ExecuteIndicatorCreate(object o)
+        {
+            //const string symbol = "EURUSD";
+            //const ENUM_TIMEFRAMES timeframe = ENUM_TIMEFRAMES.PERIOD_H1;
+            //const string name = @"Examples\c";
+            //int[] parameters = { 0, 21, (int)ENUM_APPLIED_PRICE.PRICE_CLOSE };
+
+            //var retVal = await Execute(() => _mtApiClient.iCustom(symbol, timeframe, name, parameters));
+            //AddLog($"Custom Moving Average: result - {retVal}");
+
+            var parameters = new List<MqlParam>
+            {
+                new MqlParam
+                {
+                    DataType = ENUM_DATATYPE.TYPE_INT,
+                    IntegerValue = 0
+                },
+                new MqlParam
+                {
+                    DataType = ENUM_DATATYPE.TYPE_INT,
+                    IntegerValue = 21
+                },
+                new MqlParam
+                {
+                    DataType = ENUM_DATATYPE.TYPE_INT,
+                    IntegerValue = (int)ENUM_APPLIED_PRICE.PRICE_CLOSE
+                }
+            };
+
+            const string symbol = "EURUSD";
+            const ENUM_TIMEFRAMES timeframe = ENUM_TIMEFRAMES.PERIOD_H1;
+            const ENUM_INDICATOR indicatorType = ENUM_INDICATOR.IND_MA;
+            var retVal = await Execute(() => _mtApiClient.IndicatorCreate(symbol, timeframe, indicatorType, parameters));
+            AddLog($"IndicatorCreate [IND_MA]: result - {retVal}");
+        }
+
+        private async void ExecuteIndicatorRelease(object o)
+        {
+            const int indicatorHandle = 111;
+   
+            var retVal = await Execute(() => _mtApiClient.IndicatorRelease(indicatorHandle));
+            AddLog($"IndicatorRelease: result - {retVal}");
         }
 
         private async void ExecuteCopyRates(object o)

@@ -352,6 +352,10 @@
                             <Button Command="{Binding CopyTicksCommand}" Margin="1"
                                 Content="CopyTicks" HorizontalAlignment="Left" />
 
+                            <Button Command="{Binding IndicatorCreateCommand}" Margin="1"
+                                    Content="IndicatorCreate" HorizontalAlignment="Left" />
+                            <Button Command="{Binding IndicatorReleaseCommand}" Margin="1"
+                                    Content="IndicatorRelease" HorizontalAlignment="Left" />
                         </WrapPanel>
                     </Grid>
 

@@ -1262,6 +1262,32 @@ namespace MtApi5
             });
             return response;
         }
+
+        ///<summary>
+        ///The function returns the handle of a specified technical indicator created based on the array of parameters of MqlParam type.
+        ///</summary>
+        ///<param name="symbol">Name of a symbol, on data of which the indicator is calculated. NULL means the current symbol.</param>
+        ///<param name="period">The value of the timeframe can be one of values of the ENUM_TIMEFRAMES enumeration, 0 means the current timeframe.</param>
+        ///<param name="indicatorType">Indicator type, can be one of values of the ENUM_INDICATOR enumeration.</param>
+        ///<param name="parameters">An array of MqlParam type, whose elements contain the type and value of each input parameter of a technical indicator.</param>
+        public int IndicatorCreate(string symbol, ENUM_TIMEFRAMES period, ENUM_INDICATOR indicatorType, List<MqlParam> parameters = null)
+        {
+            var response = SendRequest<int>(new IndicatorCreateRequest
+            {
+                Symbol = symbol,
+                Period = period,
+                IndicatorType = indicatorType,
+                Parameters = parameters
+            });
+            return response;
+        }
+
+        public bool IndicatorRelease(int indicatorHandle)
+        {
+            var commandParameters = new ArrayList { indicatorHandle };
+
+            return SendCommand<bool>(Mt5CommandType.IndicatorRelease, commandParameters);
+        }
         #endregion
 
         #region Market Info

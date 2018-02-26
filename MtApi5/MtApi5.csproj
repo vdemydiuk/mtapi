@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="CopyTicksFlag.cs" />
     <Compile Include="MqlBookInfo.cs" />
+    <Compile Include="MqlParam.cs" />
     <Compile Include="MqlRates.cs" />
     <Compile Include="MqlTick.cs" />
     <Compile Include="MqlTradeCheckResult.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="Mt5Quote.cs" />
     <Compile Include="Requests\CopyTicksRequest.cs" />
     <Compile Include="Requests\ICustomRequest.cs" />
+    <Compile Include="Requests\IndicatorCreateRequest.cs" />
     <Compile Include="Requests\MarketBookGetRequest.cs" />
     <Compile Include="Requests\OrderCheckRequest.cs" />
     <Compile Include="Requests\OrderCheckResult.cs" />

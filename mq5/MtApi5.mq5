@@ -39,7 +39,7 @@
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
-//#define __DEBUG_LOG__
+#define __DEBUG_LOG__
 
 input int Port = 8228;
 
@@ -673,7 +673,10 @@ int executeCommand()
    break;
    case 130: //TimeGMT
       Execute_TimeGMT();
-   break;   
+   break;
+   case 131: //IndicatorRelease
+      Execute_IndicatorRelease();
+   break;
    default:
       Print("Unknown command type = ", commandType);
       sendVoidResponse(ExpertHandle, _response_error);
@@ -5436,6 +5439,30 @@ void Execute_TimeGMT()
       PrintResponseError("TimeGMT", _response_error);
    }
 }
+
+#define GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(get_func, argument_id, argument, cmd_name, param_name) if (!get_func(ExpertHandle, argument_id, argument, _error)) \
+   {                                                                                                                                                              \
+      PrintParamError(cmd_name, param_name, _error);                                                                                                              \
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);                                                                                               \
+      return;                                                                                                                                                     \
+   }                                                                                                                                                              \
+
+#define GET_INTEGER_VALUE(argument_id, argument, cmd_name, param_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getIntValue, argument_id, argument, cmd_name, param_name)
+
+void Execute_IndicatorRelease()
+{
+   int indicator_handle;
+   GET_INTEGER_VALUE(0, indicator_handle, "IndicatorRelease", "indicator_handle");
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: indicator_handle = %d", __FUNCTION__, indicator_handle);
+#endif 
+   
+   if (!sendBooleanResponse(ExpertHandle, IndicatorRelease(indicator_handle), _error))
+   {
+      PrintResponseError("IndicatorRelease", _response_error);
+   }
+}
    
 void PrintParamError(string paramName)
 {
@@ -5602,6 +5629,9 @@ string OnRequest(string json)
                break;
             case 6: //MarketBookGet
                response = ExecuteRequest_MarketBookGet(jo);
+               break;
+            case 7: //IndicatorCreate
+               response = ExecuteRequest_IndicatorCreate(jo);
                break;
             default:
                PrintFormat("%s [WARNING]: Unknown request type %d", __FUNCTION__, requestType);
@@ -6040,4 +6070,71 @@ string ExecuteRequest_MarketBookGet(JSONObject *jo)
 #endif   
         
    return CreateSuccessResponse("Value", book_ja);
+}
+
+string ExecuteRequest_IndicatorCreate(JSONObject *jo)
+{
+   //Symbol
+   string symbol;
+   if (jo.getValue("Symbol") != NULL)
+   {
+      symbol = jo.getString("Symbol");
+   }
+   
+   CHECK_JSON_VALUE(jo, "Period", CreateErrorResponse(-1, "Undefinded mandatory parameter Period"));
+   ENUM_TIMEFRAMES period = (ENUM_TIMEFRAMES) jo.getInt("Period");
+   
+   CHECK_JSON_VALUE(jo, "IndicatorType", CreateErrorResponse(-1, "Undefinded mandatory parameter IndicatorType"));
+   ENUM_INDICATOR indicator_type = (ENUM_INDICATOR) jo.getInt("IndicatorType");
+   
+   int indicator_handle = -1;
+   if (jo.getValue("Parameters") != NULL)
+   {
+      JSONArray parameters_ja = jo.getArray("Parameters");
+      int size = parameters_ja.size();
+      if (size > 0)
+      {
+         MqlParam parameters[];
+         ArrayResize(parameters, size);
+         
+         for (int i = 0; i < size; i++)
+         {
+            JSONObject param_jo = parameters_ja.getObject(i);
+            
+            parameters[i].type = (ENUM_DATATYPE)param_jo.getInt("DataType");
+            if (param_jo.getValue("IntegerValue") != NULL)
+            {
+               parameters[i].integer_value = param_jo.getLong("IntegerValue");
+            }
+            if (param_jo.getValue("DoubleValue") != NULL)
+            {
+               parameters[i].double_value = param_jo.getDouble("DoubleValue");
+            }
+            if (param_jo.getValue("StringValue") != NULL)
+            {
+               parameters[i].string_value = param_jo.getString("StringValue");
+            }
+         }
+         
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: symbol = %s, period = %d, indicator_type = %d, size = %d.", __FUNCTION__, symbol, period, indicator_type, size);
+#endif   
+         
+         indicator_handle = IndicatorCreate(symbol, period, indicator_type, size, parameters);
+      }
+   }
+   else
+   {
+#ifdef __DEBUG_LOG__   
+      PrintFormat("%s: symbol = %s, period = %d, indicator_type = %d.", __FUNCTION__, symbol, period, indicator_type);
+#endif
+   
+      indicator_handle = IndicatorCreate(symbol, period, indicator_type);
+   }
+   
+#ifdef __DEBUG_LOG__   
+      PrintFormat("%s: result indicator handle = %d", __FUNCTION__, indicator_handle);
+#endif
+   
+   return CreateSuccessResponse("Value", new JSONNumber(indicator_handle));
 }
