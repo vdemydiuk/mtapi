@@ -7,7 +7,6 @@ using MtApi5;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 
 namespace MtApi5TestClient
 {
@@ -568,12 +567,17 @@ namespace MtApi5TestClient
                 new MqlParam
                 {
                     DataType = ENUM_DATATYPE.TYPE_INT,
-                    IntegerValue = 0
+                    IntegerValue = 12
                 },
                 new MqlParam
                 {
                     DataType = ENUM_DATATYPE.TYPE_INT,
-                    IntegerValue = 21
+                    IntegerValue = 26
+                },
+                new MqlParam
+                {
+                    DataType = ENUM_DATATYPE.TYPE_INT,
+                    IntegerValue = 9
                 },
                 new MqlParam
                 {
@@ -584,17 +588,18 @@ namespace MtApi5TestClient
 
             const string symbol = "EURUSD";
             const ENUM_TIMEFRAMES timeframe = ENUM_TIMEFRAMES.PERIOD_H1;
-            const ENUM_INDICATOR indicatorType = ENUM_INDICATOR.IND_MA;
+            const ENUM_INDICATOR indicatorType = ENUM_INDICATOR.IND_MACD;
             var retVal = await Execute(() => _mtApiClient.IndicatorCreate(symbol, timeframe, indicatorType, parameters));
+            TimeSeriesValues.IndicatorHandle = retVal;
             AddLog($"IndicatorCreate [IND_MA]: result - {retVal}");
         }
 
         private async void ExecuteIndicatorRelease(object o)
         {
-            const int indicatorHandle = 111;
+            var indicatorHandle = TimeSeriesValues.IndicatorHandle;
    
             var retVal = await Execute(() => _mtApiClient.IndicatorRelease(indicatorHandle));
-            AddLog($"IndicatorRelease: result - {retVal}");
+            AddLog($"IndicatorRelease [{indicatorHandle}]: result - {retVal}");
         }
 
         private async void ExecuteCopyRates(object o)

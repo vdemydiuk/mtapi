@@ -84,6 +84,13 @@
                 <x:Type TypeName="mtapi5:ENUM_TIMEFRAMES"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="ENUM_INDICATOR_Key" MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="mtapi5:ENUM_INDICATOR"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
     </Window.Resources>
     
     <Grid x:Name="_MainLayout">
@@ -305,32 +312,37 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     
-                    <Grid Grid.Column="1">
+                    <Grid Grid.Column="1" Margin="2">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Row="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Row="0" Text="Symbol Name" Margin="1"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="TimeFrame" Margin="1" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="StartPos" Margin="1" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Count" Margin="1" HorizontalAlignment="Right"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding TimeSeriesValues.SymbolValue}" Margin="1"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1" Margin="1"
+                                      ItemsSource="{Binding Source={StaticResource ENUM_TIMEFRAMES_Key}}"
+                                      SelectedItem="{Binding TimeSeriesValues.TimeFrame}"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding TimeSeriesValues.StartPos}" Margin="1"/>
+                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding TimeSeriesValues.Count}" Margin="1"/>
+                        </Grid>
 
-                        <TextBox Grid.Row="0" Text="symbolName"/>
-                        <TextBox Grid.Row="1" Grid.Column="0" Text="timeframe"/>
-                        <TextBox Grid.Row="2" Grid.Column="0" Text="startPos"/>
-                        <TextBox Grid.Row="3" Grid.Column="0" Text="count"/>
-                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding TimeSeriesValues.SymbolValue}"/>
-                        <ComboBox Grid.Row="1" Grid.Column="1" 
-                                  ItemsSource="{Binding Source={StaticResource ENUM_TIMEFRAMES_Key}}"
-                                  SelectedItem="{Binding TimeSeriesValues.TimeFrame}"/>
-                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding TimeSeriesValues.StartPos}"/>
-                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding TimeSeriesValues.Count}"/>
-
-                        <WrapPanel Grid.Row="4" Grid.ColumnSpan="2" Grid.Column="0" Margin="10">
+                        <WrapPanel Grid.Row="1" Grid.Column="0" Margin="5">
                             <Button Command="{Binding CopyRatesCommand}" Margin="1"
                                 Content="CopyRates" HorizontalAlignment="Left" />
                             <Button Command="{Binding CopyTimesCommand}" Margin="1"
@@ -351,15 +363,33 @@
                                 Content="CopySpread" HorizontalAlignment="Left" />
                             <Button Command="{Binding CopyTicksCommand}" Margin="1"
                                 Content="CopyTicks" HorizontalAlignment="Left" />
-
-                            <Button Command="{Binding IndicatorCreateCommand}" Margin="1"
-                                    Content="IndicatorCreate" HorizontalAlignment="Left" />
-                            <Button Command="{Binding IndicatorReleaseCommand}" Margin="1"
-                                    Content="IndicatorRelease" HorizontalAlignment="Left" />
                         </WrapPanel>
+ 
+                        <Grid Grid.Row="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <ComboBox Grid.Row="0" Grid.Column="0" 
+                                      ItemsSource="{Binding Source={StaticResource ENUM_INDICATOR_Key}}"
+                                      SelectedItem="{Binding TimeSeriesValues.IndicatorType}"/>
+                            <Button Grid.Row="0" Grid.Column="1" Command="{Binding IndicatorCreateCommand}" Margin="2"
+                                    Content="IndicatorCreate" HorizontalAlignment="Left" />
+                            <Label Grid.Row="1" Grid.Column="0" Content="Indicator handle:" Margin="2"/>
+                            <TextBox Grid.Row="1" Grid.Column="0" Margin="2" Width="30" PreviewTextInput="NumberValidationTextBox" Text="{Binding TimeSeriesValues.IndicatorHandle}"></TextBox>
+                            <Button Grid.Row="1" Grid.Column="1" Command="{Binding IndicatorReleaseCommand}" Margin="2"
+                                        Content="IndicatorRelease" HorizontalAlignment="Left" />
+                        </Grid>
                     </Grid>
 
-                    <ListBox ItemsSource="{Binding TimeSeriesResults}" />
+                    <ListBox Grid.Column="0" ItemsSource="{Binding TimeSeriesResults}" />
 
                 </Grid>
             </TabItem>
