@@ -1,5 +1,6 @@
 ﻿// ReSharper disable InconsistentNaming
 using System;
+using Newtonsoft.Json;
 
 namespace MtApi5
 {
@@ -18,16 +19,23 @@ namespace MtApi5
         public ENUM_ORDER_TYPE Type { get; set; }                        // Order type
         public ENUM_ORDER_TYPE_FILLING Type_filling { get; set; }        // Order execution type
         public ENUM_ORDER_TYPE_TIME Type_time { get; set; }              // Order expiration type
-        public DateTime Expiration { get; set; }                         // Order expiration time (for the orders of ORDER_TIME_SPECIFIED type)
+
+        [JsonIgnore]
+        public DateTime Expiration                                       // Order expiration time (for the orders of ORDER_TIME_SPECIFIED type)
+        {
+            get { return Mt5TimeConverter.ConvertFromMtTime(MtExpiration); }
+            set { MtExpiration =  Mt5TimeConverter.ConvertToMtTime(value); } 
+        }
+
         public string Comment { get; set; }                              // Order comment
         public ulong Position { get; set; }                              // Position ticket
         public ulong PositionBy { get; set; }                            // The ticket of an opposite position
 
-        public int MtExpiration => Mt5TimeConverter.ConvertToMtTime(Expiration);
+        public int MtExpiration { get; private set; }
 
         public override string ToString()
         {
-            return $"{Symbol}|{Volume}|{Price}|{Volume}|{Action}";
+            return $"Action={Action}; Magic={Magic}; Order={Order}; Symbol={Symbol}; Volume={Volume}; Price={Price}; Stoplimit={Stoplimit}; Sl={Sl}; Tp={Tp}; Deviation={Deviation}; Type={Type}; Type_filling={Type_filling}; Type_time={Type_time}; Expiration={Expiration}; Comment={Comment}; Position={Position}; PositionBy={PositionBy}";
         }
     }
 }

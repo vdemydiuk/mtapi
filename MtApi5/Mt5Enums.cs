@@ -582,16 +582,16 @@ namespace MtApi5
     public enum ENUM_TRADE_TRANSACTION_TYPE
     {
         TRADE_TRANSACTION_ORDER_ADD = 0,            //Adding a new open order
-        TRADE_TRANSACTION_ORDER_UPDATE = 1,         //Updating an open order
-        TRADE_TRANSACTION_ORDER_DELETE = 2,         //Removing an order from the list of the open ones
-        TRADE_TRANSACTION_DEAL_ADD = 6,             //Adding a deal to the history
-        TRADE_TRANSACTION_DEAL_UPDATE = 7,          //Updating a deal in the history
-        TRADE_TRANSACTION_DEAL_DELETE = 8,          //Deleting a deal from the history
-        TRADE_TRANSACTION_HISTORY_ADD = 3,          //Adding an order to the history as a result of execution or cancellation
-        TRADE_TRANSACTION_HISTORY_UPDATE = 4,       //Changing an order located in the orders history
-        TRADE_TRANSACTION_HISTORY_DELETE = 5,       //Deleting an order from the orders history
-        TRADE_TRANSACTION_POSITION = 9,             //Changing a position not related to a deal execution
-        TRADE_TRANSACTION_REQUEST = 10              //Notification of the fact that a trade request has been processed by a server and processing result has been received
+        TRADE_TRANSACTION_ORDER_UPDATE = 1,         //Updating an open order. The updates include not only evident changes from the client terminal or a trade server sides but also changes of an order state when setting it (for example, transition from ORDER_STATE_STARTED to ORDER_STATE_PLACED or from ORDER_STATE_PLACED to ORDER_STATE_PARTIAL, etc.).
+        TRADE_TRANSACTION_ORDER_DELETE = 2,         //Removing an order from the list of the open ones. An order can be deleted from the open ones as a result of setting an appropriate request or execution (filling) and moving to the history.
+        TRADE_TRANSACTION_DEAL_ADD = 6,             //Adding a deal to the history. The action is performed as a result of an order execution or performing operations with an account balance.
+        TRADE_TRANSACTION_DEAL_UPDATE = 7,          //Updating a deal in the history. There may be cases when a previously executed deal is changed on a server. For example, a deal has been changed in an external trading system (exchange) where it was previously transferred by a broker.
+        TRADE_TRANSACTION_DEAL_DELETE = 8,          //Deleting a deal from the history. There may be cases when a previously executed deal is deleted from a server. For example, a deal has been deleted in an external trading system (exchange) where it was previously transferred by a broker.
+        TRADE_TRANSACTION_HISTORY_ADD = 3,          //Adding an order to the history as a result of execution or cancellation.
+        TRADE_TRANSACTION_HISTORY_UPDATE = 4,       //Changing an order located in the orders history. This type is provided for enhancing functionality on a trade server side.
+        TRADE_TRANSACTION_HISTORY_DELETE = 5,       //Deleting an order from the orders history. This type is provided for enhancing functionality on a trade server side.
+        TRADE_TRANSACTION_POSITION = 9,             //Changing a position not related to a deal execution. This type of transaction shows that a position has been changed on a trade server side. Position volume, open price, Stop Loss and Take Profit levels can be changed. Data on changes are submitted in MqlTradeTransaction structure via OnTradeTransaction handler. Position change (adding, changing or closing), as a result of a deal execution, does not lead to the occurrence of TRADE_TRANSACTION_POSITION transaction.
+        TRADE_TRANSACTION_REQUEST = 10              //Notification of the fact that a trade request has been processed by a server and processing result has been received. Only type field (trade transaction type) must be analyzed for such transactions in MqlTradeTransaction structure. The second and third parameters of OnTradeTransaction (request and result) must be analyzed for additional data.
     }
 
     #endregion //Trade Transaction Types

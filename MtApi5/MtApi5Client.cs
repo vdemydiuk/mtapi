@@ -8,6 +8,7 @@ using System.ServiceModel;
 using MtApi5.Requests;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using MtApi5.Events;
 
 namespace MtApi5
 {
@@ -2385,6 +2386,7 @@ namespace MtApi5
         public event EventHandler<Mt5QuoteEventArgs> QuoteAdded;
         public event EventHandler<Mt5QuoteEventArgs> QuoteRemoved;
         public event EventHandler<Mt5ConnectionEventArgs> ConnectionStateChanged;
+        public event EventHandler<Mt5TradeTransactionEventArgs> OnTradeTransaction;
         #endregion
 
         #region Private Methods
@@ -2438,6 +2440,7 @@ namespace MtApi5
                     _client.QuoteUpdated += _client_QuoteUpdated;
                     _client.ServerDisconnected += _client_ServerDisconnected;
                     _client.ServerFailed += _client_ServerFailed;
+                    _client.MtEventReceived += _client_MtEventReceived;
                     message = string.IsNullOrEmpty(client.Host) ? $"Connected to localhost:{client.Port}" : $"Connected to  { client.Host}:{client.Port}";
                 }
 
@@ -2450,6 +2453,32 @@ namespace MtApi5
             {
                 OnConnected();
             }
+        }
+
+        private void _client_MtEventReceived(MtEvent e)
+        {
+            var eventType = (Mt5EventTypes)e.EventType;
+
+            switch (eventType)
+            {
+                case Mt5EventTypes.OnTradeTransaction:
+                    ReceivedOnTradeTransaction(e.ExpertHandle, e.Payload);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private void ReceivedOnTradeTransaction(int expertHandler, string payload)
+        {
+            var e = JsonConvert.DeserializeObject<OnTradeTransactionEvent>(payload);
+            OnTradeTransaction?.Invoke(this, new Mt5TradeTransactionEventArgs
+            {
+                ExpertHandle = expertHandler,
+                Trans = e.Trans,
+                Request = e.Request,
+                Result = e.Result
+            });
         }
 
         private void Connect(string host, int port)
@@ -2482,6 +2511,7 @@ namespace MtApi5
                     _client.QuoteUpdated -= _client_QuoteUpdated;
                     _client.ServerDisconnected -= _client_ServerDisconnected;
                     _client.ServerFailed -= _client_ServerFailed;
+                    _client.MtEventReceived -= _client_MtEventReceived;
 
                     if (!failed)
                     {

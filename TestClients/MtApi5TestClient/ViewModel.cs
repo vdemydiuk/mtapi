@@ -174,6 +174,7 @@ namespace MtApi5TestClient
             _mtApiClient.QuoteAdded += mMtApiClient_QuoteAdded;
             _mtApiClient.QuoteRemoved += mMtApiClient_QuoteRemoved;
             _mtApiClient.QuoteUpdated += mMtApiClient_QuoteUpdated;
+            _mtApiClient.OnTradeTransaction += mMtApiClient_OnTradeTransaction;
 
             _quotesMap = new Dictionary<string, QuoteViewModel>();
 
@@ -554,14 +555,6 @@ namespace MtApi5TestClient
 
         private async void ExecuteIndicatorCreate(object o)
         {
-            //const string symbol = "EURUSD";
-            //const ENUM_TIMEFRAMES timeframe = ENUM_TIMEFRAMES.PERIOD_H1;
-            //const string name = @"Examples\c";
-            //int[] parameters = { 0, 21, (int)ENUM_APPLIED_PRICE.PRICE_CLOSE };
-
-            //var retVal = await Execute(() => _mtApiClient.iCustom(symbol, timeframe, name, parameters));
-            //AddLog($"Custom Moving Average: result - {retVal}");
-
             var parameters = new List<MqlParam>
             {
                 new MqlParam
@@ -586,10 +579,10 @@ namespace MtApi5TestClient
                 }
             };
 
-            const string symbol = "EURUSD";
-            const ENUM_TIMEFRAMES timeframe = ENUM_TIMEFRAMES.PERIOD_H1;
-            const ENUM_INDICATOR indicatorType = ENUM_INDICATOR.IND_MACD;
-            var retVal = await Execute(() => _mtApiClient.IndicatorCreate(symbol, timeframe, indicatorType, parameters));
+            var retVal = await Execute(() => 
+                _mtApiClient.IndicatorCreate(TimeSeriesValues.SymbolValue, 
+                TimeSeriesValues.TimeFrame, TimeSeriesValues.IndicatorType, parameters));
+
             TimeSeriesValues.IndicatorHandle = retVal;
             AddLog($"IndicatorCreate [IND_MA]: result - {retVal}");
         }
@@ -1014,6 +1007,11 @@ namespace MtApi5TestClient
                     RunOnUiThread(OnDisconnected);
                     break;
             }
+        }
+
+        private void mMtApiClient_OnTradeTransaction(object sender, Mt5TradeTransactionEventArgs e)
+        {
+            AddLog($"OnTradeTransaction: ExpertHandle = {e.ExpertHandle}.{Environment.NewLine}Transaction = {e.Trans}.{Environment.NewLine}Request = {e.Request}.{Environment.NewLine}Result = {e.Result}.");
         }
 
         private void AddQuote(Mt5Quote quote)

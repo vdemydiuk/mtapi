@@ -257,7 +257,7 @@ public:
         {
          return (string)_long;
            } else {
-         return (string)_dbl;
+         return (_dbl!=0) ? (string)_dbl : "0";
         }
      }
   };

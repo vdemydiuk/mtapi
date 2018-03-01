@@ -29,6 +29,8 @@
    bool sendMqlBookInfoArrayResponse(int expertHandle, MqlBookInfo& values[], int size, string& err);   
    bool sendErrorResponse(int expertHandle, int code, string message, string& err);
    
+   bool sendEvent(int expertHandle, int eventType, string payload, string& err);  
+   
    bool getCommandType(int expertHandle, int& res, string& err);
    bool getIntValue(int expertHandle, int paramIndex, int& res, string& err);
    bool getUIntValue(int expertHandle, int paramIndex, uint& res, string& err);   
@@ -39,7 +41,7 @@
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
-//#define __DEBUG_LOG__
+#define __DEBUG_LOG__
 
 input int Port = 8228;
 
@@ -74,6 +76,21 @@ void OnTick()
 {
    start();
    if (IsTesting()) OnTimer();
+}
+
+void  OnTradeTransaction( 
+   const MqlTradeTransaction&    trans,        // trade transaction structure 
+   const MqlTradeRequest&        request,      // request structure 
+   const MqlTradeResult&         result        // result structure 
+   )
+{
+#ifdef __DEBUG_LOG__
+   Print("%s:", __FUNCTION__);
+#endif 
+   
+   OnTradeTransactionEvent* transEvent = new OnTradeTransactionEvent(trans, request, result);
+   SendMtEvent(ON_TRADE_TRANSACTION_EVENT, transEvent);
+   delete transEvent;
 }
 
 int preinit()
@@ -5592,6 +5609,8 @@ bool OrderCloseAll()
    return true;
 }
 
+//------------ Requests -------------------------------------------------------
+
 string OnRequest(string json)
 {
    string response = "";
@@ -5680,17 +5699,6 @@ string CreateSuccessResponse(string responseName, JSONValue* responseBody)
    return result;
 }
 
-JSONObject* Serialize(MqlTick& tick)
-{
-    JSONObject *jo = new JSONObject();
-    jo.put("MtTime", new JSONNumber(tick.time));
-    jo.put("bid", new JSONNumber(tick.bid));
-    jo.put("ask", new JSONNumber(tick.ask));
-    jo.put("last", new JSONNumber(tick.last));
-    jo.put("volume", new JSONNumber(tick.volume));
-    return jo;
-}
-
 string ExecuteRequest_CopyTicks(JSONObject *jo)
 {
    if (jo.getValue("SymbolName") == NULL)
@@ -5715,7 +5723,7 @@ string ExecuteRequest_CopyTicks(JSONObject *jo)
    JSONArray* jaTicks = new JSONArray();
    for(int i = 0; i < received; i++)
    {
-      jaTicks.put(i, Serialize(ticks[i]));
+      jaTicks.put(i, MqlTickToJson(ticks[i]));
    }
         
    return CreateSuccessResponse("Value", jaTicks);
@@ -5829,107 +5837,15 @@ int iCustomT(string symbol, ENUM_TIMEFRAMES timeframe, string name, T &p[], int 
 #define PRINT_MSG_AND_RETURN_VALUE(msg,value) PrintFormat("%s: %s",__FUNCTION__,msg);return value
 #define CHECK_JSON_VALUE(jo, name_value, return_fail_result) if (jo.getValue(name_value) == NULL) { PRINT_MSG_AND_RETURN_VALUE(StringFormat("failed to get %s from JSON!", name_value), return_fail_result); }
 
-bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
-{
-   //Action
-   CHECK_JSON_VALUE(jo, "Action", false);
-   request.action = (ENUM_TRADE_REQUEST_ACTIONS) jo.getInt("Action");
-   
-   //Magic
-   CHECK_JSON_VALUE(jo, "Magic", false);
-   request.magic = jo.getLong("Magic");
-   
-   //Order
-   CHECK_JSON_VALUE(jo, "Order", false);
-   request.order = jo.getLong("Magic");
-   
-   //Symbol
-   CHECK_JSON_VALUE(jo, "Symbol", false);
-   StringInit(request.symbol, 100, 0);
-   request.symbol = jo.getString("Symbol");
-   
-   //Volume
-   CHECK_JSON_VALUE(jo, "Volume", false);
-   request.volume = jo.getDouble("Volume");
-
-   //Price
-   CHECK_JSON_VALUE(jo, "Price", false);
-   request.price = jo.getDouble("Price");
-   
-   //Stoplimit
-   CHECK_JSON_VALUE(jo, "Stoplimit", false);
-   request.stoplimit = jo.getDouble("Stoplimit");
-   
-   //Sl
-   CHECK_JSON_VALUE(jo, "Sl", false);
-   request.sl = jo.getDouble("Sl");
-   
-   //Tp
-   CHECK_JSON_VALUE(jo, "Tp", false);
-   request.tp = jo.getDouble("Tp");
-
-   //Deviation
-   CHECK_JSON_VALUE(jo, "Deviation", false);
-   request.deviation = jo.getLong("Deviation");
-
-   //Type
-   CHECK_JSON_VALUE(jo, "Type", false);
-   request.type = (ENUM_ORDER_TYPE)jo.getInt("Type");
-   
-   //Type_filling
-   CHECK_JSON_VALUE(jo, "Type_filling", false);
-   request.type_filling = (ENUM_ORDER_TYPE_FILLING)jo.getInt("Type_filling");
-
-   //Type_time
-   CHECK_JSON_VALUE(jo, "Type_time", false);
-   request.type_time = (ENUM_ORDER_TYPE_TIME)jo.getInt("Type_time");
-   
-   //MtExpiration
-   CHECK_JSON_VALUE(jo, "MtExpiration", false);
-   request.expiration = (datetime)jo.getInt("MtExpiration");
-
-   //Comment
-   if (jo.getValue("Comment") != NULL)
-   {
-      StringInit(request.comment, 1000, 0);
-      request.comment = jo.getString("Comment");
-   }
-   
-   //Position
-   CHECK_JSON_VALUE(jo, "Position", false);
-   request.position = jo.getLong("Position");
-
-   //PositionBy
-   CHECK_JSON_VALUE(jo, "PositionBy", false);
-   request.position_by = jo.getLong("PositionBy");
-   
-   return true;
-}
-
-JSONObject* MqlTradeResultToJson(MqlTradeResult& result)
-{
-   JSONObject* jo = new JSONObject();
-   
-   jo.put("Retcode", new JSONNumber(result.retcode));
-   jo.put("Deal", new JSONNumber(result.deal));
-   jo.put("Order", new JSONNumber(result.order));
-   jo.put("Volume", new JSONNumber(result.volume));
-   jo.put("Price", new JSONNumber(result.price));
-   jo.put("Bid", new JSONNumber(result.bid));
-   jo.put("Ask", new JSONNumber(result.ask));
-   jo.put("Comment", new JSONString(result.comment));
-   jo.put("Request_id", new JSONNumber(result.request_id));
-   
-   return jo;
-}
-
 string ExecuteRequest_OrderSend(JSONObject *jo)
 {
    CHECK_JSON_VALUE(jo, "TradeRequest", CreateErrorResponse(-1, "Undefinded mandatory parameter TradeRequest"));
    JSONObject* trade_request_jo = jo.getObject("TradeRequest");
       
    MqlTradeRequest trade_request = {0};
-   JsonToMqlTradeRequest(trade_request_jo, trade_request);
+   bool converted = JsonToMqlTradeRequest(trade_request_jo, trade_request);
+   if (converted == false)
+      return CreateErrorResponse(-1, "Failed to parse parameter TradeRequest");
    
    MqlTradeResult trade_result = {0};   
    bool ok = OrderSend(trade_request, trade_result);
@@ -5994,22 +5910,6 @@ string ExecuteRequest_PositionOpen(JSONObject *jo)
    result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
 
    return CreateSuccessResponse("Value", result_value_jo);   
-}
-
-JSONObject* MqlTradeCheckResultToJson(MqlTradeCheckResult& result)
-{
-   JSONObject* jo = new JSONObject();
-   
-   jo.put("Retcode", new JSONNumber(result.retcode));
-   jo.put("Balance", new JSONNumber(result.balance));
-   jo.put("Equity", new JSONNumber(result.equity));
-   jo.put("Profit", new JSONNumber(result.profit));
-   jo.put("Margin", new JSONNumber(result.margin));
-   jo.put("Margin_free", new JSONNumber(result.margin_free));
-   jo.put("Margin_level", new JSONNumber(result.margin_level));
-   jo.put("Comment", new JSONString(result.comment));
-   
-   return jo;
 }
 
 string ExecuteRequest_OrderCheck(JSONObject *jo)
@@ -6137,4 +6037,224 @@ string ExecuteRequest_IndicatorCreate(JSONObject *jo)
 #endif
    
    return CreateSuccessResponse("Value", new JSONNumber(indicator_handle));
+}
+
+//------------ Events -------------------------------------------------------
+
+enum MtEventTypes
+{
+   ON_TRADE_TRANSACTION_EVENT = 1
+};
+
+class MtEvent
+{
+public:
+   virtual JSONObject* CreateJson() = 0;
+};
+
+class OnTradeTransactionEvent : public MtEvent
+{
+public:
+   OnTradeTransactionEvent(const MqlTradeTransaction& trans, const MqlTradeRequest& request, const MqlTradeResult& result)
+   {
+      _trans = trans;
+      _request = request;
+      _result = result;
+   }
+   
+   virtual JSONObject* CreateJson()
+   {
+      JSONObject *jo = new JSONObject();
+      jo.put("Trans", MqlTradeTransactionToJson(_trans));
+      jo.put("Request", MqlTradeRequestToJson(_request));
+      jo.put("Result", MqlTradeResultToJson(_result));
+      return jo;
+   }
+   
+private:
+   MqlTradeTransaction _trans;
+   MqlTradeRequest _request;
+   MqlTradeResult _result;
+};
+
+void SendMtEvent(MtEventTypes eventType, MtEvent* mtEvent)
+{
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: eventType = %d", __FUNCTION__, eventType);
+#endif 
+
+   JSONObject* json = mtEvent.CreateJson();
+   if (sendEvent(ExpertHandle, (int)eventType, json.toString(), _error))
+   {
+#ifdef __DEBUG_LOG__
+      PrintFormat("%s: payload = %s", __FUNCTION__, json.toString());
+#endif
+   }
+   else
+   {
+      PrintFormat("[ERROR] SendMtEvent: %s", _error);
+   }
+   
+   delete json;
+}
+
+//-------------JSON converters -----------------------------------------
+bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
+{
+   //Action
+   CHECK_JSON_VALUE(jo, "Action", false);
+   request.action = (ENUM_TRADE_REQUEST_ACTIONS) jo.getInt("Action");
+   
+   //Magic
+   CHECK_JSON_VALUE(jo, "Magic", false);
+   request.magic = jo.getLong("Magic");
+   
+   //Order
+   CHECK_JSON_VALUE(jo, "Order", false);
+   request.order = jo.getLong("Magic");
+   
+   //Symbol
+   CHECK_JSON_VALUE(jo, "Symbol", false);
+   StringInit(request.symbol, 100, 0);
+   request.symbol = jo.getString("Symbol");
+   
+   //Volume
+   CHECK_JSON_VALUE(jo, "Volume", false);
+   request.volume = jo.getDouble("Volume");
+
+   //Price
+   CHECK_JSON_VALUE(jo, "Price", false);
+   request.price = jo.getDouble("Price");
+   
+   //Stoplimit
+   CHECK_JSON_VALUE(jo, "Stoplimit", false);
+   request.stoplimit = jo.getDouble("Stoplimit");
+   
+   //Sl
+   CHECK_JSON_VALUE(jo, "Sl", false);
+   request.sl = jo.getDouble("Sl");
+   
+   //Tp
+   CHECK_JSON_VALUE(jo, "Tp", false);
+   request.tp = jo.getDouble("Tp");
+
+   //Deviation
+   CHECK_JSON_VALUE(jo, "Deviation", false);
+   request.deviation = jo.getLong("Deviation");
+
+   //Type
+   CHECK_JSON_VALUE(jo, "Type", false);
+   request.type = (ENUM_ORDER_TYPE)jo.getInt("Type");
+   
+   //Type_filling
+   CHECK_JSON_VALUE(jo, "Type_filling", false);
+   request.type_filling = (ENUM_ORDER_TYPE_FILLING)jo.getInt("Type_filling");
+
+   //Type_time
+   CHECK_JSON_VALUE(jo, "Type_time", false);
+   request.type_time = (ENUM_ORDER_TYPE_TIME)jo.getInt("Type_time");
+   
+   //Expiration
+   CHECK_JSON_VALUE(jo, "MtExpiration", false);
+   request.expiration = (datetime)jo.getInt("MtExpiration");
+
+   //Comment
+   if (jo.getValue("Comment") != NULL)
+   {
+      StringInit(request.comment, 1000, 0);
+      request.comment = jo.getString("Comment");
+   }
+   
+   //Position
+   CHECK_JSON_VALUE(jo, "Position", false);
+   request.position = jo.getLong("Position");
+
+   //PositionBy
+   CHECK_JSON_VALUE(jo, "PositionBy", false);
+   request.position_by = jo.getLong("PositionBy");
+   
+   return true;
+}
+
+JSONObject* MqlTickToJson(MqlTick& tick)
+{
+    JSONObject *jo = new JSONObject();
+    jo.put("MtTime", new JSONNumber(tick.time));
+    jo.put("bid", new JSONNumber(tick.bid));
+    jo.put("ask", new JSONNumber(tick.ask));
+    jo.put("last", new JSONNumber(tick.last));
+    jo.put("volume", new JSONNumber(tick.volume));
+    return jo;
+}
+
+JSONObject* MqlTradeResultToJson(MqlTradeResult& result)
+{
+   JSONObject* jo = new JSONObject();
+   jo.put("Retcode", new JSONNumber(result.retcode));
+   jo.put("Deal", new JSONNumber(result.deal));
+   jo.put("Order", new JSONNumber(result.order));
+   jo.put("Volume", new JSONNumber(result.volume));
+   jo.put("Price", new JSONNumber(result.price));
+   jo.put("Bid", new JSONNumber(result.bid));
+   jo.put("Ask", new JSONNumber(result.ask));
+   jo.put("Comment", new JSONString(result.comment));
+   jo.put("Request_id", new JSONNumber(result.request_id));
+   return jo;
+}
+
+JSONObject* MqlTradeCheckResultToJson(MqlTradeCheckResult& result)
+{
+   JSONObject* jo = new JSONObject();
+   jo.put("Retcode", new JSONNumber(result.retcode));
+   jo.put("Balance", new JSONNumber(result.balance));
+   jo.put("Equity", new JSONNumber(result.equity));
+   jo.put("Profit", new JSONNumber(result.profit));
+   jo.put("Margin", new JSONNumber(result.margin));
+   jo.put("Margin_free", new JSONNumber(result.margin_free));
+   jo.put("Margin_level", new JSONNumber(result.margin_level));
+   jo.put("Comment", new JSONString(result.comment));
+   return jo;
+}
+
+JSONObject* MqlTradeTransactionToJson(MqlTradeTransaction& trans)
+{
+   JSONObject *jo = new JSONObject();
+   jo.put("Deal", new JSONNumber(trans.deal));
+   jo.put("Order", new JSONNumber(trans.order));
+   jo.put("Symbol", new JSONString(trans.symbol));
+   jo.put("Type", new JSONNumber((int)trans.type));
+   jo.put("OrderType", new JSONNumber((int)trans.order_type));
+   jo.put("OrderState", new JSONNumber((int)trans.order_state));
+   jo.put("DealType", new JSONNumber((int)trans.deal_type));
+   jo.put("TimeType", new JSONNumber((int)trans.time_type));
+   jo.put("MtTimeExpiration", new JSONNumber((int)trans.time_expiration));
+   jo.put("Price", new JSONNumber(trans.price));
+   jo.put("PriceTrigger", new JSONNumber(trans.price_trigger));
+   jo.put("PriceSl", new JSONNumber(trans.price_sl));
+   jo.put("PriceTp", new JSONNumber(trans.price_tp));
+   jo.put("Volume", new JSONNumber(trans.volume));
+   jo.put("Position", new JSONNumber(trans.position));
+   jo.put("PositionBy", new JSONNumber(trans.position_by));
+   return jo;
+}
+
+JSONObject* MqlTradeRequestToJson(MqlTradeRequest& request)
+{
+   JSONObject *jo = new JSONObject();
+   jo.put("Cction", new JSONNumber((int)request.action));
+   jo.put("Magic", new JSONNumber(request.magic));
+   jo.put("Order", new JSONNumber(request.order));
+   jo.put("Symbol", new JSONString(request.symbol));
+   jo.put("Volume", new JSONNumber(request.volume));
+   jo.put("Price", new JSONNumber(request.price));
+   jo.put("Stoplimit", new JSONNumber(request.stoplimit));
+   jo.put("Sl", new JSONNumber(request.sl));
+   jo.put("Tp", new JSONNumber(request.tp));
+   jo.put("Deviation", new JSONNumber(request.deviation));
+   jo.put("Type", new JSONNumber((int)request.type));
+   jo.put("Type_filling", new JSONNumber((int)request.type_filling));
+   jo.put("Type_time", new JSONNumber((int)request.type_time));
+   jo.put("MtExpiration", new JSONNumber((int)request.expiration));
+   jo.put("Comment", new JSONString(request.comment));
+   return jo;
 }

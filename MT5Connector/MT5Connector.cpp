@@ -104,6 +104,14 @@ _DLLAPI int _stdcall updateQuote(int expertHandle, wchar_t* symbol, double bid, 
     }, err, 0);
 }
 
+_DLLAPI bool _stdcall sendEvent(int expertHandle, int eventType, wchar_t* payload, wchar_t* err)
+{
+    return Execute<bool>([&expertHandle, &eventType, payload]() {
+        MtAdapter::GetInstance()->SendEvent(expertHandle, eventType, gcnew String(payload));
+        return true;
+    }, err, false);
+}
+
 _DLLAPI int _stdcall sendIntResponse(int expertHandle, int response, wchar_t* err)
 {
     return Execute<int>([&expertHandle, &response]() {

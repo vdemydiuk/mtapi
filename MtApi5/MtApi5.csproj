@@ -48,11 +48,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CopyTicksFlag.cs" />
+    <Compile Include="Events\OnTradeTransactionEvent.cs" />
     <Compile Include="MqlBookInfo.cs" />
     <Compile Include="MqlParam.cs" />
     <Compile Include="MqlRates.cs" />
     <Compile Include="MqlTick.cs" />
     <Compile Include="MqlTradeCheckResult.cs" />
+    <Compile Include="MqlTradeTransaction.cs" />
     <Compile Include="Mt5TimeConverter.cs" />
     <Compile Include="Mt5Enums.cs" />
     <Compile Include="Mt5ConnectionEventArgs.cs" />
@@ -60,11 +62,13 @@
     <Compile Include="MqlTradeRequest.cs" />
     <Compile Include="MqlTradeResult.cs" />
     <Compile Include="Mt5QuoteEventArgs.cs" />
+    <Compile Include="Mt5TradeTransactionEventArgs.cs" />
     <Compile Include="MtApi5Client.cs" />
     <Compile Include="Mt5CommandType.cs" />
     <Compile Include="MtConverters.cs" />
     <Compile Include="ErrorCode.cs" />
     <Compile Include="ExecutionException.cs" />
+    <Compile Include="Events\Mt5EventTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Mt5Quote.cs" />
     <Compile Include="Requests\CopyTicksRequest.cs" />
