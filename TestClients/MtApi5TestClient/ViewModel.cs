@@ -175,6 +175,7 @@ namespace MtApi5TestClient
             _mtApiClient.QuoteRemoved += mMtApiClient_QuoteRemoved;
             _mtApiClient.QuoteUpdated += mMtApiClient_QuoteUpdated;
             _mtApiClient.OnTradeTransaction += mMtApiClient_OnTradeTransaction;
+            _mtApiClient.OnBookEvent += _mtApiClient_OnBookEvent;
 
             _quotesMap = new Dictionary<string, QuoteViewModel>();
 
@@ -1012,6 +1013,11 @@ namespace MtApi5TestClient
         private void mMtApiClient_OnTradeTransaction(object sender, Mt5TradeTransactionEventArgs e)
         {
             AddLog($"OnTradeTransaction: ExpertHandle = {e.ExpertHandle}.{Environment.NewLine}Transaction = {e.Trans}.{Environment.NewLine}Request = {e.Request}.{Environment.NewLine}Result = {e.Result}.");
+        }
+
+        private void _mtApiClient_OnBookEvent(object sender, Mt5BookEventArgs e)
+        {
+            AddLog($"OnBookEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}");
         }
 
         private void AddQuote(Mt5Quote quote)

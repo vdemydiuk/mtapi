@@ -2387,6 +2387,7 @@ namespace MtApi5
         public event EventHandler<Mt5QuoteEventArgs> QuoteRemoved;
         public event EventHandler<Mt5ConnectionEventArgs> ConnectionStateChanged;
         public event EventHandler<Mt5TradeTransactionEventArgs> OnTradeTransaction;
+        public event EventHandler<Mt5BookEventArgs> OnBookEvent;
         #endregion
 
         #region Private Methods
@@ -2464,6 +2465,9 @@ namespace MtApi5
                 case Mt5EventTypes.OnTradeTransaction:
                     ReceivedOnTradeTransaction(e.ExpertHandle, e.Payload);
                     break;
+                case Mt5EventTypes.OnBookEvent:
+                    ReceivedOnBookEvent(e.ExpertHandle, e.Payload);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -2478,6 +2482,16 @@ namespace MtApi5
                 Trans = e.Trans,
                 Request = e.Request,
                 Result = e.Result
+            });
+        }
+
+        private void ReceivedOnBookEvent(int expertHandler, string payload)
+        {
+            var e = JsonConvert.DeserializeObject<OnBookEvent>(payload);
+            OnBookEvent?.Invoke(this, new Mt5BookEventArgs
+            {
+                ExpertHandle = expertHandler,
+                Symbol = e.Symbol
             });
         }
 

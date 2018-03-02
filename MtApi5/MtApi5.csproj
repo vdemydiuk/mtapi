@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CopyTicksFlag.cs" />
+    <Compile Include="Events\OnBookEvent.cs" />
     <Compile Include="Events\OnTradeTransactionEvent.cs" />
     <Compile Include="MqlBookInfo.cs" />
     <Compile Include="MqlParam.cs" />
@@ -55,6 +56,7 @@
     <Compile Include="MqlTick.cs" />
     <Compile Include="MqlTradeCheckResult.cs" />
     <Compile Include="MqlTradeTransaction.cs" />
+    <Compile Include="Mt5BookEventArgs.cs" />
     <Compile Include="Mt5TimeConverter.cs" />
     <Compile Include="Mt5Enums.cs" />
     <Compile Include="Mt5ConnectionEventArgs.cs" />

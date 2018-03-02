@@ -41,7 +41,7 @@
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
-#define __DEBUG_LOG__
+//#define __DEBUG_LOG__
 
 input int Port = 8228;
 
@@ -85,12 +85,23 @@ void  OnTradeTransaction(
    )
 {
 #ifdef __DEBUG_LOG__
-   Print("%s:", __FUNCTION__);
+   PrintFormat("%s:", __FUNCTION__);
 #endif 
    
-   OnTradeTransactionEvent* transEvent = new OnTradeTransactionEvent(trans, request, result);
-   SendMtEvent(ON_TRADE_TRANSACTION_EVENT, transEvent);
-   delete transEvent;
+   MtOnTradeTransactionEvent* trans_event = new MtOnTradeTransactionEvent(trans, request, result);
+   SendMtEvent(ON_TRADE_TRANSACTION_EVENT, trans_event);
+   delete trans_event;
+}
+
+void OnBookEvent(const string& symbol)
+{
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: %s", __FUNCTION__, symbol);
+#endif 
+
+   MtOnBookEvent * book_event = new MtOnBookEvent(symbol);
+   SendMtEvent(ON_BOOK_EVENT, book_event);
+   delete book_event;
 }
 
 int preinit()
@@ -6043,7 +6054,8 @@ string ExecuteRequest_IndicatorCreate(JSONObject *jo)
 
 enum MtEventTypes
 {
-   ON_TRADE_TRANSACTION_EVENT = 1
+   ON_TRADE_TRANSACTION_EVENT = 1,
+   ON_BOOK_EVENT              = 2
 };
 
 class MtEvent
@@ -6052,10 +6064,10 @@ public:
    virtual JSONObject* CreateJson() = 0;
 };
 
-class OnTradeTransactionEvent : public MtEvent
+class MtOnTradeTransactionEvent : public MtEvent
 {
 public:
-   OnTradeTransactionEvent(const MqlTradeTransaction& trans, const MqlTradeRequest& request, const MqlTradeResult& result)
+   MtOnTradeTransactionEvent(const MqlTradeTransaction& trans, const MqlTradeRequest& request, const MqlTradeResult& result)
    {
       _trans = trans;
       _request = request;
@@ -6075,6 +6087,25 @@ private:
    MqlTradeTransaction _trans;
    MqlTradeRequest _request;
    MqlTradeResult _result;
+};
+
+class MtOnBookEvent : public MtEvent
+{
+public:
+   MtOnBookEvent(const string& symbol)
+   {
+      _symbol = symbol;
+   }
+   
+   virtual JSONObject* CreateJson()
+   {
+      JSONObject *jo = new JSONObject();
+      jo.put("Symbol", new JSONString(_symbol));
+      return jo;
+   }
+   
+private:
+   string _symbol;
 };
 
 void SendMtEvent(MtEventTypes eventType, MtEvent* mtEvent)
