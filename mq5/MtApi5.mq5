@@ -6272,7 +6272,7 @@ JSONObject* MqlTradeTransactionToJson(MqlTradeTransaction& trans)
 JSONObject* MqlTradeRequestToJson(MqlTradeRequest& request)
 {
    JSONObject *jo = new JSONObject();
-   jo.put("Cction", new JSONNumber((int)request.action));
+   jo.put("Action", new JSONNumber((int)request.action));
    jo.put("Magic", new JSONNumber(request.magic));
    jo.put("Order", new JSONNumber(request.order));
    jo.put("Symbol", new JSONString(request.symbol));
