@@ -18,6 +18,7 @@ namespace MtApi5TestClient
 
         public DelegateCommand OrderSendCommand { get; private set; }
         public DelegateCommand OrderCheckCommand { get; private set; }
+        public DelegateCommand PositionGetTicketCommand { get; private set; }
 
         public DelegateCommand HistoryOrderGetIntegerCommand { get; private set; }
         public DelegateCommand HistoryDealGetDoubleCommand { get; private set; }
@@ -213,6 +214,7 @@ namespace MtApi5TestClient
 
             OrderSendCommand = new DelegateCommand(ExecuteOrderSend);
             OrderCheckCommand = new DelegateCommand(ExecuteOrderCheck);
+            PositionGetTicketCommand = new DelegateCommand(ExecutePositionGetTicket);
 
             HistoryOrderGetIntegerCommand = new DelegateCommand(ExecuteHistoryOrderGetInteger);
             HistoryDealGetDoubleCommand = new DelegateCommand(ExecuteHistoryDealGetDouble);
@@ -317,6 +319,19 @@ namespace MtApi5TestClient
             });
 
             var message = retVal ? $"OrderCheck: success. {result}" : $"OrderCheck: fail. {result}";
+            AddLog(message);
+        }
+
+        private async void ExecutePositionGetTicket(object obj)
+        {
+            const int index = 0;
+            var retVal = await Execute(() =>
+            {
+                var ok = _mtApiClient.PositionGetTicket(index);
+                return ok;
+            });
+
+            var message = $"PositionGetTicket: result = {retVal}";
             AddLog(message);
         }
 

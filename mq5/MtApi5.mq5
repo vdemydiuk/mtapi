@@ -41,7 +41,7 @@
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
-//#define __DEBUG_LOG__
+#define __DEBUG_LOG__
 
 input int Port = 8228;
 
@@ -282,7 +282,7 @@ int executeCommand()
       Execute_OrderCalcProfit();
    break;
    case 4: //OrderCheck
-      Execute_OrderCheck();
+      Execute_PositionGetTicket();
    break;
    case 6: //PositionsTotal
       Execute_PositionsTotal();
@@ -714,6 +714,29 @@ int executeCommand()
    return (commandType);
 }
 
+//------ helper macros to get and send values ------------------
+
+#define GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(get_func, argument_id, argument, cmd_name, param_name) if (!get_func(ExpertHandle, argument_id, argument, _error)) \
+   {                                                                                                                                                              \
+      PrintParamError(cmd_name, param_name, _error);                                                                                                              \
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);                                                                                               \
+      return;                                                                                                                                                     \
+   }                                                                                                                                                              \
+
+#define GET_INTEGER_VALUE(argument_id, argument, cmd_name, param_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getIntValue, argument_id, argument, cmd_name, param_name)
+
+
+#define SEND_RESPONSE_OR_PRINT_ERROR(send_func, response, cmd_name) if (!send_func(ExpertHandle, response, _response_error)) \
+   {                                                                                                                         \
+      PrintResponseError(cmd_name, _response_error);                                                                         \
+   }
+
+#define SEND_INT_RESPONSE(response, cmd_name) SEND_RESPONSE_OR_PRINT_ERROR(sendIntResponse, response, cmd_name)
+#define SEND_LONG_RESPONSE(response, cmd_name) SEND_RESPONSE_OR_PRINT_ERROR(sendLongResponse, response, cmd_name)
+#define SEND_ULONG_RESPONSE(response, cmd_name) SEND_RESPONSE_OR_PRINT_ERROR(sendULongResponse, response, cmd_name)
+
+//-------------------------------------------------------------
+
 void Execute_Request()
 {
    string request;
@@ -880,19 +903,22 @@ void Execute_OrderCalcProfit()
    }
 }
 
-void Execute_OrderCheck()
+void Execute_PositionGetTicket()
 {
-   MqlTradeRequest request={0};      
-   ReadMqlTradeRequestFromCommand(request);
-   
-   MqlTradeCheckResult result={0};
-   
-   bool retVal = OrderCheck(request, result);
-         
-   if (!sendStringResponse(ExpertHandle, ResultToString(retVal, result), _response_error))
-   {
-      PrintResponseError("OrderCheck", _response_error);
-   }
+   int index;
+   GET_INTEGER_VALUE(0, index, "PositionGetTicket", "index");
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: index = %d", __FUNCTION__, index);
+#endif
+
+   ulong result = PositionGetTicket(index);
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %u", __FUNCTION__, result);
+#endif
+
+   SEND_ULONG_RESPONSE(result, "PositionGetTicket");
 }
 
 void Execute_PositionsTotal()
@@ -5467,15 +5493,6 @@ void Execute_TimeGMT()
       PrintResponseError("TimeGMT", _response_error);
    }
 }
-
-#define GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(get_func, argument_id, argument, cmd_name, param_name) if (!get_func(ExpertHandle, argument_id, argument, _error)) \
-   {                                                                                                                                                              \
-      PrintParamError(cmd_name, param_name, _error);                                                                                                              \
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);                                                                                               \
-      return;                                                                                                                                                     \
-   }                                                                                                                                                              \
-
-#define GET_INTEGER_VALUE(argument_id, argument, cmd_name, param_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getIntValue, argument_id, argument, cmd_name, param_name)
 
 void Execute_IndicatorRelease()
 {

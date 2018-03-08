@@ -281,6 +281,17 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///The function returns the ticket of a position with the specified index in the list of open positions and automatically selects the position to work with using functions PositionGetDouble, PositionGetInteger, PositionGetString.
+        ///</summary>
+        ///<param name="index">Identifier of a position property.</param>
+        public ulong PositionGetTicket(int index)
+        {
+            var commandParameters = new ArrayList { index };
+
+            return SendCommand<ulong>(Mt5CommandType.PositionGetTicket, commandParameters);
+        }
+
+        ///<summary>
         ///Returns the number of current orders.
         ///</summary>
         public int OrdersTotal()
