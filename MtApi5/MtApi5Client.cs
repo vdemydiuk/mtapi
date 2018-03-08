@@ -611,11 +611,11 @@ namespace MtApi5
         ///<param name="symbolName">Symbol name.</param>
         ///<param name="timeframe"> Period.</param>
         ///<param name="propId">Identifier of the requested property, value of the ENUM_SERIES_INFO_INTEGER enumeration.</param>
-        public int SeriesInfoInteger(string symbolName, ENUM_TIMEFRAMES timeframe, ENUM_SERIES_INFO_INTEGER propId)
+        public long SeriesInfoInteger(string symbolName, ENUM_TIMEFRAMES timeframe, ENUM_SERIES_INFO_INTEGER propId)
         {
             var commandParameters = new ArrayList { symbolName, (int)timeframe, (int)propId };
 
-            return SendCommand<int>(Mt5CommandType.SeriesInfoInteger, commandParameters);
+            return SendCommand<long>(Mt5CommandType.SeriesInfoInteger, commandParameters);
         }
 
         ///<summary>
