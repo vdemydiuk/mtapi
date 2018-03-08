@@ -4,14 +4,14 @@ namespace MtApi5
 {
     public class MqlTradeCheckResult
     {
-        public uint Retcode { get; }               // Reply code
-        public double Balance { get; }             // Balance after the execution of the deal
-        public double Equity { get; }              // Equity after the execution of the deal
-        public double Profit { get; }              // Floating profit
-        public double Margin { get; }              // Margin requirements
-        public double Margin_free { get; }         // Free margin
-        public double Margin_level { get; }        // Margin level
-        public string Comment { get; }             // Comment to the reply code (description of the error)
+        public uint Retcode { get; set; }               // Reply code
+        public double Balance { get; set; }             // Balance after the execution of the deal
+        public double Equity { get; set; }              // Equity after the execution of the deal
+        public double Profit { get; set; }              // Floating profit
+        public double Margin { get; set; }              // Margin requirements
+        public double Margin_free { get; set; }         // Free margin
+        public double Margin_level { get; set; }        // Margin level
+        public string Comment { get; set; }             // Comment to the reply code (description of the error)
 
         public MqlTradeCheckResult(uint retcode
             , double balance
@@ -31,6 +31,9 @@ namespace MtApi5
             Margin_level = margin_level;
             Comment = comment;
         }
+
+        public MqlTradeCheckResult()
+        { }
 
         public override string ToString()
         {
