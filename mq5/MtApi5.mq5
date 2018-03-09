@@ -705,6 +705,14 @@ int executeCommand()
    case 131: //IndicatorRelease
       Execute_IndicatorRelease();
    break;
+   
+   case 132: //GetLastError
+      Execute_GetLastError();
+   break;
+   case 143: //ResetLastError
+      Execute_ResetLastError();
+   break;
+   
    default:
       Print("Unknown command type = ", commandType);
       sendVoidResponse(ExpertHandle, _response_error);
@@ -5506,6 +5514,31 @@ void Execute_IndicatorRelease()
    if (!sendBooleanResponse(ExpertHandle, IndicatorRelease(indicator_handle), _error))
    {
       PrintResponseError("IndicatorRelease", _response_error);
+   }
+}
+
+void Execute_GetLastError()
+{
+   int last_error = GetLastError();
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: last_error = %d", __FUNCTION__, last_error);
+#endif
+
+   SEND_INT_RESPONSE(last_error, "GetLastError");
+}
+
+void Execute_ResetLastError()
+{
+   ResetLastError();
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: called", __FUNCTION__);
+#endif
+   
+   if (!sendVoidResponse(ExpertHandle, _error))
+   {
+      PrintResponseError("ResetLastError", _response_error);
    }
 }
    

@@ -107,8 +107,6 @@ namespace MtApi5
         BacktestingReady                    = 66,
         IsTesting                           = 67,
 
-        Print                               = 68,
-
         //Requests
         MtRequest                           = 155,
 
@@ -179,6 +177,25 @@ namespace MtApi5
         TimeLocal                           = 129,
         TimeGMT                             = 130,
 
-        IndicatorRelease                    = 131
+        IndicatorRelease                    = 131,
+
+        //Checkup
+        GetLastError                        = 132,
+        TerminalInfoInteger                 = 133,  //TODO
+        TerminalInfoDouble                  = 134,  //TODO
+        TerminalInfoString                  = 135,  //TODO
+
+        //Common Functions
+        Alert                               = 136,  //TODO
+        Comment                             = 137,  //TODO
+        GetTickCount                        = 138,  //TODO
+        GetMicrosecondCount                 = 139,  //TODO
+        MessageBox                          = 140,  //TODO
+        PeriodSeconds                       = 141,  //TODO
+        PlaySound                           = 142,  //TODO
+        Print                               = 68,
+        ResetLastError                      = 143,
+        SendNotification                    = 144,  //TODO
+        SendMail                            = 145   //TODO
     }
 }

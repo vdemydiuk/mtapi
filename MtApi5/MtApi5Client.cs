@@ -2352,6 +2352,26 @@ namespace MtApi5
 
         #endregion //Date and Time
 
+        #region Checkup
+
+        ///<summary>
+        ///Returns the value of the last error that occurred during the execution of an mql5 program.
+        ///</summary>
+        public int GetLastError()
+        {
+            return SendCommand<int>(Mt5CommandType.GetLastError, null);
+        }
+
+        ///<summary>
+        ///Sets the value of the predefined variable _LastError into zero.
+        ///</summary>
+        public void ResetLastError()
+        {
+            SendCommand<object>(Mt5CommandType.ResetLastError, null);
+        }
+
+        #endregion
+
         #endregion // Public Methods
 
         #region Properties

@@ -294,15 +294,6 @@
                             Command="{Binding AccountInfoStringCommand}"
                             Content="AccountInfoString" HorizontalAlignment="Left" />
                     </Grid>
-                    <Grid Margin="10" Grid.Row="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <TextBox Grid.Column="0" Text="{Binding MessageText}" Margin="5"/>
-                        <Button Grid.Column="1" Content="Print" Command="{Binding PrintCommand}" Margin="5"/>
-                    </Grid>
                 </Grid>
             </TabItem>
 
@@ -432,6 +423,29 @@
                     <Button Command="{Binding TimeLocalCommand}" Content="TimeLocal" Margin="2"/>
                     <Button Command="{Binding TimeGMTCommand}" Content="TimeGMT" Margin="2"/>
                 </WrapPanel>
+            </TabItem>
+
+            <TabItem Header="Checkup and Common Functions">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <WrapPanel VerticalAlignment="Top" Margin="5">
+                        <Button Command="{Binding GetLastErrorCommand}" Content="GetLastError" Margin="2"/>
+                        <Button Command="{Binding ResetLastErrorCommand}" Content="ResetLastError" Margin="2"/>
+                    </WrapPanel>
+
+                    <Grid Margin="10" Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" Text="{Binding MessageText}" Margin="5"/>
+                        <Button Grid.Column="1" Command="{Binding PrintCommand}" Content="Print" Margin="5"/>
+                    </Grid>
+                </Grid>
             </TabItem>
         </TabControl>
 
