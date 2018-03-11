@@ -179,6 +179,67 @@ namespace MtApi5
         TimeLocal                           = 129,
         TimeGMT                             = 130,
 
-        IndicatorRelease                    = 131
+        IndicatorRelease                    = 131,
+
+
+
+        //Chart Operations
+        ChartId = 206,
+        ChartRedraw = 207,
+        ChartApplyTemplate = 236,
+        ChartSaveTemplate = 237,
+        ChartWindowFind = 238,
+        ChartTimePriceToXY = 239,
+        ChartXYToTimePrice = 240,
+        ChartOpen = 241,
+        ChartFirst = 242,
+        ChartNext = 243,
+        ChartClose = 244,
+        ChartSymbol = 245,
+        ChartPeriod = 246,
+        ChartSetDouble = 247,
+        ChartSetInteger = 248,
+        ChartSetString = 249,
+        ChartGetDouble = 250,
+        ChartGetInteger = 251,
+        ChartGetString = 252,
+        ChartNavigate = 253,
+        ChartIndicatorDelete = 254,
+        ChartIndicatorName = 255,
+        ChartIndicatorsTotal = 256,
+        ChartWindowOnDropped = 257,
+        ChartPriceOnDropped = 258,
+        ChartTimeOnDropped = 259,
+        ChartXOnDropped = 260,
+        ChartYOnDropped = 261,
+        ChartSetSymbolPeriod = 262,
+        ChartScreenShot = 263,
+        
+        // Windows Operations
+        WindowBarsPerChart = 264,
+        WindowExpertName = 265,
+        WindowFind = 266,
+        WindowFirstVisibleBar = 267,
+        WindowHandle = 268,
+        WindowIsVisible = 269,
+        WindowOnDropped = 270,
+        WindowPriceMax = 271,
+        WindowPriceMin = 272,
+        WindowPriceOnDropped = 273,
+        WindowRedraw = 274,
+        WindowScreenShot = 275,
+        WindowTimeOnDropped = 276,
+        WindowsTotal = 277,
+        WindowXOnDropped = 278,
+        WindowYOnDropped = 279,
+
+        // Terminal Operations
+        TerminalCompany = 68,
+        TerminalName = 69,
+        TerminalPath = 70,
+        TerminalInfoString = 153,
+        TerminalInfoInteger = 204,
+        TerminalInfoDouble = 205,
+
     }
 }
