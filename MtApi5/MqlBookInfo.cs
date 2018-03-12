@@ -10,13 +10,16 @@ namespace MtApi5
             this.volume = volume;
         }
 
-        public ENUM_BOOK_TYPE type { get; }    // Order type from ENUM_BOOK_TYPE enumeration
-        public double price { get; }           // Price
-        public long volume { get; }            // Volume
+        public MqlBookInfo()
+        { }
+
+        public ENUM_BOOK_TYPE type { get; set; }    // Order type from ENUM_BOOK_TYPE enumeration
+        public double price { get; set; }           // Price
+        public long volume { get; set; }            // Volume
 
         public override string ToString()
         {
-            return $"{type}|{price}|{volume}";
+            return $"type = {type}; price = {price}; volume = {volume}";
         }
     }
 }

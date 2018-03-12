@@ -164,7 +164,7 @@ _DLLAPI int _stdcall sendStringResponse(int expertHandle, wchar_t* response, wch
 _DLLAPI int _stdcall sendVoidResponse(int expertHandle, wchar_t* err)
 {
     return Execute<int>([&expertHandle]() {
-        MtAdapter::GetInstance()->SendResponse(expertHandle, nullptr);
+        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseObject(nullptr));
         return 1;
     }, err, 0);
 }

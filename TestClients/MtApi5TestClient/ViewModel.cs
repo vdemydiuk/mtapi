@@ -20,6 +20,7 @@ namespace MtApi5TestClient
 
         public DelegateCommand OrderSendCommand { get; private set; }
         public DelegateCommand OrderCheckCommand { get; private set; }
+        public DelegateCommand PositionGetTicketCommand { get; private set; }
 
         public DelegateCommand HistoryOrderGetIntegerCommand { get; private set; }
         public DelegateCommand HistoryDealGetDoubleCommand { get; private set; }
@@ -61,6 +62,8 @@ namespace MtApi5TestClient
 
         public DelegateCommand PositionOpenCommand { get; private set; }
 
+        public DelegateCommand GetLastErrorCommand { get; private set; }
+        public DelegateCommand ResetLastErrorCommand { get; private set; }
         public DelegateCommand PrintCommand { get; private set; }
 
         public DelegateCommand iCustomCommand { get; private set; }
@@ -282,6 +285,7 @@ namespace MtApi5TestClient
 
             OrderSendCommand = new DelegateCommand(ExecuteOrderSend);
             OrderCheckCommand = new DelegateCommand(ExecuteOrderCheck);
+            PositionGetTicketCommand = new DelegateCommand(ExecutePositionGetTicket);
 
             HistoryOrderGetIntegerCommand = new DelegateCommand(ExecuteHistoryOrderGetInteger);
             HistoryDealGetDoubleCommand = new DelegateCommand(ExecuteHistoryDealGetDouble);
@@ -324,6 +328,8 @@ namespace MtApi5TestClient
             PositionOpenCommand = new DelegateCommand(ExecutePositionOpen);
 
             PrintCommand = new DelegateCommand(ExecutePrint);
+            GetLastErrorCommand = new DelegateCommand(ExecuteGetLastError);
+            ResetLastErrorCommand = new DelegateCommand(ExecuteResetLastError);
 
             iCustomCommand = new DelegateCommand(ExecuteICustom);
 
@@ -390,6 +396,19 @@ namespace MtApi5TestClient
             });
 
             var message = retVal ? $"OrderCheck: success. {result}" : $"OrderCheck: fail. {result}";
+            AddLog(message);
+        }
+
+        private async void ExecutePositionGetTicket(object obj)
+        {
+            const int index = 0;
+            var retVal = await Execute(() =>
+            {
+                var ok = _mtApiClient.PositionGetTicket(index);
+                return ok;
+            });
+
+            var message = $"PositionGetTicket: result = {retVal}";
             AddLog(message);
         }
 
@@ -982,6 +1001,18 @@ namespace MtApi5TestClient
 
             var retVal = await Execute(() => _mtApiClient.Print(message));
             AddLog($"Print: message print in MetaTrader - {retVal}");
+        }
+
+        private async void ExecuteGetLastError(object obj)
+        {
+            var retVal = await Execute(() => _mtApiClient.GetLastError());
+            AddLog($"GetLastError: last error = {retVal}");
+        }
+
+        private void ExecuteResetLastError(object obj)
+        {
+            _mtApiClient.ResetLastError();
+            AddLog("GetLastError: executed.");
         }
 
         private async void ExecuteICustom(object o)

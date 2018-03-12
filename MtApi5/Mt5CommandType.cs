@@ -9,7 +9,6 @@ namespace MtApi5
         //OrderSend                           = 1,
         OrderCalcMargin                     = 2,
         OrderCalcProfit                     = 3,
-        //OrderCheck                          = 4,
         //OrderSendAsync                      = 5,
         PositionsTotal                      = 6,
         PositionGetSymbol                   = 7,
@@ -17,6 +16,7 @@ namespace MtApi5
         PositionGetDouble                   = 9,
         PositionGetInteger                  = 10,
         PositionGetString                   = 11,
+        PositionGetTicket                   = 4,
         OrdersTotal                         = 12,
         OrderGetTicket                      = 13,
         OrderSelect                         = 14,
@@ -106,8 +106,6 @@ namespace MtApi5
         //Backtesting
         BacktestingReady                    = 66,
         IsTesting                           = 67,
-
-        Print                               = 68,
 
         //Requests
         MtRequest                           = 155,
@@ -237,9 +235,24 @@ namespace MtApi5
         TerminalCompany = 68,
         TerminalName = 69,
         TerminalPath = 70,
-        TerminalInfoString = 153,
-        TerminalInfoInteger = 204,
-        TerminalInfoDouble = 205,
 
+        //Checkup
+        GetLastError                        = 132,
+        TerminalInfoString                  = 153, //TODO
+        TerminalInfoInteger                 = 204, //TODO
+        TerminalInfoDouble                  = 205, //TODO
+
+        //Common Functions
+        Alert                               = 136,  //TODO
+        Comment                             = 137,  //TODO
+        GetTickCount                        = 138,  //TODO
+        GetMicrosecondCount                 = 139,  //TODO
+        MessageBox                          = 140,  //TODO
+        PeriodSeconds                       = 141,  //TODO
+        PlaySound                           = 142,  //TODO
+        Print                               = 68,
+        ResetLastError                      = 143,
+        SendNotification                    = 144,  //TODO
+        SendMail                            = 145   //TODO
     }
 }

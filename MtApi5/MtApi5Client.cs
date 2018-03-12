@@ -281,6 +281,17 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///The function returns the ticket of a position with the specified index in the list of open positions and automatically selects the position to work with using functions PositionGetDouble, PositionGetInteger, PositionGetString.
+        ///</summary>
+        ///<param name="index">Identifier of a position property.</param>
+        public ulong PositionGetTicket(int index)
+        {
+            var commandParameters = new ArrayList { index };
+
+            return SendCommand<ulong>(Mt5CommandType.PositionGetTicket, commandParameters);
+        }
+
+        ///<summary>
         ///Returns the number of current orders.
         ///</summary>
         public int OrdersTotal()
@@ -611,11 +622,11 @@ namespace MtApi5
         ///<param name="symbolName">Symbol name.</param>
         ///<param name="timeframe"> Period.</param>
         ///<param name="propId">Identifier of the requested property, value of the ENUM_SERIES_INFO_INTEGER enumeration.</param>
-        public int SeriesInfoInteger(string symbolName, ENUM_TIMEFRAMES timeframe, ENUM_SERIES_INFO_INTEGER propId)
+        public long SeriesInfoInteger(string symbolName, ENUM_TIMEFRAMES timeframe, ENUM_SERIES_INFO_INTEGER propId)
         {
             var commandParameters = new ArrayList { symbolName, (int)timeframe, (int)propId };
 
-            return SendCommand<int>(Mt5CommandType.SeriesInfoInteger, commandParameters);
+            return SendCommand<long>(Mt5CommandType.SeriesInfoInteger, commandParameters);
         }
 
         ///<summary>
@@ -3005,6 +3016,26 @@ namespace MtApi5
         }
 
         #endregion //Date and Time
+
+        #region Checkup
+
+        ///<summary>
+        ///Returns the value of the last error that occurred during the execution of an mql5 program.
+        ///</summary>
+        public int GetLastError()
+        {
+            return SendCommand<int>(Mt5CommandType.GetLastError, null);
+        }
+
+        ///<summary>
+        ///Sets the value of the predefined variable _LastError into zero.
+        ///</summary>
+        public void ResetLastError()
+        {
+            SendCommand<object>(Mt5CommandType.ResetLastError, null);
+        }
+
+        #endregion
 
         #endregion // Public Methods
 
