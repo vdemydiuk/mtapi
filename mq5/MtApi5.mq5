@@ -709,9 +709,25 @@ int executeCommand()
    case 241: //ChartOpen
       Execute_ChartOpen();
    break;
+
+   case 242: //ChartFirst
+      Execute_ChartFirst();
+   break;
+
+   case 243: //ChartFirst
+      Execute_ChartNext();
+   break;
+
+   case 245: //ChartFirst
+      Execute_ChartSymbol();
+   break;
    
    case 236: //ChartApplyTemplate
       Execute_ChartApplyTemplate();
+   break;
+
+   case 252: //ChartGetString
+      Execute_ChartGetString();
    break;
 
    case 153: //TerminalInfoString
@@ -6022,6 +6038,49 @@ void Execute_ChartOpen()
    }
 }
 
+void Execute_ChartFirst()
+{
+   if (!sendLongResponse(ExpertHandle, ChartFirst(), _response_error))
+   {
+      PrintResponseError("ChartFirst", _response_error);
+   }
+}
+
+void Execute_ChartNext()
+{
+   long ChartId;
+   
+   if (!getLongValue(ExpertHandle, 0, ChartId, _error))
+   {
+      PrintParamError("ChartFirst", "ChartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+
+   if (!sendLongResponse(ExpertHandle, ChartNext(ChartId), _response_error))
+   {
+      PrintResponseError("ChartFirst", _response_error);
+   }
+}
+
+void Execute_ChartSymbol()
+{
+   long ChartId;
+   
+   if (!getLongValue(ExpertHandle, 0, ChartId, _error))
+   {
+      PrintParamError("ChartSymbol", "ChartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+
+   if (!sendStringResponse(ExpertHandle, ChartSymbol(ChartId), _response_error))
+   {
+      PrintResponseError("ChartSymbol", _response_error);
+   }
+}
+
+
 void Execute_ChartApplyTemplate()
 {
    long ChartId;
@@ -6051,6 +6110,30 @@ void Execute_ChartApplyTemplate()
    ChartRedraw(ChartId);
 }
 
+void Execute_ChartGetString()
+{
+   long ChartId;
+   int PropId;
+   
+   if (!getLongValue(ExpertHandle, 0, ChartId, _error))
+   {
+      PrintParamError("ChartGetString", "ChartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, PropId, _error))
+   {
+      PrintParamError("ChartGetString", "PropId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   
+   if (!sendStringResponse(ExpertHandle, ChartGetString(ChartId, (ENUM_CHART_PROPERTY_STRING)PropId), _response_error))
+   {
+      PrintResponseError("ChartGetString", _response_error);
+   }
+   ChartRedraw(ChartId);
+}
 
 void Execute_TerminalInfoString()
 {

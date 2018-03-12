@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Threading.Tasks;
 using System.IO;
+using Microsoft.Win32;
 
 namespace MtApi5TestClient
 {
@@ -114,17 +115,16 @@ namespace MtApi5TestClient
 
                 var MT5Path = _mtApiClient.TerminalInfoString(ENUM_TERMINAL_INFO_STRING.TERMINAL_PATH);
 
-                var TemplateName = "\\Files\\aa.tpl";
-                var TemplateStringContent = File.ReadAllLines("d:\\template_name.tpl");
-
-
-                File.WriteAllLines($"{MT5Path}\\MQL5{TemplateName}", TemplateStringContent);
-
-
-                AddLog($"path: {MT5Path}");
-                _mtApiClient.ChartApplyTemplate(ChartId, TemplateName);
-                //var Applytemplate = _mtApiClient.ChartApplyTemplate(ChartId, "/")
-
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "Template File (*.tpl)|*.tpl|All files (*.*)|*.*";
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    var TemplateName = "\\Files\\mt5api_copy.tpl";
+                    var TemplateStringContent = File.ReadAllLines(openFileDialog.FileName);
+                    File.WriteAllLines($"{MT5Path}\\MQL5{TemplateName}", TemplateStringContent);
+                     AddLog($"path: {MT5Path}");
+                    _mtApiClient.ChartApplyTemplate(ChartId, TemplateName);
+                }
                 return ChartId;
             });
 
