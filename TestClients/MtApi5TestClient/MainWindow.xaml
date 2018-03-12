@@ -415,7 +415,13 @@
                     <Button Command="{Binding iCustomCommand}" Content="iCustom" Margin="2"/>
                 </WrapPanel>
             </TabItem>
-
+            <TabItem Header="Chart Functions">
+                <WrapPanel>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding TimeSeriesValues.SymbolValue}" Margin="1"/>
+                    <Button Command="{Binding ChartOpenCommand}" Content="ChartOpen"/>
+                    <Button Command="{Binding ChartApplyTemplateCommand}" Content="ChartApplyTemplate"/>
+                </WrapPanel>
+            </TabItem>
             <TabItem Header="Time and Date">
                 <WrapPanel VerticalAlignment="Top" Margin="5">
                     <Button Command="{Binding TimeCurrentCommand}" Content="TimeCurrent" Margin="2"/>

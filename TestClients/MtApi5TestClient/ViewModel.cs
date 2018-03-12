@@ -7,6 +7,8 @@ using MtApi5;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Threading.Tasks;
+using System.IO;
+using Microsoft.Win32;
 
 namespace MtApi5TestClient
 {
@@ -67,9 +69,76 @@ namespace MtApi5TestClient
         public DelegateCommand iCustomCommand { get; private set; }
 
         public DelegateCommand TimeCurrentCommand { get; private set; }
+
+        public DelegateCommand ChartOpenCommand { get; private set; }
+        public DelegateCommand ChartApplyTemplateCommand { get; private set; }
+
         public DelegateCommand TimeTradeServerCommand { get; private set; }
         public DelegateCommand TimeLocalCommand { get; private set; }
         public DelegateCommand TimeGMTCommand { get; private set; }
+        #endregion
+
+        #region Chart Commands
+        private async void ExecuteChartOpen(object o)
+        {
+            AddLog("Executed #1");
+            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
+
+            AddLog($"Executed #2 s:{TimeSeriesValues?.SymbolValue}");
+
+            
+            var result = await Execute(() =>
+            {
+                var SymbolAddReturn = _mtApiClient.SymbolSelect(TimeSeriesValues?.SymbolValue, true);
+                var ChartId = _mtApiClient.ChartOpen(TimeSeriesValues?.SymbolValue, TimeSeriesValues.TimeFrame);
+                return ChartId;
+            });
+
+            if (result == -1)
+            {
+                AddLog("ChartOpen: result is null");
+                return;
+            }
+
+            AddLog($"ChartOpen: success chartid=>{result}");
+        }
+
+        private async void ExecuteChartApplyTemplate(object o)
+        {
+            AddLog("Executed #1");
+            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
+
+            AddLog($"Executed #2 s:{TimeSeriesValues?.SymbolValue}");
+
+
+            var result = await Execute(() =>
+            {
+                var SymbolAddReturn = _mtApiClient.SymbolSelect(TimeSeriesValues?.SymbolValue, true);
+                var ChartId = _mtApiClient.ChartOpen(TimeSeriesValues?.SymbolValue, TimeSeriesValues.TimeFrame);
+
+                var MT5Path = _mtApiClient.TerminalInfoString(ENUM_TERMINAL_INFO_STRING.TERMINAL_PATH);
+
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "Template File (*.tpl)|*.tpl|All files (*.*)|*.*";
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    var TemplateName = "\\Files\\mt5api_copy.tpl";
+                    var TemplateStringContent = File.ReadAllLines(openFileDialog.FileName);
+                    File.WriteAllLines($"{MT5Path}\\MQL5{TemplateName}", TemplateStringContent);
+                     AddLog($"path: {MT5Path}");
+                    _mtApiClient.ChartApplyTemplate(ChartId, TemplateName);
+                }
+                return ChartId;
+            });
+
+            if (result == -1)
+            {
+                AddLog("ChartOpen: result is null");
+                return;
+            }
+
+            AddLog($"ChartOpen: success chartid=>{result}");
+        }
         #endregion
 
         #region Properties
@@ -263,6 +332,10 @@ namespace MtApi5TestClient
             ResetLastErrorCommand = new DelegateCommand(ExecuteResetLastError);
 
             iCustomCommand = new DelegateCommand(ExecuteICustom);
+
+            ChartOpenCommand = new DelegateCommand(ExecuteChartOpen);
+            ChartApplyTemplateCommand = new DelegateCommand(ExecuteChartApplyTemplate);
+
 
             TimeCurrentCommand = new DelegateCommand(ExecuteTimeCurrent);
             TimeTradeServerCommand = new DelegateCommand(ExecuteTimeTradeServer);
@@ -1138,6 +1211,7 @@ namespace MtApi5TestClient
                 return result;
             });
         }
+
 
         private void AddLog(string msg)
         {

@@ -705,6 +705,35 @@ int executeCommand()
    case 131: //IndicatorRelease
       Execute_IndicatorRelease();
    break;
+
+   case 241: //ChartOpen
+      Execute_ChartOpen();
+   break;
+
+   case 242: //ChartFirst
+      Execute_ChartFirst();
+   break;
+
+   case 243: //ChartFirst
+      Execute_ChartNext();
+   break;
+
+   case 245: //ChartFirst
+      Execute_ChartSymbol();
+   break;
+   
+   case 236: //ChartApplyTemplate
+      Execute_ChartApplyTemplate();
+   break;
+
+   case 252: //ChartGetString
+      Execute_ChartGetString();
+   break;
+
+   case 153: //TerminalInfoString
+      Execute_TerminalInfoString();
+   break;
+
    
    case 132: //GetLastError
       Execute_GetLastError();
@@ -6031,6 +6060,146 @@ string ExecuteRequest_MarketBookGet(JSONObject *jo)
 #endif   
         
    return CreateSuccessResponse("Value", book_ja);
+}
+
+void Execute_ChartOpen()
+{
+   string symbol;
+   int timeframe;
+   StringInit(symbol, 100, 0);
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("ChartOpen", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, timeframe, _error))
+   {
+      PrintParamError("ChartOpen", "timeframe", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+  
+   
+   if (!sendLongResponse(ExpertHandle, ChartOpen(symbol, (ENUM_TIMEFRAMES)timeframe), _response_error))
+   {
+      PrintResponseError("ChartOpen", _response_error);
+   }
+}
+
+void Execute_ChartFirst()
+{
+   if (!sendLongResponse(ExpertHandle, ChartFirst(), _response_error))
+   {
+      PrintResponseError("ChartFirst", _response_error);
+   }
+}
+
+void Execute_ChartNext()
+{
+   long ChartId;
+   
+   if (!getLongValue(ExpertHandle, 0, ChartId, _error))
+   {
+      PrintParamError("ChartFirst", "ChartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+
+   if (!sendLongResponse(ExpertHandle, ChartNext(ChartId), _response_error))
+   {
+      PrintResponseError("ChartFirst", _response_error);
+   }
+}
+
+void Execute_ChartSymbol()
+{
+   long ChartId;
+   
+   if (!getLongValue(ExpertHandle, 0, ChartId, _error))
+   {
+      PrintParamError("ChartSymbol", "ChartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+
+   if (!sendStringResponse(ExpertHandle, ChartSymbol(ChartId), _response_error))
+   {
+      PrintResponseError("ChartSymbol", _response_error);
+   }
+}
+
+
+void Execute_ChartApplyTemplate()
+{
+   long ChartId;
+   string TemplateFileName;
+   StringInit(TemplateFileName, 100, 0);
+   
+   
+   if (!getLongValue(ExpertHandle, 0, ChartId, _error))
+   {
+      PrintParamError("ChartApplyTemplate", "ChartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getStringValue(ExpertHandle, 1, TemplateFileName, _error))
+   {
+      PrintParamError("ChartApplyTemplate", "TemplateFileName", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   StringReplace(TemplateFileName, "\\", "\\\\");
+   ResetLastError();
+   
+   if (!sendBooleanResponse(ExpertHandle, ChartApplyTemplate(ChartId, TemplateFileName), _response_error))
+   {
+      PrintResponseError("ChartApplyTemplate", _response_error);
+   }
+   ChartRedraw(ChartId);
+}
+
+void Execute_ChartGetString()
+{
+   long ChartId;
+   int PropId;
+   
+   if (!getLongValue(ExpertHandle, 0, ChartId, _error))
+   {
+      PrintParamError("ChartGetString", "ChartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getIntValue(ExpertHandle, 1, PropId, _error))
+   {
+      PrintParamError("ChartGetString", "PropId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   
+   if (!sendStringResponse(ExpertHandle, ChartGetString(ChartId, (ENUM_CHART_PROPERTY_STRING)PropId), _response_error))
+   {
+      PrintResponseError("ChartGetString", _response_error);
+   }
+   ChartRedraw(ChartId);
+}
+
+void Execute_TerminalInfoString()
+{
+   int propertyId;
+   
+   if (!getIntValue(ExpertHandle, 0, propertyId, _error))
+   {
+      PrintParamError("TerminalInfoString", "propertyId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+  
+   if (!sendStringResponse(ExpertHandle, TerminalInfoString((ENUM_TERMINAL_INFO_STRING)propertyId), _response_error))
+   {
+      PrintResponseError("TerminalInfoString", _response_error);
+   }
 }
 
 string ExecuteRequest_IndicatorCreate(JSONObject *jo)
