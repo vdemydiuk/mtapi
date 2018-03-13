@@ -85,6 +85,8 @@
     <Compile Include="Requests\RequestType.cs" />
     <Compile Include="Requests\OrderSendResult.cs" />
     <Compile Include="Requests\Response.cs" />
+    <Compile Include="Requests\SymbolInfoStringRequest.cs" />
+    <Compile Include="Requests\SymbolInfoStringResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MTApiService\MTApiService.csproj">

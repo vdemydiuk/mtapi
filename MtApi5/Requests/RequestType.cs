@@ -4,13 +4,14 @@ namespace MtApi5.Requests
 {
     internal enum RequestType
     {
-        Unknown         = 0,
-        CopyTicks       = 1,
-        iCustom         = 2,
-        OrderSend       = 3,
-        PositionOpen    = 4,
-        OrderCheck      = 5,
-        MarketBookGet   = 6,
-        IndicatorCreate = 7
+        Unknown             = 0,
+        CopyTicks           = 1,
+        iCustom             = 2,
+        OrderSend           = 3,
+        PositionOpen        = 4,
+        OrderCheck          = 5,
+        MarketBookGet       = 6,
+        IndicatorCreate     = 7,
+        SymbolInfoString    = 8
     }
 }

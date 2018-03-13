@@ -1386,6 +1386,23 @@ namespace MtApi5
             return SendCommand<string>(Mt5CommandType.SymbolInfoString, commandParameters);
         }
 
+        ///<summary>
+        ///Returns the corresponding property of a specified symbol. 
+        ///</summary>
+        ///<param name="symbolName">Symbol name.</param>
+        ///<param name="propId">Identifier of a symbol property.</param>
+        ///<param name="value">Variable of the string type receiving the value of the requested property.</param>
+        public bool SymbolInfoString(string symbolName, ENUM_SYMBOL_INFO_STRING propId, out string value)
+        {
+            var response = SendRequest<SymbolInfoStringResult>(new SymbolInfoStringRequest
+            {
+                SymbolName = symbolName,
+                PropId = propId
+            });
+
+            value = response?.StringVar;
+            return response?.RetVal ?? false;
+        }
 
         ///<summary>
         ///The function returns current prices of a specified symbol in a variable of the MqlTick type.
@@ -1561,7 +1578,7 @@ namespace MtApi5
         ///</returns>
         public bool ChartTimePriceToXY(long chartId, int subWindow, DateTime? time, double price, out int x, out int y)
         {
-            var commandParameters = new ArrayList { chartId, subWindow, Mt5TimeConverter.ConvertToMtTime((DateTime)time), price };
+            var commandParameters = new ArrayList { chartId, subWindow, Mt5TimeConverter.ConvertToMtTime(time), price };
             var str = SendCommand<string>(Mt5CommandType.ChartTimePriceToXY, commandParameters);
             var res = false;
             x = 0;
