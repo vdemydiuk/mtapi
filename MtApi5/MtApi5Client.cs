@@ -1578,22 +1578,17 @@ namespace MtApi5
         ///</returns>
         public bool ChartTimePriceToXY(long chartId, int subWindow, DateTime? time, double price, out int x, out int y)
         {
-            var commandParameters = new ArrayList { chartId, subWindow, Mt5TimeConverter.ConvertToMtTime(time), price };
-            var str = SendCommand<string>(Mt5CommandType.ChartTimePriceToXY, commandParameters);
-            var res = false;
-            x = 0;
-            y = 0;
-            if (!string.IsNullOrEmpty(str) && str.Contains(";"))
-            {
-                var values = str.Split(';');
-                if (values.Length > 1)
+            var result = SendRequest<ChartTimePriceToXyResult>(new ChartTimePriceToXyRequest
                 {
-                    int.TryParse(values[0], out x);
-                    int.TryParse(values[1], out y);
-                    res = true;
-                }
-            }
-            return res;
+                    ChartId = chartId,
+                    SubWindow = subWindow,
+                    Time = time,
+                    Price = price
+                });
+
+            x = result?.X ?? 0;
+            y = result?.Y ?? 0;
+            return result?.RetVal ?? false;
         }
 
         ///<summary>
@@ -1610,26 +1605,17 @@ namespace MtApi5
         ///</returns>
         public bool ChartXYToTimePrice(long chartId, int x, int y, out int subWindow, out DateTime? time, out double price)
         {
-            var commandParameters = new ArrayList { chartId, x, y };
-            var str = SendCommand<string>(Mt5CommandType.ChartXYToTimePrice, commandParameters);
-            var res = false;
-            subWindow = 0;
-            time = null;
-            price = double.NaN;
-            if (!string.IsNullOrEmpty(str) && str.Contains(";"))
+            var result = SendRequest<ChartXyToTimePriceResult>(new ChartXyToTimePriceRequest
             {
-                var values = str.Split(';');
-                if (values.Length > 2)
-                {
-                    int.TryParse(values[0], out subWindow);
-                    int mt4Time;
-                    int.TryParse(values[1], out mt4Time);
-                    time = Mt5TimeConverter.ConvertFromMtTime(mt4Time);
-                    double.TryParse(values[2], out price);
-                    res = true;
-                }
-            }
-            return res;
+                ChartId = chartId,
+                X = x,
+                Y = y
+            });
+
+            subWindow = result?.SubWindow ?? 0;
+            time = result?.Time;
+            price = result?.Price ?? double.NaN;
+            return result?.RetVal ?? false;
         }
 
         ///<summary>

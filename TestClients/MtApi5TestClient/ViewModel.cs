@@ -76,6 +76,8 @@ namespace MtApi5TestClient
         public DelegateCommand TimeCurrentCommand { get; private set; }
 
         public DelegateCommand ChartOpenCommand { get; private set; }
+        public DelegateCommand ChartTimePriceToXYCommand { get; private set; }
+        public DelegateCommand ChartXYToTimePriceCommand { get; private set; }
         public DelegateCommand ChartApplyTemplateCommand { get; private set; }
         public DelegateCommand ChartSaveTemplateCommand { get; private set; }
 
@@ -88,15 +90,19 @@ namespace MtApi5TestClient
         private async void ExecuteChartOpen(object o)
         {
             AddLog("Executed #1");
-            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
+            if (string.IsNullOrEmpty(ChartFunctionsSymbolValue))
+            {
+                AddLog("ChartOpen [ERROR]: Symbol is not defined!");
+                return;
+            }
 
-            AddLog($"Executed #2 s:{TimeSeriesValues?.SymbolValue}");
+            AddLog($"Executed #2 s:{ChartFunctionsSymbolValue}");
 
             
             var result = await Execute(() =>
             {
-                var SymbolAddReturn = _mtApiClient.SymbolSelect(TimeSeriesValues?.SymbolValue, true);
-                var ChartId = _mtApiClient.ChartOpen(TimeSeriesValues?.SymbolValue, TimeSeriesValues.TimeFrame);
+                var SymbolAddReturn = _mtApiClient.SymbolSelect(ChartFunctionsSymbolValue, true);
+                var ChartId = _mtApiClient.ChartOpen(ChartFunctionsSymbolValue, TimeSeriesValues.TimeFrame);
                 return ChartId;
             });
 
@@ -107,6 +113,45 @@ namespace MtApi5TestClient
             }
 
             AddLog($"ChartOpen: success chartid=>{result}");
+        }
+
+        private async void ExecuteChartTimePriceToXY(object o)
+        {
+            const long chartId = 0;
+            const int subWindow = 0;
+            var time = DateTime.Now;
+            const double price = 1.131;
+            var x = 0;
+            var y = 0;
+
+            var result = await Execute(() => _mtApiClient.ChartTimePriceToXY(chartId, subWindow, time, price, out x, out y));
+            if (result == false)
+            {
+                AddLog("ChartTimePriceToXY: result is false");
+                return;
+            }
+
+            AddLog($"ChartTimePriceToXY: success. x = {x}; Y = {y}");
+        }
+
+        private async void ExecuteChartXYToTimePrice(object o)
+        {
+            const long chartId = 0;
+            const int x = 0;
+            const int y = 0;
+
+            var subWindow = 0;
+            DateTime? time = null;
+            double price = double.NaN;
+
+            var result = await Execute(() => _mtApiClient.ChartXYToTimePrice(chartId, x, y, out subWindow, out time, out price));
+            if (result == false)
+            {
+                AddLog("ChartXYToTimePrice: result is false");
+                return;
+            }
+
+            AddLog($"ChartXYToTimePrice: success. subWindow = {subWindow}; time = {time}; price = {price}");
         }
 
         private async void ExecuteChartApplyTemplate(object o)
@@ -271,6 +316,16 @@ namespace MtApi5TestClient
             }
         }
 
+        private string _chartFunctionsSymbolValue = "EURUSD";
+        public string ChartFunctionsSymbolValue
+        {
+            get { return _chartFunctionsSymbolValue; }
+            set
+            {
+                _chartFunctionsSymbolValue = value;
+                OnPropertyChanged("ChartFunctionsSymbolValue");
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -376,6 +431,8 @@ namespace MtApi5TestClient
             iCustomCommand = new DelegateCommand(ExecuteICustom);
 
             ChartOpenCommand = new DelegateCommand(ExecuteChartOpen);
+            ChartTimePriceToXYCommand = new DelegateCommand(ExecuteChartTimePriceToXY);
+            ChartXYToTimePriceCommand = new DelegateCommand(ExecuteChartXYToTimePrice);
             ChartApplyTemplateCommand = new DelegateCommand(ExecuteChartApplyTemplate);
             ChartSaveTemplateCommand = new DelegateCommand(ExecuteChartSaveTemplate);
 

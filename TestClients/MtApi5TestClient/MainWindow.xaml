@@ -480,12 +480,29 @@
                 </WrapPanel>
             </TabItem>
             <TabItem Header="Chart Functions">
-                <WrapPanel VerticalAlignment="Top" Margin="5">
-                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding TimeSeriesValues.SymbolValue}" Margin="1"/>
-                        <Button Command="{Binding ChartOpenCommand}" Content="ChartOpen"/>
-                    <Button Command="{Binding ChartApplyTemplateCommand}" Content="ChartApplyTemplate"/>
-                    <Button Command="{Binding ChartSaveTemplateCommand}" Content="ChartSaveTemplate"/>
-                </WrapPanel>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
+                        <TextBlock Text="Symbol" VerticalAlignment="Center" Margin="2"/>
+                        <TextBox Width="100" Text="{Binding ChartFunctionsSymbolValue}" Margin="2"/>
+                    </StackPanel>
+
+                    <WrapPanel Grid.Row="1" Orientation="Horizontal" Margin="5">
+                        <Button Command="{Binding ChartOpenCommand}" Content="ChartOpen" Margin="2"/>
+                        <Button Command="{Binding ChartTimePriceToXYCommand}" Content="ChartTimePriceToXY" Margin="2"/>
+                        <Button Command="{Binding ChartXYToTimePriceCommand}" Content="ChartXYToTimePrice" Margin="2"/>
+                    </WrapPanel>
+
+                    <WrapPanel Grid.Row="2" VerticalAlignment="Top" Margin="5">
+                        <Button Command="{Binding ChartApplyTemplateCommand}" Content="ChartApplyTemplate" Margin="2"/>
+                        <Button Command="{Binding ChartSaveTemplateCommand}" Content="ChartSaveTemplate" Margin="2"/>
+                    </WrapPanel>
+                </Grid>
             </TabItem>
             <TabItem Header="Time and Date">
                 <WrapPanel VerticalAlignment="Top" Margin="5">

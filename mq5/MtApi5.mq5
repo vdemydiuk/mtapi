@@ -5944,6 +5944,12 @@ string OnRequest(string json)
             case 8: //SymbolInfoString
                response = ExecuteRequest_SymbolInfoString(jo);
                break;
+            case 9: //ChartTimePriceToXY
+               response = ExecuteRequest_ChartTimePriceToXY(jo);
+               break;
+            case 10: //ChartXYToTimePrice
+               response = ExecuteRequest_ChartXYToTimePrice(jo);
+               break;
             default:
                PrintFormat("%s [WARNING]: Unknown request type %d", __FUNCTION__, requestType);
                response = CreateErrorResponse(-1, "Unknown request type");
@@ -6355,6 +6361,73 @@ string ExecuteRequest_SymbolInfoString(JSONObject *jo)
    result_value_jo.put("StringVar", new JSONString(string_var));
    
    return CreateSuccessResponse("Value", result_value_jo);   
+}
+
+
+string ExecuteRequest_ChartTimePriceToXY(JSONObject *jo)
+{
+   CHECK_JSON_VALUE(jo, "ChartId", CreateErrorResponse(-1, "Undefinded mandatory parameter ChartId"));
+   long chart_id = jo.getLong("ChartId");
+   
+   CHECK_JSON_VALUE(jo, "SubWindow", CreateErrorResponse(-1, "Undefinded mandatory parameter SubWindow"));
+   int sub_window = jo.getInt("SubWindow");
+   
+   CHECK_JSON_VALUE(jo, "MtTime", CreateErrorResponse(-1, "Undefinded mandatory parameter MtTime"));
+   datetime time = (datetime)jo.getInt("MtTime");
+   
+   CHECK_JSON_VALUE(jo, "Price", CreateErrorResponse(-1, "Undefinded mandatory parameter Price"));
+   double price = jo.getDouble("Price");
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: chart_id = %d, sub_window = %d, time = %s", __FUNCTION__, chart_id, sub_window, TimeToString(time));
+#endif
+
+   int x,y;
+   bool ok = ChartTimePriceToXY(chart_id, sub_window, time, price, x, y);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: ok = %s, x = %d, y = %d", __FUNCTION__, BoolToString(ok), x, y);
+#endif
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("X", new JSONNumber(x));
+   result_value_jo.put("Y", new JSONNumber(y));
+   
+   return CreateSuccessResponse("Value", result_value_jo);  
+}
+
+string ExecuteRequest_ChartXYToTimePrice(JSONObject *jo)
+{
+   CHECK_JSON_VALUE(jo, "ChartId", CreateErrorResponse(-1, "Undefinded mandatory parameter ChartId"));
+   long chart_id = jo.getLong("ChartId");
+   
+   CHECK_JSON_VALUE(jo, "X", CreateErrorResponse(-1, "Undefinded mandatory parameter X"));
+   int x = jo.getInt("X");
+   
+   CHECK_JSON_VALUE(jo, "Y", CreateErrorResponse(-1, "Undefinded mandatory parameter Y"));
+   int y = jo.getInt("Y");
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: chart_id = %d, x = %d, y = %d", __FUNCTION__, chart_id, x, y);
+#endif
+
+   int sub_window;
+   datetime time;
+   double price;
+   bool ok = ChartXYToTimePrice(chart_id, x, y, sub_window, time, price);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: ok = %s, sub_window = %d, time = %s, price = %f", __FUNCTION__, BoolToString(ok), sub_window, TimeToString(time), price);
+#endif
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("SubWindow", new JSONNumber(sub_window));
+   result_value_jo.put("MtTime", new JSONNumber((int)time));
+   result_value_jo.put("Price", new JSONNumber(price));
+   
+   return CreateSuccessResponse("Value", result_value_jo);
 }
 
 //------------ Events -------------------------------------------------------

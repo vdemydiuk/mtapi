@@ -12,6 +12,8 @@ namespace MtApi5.Requests
         OrderCheck          = 5,
         MarketBookGet       = 6,
         IndicatorCreate     = 7,
-        SymbolInfoString    = 8
+        SymbolInfoString    = 8,
+        ChartTimePriceToXY  = 9,
+        ChartXYToTimePrice  = 10
     }
 }
