@@ -76,6 +76,7 @@ namespace MtApi5TestClient
 
         public DelegateCommand ChartOpenCommand { get; private set; }
         public DelegateCommand ChartApplyTemplateCommand { get; private set; }
+        public DelegateCommand ChartSaveTemplateCommand { get; private set; }
 
         public DelegateCommand TimeTradeServerCommand { get; private set; }
         public DelegateCommand TimeLocalCommand { get; private set; }
@@ -129,9 +130,35 @@ namespace MtApi5TestClient
                     var TemplateStringContent = File.ReadAllLines(openFileDialog.FileName);
                     var DestPath = $"{MT5Path}\\MQL5{TemplateName}";
                     File.WriteAllLines($"{MT5Path}\\MQL5{TemplateName}", TemplateStringContent);
-                     AddLog($"path: {MT5Path}");
                     _mtApiClient.ChartApplyTemplate(ChartId, TemplateName);
                 }
+                return ChartId;
+            });
+
+            if (result == -1)
+            {
+                AddLog("ExecuteChartApplyTemplate: result is null");
+                return;
+            }
+
+            AddLog($"ExecuteChartApplyTemplate: success chartid=>{result}");
+        }
+
+        private async void ExecuteChartSaveTemplate(object o)
+        {
+
+            AddLog($"ExecuteSaveApplyTemplate #1");
+
+
+            var result = await Execute(() =>
+            {
+
+                var MT5Path = _mtApiClient.TerminalInfoString(ENUM_TERMINAL_INFO_STRING.TERMINAL_DATA_PATH);
+                int ChartId = 0;  // Actual Chart
+                var TemplateName = "\\Files\\exported.tpl";
+                _mtApiClient.ChartSaveTemplate(ChartId, TemplateName);
+                var DestPath = $"{MT5Path}\\MQL5{TemplateName}";
+                AddLog($"Destination: {TemplateName}");
                 return ChartId;
             });
 
@@ -348,6 +375,7 @@ namespace MtApi5TestClient
 
             ChartOpenCommand = new DelegateCommand(ExecuteChartOpen);
             ChartApplyTemplateCommand = new DelegateCommand(ExecuteChartApplyTemplate);
+            ChartSaveTemplateCommand = new DelegateCommand(ExecuteChartSaveTemplate);
 
 
             TimeCurrentCommand = new DelegateCommand(ExecuteTimeCurrent);

@@ -719,12 +719,18 @@ int executeCommand()
    case 245: //ChartFirst
       Execute_ChartSymbol();
    break;
-   case 236: //ChartApplyTemplate
-      Execute_ChartApplyTemplate();
-   break;
    case 252: //ChartGetString
       Execute_ChartGetString();
    break;
+
+   case 236: //ChartApplyTemplate
+      Execute_ChartApplyTemplate();
+   break;
+
+   case 237: //ChartApplyTemplate
+      Execute_ChartSaveTemplate();
+   break;
+
 
 
    case 153: //TerminalInfoString
@@ -6155,7 +6161,6 @@ void Execute_ChartApplyTemplate()
       return;
    }   
    StringReplace(TemplateFileName, "\\", "\\\\");
-   ResetLastError();
    
    if (!sendBooleanResponse(ExpertHandle, ChartApplyTemplate(ChartId, TemplateFileName), _response_error))
    {
@@ -6163,6 +6168,35 @@ void Execute_ChartApplyTemplate()
    }
    ChartRedraw(ChartId);
 }
+
+void Execute_ChartSaveTemplate()
+{
+   long ChartId;
+   string TemplateFileName;
+   StringInit(TemplateFileName, 100, 0);
+   
+   
+   if (!getLongValue(ExpertHandle, 0, ChartId, _error))
+   {
+      PrintParamError("ChartSaveTemplate", "ChartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getStringValue(ExpertHandle, 1, TemplateFileName, _error))
+   {
+      PrintParamError("ChartSaveTemplate", "TemplateFileName", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   StringReplace(TemplateFileName, "\\", "\\\\");
+   
+   if (!sendBooleanResponse(ExpertHandle, ChartSaveTemplate(ChartId, TemplateFileName), _response_error))
+   {
+      PrintResponseError("ChartSaveTemplate", _response_error);
+   }
+   ChartRedraw(ChartId);
+}
+
 
 void Execute_ChartGetString()
 {
