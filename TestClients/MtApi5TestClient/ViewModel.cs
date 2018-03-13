@@ -57,6 +57,7 @@ namespace MtApi5TestClient
         public DelegateCommand SymbolInfoDoubleCommand { get; private set; }
         public DelegateCommand SymbolInfoIntegerCommand { get; private set; }
         public DelegateCommand SymbolInfoStringCommand { get; private set; }
+        public DelegateCommand SymbolInfoString2Command { get; private set; }
         public DelegateCommand SymbolInfoTickCommand { get; private set; }
         public DelegateCommand SymbolInfoSessionQuoteCommand { get; private set; }
         public DelegateCommand SymbolInfoSessionTradeCommand { get; private set; }
@@ -358,6 +359,7 @@ namespace MtApi5TestClient
             SymbolInfoDoubleCommand = new DelegateCommand(ExecuteSymbolInfoDouble);
             SymbolInfoIntegerCommand = new DelegateCommand(ExecuteSymbolInfoInteger);
             SymbolInfoStringCommand = new DelegateCommand(ExecuteSymbolInfoString);
+            SymbolInfoString2Command = new DelegateCommand(ExecuteSymbolInfoString2);
             SymbolInfoTickCommand = new DelegateCommand(ExecuteSymbolInfoTick);
             SymbolInfoSessionQuoteCommand = new DelegateCommand(ExecuteSymbolInfoSessionQuote);
             SymbolInfoSessionTradeCommand = new DelegateCommand(ExecuteSymbolInfoSessionTrade);
@@ -954,6 +956,14 @@ namespace MtApi5TestClient
         {
             var retVal = await Execute(() => _mtApiClient.SymbolInfoString("EURUSD", ENUM_SYMBOL_INFO_STRING.SYMBOL_DESCRIPTION));
             AddLog($"SymbolInfoString(EURUSD, ENUM_SYMBOL_INFO_STRING.SYMBOL_DESCRIPTION): result = {retVal}");
+        }
+
+        private async void ExecuteSymbolInfoString2(object o)
+        {
+            string stringVar = null;
+
+            var retVal = await Execute(() => _mtApiClient.SymbolInfoString("EURUSD", ENUM_SYMBOL_INFO_STRING.SYMBOL_DESCRIPTION, out stringVar));
+            AddLog($"SymbolInfoString-2 (EURUSD, ENUM_SYMBOL_INFO_STRING.SYMBOL_DESCRIPTION): result = {retVal}, stringVar = {stringVar}");
         }
 
         private async void ExecuteSymbolInfoTick(object o)

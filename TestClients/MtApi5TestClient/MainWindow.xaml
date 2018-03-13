@@ -458,6 +458,7 @@
                     <Button Command="{Binding SymbolInfoDoubleCommand}" Content="SymbolInfoDouble" Margin="2"/>
                     <Button Command="{Binding SymbolInfoIntegerCommand}" Content="SymbolInfoInteger" Margin="2"/>
                     <Button Command="{Binding SymbolInfoStringCommand}" Content="SymbolInfoString" Margin="2"/>
+                    <Button Command="{Binding SymbolInfoString2Command}" Content="SymbolInfoString-2" Margin="2"/>
                     <Button Command="{Binding SymbolInfoTickCommand}" Content="SymbolInfoTick" Margin="2"/>
                     <Button Command="{Binding SymbolInfoSessionQuoteCommand}" Content="SymbolInfoSessionQuote" Margin="2"/>
                     <Button Command="{Binding SymbolInfoSessionTradeCommand}" Content="SymbolInfoSessionTrade" Margin="2"/>
