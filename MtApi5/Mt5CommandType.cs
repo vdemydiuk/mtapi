@@ -238,12 +238,12 @@ namespace MtApi5
 
         //Checkup
         GetLastError                        = 132,
-        TerminalInfoString                  = 153, //TODO
-        TerminalInfoInteger                 = 204, //TODO
-        TerminalInfoDouble                  = 205, //TODO
+        TerminalInfoString                  = 153,
+        TerminalInfoInteger                 = 204,
+        TerminalInfoDouble                  = 205,
 
         //Common Functions
-        Alert                               = 136,  //TODO
+        Alert                               = 136,
         Comment                             = 137,  //TODO
         GetTickCount                        = 138,  //TODO
         GetMicrosecondCount                 = 139,  //TODO

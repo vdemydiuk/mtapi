@@ -708,6 +708,9 @@ int executeCommand()
    case 132: //GetLastError
       Execute_GetLastError();
    break;
+   case 136: //Alert
+      Execute_Alert();
+   break;
    case 143: //ResetLastError
       Execute_ResetLastError();
    break;
@@ -759,7 +762,8 @@ int executeCommand()
       return;                                                                                                                                                     \
    }                                                                                                                                                              \
 
-#define GET_INTEGER_VALUE(argument_id, argument, cmd_name, param_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getIntValue, argument_id, argument, cmd_name, param_name)
+#define GET_INT_VALUE(argument_id, argument, cmd_name, param_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getIntValue, argument_id, argument, cmd_name, param_name)
+#define GET_STRING_VALUE(argument_id, argument, cmd_name, param_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getStringValue, argument_id, argument, cmd_name, param_name)
 
 
 #define SEND_RESPONSE_OR_PRINT_ERROR(send_func, response, cmd_name) if (!send_func(ExpertHandle, response, _response_error)) \
@@ -942,7 +946,7 @@ void Execute_OrderCalcProfit()
 void Execute_PositionGetTicket()
 {
    int index;
-   GET_INTEGER_VALUE(0, index, "PositionGetTicket", "index");
+   GET_INT_VALUE(0, index, "PositionGetTicket", "index");
 
 #ifdef __DEBUG_LOG__
    PrintFormat("%s: index = %d", __FUNCTION__, index);
@@ -5533,7 +5537,7 @@ void Execute_TimeGMT()
 void Execute_IndicatorRelease()
 {
    int indicator_handle;
-   GET_INTEGER_VALUE(0, indicator_handle, "IndicatorRelease", "indicator_handle");
+   GET_INT_VALUE(0, indicator_handle, "IndicatorRelease", "indicator_handle");
    
 #ifdef __DEBUG_LOG__
    PrintFormat("%s: indicator_handle = %d", __FUNCTION__, indicator_handle);
@@ -5554,6 +5558,25 @@ void Execute_GetLastError()
 #endif
 
    SEND_INT_RESPONSE(last_error, "GetLastError");
+}
+
+void Execute_Alert()
+{
+   string message;
+   StringInit(message, 1000);
+   
+   GET_STRING_VALUE(0, message, "Alert", "message");
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: message = %s", __FUNCTION__, message);
+#endif
+
+   Alert(message);
+
+   if (!sendVoidResponse(ExpertHandle, _error))
+   {
+      PrintResponseError("Alert", _response_error);
+   }
 }
 
 void Execute_ResetLastError()

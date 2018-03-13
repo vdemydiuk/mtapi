@@ -70,6 +70,7 @@ namespace MtApi5TestClient
         public DelegateCommand GetLastErrorCommand { get; private set; }
         public DelegateCommand ResetLastErrorCommand { get; private set; }
         public DelegateCommand PrintCommand { get; private set; }
+        public DelegateCommand AlertCommand { get; private set; }
 
         public DelegateCommand iCustomCommand { get; private set; }
 
@@ -425,6 +426,7 @@ namespace MtApi5TestClient
             PositionOpenCommand = new DelegateCommand(ExecutePositionOpen);
 
             PrintCommand = new DelegateCommand(ExecutePrint);
+            AlertCommand = new DelegateCommand(ExecuteAlert);
             GetLastErrorCommand = new DelegateCommand(ExecuteGetLastError);
             ResetLastErrorCommand = new DelegateCommand(ExecuteResetLastError);
 
@@ -1134,6 +1136,14 @@ namespace MtApi5TestClient
 
             var retVal = await Execute(() => _mtApiClient.Print(message));
             AddLog($"Print: message print in MetaTrader - {retVal}");
+        }
+
+        private void ExecuteAlert(object obj)
+        {
+            var message = MessageText;
+
+            _mtApiClient.Alert(message);
+            AddLog($"Alert: send alert to MetaTrader - {message}.");
         }
 
         private async void ExecuteGetLastError(object obj)

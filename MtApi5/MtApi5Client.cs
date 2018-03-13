@@ -2152,16 +2152,27 @@ namespace MtApi5
 
 
         #region Common Functions
+
         ///<summary>
         ///It enters a message in the Expert Advisor log.
         ///</summary>
-        ///<param name="message">Symbol name.</param>
+        ///<param name="message">Message</param>
         public bool Print(string message)
         {
             var commandParameters = new ArrayList { message };
-
             return SendCommand<bool>(Mt5CommandType.Print, commandParameters);
         }
+
+        ///<summary>
+        ///Displays a message in a separate window.
+        ///</summary>
+        ///<param name="message">Message</param>
+        public void Alert(string message)
+        {
+            var commandParameters = new ArrayList { message };
+            SendCommand<object>(Mt5CommandType.Alert, commandParameters);
+        }
+
         #endregion // Common Functions
 
         #region Object Functions

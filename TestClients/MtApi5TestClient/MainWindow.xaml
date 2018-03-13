@@ -526,12 +526,16 @@
                     </WrapPanel>
 
                     <Grid Margin="10" Grid.Row="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox Grid.Column="0" Text="{Binding MessageText}" Margin="5"/>
-                        <Button Grid.Column="1" Command="{Binding PrintCommand}" Content="Print" Margin="5"/>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBox Grid.Row="0" Text="{Binding MessageText}" Margin="2"/>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Command="{Binding PrintCommand}" Content="Print" Margin="2" />
+                            <Button Command="{Binding AlertCommand}" Content="Alert" Margin="2" />
+                        </StackPanel>
+                        
                     </Grid>
                 </Grid>
             </TabItem>
