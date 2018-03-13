@@ -2108,7 +2108,7 @@ namespace MtApi5
 
         #region Commands of Terminal
         ///<summary>
-        ///Returns the value of a corresponding property of the mql4 program environment. 
+        ///Returns the value of a corresponding property of the mql5 program environment. 
         ///</summary>
         ///<param name="propertyId">Identifier of a property. Can be one of the values of the ENUM_TERMINAL_INFO_STRING enumeration.</param>
         ///<returns>
@@ -2121,7 +2121,7 @@ namespace MtApi5
         }
 
         ///<summary>
-        ///Returns the value of a corresponding property of the mql4 program environment.
+        ///Returns the value of a corresponding property of the mql5 program environment.
         ///</summary>
         ///<param name="propertyId">Identifier of a property. Can be one of the values of the ENUM_TERMINAL_INFO_INTEGER enumeration.</param>
         ///<returns>
@@ -2134,7 +2134,7 @@ namespace MtApi5
         }
 
         ///<summary>
-        ///Returns the value of a corresponding property of the mql4 program environment.
+        ///Returns the value of a corresponding property of the mql5 program environment.
         ///</summary>
         ///<param name="propertyId">Identifier of a property. Can be one of the values of the ENUM_TERMINAL_INFO_DOUBLE enumeration.</param>
         ///<returns>

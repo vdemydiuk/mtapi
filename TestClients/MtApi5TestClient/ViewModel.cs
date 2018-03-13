@@ -32,6 +32,10 @@ namespace MtApi5TestClient
         public DelegateCommand AccountInfoIntegerCommand { get; private set; }
         public DelegateCommand AccountInfoStringCommand { get; private set; }
 
+        public DelegateCommand TerminalInfoDoubleCommand { get; private set; }
+        public DelegateCommand TerminalInfoIntegerCommand { get; private set; }
+        public DelegateCommand TerminalInfoStringCommand { get; private set; }
+
         public DelegateCommand CopyRatesCommand { get; private set; }
         public DelegateCommand CopyTimesCommand { get; private set; }
         public DelegateCommand CopyOpenCommand { get; private set; }
@@ -72,6 +76,7 @@ namespace MtApi5TestClient
 
         public DelegateCommand ChartOpenCommand { get; private set; }
         public DelegateCommand ChartApplyTemplateCommand { get; private set; }
+        public DelegateCommand ChartSaveTemplateCommand { get; private set; }
 
         public DelegateCommand TimeTradeServerCommand { get; private set; }
         public DelegateCommand TimeLocalCommand { get; private set; }
@@ -105,10 +110,9 @@ namespace MtApi5TestClient
 
         private async void ExecuteChartApplyTemplate(object o)
         {
-            AddLog("Executed #1");
             if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
 
-            AddLog($"Executed #2 s:{TimeSeriesValues?.SymbolValue}");
+            AddLog($"ExecuteChartApplyTemplate #2 s:{TimeSeriesValues?.SymbolValue}");
 
 
             var result = await Execute(() =>
@@ -116,7 +120,7 @@ namespace MtApi5TestClient
                 var SymbolAddReturn = _mtApiClient.SymbolSelect(TimeSeriesValues?.SymbolValue, true);
                 var ChartId = _mtApiClient.ChartOpen(TimeSeriesValues?.SymbolValue, TimeSeriesValues.TimeFrame);
 
-                var MT5Path = _mtApiClient.TerminalInfoString(ENUM_TERMINAL_INFO_STRING.TERMINAL_PATH);
+                var MT5Path = _mtApiClient.TerminalInfoString(ENUM_TERMINAL_INFO_STRING.TERMINAL_DATA_PATH);
 
                 OpenFileDialog openFileDialog = new OpenFileDialog();
                 openFileDialog.Filter = "Template File (*.tpl)|*.tpl|All files (*.*)|*.*";
@@ -124,10 +128,37 @@ namespace MtApi5TestClient
                 {
                     var TemplateName = "\\Files\\mt5api_copy.tpl";
                     var TemplateStringContent = File.ReadAllLines(openFileDialog.FileName);
+                    var DestPath = $"{MT5Path}\\MQL5{TemplateName}";
                     File.WriteAllLines($"{MT5Path}\\MQL5{TemplateName}", TemplateStringContent);
-                     AddLog($"path: {MT5Path}");
                     _mtApiClient.ChartApplyTemplate(ChartId, TemplateName);
                 }
+                return ChartId;
+            });
+
+            if (result == -1)
+            {
+                AddLog("ExecuteChartApplyTemplate: result is null");
+                return;
+            }
+
+            AddLog($"ExecuteChartApplyTemplate: success chartid=>{result}");
+        }
+
+        private async void ExecuteChartSaveTemplate(object o)
+        {
+
+            AddLog($"ExecuteSaveApplyTemplate #1");
+
+
+            var result = await Execute(() =>
+            {
+
+                var MT5Path = _mtApiClient.TerminalInfoString(ENUM_TERMINAL_INFO_STRING.TERMINAL_DATA_PATH);
+                int ChartId = 0;  // Actual Chart
+                var TemplateName = "\\Files\\exported.tpl";
+                _mtApiClient.ChartSaveTemplate(ChartId, TemplateName);
+                var DestPath = $"{MT5Path}\\MQL5{TemplateName}";
+                AddLog($"Destination: {TemplateName}");
                 return ChartId;
             });
 
@@ -219,6 +250,11 @@ namespace MtApi5TestClient
         public ENUM_ACCOUNT_INFO_INTEGER AccountInfoIntegerPropertyId { get; set; }
         public ENUM_ACCOUNT_INFO_STRING AccountInfoStringPropertyId { get; set; }
 
+        public ENUM_TERMINAL_INFO_DOUBLE TerminalInfoDoublePropertyId { get; set; }
+        public ENUM_TERMINAL_INFO_INTEGER TerminalInfoIntegerPropertyId { get; set; }
+        public ENUM_TERMINAL_INFO_STRING TerminalInfoStringPropertyId { get; set; }
+
+
         public TimeSeriesValueViewModel TimeSeriesValues { get; set; }
 
         public ObservableCollection<string> TimeSeriesResults { get; } = new ObservableCollection<string>();
@@ -297,6 +333,10 @@ namespace MtApi5TestClient
             AccountInfoIntegerCommand = new DelegateCommand(ExecuteAccountInfoInteger);
             AccountInfoStringCommand = new DelegateCommand(ExecuteAccountInfoString);
 
+            TerminalInfoDoubleCommand = new DelegateCommand(ExecuteTerminalInfoDouble);
+            TerminalInfoIntegerCommand = new DelegateCommand(ExecuteTerminalInfoInteger);
+            TerminalInfoStringCommand = new DelegateCommand(ExecuteTerminalInfoString);
+
             CopyRatesCommand = new DelegateCommand(ExecuteCopyRates);
             CopyTimesCommand = new DelegateCommand(ExecuteCopyTime);
             CopyOpenCommand = new DelegateCommand(ExecuteCopyOpen);
@@ -335,6 +375,7 @@ namespace MtApi5TestClient
 
             ChartOpenCommand = new DelegateCommand(ExecuteChartOpen);
             ChartApplyTemplateCommand = new DelegateCommand(ExecuteChartApplyTemplate);
+            ChartSaveTemplateCommand = new DelegateCommand(ExecuteChartSaveTemplate);
 
 
             TimeCurrentCommand = new DelegateCommand(ExecuteTimeCurrent);
@@ -483,7 +524,7 @@ namespace MtApi5TestClient
         {
             var result = await Execute(() => _mtApiClient.AccountInfoInteger(AccountInfoIntegerPropertyId));
 
-            var message = $"AccountInfoInteger: property_id = {AccountInfoDoublePropertyId}; result = {result}";
+            var message = $"AccountInfoInteger: property_id = {AccountInfoIntegerPropertyId}; result = {result}";
             AddLog(message);
         }
 
@@ -491,9 +532,34 @@ namespace MtApi5TestClient
         {
             var result = await Execute(() => _mtApiClient.AccountInfoString(AccountInfoStringPropertyId));
 
-            var message = $"AccountInfoString: property_id = {AccountInfoDoublePropertyId}; result = {result}";
+            var message = $"AccountInfoString: property_id = {AccountInfoStringPropertyId}; result = {result}";
             AddLog(message);
         }
+
+        private async void ExecuteTerminalInfoDouble(object o)
+        {
+            var result = await Execute(() => _mtApiClient.TerminalInfoDouble(TerminalInfoDoublePropertyId));
+
+            var message = $"TerminalInfoDouble: property_id = {TerminalInfoDoublePropertyId}; result = {result}";
+            AddLog(message);
+        }
+
+        private async void ExecuteTerminalInfoInteger(object o)
+        {
+            var result = await Execute(() => _mtApiClient.TerminalInfoInteger(TerminalInfoIntegerPropertyId));
+
+            var message = $"TerminalInfoInteger: property_id = {TerminalInfoIntegerPropertyId}; result = {result}";
+            AddLog(message);
+        }
+
+        private async void ExecuteTerminalInfoString(object o)
+        {
+            var result = await Execute(() => _mtApiClient.TerminalInfoString(TerminalInfoStringPropertyId));
+
+            var message = $"TerminalInfoString: property_id = {TerminalInfoStringPropertyId}; result = {result}";
+            AddLog(message);
+        }
+
 
         private async void ExecuteCopyTime(object o)
         {

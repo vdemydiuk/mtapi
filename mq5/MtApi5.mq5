@@ -706,33 +706,43 @@ int executeCommand()
       Execute_IndicatorRelease();
    break;
 
+
    case 241: //ChartOpen
       Execute_ChartOpen();
    break;
-
    case 242: //ChartFirst
       Execute_ChartFirst();
    break;
-
    case 243: //ChartFirst
       Execute_ChartNext();
    break;
-
    case 245: //ChartFirst
       Execute_ChartSymbol();
    break;
-   
-   case 236: //ChartApplyTemplate
-      Execute_ChartApplyTemplate();
-   break;
-
    case 252: //ChartGetString
       Execute_ChartGetString();
    break;
 
+   case 236: //ChartApplyTemplate
+      Execute_ChartApplyTemplate();
+   break;
+
+   case 237: //ChartApplyTemplate
+      Execute_ChartSaveTemplate();
+   break;
+
+
+
    case 153: //TerminalInfoString
       Execute_TerminalInfoString();
    break;
+   case 204: //TerminalInfoInteger
+      Execute_TerminalInfoInteger();
+   break;
+   case 205: //TerminalInfoDouble
+      Execute_TerminalInfoDouble();
+   break;
+
 
    
    case 132: //GetLastError
@@ -6151,7 +6161,6 @@ void Execute_ChartApplyTemplate()
       return;
    }   
    StringReplace(TemplateFileName, "\\", "\\\\");
-   ResetLastError();
    
    if (!sendBooleanResponse(ExpertHandle, ChartApplyTemplate(ChartId, TemplateFileName), _response_error))
    {
@@ -6159,6 +6168,35 @@ void Execute_ChartApplyTemplate()
    }
    ChartRedraw(ChartId);
 }
+
+void Execute_ChartSaveTemplate()
+{
+   long ChartId;
+   string TemplateFileName;
+   StringInit(TemplateFileName, 100, 0);
+   
+   
+   if (!getLongValue(ExpertHandle, 0, ChartId, _error))
+   {
+      PrintParamError("ChartSaveTemplate", "ChartId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   if (!getStringValue(ExpertHandle, 1, TemplateFileName, _error))
+   {
+      PrintParamError("ChartSaveTemplate", "TemplateFileName", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+   StringReplace(TemplateFileName, "\\", "\\\\");
+   
+   if (!sendBooleanResponse(ExpertHandle, ChartSaveTemplate(ChartId, TemplateFileName), _response_error))
+   {
+      PrintResponseError("ChartSaveTemplate", _response_error);
+   }
+   ChartRedraw(ChartId);
+}
+
 
 void Execute_ChartGetString()
 {
@@ -6201,6 +6239,43 @@ void Execute_TerminalInfoString()
       PrintResponseError("TerminalInfoString", _response_error);
    }
 }
+
+
+void Execute_TerminalInfoInteger()
+{
+   int propertyId;
+   
+   if (!getIntValue(ExpertHandle, 0, propertyId, _error))
+   {
+      PrintParamError("TerminalInfoInteger", "propertyId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+  
+   if (!sendIntResponse(ExpertHandle, TerminalInfoInteger((ENUM_TERMINAL_INFO_INTEGER)propertyId), _response_error))
+   {
+      PrintResponseError("TerminalInfoInteger", _response_error);
+   }
+}
+
+void Execute_TerminalInfoDouble()
+{
+   int propertyId;
+   
+   if (!getIntValue(ExpertHandle, 0, propertyId, _error))
+   {
+      PrintParamError("TerminalInfoDouble", "propertyId", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }   
+  
+   if (!sendDoubleResponse(ExpertHandle, TerminalInfoDouble((ENUM_TERMINAL_INFO_DOUBLE)propertyId), _response_error))
+   {
+      PrintResponseError("TerminalInfoDouble", _response_error);
+   }
+}
+
+
 
 string ExecuteRequest_IndicatorCreate(JSONObject *jo)
 {
