@@ -109,10 +109,9 @@ namespace MtApi5TestClient
 
         private async void ExecuteChartApplyTemplate(object o)
         {
-            AddLog("Executed #1");
             if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
 
-            AddLog($"Executed #2 s:{TimeSeriesValues?.SymbolValue}");
+            AddLog($"ExecuteChartApplyTemplate #2 s:{TimeSeriesValues?.SymbolValue}");
 
 
             var result = await Execute(() =>
@@ -120,7 +119,7 @@ namespace MtApi5TestClient
                 var SymbolAddReturn = _mtApiClient.SymbolSelect(TimeSeriesValues?.SymbolValue, true);
                 var ChartId = _mtApiClient.ChartOpen(TimeSeriesValues?.SymbolValue, TimeSeriesValues.TimeFrame);
 
-                var MT5Path = _mtApiClient.TerminalInfoString(ENUM_TERMINAL_INFO_STRING.TERMINAL_PATH);
+                var MT5Path = _mtApiClient.TerminalInfoString(ENUM_TERMINAL_INFO_STRING.TERMINAL_DATA_PATH);
 
                 OpenFileDialog openFileDialog = new OpenFileDialog();
                 openFileDialog.Filter = "Template File (*.tpl)|*.tpl|All files (*.*)|*.*";
@@ -128,6 +127,7 @@ namespace MtApi5TestClient
                 {
                     var TemplateName = "\\Files\\mt5api_copy.tpl";
                     var TemplateStringContent = File.ReadAllLines(openFileDialog.FileName);
+                    var DestPath = $"{MT5Path}\\MQL5{TemplateName}";
                     File.WriteAllLines($"{MT5Path}\\MQL5{TemplateName}", TemplateStringContent);
                      AddLog($"path: {MT5Path}");
                     _mtApiClient.ChartApplyTemplate(ChartId, TemplateName);
