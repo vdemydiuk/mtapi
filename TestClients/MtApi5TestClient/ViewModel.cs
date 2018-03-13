@@ -32,6 +32,10 @@ namespace MtApi5TestClient
         public DelegateCommand AccountInfoIntegerCommand { get; private set; }
         public DelegateCommand AccountInfoStringCommand { get; private set; }
 
+        public DelegateCommand TerminalInfoDoubleCommand { get; private set; }
+        public DelegateCommand TerminalInfoIntegerCommand { get; private set; }
+        public DelegateCommand TerminalInfoStringCommand { get; private set; }
+
         public DelegateCommand CopyRatesCommand { get; private set; }
         public DelegateCommand CopyTimesCommand { get; private set; }
         public DelegateCommand CopyOpenCommand { get; private set; }
@@ -219,6 +223,11 @@ namespace MtApi5TestClient
         public ENUM_ACCOUNT_INFO_INTEGER AccountInfoIntegerPropertyId { get; set; }
         public ENUM_ACCOUNT_INFO_STRING AccountInfoStringPropertyId { get; set; }
 
+        public ENUM_TERMINAL_INFO_DOUBLE TerminalInfoDoublePropertyId { get; set; }
+        public ENUM_TERMINAL_INFO_INTEGER TerminalInfoIntegerPropertyId { get; set; }
+        public ENUM_TERMINAL_INFO_STRING TerminalInfoStringPropertyId { get; set; }
+
+
         public TimeSeriesValueViewModel TimeSeriesValues { get; set; }
 
         public ObservableCollection<string> TimeSeriesResults { get; } = new ObservableCollection<string>();
@@ -296,6 +305,10 @@ namespace MtApi5TestClient
             AccountInfoDoubleCommand = new DelegateCommand(ExecuteAccountInfoDouble);
             AccountInfoIntegerCommand = new DelegateCommand(ExecuteAccountInfoInteger);
             AccountInfoStringCommand = new DelegateCommand(ExecuteAccountInfoString);
+
+            TerminalInfoDoubleCommand = new DelegateCommand(ExecuteTerminalInfoDouble);
+            TerminalInfoIntegerCommand = new DelegateCommand(ExecuteTerminalInfoInteger);
+            TerminalInfoStringCommand = new DelegateCommand(ExecuteTerminalInfoString);
 
             CopyRatesCommand = new DelegateCommand(ExecuteCopyRates);
             CopyTimesCommand = new DelegateCommand(ExecuteCopyTime);
@@ -483,7 +496,7 @@ namespace MtApi5TestClient
         {
             var result = await Execute(() => _mtApiClient.AccountInfoInteger(AccountInfoIntegerPropertyId));
 
-            var message = $"AccountInfoInteger: property_id = {AccountInfoDoublePropertyId}; result = {result}";
+            var message = $"AccountInfoInteger: property_id = {AccountInfoIntegerPropertyId}; result = {result}";
             AddLog(message);
         }
 
@@ -491,9 +504,34 @@ namespace MtApi5TestClient
         {
             var result = await Execute(() => _mtApiClient.AccountInfoString(AccountInfoStringPropertyId));
 
-            var message = $"AccountInfoString: property_id = {AccountInfoDoublePropertyId}; result = {result}";
+            var message = $"AccountInfoString: property_id = {AccountInfoStringPropertyId}; result = {result}";
             AddLog(message);
         }
+
+        private async void ExecuteTerminalInfoDouble(object o)
+        {
+            var result = await Execute(() => _mtApiClient.TerminalInfoDouble(TerminalInfoDoublePropertyId));
+
+            var message = $"TerminalInfoDouble: property_id = {TerminalInfoDoublePropertyId}; result = {result}";
+            AddLog(message);
+        }
+
+        private async void ExecuteTerminalInfoInteger(object o)
+        {
+            var result = await Execute(() => _mtApiClient.TerminalInfoInteger(TerminalInfoIntegerPropertyId));
+
+            var message = $"TerminalInfoInteger: property_id = {TerminalInfoIntegerPropertyId}; result = {result}";
+            AddLog(message);
+        }
+
+        private async void ExecuteTerminalInfoString(object o)
+        {
+            var result = await Execute(() => _mtApiClient.TerminalInfoString(TerminalInfoStringPropertyId));
+
+            var message = $"TerminalInfoString: property_id = {TerminalInfoStringPropertyId}; result = {result}";
+            AddLog(message);
+        }
+
 
         private async void ExecuteCopyTime(object o)
         {

@@ -78,6 +78,28 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
+        <ObjectDataProvider x:Key="ENUM_TERMINAL_INFO_INTEGER_Key" MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="mtapi5:ENUM_TERMINAL_INFO_INTEGER"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        
+        <ObjectDataProvider x:Key="ENUM_TERMINAL_INFO_STRING_Key" MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="mtapi5:ENUM_TERMINAL_INFO_STRING"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <ObjectDataProvider x:Key="ENUM_TERMINAL_INFO_DOUBLE_Key" MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="mtapi5:ENUM_TERMINAL_INFO_DOUBLE"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+
         <ObjectDataProvider x:Key="ENUM_TIMEFRAMES_Key" MethodName="GetValues"
                             ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
@@ -297,6 +319,47 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="Terminal Information">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0.4*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <ComboBox Grid.Column="0" Grid.Row="0"
+                              SelectedItem="{Binding TerminalInfoDoublePropertyId}"
+                              ItemsSource="{Binding Source={StaticResource ENUM_TERMINAL_INFO_DOUBLE_Key}}"/>
+                        <Button Grid.Column="1" Grid.Row="0" Margin="10,0,0,0"
+                            Command="{Binding TerminalInfoDoubleCommand}"
+                            Content="TerminalInfoDouble" HorizontalAlignment="Left" />
+
+                        <ComboBox Grid.Column="0" Grid.Row="1"
+                              SelectedItem="{Binding TerminalInfoIntegerPropertyId}"
+                              ItemsSource="{Binding Source={StaticResource ENUM_TERMINAL_INFO_INTEGER_Key}}"/>
+                        <Button Grid.Column="1" Grid.Row="1" Margin="10,0,0,0"
+                            Command="{Binding TerminalInfoIntegerCommand}"
+                            Content="TerminalInfoInteger" HorizontalAlignment="Left" />
+
+                        <ComboBox Grid.Column="0" Grid.Row="2"
+                              SelectedItem="{Binding TerminalInfoStringPropertyId}"
+                              ItemsSource="{Binding Source={StaticResource ENUM_TERMINAL_INFO_STRING_Key}}"/>
+                        <Button Grid.Column="1" Grid.Row="2" Margin="10,0,0,0"
+                            Command="{Binding TerminalInfoStringCommand}"
+                            Content="TerminalInfoString" HorizontalAlignment="Left" />
+                    </Grid>
+                </Grid>
+            </TabItem>
             <TabItem Header="Timeseries and Indicators Access">
                 <Grid>
                     <Grid.ColumnDefinitions>
