@@ -723,11 +723,20 @@ int executeCommand()
    case 205: //TerminalInfoDouble
       Execute_TerminalInfoDouble();
    break;
+   case 206: //ChartId
+      Execute_ChartId();
+   break;
+   case 207: //ChartRedraw
+      Execute_ChartRedraw();
+   break;
    case 236: //ChartApplyTemplate
       Execute_ChartApplyTemplate();
    break;
    case 237: //ChartApplyTemplate
       Execute_ChartSaveTemplate();
+   break;
+   case 238: //ChartWindowFind
+      Execute_ChartWindowFind();
    break;
    case 241: //ChartOpen
       Execute_ChartOpen();
@@ -737,6 +746,9 @@ int executeCommand()
    break;
    case 243: //ChartFirst
       Execute_ChartNext();
+   break;
+   case 244: //ChartClose
+      Execute_ChartClose();
    break;
    case 245: //ChartFirst
       Execute_ChartSymbol();
@@ -755,15 +767,16 @@ int executeCommand()
 
 //------ helper macros to get and send values ------------------
 
-#define GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(get_func, argument_id, argument, cmd_name, param_name) if (!get_func(ExpertHandle, argument_id, argument, _error)) \
-   {                                                                                                                                                              \
-      PrintParamError(cmd_name, param_name, _error);                                                                                                              \
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);                                                                                               \
-      return;                                                                                                                                                     \
-   }                                                                                                                                                              \
+#define GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(get_func, argument_id, argument, func_name, argument_name) if (!get_func(ExpertHandle, argument_id, argument, _error)) \
+   {                                                                                                                                                                  \
+      PrintParamError(func_name, argument_name, _error);                                                                                                              \
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);                                                                                                   \
+      return;                                                                                                                                                         \
+   }                                                                                                                                                                  \
 
-#define GET_INT_VALUE(argument_id, argument, cmd_name, param_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getIntValue, argument_id, argument, cmd_name, param_name)
-#define GET_STRING_VALUE(argument_id, argument, cmd_name, param_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getStringValue, argument_id, argument, cmd_name, param_name)
+#define GET_INT_VALUE(argument_id, argument, argument_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getIntValue, argument_id, argument, __FUNCTION__, argument_name)
+#define GET_LONG_VALUE(argument_id, argument, argument_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getLongValue, argument_id, argument, __FUNCTION__, argument_name)
+#define GET_STRING_VALUE(argument_id, argument, argument_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getStringValue, argument_id, argument, __FUNCTION__, argument_name)
 
 
 #define SEND_RESPONSE_OR_PRINT_ERROR(send_func, response, cmd_name) if (!send_func(ExpertHandle, response, _response_error)) \
@@ -771,9 +784,15 @@ int executeCommand()
       PrintResponseError(cmd_name, _response_error);                                                                         \
    }
 
-#define SEND_INT_RESPONSE(response, cmd_name) SEND_RESPONSE_OR_PRINT_ERROR(sendIntResponse, response, cmd_name)
-#define SEND_LONG_RESPONSE(response, cmd_name) SEND_RESPONSE_OR_PRINT_ERROR(sendLongResponse, response, cmd_name)
-#define SEND_ULONG_RESPONSE(response, cmd_name) SEND_RESPONSE_OR_PRINT_ERROR(sendULongResponse, response, cmd_name)
+#define SEND_VOID_RESPONSE if (!sendVoidResponse(ExpertHandle, _response_error))    \
+   {                                                                                \
+      PrintResponseError(__FUNCTION__, _response_error);                            \
+   }
+
+#define SEND_INT_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendIntResponse, response, __FUNCTION__)
+#define SEND_LONG_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendLongResponse, response, __FUNCTION__)
+#define SEND_ULONG_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendULongResponse, response, __FUNCTION__)
+#define SEND_BOOL_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendBooleanResponse, response, __FUNCTION__)
 
 //-------------------------------------------------------------
 
@@ -946,7 +965,7 @@ void Execute_OrderCalcProfit()
 void Execute_PositionGetTicket()
 {
    int index;
-   GET_INT_VALUE(0, index, "PositionGetTicket", "index");
+   GET_INT_VALUE(0, index, "index");
 
 #ifdef __DEBUG_LOG__
    PrintFormat("%s: index = %d", __FUNCTION__, index);
@@ -958,7 +977,7 @@ void Execute_PositionGetTicket()
    PrintFormat("%s: result = %u", __FUNCTION__, result);
 #endif
 
-   SEND_ULONG_RESPONSE(result, "PositionGetTicket");
+   SEND_ULONG_RESPONSE(result);
 }
 
 void Execute_PositionsTotal()
@@ -5537,7 +5556,7 @@ void Execute_TimeGMT()
 void Execute_IndicatorRelease()
 {
    int indicator_handle;
-   GET_INT_VALUE(0, indicator_handle, "IndicatorRelease", "indicator_handle");
+   GET_INT_VALUE(0, indicator_handle, "indicator_handle");
    
 #ifdef __DEBUG_LOG__
    PrintFormat("%s: indicator_handle = %d", __FUNCTION__, indicator_handle);
@@ -5557,7 +5576,7 @@ void Execute_GetLastError()
    PrintFormat("%s: last_error = %d", __FUNCTION__, last_error);
 #endif
 
-   SEND_INT_RESPONSE(last_error, "GetLastError");
+   SEND_INT_RESPONSE(last_error);
 }
 
 void Execute_Alert()
@@ -5565,7 +5584,7 @@ void Execute_Alert()
    string message;
    StringInit(message, 1000);
    
-   GET_STRING_VALUE(0, message, "Alert", "message");
+   GET_STRING_VALUE(0, message, "message")
    
 #ifdef __DEBUG_LOG__
    PrintFormat("%s: message = %s", __FUNCTION__, message);
@@ -5573,10 +5592,7 @@ void Execute_Alert()
 
    Alert(message);
 
-   if (!sendVoidResponse(ExpertHandle, _error))
-   {
-      PrintResponseError("Alert", _response_error);
-   }
+   SEND_VOID_RESPONSE
 }
 
 void Execute_ResetLastError()
@@ -5587,10 +5603,7 @@ void Execute_ResetLastError()
    PrintFormat("%s: called", __FUNCTION__);
 #endif
    
-   if (!sendVoidResponse(ExpertHandle, _error))
-   {
-      PrintResponseError("ResetLastError", _response_error);
-   }
+   SEND_VOID_RESPONSE
 }
 
 void Execute_ChartOpen()
@@ -5642,6 +5655,24 @@ void Execute_ChartNext()
    {
       PrintResponseError("ChartFirst", _response_error);
    }
+}
+
+void Execute_ChartClose()
+{
+   long chart_id;
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d", __FUNCTION__, chart_id);
+#endif
+
+   bool result = ChartClose(chart_id);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(result));
+#endif
+
+   SEND_BOOL_RESPONSE(result)
 }
 
 void Execute_ChartSymbol()
@@ -5715,6 +5746,28 @@ void Execute_ChartSaveTemplate()
       PrintResponseError("ChartSaveTemplate", _response_error);
    }
    ChartRedraw(ChartId);
+}
+
+void Execute_ChartWindowFind()
+{
+   long chart_id;
+   string indicator_shortname;
+   StringInit(indicator_shortname, 200, 0);
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_STRING_VALUE(1, indicator_shortname, "indicator_shortname")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d, indicator_shortname = %s", __FUNCTION__, chart_id, indicator_shortname);
+#endif
+
+   int result = ChartWindowFind(chart_id, indicator_shortname);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %d", __FUNCTION__, result);
+#endif
+
+   SEND_INT_RESPONSE(result)
 }
 
 void Execute_ChartGetString()
@@ -5791,6 +5844,31 @@ void Execute_TerminalInfoDouble()
    {
       PrintResponseError("TerminalInfoDouble", _response_error);
    }
+}
+
+void Execute_ChartId()
+{
+   long id = ChartID();
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: id = %d", __FUNCTION__, id);
+#endif
+
+   SEND_LONG_RESPONSE(id)
+}
+
+void Execute_ChartRedraw()
+{
+   long chart_id;
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d", __FUNCTION__, chart_id);
+#endif   
+   
+   ChartRedraw(chart_id);
+   
+   SEND_VOID_RESPONSE
 }
    
 void PrintParamError(string paramName)

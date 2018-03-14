@@ -1516,6 +1516,7 @@ namespace MtApi5
         ///<summary>
         ///This function calls a forced redrawing of a specified chart.
         ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
         public void ChartRedraw(long chartId = 0)
         {
             var commandParameters = new ArrayList { chartId };
@@ -1660,7 +1661,7 @@ namespace MtApi5
         ///<returns>
         ///If successful, returns true, otherwise false.
         ///</returns>
-        public bool ChartClose(long chartId)
+        public bool ChartClose(long chartId = 0)
         {
             var commandParameters = new ArrayList { chartId };
             return SendCommand<bool>(Mt5CommandType.ChartClose, commandParameters);
