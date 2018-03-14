@@ -756,6 +756,15 @@ int executeCommand()
    case 246: //ChartPeriod
       Execute_ChartPeriod();
    break;
+   case 247: //ChartSetDouble
+      Execute_ChartSetDouble();
+   break;
+   case 248: //ChartSetInteger
+      Execute_ChartSetInteger();
+   break;
+   case 249: //ChartSetString
+      Execute_ChartSetString();
+   break;
    case 252: //ChartGetString
       Execute_ChartGetString();
    break;
@@ -780,7 +789,7 @@ int executeCommand()
 #define GET_INT_VALUE(argument_id, argument, argument_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getIntValue, argument_id, argument, __FUNCTION__, argument_name)
 #define GET_LONG_VALUE(argument_id, argument, argument_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getLongValue, argument_id, argument, __FUNCTION__, argument_name)
 #define GET_STRING_VALUE(argument_id, argument, argument_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getStringValue, argument_id, argument, __FUNCTION__, argument_name)
-
+#define GET_DOUBLE_VALUE(argument_id, argument, argument_name) GET_VALUE_OR_RETURN_WITH_SENDING_ERROR(getDoubleValue, argument_id, argument, __FUNCTION__, argument_name)
 
 #define SEND_RESPONSE_OR_PRINT_ERROR(send_func, response, cmd_name) if (!send_func(ExpertHandle, response, _response_error)) \
    {                                                                                                                         \
@@ -5698,7 +5707,7 @@ void Execute_ChartSymbol()
 void Execute_ChartPeriod()
 {
    long chart_id;
-   GET_LONG_VALUE(0, chart_id, "chart_id");
+   GET_LONG_VALUE(0, chart_id, "chart_id")
    
 #ifdef __DEBUG_LOG__
    PrintFormat("%s: chart_id = %d", __FUNCTION__, chart_id);
@@ -5711,6 +5720,76 @@ void Execute_ChartPeriod()
 #endif
 
    SEND_INT_RESPONSE((int)period)
+}
+
+void Execute_ChartSetDouble()
+{
+   long chart_id;
+   int prop_id;
+   double value;
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_INT_VALUE(1, prop_id, "prop_id")
+   GET_DOUBLE_VALUE(2, value, "value")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d, prop_id = %d, value = %f", __FUNCTION__, chart_id, prop_id, value);
+#endif
+
+   bool result = ChartSetDouble(chart_id, (ENUM_CHART_PROPERTY_DOUBLE)prop_id, value);
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(result));
+#endif
+
+   SEND_BOOL_RESPONSE(result)
+}
+
+void Execute_ChartSetInteger()
+{
+   long chart_id;
+   int prop_id;
+   long value;
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_INT_VALUE(1, prop_id, "prop_id")
+   GET_LONG_VALUE(2, value, "value")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d, prop_id = %d, value = %d", __FUNCTION__, chart_id, prop_id, value);
+#endif
+
+   bool result = ChartSetInteger(chart_id, (ENUM_CHART_PROPERTY_INTEGER)prop_id, value);
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(result));
+#endif
+
+   SEND_BOOL_RESPONSE(result)
+}
+
+void Execute_ChartSetString()
+{
+   long chart_id;
+   int prop_id;
+   string value;
+   StringInit(value, 1000);
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_INT_VALUE(1, prop_id, "prop_id")
+   GET_STRING_VALUE(2, value, "value")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d, prop_id = %d, value = %s", __FUNCTION__, chart_id, prop_id, value);
+#endif
+
+   bool result = ChartSetString(chart_id, (ENUM_CHART_PROPERTY_STRING)prop_id, value);
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(result));
+#endif
+
+   SEND_BOOL_RESPONSE(result)
 }
 
 void Execute_ChartApplyTemplate()
