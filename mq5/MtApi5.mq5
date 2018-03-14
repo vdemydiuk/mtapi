@@ -753,6 +753,9 @@ int executeCommand()
    case 245: //ChartFirst
       Execute_ChartSymbol();
    break;
+   case 246: //ChartPeriod
+      Execute_ChartPeriod();
+   break;
    case 252: //ChartGetString
       Execute_ChartGetString();
    break;
@@ -5690,6 +5693,24 @@ void Execute_ChartSymbol()
    {
       PrintResponseError("ChartSymbol", _response_error);
    }
+}
+
+void Execute_ChartPeriod()
+{
+   long chart_id;
+   GET_LONG_VALUE(0, chart_id, "chart_id");
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d", __FUNCTION__, chart_id);
+#endif
+
+   ENUM_TIMEFRAMES period = ChartPeriod(chart_id);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: period = %s", __FUNCTION__, EnumToString(period));
+#endif
+
+   SEND_INT_RESPONSE((int)period)
 }
 
 void Execute_ChartApplyTemplate()
