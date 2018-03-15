@@ -1791,9 +1791,9 @@ namespace MtApi5
         ///<returns>
         ///Returns true if successful, otherwise returns false.
         ///</returns>
-        public bool ChartNavigate(long chartId, int position, int shift = 0)
+        public bool ChartNavigate(long chartId, ENUM_CHART_POSITION position, int shift = 0)
         {
-            var commandParameters = new ArrayList { chartId, position, shift };
+            var commandParameters = new ArrayList { chartId, (int)position, shift };
             return SendCommand<bool>(Mt5CommandType.ChartNavigate, commandParameters);
         }
 

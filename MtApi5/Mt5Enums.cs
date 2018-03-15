@@ -112,11 +112,17 @@ namespace MtApi5
 
     public enum ENUM_CHART_PROPERTY_STRING
     {
-        CHART_COMMENT = 20,
-        CHART_EXPERT_NAME = 113,
-        CHART_SCRIPT_NAME = 114
+        CHART_COMMENT       = 20,
+        CHART_EXPERT_NAME   = 113,
+        CHART_SCRIPT_NAME   = 114
     }
 
+    public enum ENUM_CHART_POSITION
+    {
+        CHART_BEGIN         = 0, // Chart beginning (the oldest prices)
+        CHART_CURRENT_POS   = 1, // Current position
+        CHART_END           = 2  // Chart end (the latest prices)
+    }
 
     #endregion
 

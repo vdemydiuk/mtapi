@@ -774,6 +774,9 @@ int executeCommand()
    case 252: //ChartGetString
       Execute_ChartGetString();
    break;
+   case 253: //ChartNavigate
+      Execute_ChartNavigate();
+   break;
    default:
       Print("Unknown command type = ", commandType);
       sendVoidResponse(ExpertHandle, _response_error);
@@ -812,6 +815,7 @@ int executeCommand()
 #define SEND_ULONG_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendULongResponse, response, __FUNCTION__)
 #define SEND_BOOL_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendBooleanResponse, response, __FUNCTION__)
 #define SEND_DOUBLE_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendDoubleResponse, response, __FUNCTION__)
+#define SEND_STRING_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendStringResponse, response, __FUNCTION__)
 
 //-------------------------------------------------------------
 
@@ -5824,7 +5828,7 @@ void Execute_ChartGetDouble()
 
 void Execute_ChartGetInteger()
 {
-      long chart_id;
+   long chart_id;
    int prop_id;
    int sub_window;
    
@@ -5843,6 +5847,52 @@ void Execute_ChartGetInteger()
 #endif
 
    SEND_LONG_RESPONSE(result)
+}
+
+void Execute_ChartGetString()
+{
+   long chart_id;
+   int prop_id;
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_INT_VALUE(1, prop_id, "prop_id")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d, prop_id = %d", __FUNCTION__, chart_id, prop_id);
+#endif
+   
+   string result = ChartGetString(chart_id, (ENUM_CHART_PROPERTY_STRING)prop_id);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, result);
+#endif
+   
+   SEND_STRING_RESPONSE(result)
+   
+   ChartRedraw(chart_id);
+}
+
+void Execute_ChartNavigate()
+{
+   long chart_id;
+   int position;
+   int shift;
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_INT_VALUE(1, position, "position")
+   GET_INT_VALUE(2, shift, "shift")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d, position = %d, shift = %d", __FUNCTION__, chart_id, position, shift);
+#endif
+
+   bool result = ChartNavigate(chart_id, (ENUM_CHART_POSITION)position, shift);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(result));
+#endif
+
+   SEND_BOOL_RESPONSE(result)
 }
 
 void Execute_ChartApplyTemplate()
@@ -5921,31 +5971,6 @@ void Execute_ChartWindowFind()
 #endif
 
    SEND_INT_RESPONSE(result)
-}
-
-void Execute_ChartGetString()
-{
-   long ChartId;
-   int PropId;
-   
-   if (!getLongValue(ExpertHandle, 0, ChartId, _error))
-   {
-      PrintParamError("ChartGetString", "ChartId", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }   
-   if (!getIntValue(ExpertHandle, 1, PropId, _error))
-   {
-      PrintParamError("ChartGetString", "PropId", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }   
-   
-   if (!sendStringResponse(ExpertHandle, ChartGetString(ChartId, (ENUM_CHART_PROPERTY_STRING)PropId), _response_error))
-   {
-      PrintResponseError("ChartGetString", _response_error);
-   }
-   ChartRedraw(ChartId);
 }
 
 void Execute_TerminalInfoString()
