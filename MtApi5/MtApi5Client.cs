@@ -1798,13 +1798,13 @@ namespace MtApi5
         }
 
         ///<summary>
-        ///Performs shift of the specified chart by the specified number of bars relative to the specified position in the chart.
+        ///Removes an indicator with a specified name from the specified chart window.
         ///</summary>
         ///<param name="chartId">Chart ID. 0 means the current chart.</param>
         ///<param name="subWindow">Number of the chart subwindow. 0 denotes the main chart subwindow.</param>
         ///<param name="indicatorShortname">The short name of the indicator which is set in the INDICATOR_SHORTNAME property with the IndicatorSetString() function. To get the short name of an indicator use the ChartIndicatorName() function.</param>
         ///<returns>
-        ///Returns true if the command has been added to chart queue, otherwise false.
+        ///Returns true in case of successful deletion of the indicator. 
         ///</returns>
         public bool ChartIndicatorDelete(long chartId, int subWindow, string indicatorShortname)
         {

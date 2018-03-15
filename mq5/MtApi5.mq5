@@ -777,6 +777,9 @@ int executeCommand()
    case 253: //ChartNavigate
       Execute_ChartNavigate();
    break;
+   case 254: //ChartIndicatorDelete
+      Execute_ChartIndicatorDelete();
+   break;
    default:
       Print("Unknown command type = ", commandType);
       sendVoidResponse(ExpertHandle, _response_error);
@@ -5887,6 +5890,30 @@ void Execute_ChartNavigate()
 #endif
 
    bool result = ChartNavigate(chart_id, (ENUM_CHART_POSITION)position, shift);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(result));
+#endif
+
+   SEND_BOOL_RESPONSE(result)
+}
+
+void Execute_ChartIndicatorDelete()
+{
+   long chart_id;
+   int sub_window;
+   string indicator_shortname;
+   StringInit(indicator_shortname, 1000);
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_INT_VALUE(1, sub_window, "sub_window")
+   GET_STRING_VALUE(2, indicator_shortname, "indicator_shortname")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d, sub_window = %d, indicator_shortname = %s", __FUNCTION__, chart_id, sub_window, indicator_shortname);
+#endif
+
+   bool result = ChartIndicatorDelete( chart_id, sub_window, indicator_shortname);
    
 #ifdef __DEBUG_LOG__
    PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(result));
