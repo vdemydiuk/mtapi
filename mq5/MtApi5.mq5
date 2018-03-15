@@ -765,6 +765,12 @@ int executeCommand()
    case 249: //ChartSetString
       Execute_ChartSetString();
    break;
+   case 250: //ChartGetDouble
+      Execute_ChartGetDouble();
+   break;
+   case 251: //ChartGetInteger
+      Execute_ChartGetInteger();
+   break;
    case 252: //ChartGetString
       Execute_ChartGetString();
    break;
@@ -805,6 +811,7 @@ int executeCommand()
 #define SEND_LONG_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendLongResponse, response, __FUNCTION__)
 #define SEND_ULONG_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendULongResponse, response, __FUNCTION__)
 #define SEND_BOOL_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendBooleanResponse, response, __FUNCTION__)
+#define SEND_DOUBLE_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendDoubleResponse, response, __FUNCTION__)
 
 //-------------------------------------------------------------
 
@@ -5790,6 +5797,52 @@ void Execute_ChartSetString()
 #endif
 
    SEND_BOOL_RESPONSE(result)
+}
+
+void Execute_ChartGetDouble()
+{
+   long chart_id;
+   int prop_id;
+   int sub_window;
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_INT_VALUE(1, prop_id, "prop_id")
+   GET_INT_VALUE(2, sub_window, "sub_window")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d, prop_id = %d, sub_window = %d", __FUNCTION__, chart_id, prop_id, sub_window);
+#endif
+
+   double result = ChartGetDouble(chart_id, (ENUM_CHART_PROPERTY_DOUBLE)prop_id, sub_window);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %f", __FUNCTION__, result);
+#endif
+
+   SEND_DOUBLE_RESPONSE(result)
+}
+
+void Execute_ChartGetInteger()
+{
+      long chart_id;
+   int prop_id;
+   int sub_window;
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_INT_VALUE(1, prop_id, "prop_id")
+   GET_INT_VALUE(2, sub_window, "sub_window")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d, prop_id = %d, sub_window = %d", __FUNCTION__, chart_id, prop_id, sub_window);
+#endif
+
+   long result = ChartGetInteger(chart_id, (ENUM_CHART_PROPERTY_INTEGER)prop_id, sub_window);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %d", __FUNCTION__, result);
+#endif
+
+   SEND_LONG_RESPONSE(result)
 }
 
 void Execute_ChartApplyTemplate()

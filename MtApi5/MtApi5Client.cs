@@ -1739,7 +1739,7 @@ namespace MtApi5
         }
 
         ///<summary>
-        ///Sets a value for a corresponding property of the specified chart. Chart property must be of the string type.
+        ///Returns the value of a corresponding property of the specified chart. Chart property must be of double type.
         ///</summary>
         ///<param name="chartId">Chart ID. 0 means the current chart.</param>
         ///<param name="propId">Chart property ID. This value can be one of the ENUM_CHART_PROPERTY_DOUBLE values.</param>
