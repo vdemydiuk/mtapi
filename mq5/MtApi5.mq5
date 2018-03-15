@@ -780,6 +780,33 @@ int executeCommand()
    case 254: //ChartIndicatorDelete
       Execute_ChartIndicatorDelete();
    break;
+   case 255: //ChartIndicatorName
+      Execute_ChartIndicatorName();
+   break;
+   case 256: //ChartIndicatorsTotal
+      Execute_ChartIndicatorsTotal();
+   break;
+   case 257: //ChartWindowOnDropped
+      Execute_ChartWindowOnDropped();
+   break;
+   case 258: //ChartPriceOnDropped
+      Execute_ChartPriceOnDropped();
+   break;
+   case 259: //ChartTimeOnDropped
+      Execute_ChartTimeOnDropped();
+   break;
+   case 260: //ChartXOnDropped
+      Execute_ChartXOnDropped();
+   break;
+   case 261: //ChartYOnDropped
+      Execute_ChartYOnDropped();
+   break;
+   case 262: //ChartSetSymbolPeriod
+      Execute_ChartSetSymbolPeriod();
+   break;
+   case 263: //ChartScreenShot
+      Execute_ChartScreenShot();
+   break;
    default:
       Print("Unknown command type = ", commandType);
       sendVoidResponse(ExpertHandle, _response_error);
@@ -5914,6 +5941,157 @@ void Execute_ChartIndicatorDelete()
 #endif
 
    bool result = ChartIndicatorDelete( chart_id, sub_window, indicator_shortname);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(result));
+#endif
+
+   SEND_BOOL_RESPONSE(result)
+}
+
+void Execute_ChartIndicatorName()
+{
+   long chart_id;
+   int sub_window;
+   int index;
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_INT_VALUE(1, sub_window, "sub_window")
+   GET_INT_VALUE(2, index, "index")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d, sub_window = %d, index = %d", __FUNCTION__, chart_id, sub_window, index);
+#endif
+
+   string result = ChartIndicatorName(chart_id, sub_window, index);
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, result);
+#endif
+
+   SEND_STRING_RESPONSE(result)
+}
+
+void Execute_ChartIndicatorsTotal()
+{
+   long chart_id;
+   int sub_window;
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_INT_VALUE(1, sub_window, "sub_window")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d, sub_window = %d", __FUNCTION__, chart_id, sub_window);
+#endif
+
+   int result = ChartIndicatorsTotal(chart_id, sub_window);
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %d", __FUNCTION__, result);
+#endif
+
+   SEND_INT_RESPONSE(result)
+}
+
+void Execute_ChartWindowOnDropped()
+{
+   int result = ChartWindowOnDropped();
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %d", __FUNCTION__, result);
+#endif
+
+   SEND_INT_RESPONSE(result)
+}
+
+void Execute_ChartPriceOnDropped()
+{
+   double result = ChartPriceOnDropped();
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %f", __FUNCTION__, result);
+#endif
+
+   SEND_DOUBLE_RESPONSE(result)
+}
+
+void Execute_ChartTimeOnDropped()
+{
+   datetime result = ChartTimeOnDropped();
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, TimeToString(result));
+#endif
+
+   SEND_INT_RESPONSE((int)result)
+}
+
+void Execute_ChartXOnDropped()
+{
+   int result = ChartXOnDropped();
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %d", __FUNCTION__, result);
+#endif
+
+   SEND_INT_RESPONSE(result)
+}
+
+void Execute_ChartYOnDropped()
+{
+   int result = ChartYOnDropped();
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %d", __FUNCTION__, result);
+#endif
+
+   SEND_INT_RESPONSE(result)
+}
+
+void Execute_ChartSetSymbolPeriod()
+{
+   long chart_id;
+   string symbol;
+   int period;
+   StringInit(symbol, 100);
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_STRING_VALUE(1, symbol, "symbol")
+   GET_INT_VALUE(2, period, "period")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d, symbol = %s, period = %d", __FUNCTION__, chart_id, symbol, period);
+#endif
+
+   bool result = ChartSetSymbolPeriod(chart_id, symbol, (ENUM_TIMEFRAMES)period);
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(result));
+#endif
+
+   SEND_BOOL_RESPONSE(result)
+}
+
+void Execute_ChartScreenShot()
+{
+   long chart_id;
+   string filename;
+   int width;
+   int height;
+   int align_mode;
+   StringInit(filename, 100);
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_STRING_VALUE(1, filename, "filename")
+   GET_INT_VALUE(2, width, "width")
+   GET_INT_VALUE(3, height, "height")
+   GET_INT_VALUE(4, align_mode, "align_mode")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %d, filename = %s, width = %d, height = %d, align_mode = %d", __FUNCTION__, chart_id, filename, width, height, align_mode);
+#endif
+
+   bool result = ChartScreenShot(chart_id, filename, width, height, (ENUM_ALIGN_MODE)align_mode);
    
 #ifdef __DEBUG_LOG__
    PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(result));
