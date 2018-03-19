@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace MtApi5TestClient
 {
@@ -10,38 +6,38 @@ namespace MtApi5TestClient
     {
         #region Properties
         
-        public string Instrument { get; private set; }
+        public string Instrument { get; }
 
-        private double _Bid;
+        private double _bid;
         public double Bid
         {
-            get { return _Bid; }
+            get { return _bid; }
             set
             {
-                _Bid = value;
+                _bid = value;
                 OnPropertyChanged("Bid");
             }
         }
 
-        private double _Ask;
+        private double _ask;
         public double Ask
         {
-            get { return _Ask; }
+            get { return _ask; }
             set
             {
-                _Ask = value;
+                _ask = value;
                 OnPropertyChanged("Ask");
             }
         }
 
-        private int _FeedCount = 0;
-        public int FeedCount
+        private int _expertHandle;
+        public int ExpertHandle
         {
-            get { return _FeedCount; }
+            get { return _expertHandle; }
             set
             {
-                _FeedCount = value;
-                OnPropertyChanged("FeedCount");
+                _expertHandle = value;
+                OnPropertyChanged("ExpertHandle");
             }
         }
 
@@ -59,8 +55,7 @@ namespace MtApi5TestClient
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
     }

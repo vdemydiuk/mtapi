@@ -87,138 +87,6 @@ namespace MtApi5TestClient
         public DelegateCommand TimeGMTCommand { get; private set; }
         #endregion
 
-        #region Chart Commands
-        private async void ExecuteChartOpen(object o)
-        {
-            AddLog("Executed #1");
-            if (string.IsNullOrEmpty(ChartFunctionsSymbolValue))
-            {
-                AddLog("ChartOpen [ERROR]: Symbol is not defined!");
-                return;
-            }
-
-            AddLog($"Executed #2 s:{ChartFunctionsSymbolValue}");
-
-            
-            var result = await Execute(() =>
-            {
-                var SymbolAddReturn = _mtApiClient.SymbolSelect(ChartFunctionsSymbolValue, true);
-                var ChartId = _mtApiClient.ChartOpen(ChartFunctionsSymbolValue, TimeSeriesValues.TimeFrame);
-                return ChartId;
-            });
-
-            if (result == -1)
-            {
-                AddLog("ChartOpen: result is null");
-                return;
-            }
-
-            AddLog($"ChartOpen: success chartid=>{result}");
-        }
-
-        private async void ExecuteChartTimePriceToXY(object o)
-        {
-            const long chartId = 0;
-            const int subWindow = 0;
-            var time = DateTime.Now;
-            const double price = 1.131;
-            var x = 0;
-            var y = 0;
-
-            var result = await Execute(() => _mtApiClient.ChartTimePriceToXY(chartId, subWindow, time, price, out x, out y));
-            if (result == false)
-            {
-                AddLog("ChartTimePriceToXY: result is false");
-                return;
-            }
-
-            AddLog($"ChartTimePriceToXY: success. x = {x}; Y = {y}");
-        }
-
-        private async void ExecuteChartXYToTimePrice(object o)
-        {
-            const long chartId = 0;
-            const int x = 0;
-            const int y = 0;
-
-            var subWindow = 0;
-            DateTime? time = null;
-            double price = double.NaN;
-
-            var result = await Execute(() => _mtApiClient.ChartXYToTimePrice(chartId, x, y, out subWindow, out time, out price));
-            if (result == false)
-            {
-                AddLog("ChartXYToTimePrice: result is false");
-                return;
-            }
-
-            AddLog($"ChartXYToTimePrice: success. subWindow = {subWindow}; time = {time}; price = {price}");
-        }
-
-        private async void ExecuteChartApplyTemplate(object o)
-        {
-            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
-
-            AddLog($"ExecuteChartApplyTemplate #2 s:{TimeSeriesValues?.SymbolValue}");
-
-
-            var result = await Execute(() =>
-            {
-                var SymbolAddReturn = _mtApiClient.SymbolSelect(TimeSeriesValues?.SymbolValue, true);
-                var ChartId = _mtApiClient.ChartOpen(TimeSeriesValues?.SymbolValue, TimeSeriesValues.TimeFrame);
-
-                var MT5Path = _mtApiClient.TerminalInfoString(ENUM_TERMINAL_INFO_STRING.TERMINAL_DATA_PATH);
-
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                openFileDialog.Filter = "Template File (*.tpl)|*.tpl|All files (*.*)|*.*";
-                if (openFileDialog.ShowDialog() == true)
-                {
-                    var TemplateName = "\\Files\\mt5api_copy.tpl";
-                    var TemplateStringContent = File.ReadAllLines(openFileDialog.FileName);
-                    var DestPath = $"{MT5Path}\\MQL5{TemplateName}";
-                    File.WriteAllLines($"{MT5Path}\\MQL5{TemplateName}", TemplateStringContent);
-                    _mtApiClient.ChartApplyTemplate(ChartId, TemplateName);
-                }
-                return ChartId;
-            });
-
-            if (result == -1)
-            {
-                AddLog("ExecuteChartApplyTemplate: result is null");
-                return;
-            }
-
-            AddLog($"ExecuteChartApplyTemplate: success chartid=>{result}");
-        }
-
-        private async void ExecuteChartSaveTemplate(object o)
-        {
-
-            AddLog($"ExecuteSaveApplyTemplate #1");
-
-
-            var result = await Execute(() =>
-            {
-
-                var MT5Path = _mtApiClient.TerminalInfoString(ENUM_TERMINAL_INFO_STRING.TERMINAL_DATA_PATH);
-                int ChartId = 0;  // Actual Chart
-                var TemplateName = "\\Files\\exported.tpl";
-                _mtApiClient.ChartSaveTemplate(ChartId, TemplateName);
-                var DestPath = $"{MT5Path}\\MQL5{TemplateName}";
-                AddLog($"Destination: {TemplateName}");
-                return ChartId;
-            });
-
-            if (result == -1)
-            {
-                AddLog("ChartOpen: result is null");
-                return;
-            }
-
-            AddLog($"ChartOpen: success chartid=>{result}");
-        }
-        #endregion
-
         #region Properties
         private Mt5ConnectionState _connectionState;
         public Mt5ConnectionState ConnectionState
@@ -339,10 +207,9 @@ namespace MtApi5TestClient
             _mtApiClient.QuoteAdded += mMtApiClient_QuoteAdded;
             _mtApiClient.QuoteRemoved += mMtApiClient_QuoteRemoved;
             _mtApiClient.QuoteUpdated += mMtApiClient_QuoteUpdated;
+            _mtApiClient.QuoteUpdate += mMtApiClient_QuoteUpdate;
             _mtApiClient.OnTradeTransaction += mMtApiClient_OnTradeTransaction;
             _mtApiClient.OnBookEvent += _mtApiClient_OnBookEvent;
-
-            _quotesMap = new Dictionary<string, QuoteViewModel>();
 
             ConnectionState = _mtApiClient.ConnectionState;
             ConnectionMessage = "Disconnected";
@@ -1193,6 +1060,138 @@ namespace MtApi5TestClient
             AddLog($"TimeGMT: {retVal}");
         }
 
+        #region Chart Commands
+        private async void ExecuteChartOpen(object o)
+        {
+            AddLog("Executed #1");
+            if (string.IsNullOrEmpty(ChartFunctionsSymbolValue))
+            {
+                AddLog("ChartOpen [ERROR]: Symbol is not defined!");
+                return;
+            }
+
+            AddLog($"Executed #2 s:{ChartFunctionsSymbolValue}");
+
+
+            var result = await Execute(() =>
+            {
+                var SymbolAddReturn = _mtApiClient.SymbolSelect(ChartFunctionsSymbolValue, true);
+                var ChartId = _mtApiClient.ChartOpen(ChartFunctionsSymbolValue, TimeSeriesValues.TimeFrame);
+                return ChartId;
+            });
+
+            if (result == -1)
+            {
+                AddLog("ChartOpen: result is null");
+                return;
+            }
+
+            AddLog($"ChartOpen: success chartid=>{result}");
+        }
+
+        private async void ExecuteChartTimePriceToXY(object o)
+        {
+            const long chartId = 0;
+            const int subWindow = 0;
+            var time = DateTime.Now;
+            const double price = 1.131;
+            var x = 0;
+            var y = 0;
+
+            var result = await Execute(() => _mtApiClient.ChartTimePriceToXY(chartId, subWindow, time, price, out x, out y));
+            if (result == false)
+            {
+                AddLog("ChartTimePriceToXY: result is false");
+                return;
+            }
+
+            AddLog($"ChartTimePriceToXY: success. x = {x}; Y = {y}");
+        }
+
+        private async void ExecuteChartXYToTimePrice(object o)
+        {
+            const long chartId = 0;
+            const int x = 0;
+            const int y = 0;
+
+            var subWindow = 0;
+            DateTime? time = null;
+            double price = double.NaN;
+
+            var result = await Execute(() => _mtApiClient.ChartXYToTimePrice(chartId, x, y, out subWindow, out time, out price));
+            if (result == false)
+            {
+                AddLog("ChartXYToTimePrice: result is false");
+                return;
+            }
+
+            AddLog($"ChartXYToTimePrice: success. subWindow = {subWindow}; time = {time}; price = {price}");
+        }
+
+        private async void ExecuteChartApplyTemplate(object o)
+        {
+            if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
+
+            AddLog($"ExecuteChartApplyTemplate #2 s:{TimeSeriesValues?.SymbolValue}");
+
+
+            var result = await Execute(() =>
+            {
+                var SymbolAddReturn = _mtApiClient.SymbolSelect(TimeSeriesValues?.SymbolValue, true);
+                var ChartId = _mtApiClient.ChartOpen(TimeSeriesValues?.SymbolValue, TimeSeriesValues.TimeFrame);
+
+                var MT5Path = _mtApiClient.TerminalInfoString(ENUM_TERMINAL_INFO_STRING.TERMINAL_DATA_PATH);
+
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "Template File (*.tpl)|*.tpl|All files (*.*)|*.*";
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    var TemplateName = "\\Files\\mt5api_copy.tpl";
+                    var TemplateStringContent = File.ReadAllLines(openFileDialog.FileName);
+                    var DestPath = $"{MT5Path}\\MQL5{TemplateName}";
+                    File.WriteAllLines($"{MT5Path}\\MQL5{TemplateName}", TemplateStringContent);
+                    _mtApiClient.ChartApplyTemplate(ChartId, TemplateName);
+                }
+                return ChartId;
+            });
+
+            if (result == -1)
+            {
+                AddLog("ExecuteChartApplyTemplate: result is null");
+                return;
+            }
+
+            AddLog($"ExecuteChartApplyTemplate: success chartid=>{result}");
+        }
+
+        private async void ExecuteChartSaveTemplate(object o)
+        {
+
+            AddLog("ExecuteSaveApplyTemplate #1");
+
+
+            var result = await Execute(() =>
+            {
+
+                var MT5Path = _mtApiClient.TerminalInfoString(ENUM_TERMINAL_INFO_STRING.TERMINAL_DATA_PATH);
+                int ChartId = 0;  // Actual Chart
+                var TemplateName = "\\Files\\exported.tpl";
+                _mtApiClient.ChartSaveTemplate(ChartId, TemplateName);
+                var DestPath = $"{MT5Path}\\MQL5{TemplateName}";
+                AddLog($"Destination: {TemplateName}");
+                return ChartId;
+            });
+
+            if (result == -1)
+            {
+                AddLog("ChartOpen: result is null");
+                return;
+            }
+
+            AddLog($"ChartOpen: success chartid=>{result}");
+        }
+        #endregion
+
         private static void RunOnUiThread(Action action)
         {
             Application.Current?.Dispatcher.Invoke(action);
@@ -1203,27 +1202,29 @@ namespace MtApi5TestClient
             Application.Current?.Dispatcher.Invoke(action, args);
         }
 
-        private void mMtApiClient_QuoteUpdated(object sender, string symbol, double bid, double ask)
+        private static void mMtApiClient_QuoteUpdated(object sender, string symbol, double bid, double ask)
         {
-            if (string.IsNullOrEmpty(symbol) == false)
-            {
-                if (_quotesMap.ContainsKey(symbol))
-                {
-                    var qvm = _quotesMap[symbol];
-                    qvm.Bid = bid;
-                    qvm.Ask = ask;
-                }
+            Console.WriteLine(@"Quote: Symbol = {0}, Bid = {1}, Ask = {2}", symbol, bid, ask);
+        }
 
-                if (string.Equals(symbol, TradeRequest.Symbol))
+        private void mMtApiClient_QuoteUpdate(object sender, Mt5QuoteEventArgs e)
+        {
+            if (_quotesMap.ContainsKey(e.Quote.ExpertHandle))
+            {
+                var qvm = _quotesMap[e.Quote.ExpertHandle];
+                qvm.Bid = e.Quote.Bid;
+                qvm.Ask = e.Quote.Ask;
+            }
+
+            if (string.Equals(e.Quote.Instrument, TradeRequest.Symbol))
+            {
+                if (TradeRequest.Type == ENUM_ORDER_TYPE.ORDER_TYPE_BUY)
                 {
-                    if (TradeRequest.Type == ENUM_ORDER_TYPE.ORDER_TYPE_BUY)
-                    {
-                        TradeRequest.Price = ask;
-                    }
-                    else if (TradeRequest.Type == ENUM_ORDER_TYPE.ORDER_TYPE_SELL)
-                    {
-                        TradeRequest.Price = bid;
-                    }
+                    TradeRequest.Price = e.Quote.Ask;
+                }
+                else if (TradeRequest.Type == ENUM_ORDER_TYPE.ORDER_TYPE_SELL)
+                {
+                    TradeRequest.Price = e.Quote.Bid;
                 }
             }
         }
@@ -1269,42 +1270,34 @@ namespace MtApi5TestClient
 
         private void AddQuote(Mt5Quote quote)
         {
-            if (quote == null)
+            if (_quotesMap.ContainsKey(quote.ExpertHandle))
+            {
+                AddLog($"AddQuote: Quote {quote.Instrument} with handle {quote.ExpertHandle} is present list. Skipped!");
                 return;
-
-            QuoteViewModel qvm;
-
-            if (_quotesMap.ContainsKey(quote.Instrument) == false)
-            {
-                qvm = new QuoteViewModel(quote.Instrument);
-                _quotesMap[quote.Instrument] = qvm;
-                Quotes.Add(qvm);
-            }
-            else
-            {
-                qvm = _quotesMap[quote.Instrument];
             }
 
-            qvm.FeedCount++;
-            qvm.Bid = quote.Bid;
-            qvm.Ask = quote.Ask;
+            var qvm = new QuoteViewModel(quote.Instrument)
+            {
+                ExpertHandle = quote.ExpertHandle,
+                Bid = quote.Bid,
+                Ask = quote.Ask
+            };
+
+            _quotesMap[quote.ExpertHandle] = qvm;
+            Quotes.Add(qvm);
         }
 
         private void RemoveQuote(Mt5Quote quote)
         {
-            if (quote == null) return;
-
-            if (_quotesMap.ContainsKey(quote.Instrument))
+            if (_quotesMap.ContainsKey(quote.ExpertHandle) == false)
             {
-                var qvm = _quotesMap[quote.Instrument];
-                qvm.FeedCount--;
-
-                if (qvm.FeedCount <= 0)
-                {
-                    _quotesMap.Remove(quote.Instrument);
-                    Quotes.Remove(qvm);
-                }
+                AddLog($"RemoveQuote: Quote {quote.Instrument} with handle {quote.ExpertHandle} is NOT present list. Skipped!");
+                return;
             }
+
+            var qvm = _quotesMap[quote.ExpertHandle];
+            _quotesMap.Remove(quote.ExpertHandle);
+            Quotes.Remove(qvm);
         }
 
         private void OnConnected()
@@ -1378,7 +1371,7 @@ namespace MtApi5TestClient
         #region Private Fields
         private readonly MtApi5Client _mtApiClient;
 
-        private readonly Dictionary<string, QuoteViewModel> _quotesMap;
+        private readonly Dictionary<int, QuoteViewModel> _quotesMap = new Dictionary<int, QuoteViewModel>();
         #endregion
     }
 }
