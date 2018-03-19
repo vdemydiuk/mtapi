@@ -499,6 +499,8 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
@@ -512,18 +514,23 @@
                             <Button Command="{Binding ChartXYToTimePriceCommand}" Content="ChartXYToTimePrice" Margin="2"/>
                         </WrapPanel>
 
-                        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="5">
-                            <TextBlock Text="ChartID" VerticalAlignment="Center" Margin="2"/>
-                            <TextBox Width="150" Text="{Binding ChartFunctionsChartIdValue}" Margin="2"/>
-                        </StackPanel>
-
                         <WrapPanel Grid.Row="3" VerticalAlignment="Top" Margin="5">
                             <Button Command="{Binding ChartApplyTemplateCommand}" Content="ChartApplyTemplate" Margin="2"/>
                             <Button Command="{Binding ChartSaveTemplateCommand}" Content="ChartSaveTemplate" Margin="2"/>
+                        </WrapPanel>
+
+                        <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="5">
                             <Button Command="{Binding ChartIdCommand}" Content="ChartId" Margin="2"/>
+                            <TextBlock Text="ChartID" VerticalAlignment="Center" Margin="20,2,2,2"/>
+                            <TextBox Width="150" Text="{Binding ChartFunctionsChartIdValue}" Margin="2"/>
+                        </StackPanel>
+
+                        <WrapPanel Grid.Row="5" VerticalAlignment="Top" Margin="5">
                             <Button Command="{Binding ChartRedrawCommand}" Content="ChartRedraw" Margin="2"/>
                             <Button Command="{Binding ChartWindowFindCommand}" Content="ChartWindowFind" Margin="2"/>
                             <Button Command="{Binding ChartCloseCommand}" Content="ChartClose" Margin="2"/>
+                            <Button Command="{Binding ChartPeriodCommand}" Content="ChartPeriod" Margin="2"/>
+                            <Button Command="{Binding ChartSetDoubleCommand}" Content="ChartSetDouble" Margin="2"/>
                         </WrapPanel>
                     </Grid>
                 </TabItem>

@@ -85,6 +85,8 @@ namespace MtApi5TestClient
         public DelegateCommand ChartRedrawCommand { get; private set; }
         public DelegateCommand ChartWindowFindCommand { get; private set; }
         public DelegateCommand ChartCloseCommand { get; private set; }
+        public DelegateCommand ChartPeriodCommand { get; private set; }
+        public DelegateCommand ChartSetDoubleCommand { get; private set; }
 
         public DelegateCommand TimeTradeServerCommand { get; private set; }
         public DelegateCommand TimeLocalCommand { get; private set; }
@@ -323,6 +325,8 @@ namespace MtApi5TestClient
             ChartRedrawCommand = new DelegateCommand(ExecuteChartRedraw);
             ChartWindowFindCommand = new DelegateCommand(ExecuteChartWindowFind);
             ChartCloseCommand = new DelegateCommand(ExecuteChartClose);
+            ChartPeriodCommand = new DelegateCommand(ExecuteChartPeriod);
+            ChartSetDoubleCommand = new DelegateCommand(ExecuteChartSetDouble);
 
             TimeCurrentCommand = new DelegateCommand(ExecuteTimeCurrent);
             TimeTradeServerCommand = new DelegateCommand(ExecuteTimeTradeServer);
@@ -1239,6 +1243,20 @@ namespace MtApi5TestClient
             var chartId = ChartFunctionsChartIdValue;
             var result = await Execute(() => _mtApiClient.ChartClose(chartId));
             AddLog($"ChartClose: result {result} for chartid = {chartId}");
+        }
+
+        private async void ExecuteChartPeriod(object o)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            var result = await Execute(() => _mtApiClient.ChartPeriod(chartId));
+            AddLog($"ChartPeriod: result {result} for chartid = {chartId}");
+        }
+
+        private async void ExecuteChartSetDouble(object o)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            var result = await Execute(() => _mtApiClient.ChartSetDouble(chartId, ENUM_CHART_PROPERTY_DOUBLE.CHART_PRICE_MAX, 1.13));
+            AddLog($"ChartSetDouble: result {result} for chartid = {chartId}");
         }
         #endregion
 
