@@ -9,10 +9,6 @@ namespace MtApi5
         private static readonly MtLog Log = LogConfigurator.GetLogger(typeof(MtConverters));
 
         #region Values Converters
-        public static Mt5Quote Convert(this MtQuote quote)
-        {
-            return quote != null ? new Mt5Quote(quote.Instrument, quote.Bid, quote.Ask) : null;
-        }
 
         public static bool ParseResult(this string inputString, char separator, out double result)
         {

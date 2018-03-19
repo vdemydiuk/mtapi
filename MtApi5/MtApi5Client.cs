@@ -82,7 +82,7 @@ namespace MtApi5
         {
             var client = Client;
             var quotes = client?.GetQuotes();
-            return quotes?.Select(q => q.Convert());
+            return quotes?.Select(q => new Mt5Quote(q));
         }
 
         ///<summary>
@@ -3319,7 +3319,7 @@ namespace MtApi5
         private void _client_QuoteUpdated(MtQuote quote)
         {
             if (quote == null) return;
-            QuoteUpdate?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote(quote.Instrument, quote.Bid, quote.Ask)));
+            QuoteUpdate?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote(quote)));
             QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
         }
 
@@ -3337,7 +3337,7 @@ namespace MtApi5
         {
             if (quote != null)
             {
-                QuoteRemoved?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote(quote.Instrument, quote.Bid, quote.Ask)));
+                QuoteRemoved?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote(quote)));
             }
         }
 
@@ -3345,7 +3345,7 @@ namespace MtApi5
         {
             if (quote != null)
             {
-                QuoteAdded?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote(quote.Instrument, quote.Bid, quote.Ask)));
+                QuoteAdded?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote(quote)));
             }
         }
 
