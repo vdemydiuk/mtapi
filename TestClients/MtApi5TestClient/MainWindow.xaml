@@ -522,6 +522,8 @@
                             <Button Command="{Binding ChartSaveTemplateCommand}" Content="ChartSaveTemplate" Margin="2"/>
                             <Button Command="{Binding ChartIdCommand}" Content="ChartId" Margin="2"/>
                             <Button Command="{Binding ChartRedrawCommand}" Content="ChartRedraw" Margin="2"/>
+                            <Button Command="{Binding ChartWindowFindCommand}" Content="ChartWindowFind" Margin="2"/>
+                            <Button Command="{Binding ChartCloseCommand}" Content="ChartClose" Margin="2"/>
                         </WrapPanel>
                     </Grid>
                 </TabItem>

@@ -83,6 +83,8 @@ namespace MtApi5TestClient
         public DelegateCommand ChartSaveTemplateCommand { get; private set; }
         public DelegateCommand ChartIdCommand { get; private set; }
         public DelegateCommand ChartRedrawCommand { get; private set; }
+        public DelegateCommand ChartWindowFindCommand { get; private set; }
+        public DelegateCommand ChartCloseCommand { get; private set; }
 
         public DelegateCommand TimeTradeServerCommand { get; private set; }
         public DelegateCommand TimeLocalCommand { get; private set; }
@@ -319,6 +321,8 @@ namespace MtApi5TestClient
             ChartSaveTemplateCommand = new DelegateCommand(ExecuteChartSaveTemplate);
             ChartIdCommand = new DelegateCommand(ExecuteChartId);
             ChartRedrawCommand = new DelegateCommand(ExecuteChartRedraw);
+            ChartWindowFindCommand = new DelegateCommand(ExecuteChartWindowFind);
+            ChartCloseCommand = new DelegateCommand(ExecuteChartClose);
 
             TimeCurrentCommand = new DelegateCommand(ExecuteTimeCurrent);
             TimeTradeServerCommand = new DelegateCommand(ExecuteTimeTradeServer);
@@ -1220,6 +1224,21 @@ namespace MtApi5TestClient
             var chartId = ChartFunctionsChartIdValue;
             _mtApiClient.ChartRedraw(chartId);
             AddLog($"ChartRedraw: executed for chartid = {chartId}");
+        }
+
+        private async void ExecuteChartWindowFind(object o)
+        {
+            const string shortname = "MACD(12,26,9)";
+            var chartId = ChartFunctionsChartIdValue;
+            var result = await Execute(() => _mtApiClient.ChartWindowFind(chartId, shortname));
+            AddLog($"ChartRedraw: result {result} for chartid = {chartId}");
+        }
+
+        private async void ExecuteChartClose(object o)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            var result = await Execute(() => _mtApiClient.ChartClose(chartId));
+            AddLog($"ChartClose: result {result} for chartid = {chartId}");
         }
         #endregion
 
