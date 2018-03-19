@@ -5716,7 +5716,7 @@ void Execute_ChartClose()
    GET_LONG_VALUE(0, chart_id, "chart_id")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d", __FUNCTION__, chart_id);
+   PrintFormat("%s: chart_id = %I64d", __FUNCTION__, chart_id);
 #endif
 
    bool result = ChartClose(chart_id);
@@ -5751,7 +5751,7 @@ void Execute_ChartPeriod()
    GET_LONG_VALUE(0, chart_id, "chart_id")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d", __FUNCTION__, chart_id);
+   PrintFormat("%s: chart_id = %I64d", __FUNCTION__, chart_id);
 #endif
 
    ENUM_TIMEFRAMES period = ChartPeriod(chart_id);
@@ -5774,7 +5774,7 @@ void Execute_ChartSetDouble()
    GET_DOUBLE_VALUE(2, value, "value")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d, prop_id = %d, value = %f", __FUNCTION__, chart_id, prop_id, value);
+   PrintFormat("%s: chart_id = %I64d, prop_id = %d, value = %f", __FUNCTION__, chart_id, prop_id, value);
 #endif
 
    bool result = ChartSetDouble(chart_id, (ENUM_CHART_PROPERTY_DOUBLE)prop_id, value);
@@ -5797,7 +5797,7 @@ void Execute_ChartSetInteger()
    GET_LONG_VALUE(2, value, "value")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d, prop_id = %d, value = %d", __FUNCTION__, chart_id, prop_id, value);
+   PrintFormat("%s: chart_id = %I64d, prop_id = %d, value = %d", __FUNCTION__, chart_id, prop_id, value);
 #endif
 
    bool result = ChartSetInteger(chart_id, (ENUM_CHART_PROPERTY_INTEGER)prop_id, value);
@@ -5821,7 +5821,7 @@ void Execute_ChartSetString()
    GET_STRING_VALUE(2, value, "value")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d, prop_id = %d, value = %s", __FUNCTION__, chart_id, prop_id, value);
+   PrintFormat("%s: chart_id = %I64d, prop_id = %d, value = %s", __FUNCTION__, chart_id, prop_id, value);
 #endif
 
    bool result = ChartSetString(chart_id, (ENUM_CHART_PROPERTY_STRING)prop_id, value);
@@ -5844,7 +5844,7 @@ void Execute_ChartGetDouble()
    GET_INT_VALUE(2, sub_window, "sub_window")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d, prop_id = %d, sub_window = %d", __FUNCTION__, chart_id, prop_id, sub_window);
+   PrintFormat("%s: chart_id = %I64d, prop_id = %d, sub_window = %d", __FUNCTION__, chart_id, prop_id, sub_window);
 #endif
 
    double result = ChartGetDouble(chart_id, (ENUM_CHART_PROPERTY_DOUBLE)prop_id, sub_window);
@@ -5867,7 +5867,7 @@ void Execute_ChartGetInteger()
    GET_INT_VALUE(2, sub_window, "sub_window")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d, prop_id = %d, sub_window = %d", __FUNCTION__, chart_id, prop_id, sub_window);
+   PrintFormat("%s: chart_id = %I64d, prop_id = %d, sub_window = %d", __FUNCTION__, chart_id, prop_id, sub_window);
 #endif
 
    long result = ChartGetInteger(chart_id, (ENUM_CHART_PROPERTY_INTEGER)prop_id, sub_window);
@@ -5888,7 +5888,7 @@ void Execute_ChartGetString()
    GET_INT_VALUE(1, prop_id, "prop_id")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d, prop_id = %d", __FUNCTION__, chart_id, prop_id);
+   PrintFormat("%s: chart_id = %I64d, prop_id = %d", __FUNCTION__, chart_id, prop_id);
 #endif
    
    string result = ChartGetString(chart_id, (ENUM_CHART_PROPERTY_STRING)prop_id);
@@ -5913,7 +5913,7 @@ void Execute_ChartNavigate()
    GET_INT_VALUE(2, shift, "shift")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d, position = %d, shift = %d", __FUNCTION__, chart_id, position, shift);
+   PrintFormat("%s: chart_id = %I64d, position = %d, shift = %d", __FUNCTION__, chart_id, position, shift);
 #endif
 
    bool result = ChartNavigate(chart_id, (ENUM_CHART_POSITION)position, shift);
@@ -5937,7 +5937,7 @@ void Execute_ChartIndicatorDelete()
    GET_STRING_VALUE(2, indicator_shortname, "indicator_shortname")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d, sub_window = %d, indicator_shortname = %s", __FUNCTION__, chart_id, sub_window, indicator_shortname);
+   PrintFormat("%s: chart_id = %I64d, sub_window = %d, indicator_shortname = %s", __FUNCTION__, chart_id, sub_window, indicator_shortname);
 #endif
 
    bool result = ChartIndicatorDelete( chart_id, sub_window, indicator_shortname);
@@ -5960,7 +5960,7 @@ void Execute_ChartIndicatorName()
    GET_INT_VALUE(2, index, "index")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d, sub_window = %d, index = %d", __FUNCTION__, chart_id, sub_window, index);
+   PrintFormat("%s: chart_id = %I64d, sub_window = %d, index = %d", __FUNCTION__, chart_id, sub_window, index);
 #endif
 
    string result = ChartIndicatorName(chart_id, sub_window, index);
@@ -5981,7 +5981,7 @@ void Execute_ChartIndicatorsTotal()
    GET_INT_VALUE(1, sub_window, "sub_window")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d, sub_window = %d", __FUNCTION__, chart_id, sub_window);
+   PrintFormat("%s: chart_id = %I64d, sub_window = %d", __FUNCTION__, chart_id, sub_window);
 #endif
 
    int result = ChartIndicatorsTotal(chart_id, sub_window);
@@ -6060,7 +6060,7 @@ void Execute_ChartSetSymbolPeriod()
    GET_INT_VALUE(2, period, "period")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d, symbol = %s, period = %d", __FUNCTION__, chart_id, symbol, period);
+   PrintFormat("%s: chart_id = %I64d, symbol = %s, period = %d", __FUNCTION__, chart_id, symbol, period);
 #endif
 
    bool result = ChartSetSymbolPeriod(chart_id, symbol, (ENUM_TIMEFRAMES)period);
@@ -6088,7 +6088,7 @@ void Execute_ChartScreenShot()
    GET_INT_VALUE(4, align_mode, "align_mode")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d, filename = %s, width = %d, height = %d, align_mode = %d", __FUNCTION__, chart_id, filename, width, height, align_mode);
+   PrintFormat("%s: chart_id = %I64d, filename = %s, width = %d, height = %d, align_mode = %d", __FUNCTION__, chart_id, filename, width, height, align_mode);
 #endif
 
    bool result = ChartScreenShot(chart_id, filename, width, height, (ENUM_ALIGN_MODE)align_mode);
@@ -6166,7 +6166,7 @@ void Execute_ChartWindowFind()
    GET_STRING_VALUE(1, indicator_shortname, "indicator_shortname")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d, indicator_shortname = %s", __FUNCTION__, chart_id, indicator_shortname);
+   PrintFormat("%s: chart_id = %I64d, indicator_shortname = %s", __FUNCTION__, chart_id, indicator_shortname);
 #endif
 
    int result = ChartWindowFind(chart_id, indicator_shortname);
@@ -6234,7 +6234,7 @@ void Execute_ChartId()
    long id = ChartID();
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: id = %d", __FUNCTION__, id);
+   PrintFormat("%s: id = %I64d", __FUNCTION__, id);
 #endif
 
    SEND_LONG_RESPONSE(id)
@@ -6246,7 +6246,7 @@ void Execute_ChartRedraw()
    GET_LONG_VALUE(0, chart_id, "chart_id")
    
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: chart_id = %d", __FUNCTION__, chart_id);
+   PrintFormat("%s: chart_id = %I64d", __FUNCTION__, chart_id);
 #endif   
    
    ChartRedraw(chart_id);

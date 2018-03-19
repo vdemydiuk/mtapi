@@ -81,6 +81,8 @@ namespace MtApi5TestClient
         public DelegateCommand ChartXYToTimePriceCommand { get; private set; }
         public DelegateCommand ChartApplyTemplateCommand { get; private set; }
         public DelegateCommand ChartSaveTemplateCommand { get; private set; }
+        public DelegateCommand ChartIdCommand { get; private set; }
+        public DelegateCommand ChartRedrawCommand { get; private set; }
 
         public DelegateCommand TimeTradeServerCommand { get; private set; }
         public DelegateCommand TimeLocalCommand { get; private set; }
@@ -195,6 +197,17 @@ namespace MtApi5TestClient
                 OnPropertyChanged("ChartFunctionsSymbolValue");
             }
         }
+
+        private long _chartFunctionsChartIdValue;
+        public long ChartFunctionsChartIdValue
+        {
+            get { return _chartFunctionsChartIdValue; }
+            set
+            {
+                _chartFunctionsChartIdValue = value;
+                OnPropertyChanged("ChartFunctionsChartIdValue");
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -304,7 +317,8 @@ namespace MtApi5TestClient
             ChartXYToTimePriceCommand = new DelegateCommand(ExecuteChartXYToTimePrice);
             ChartApplyTemplateCommand = new DelegateCommand(ExecuteChartApplyTemplate);
             ChartSaveTemplateCommand = new DelegateCommand(ExecuteChartSaveTemplate);
-
+            ChartIdCommand = new DelegateCommand(ExecuteChartId);
+            ChartRedrawCommand = new DelegateCommand(ExecuteChartRedraw);
 
             TimeCurrentCommand = new DelegateCommand(ExecuteTimeCurrent);
             TimeTradeServerCommand = new DelegateCommand(ExecuteTimeTradeServer);
@@ -1189,6 +1203,23 @@ namespace MtApi5TestClient
             }
 
             AddLog($"ChartOpen: success chartid=>{result}");
+        }
+
+        private async void ExecuteChartId(object o)
+        {
+            var result = await Execute(() => _mtApiClient.ChartId());
+            RunOnUiThread(() =>
+            {
+                ChartFunctionsChartIdValue = result;
+            });
+            AddLog($"ChartId: chartid = {result}");
+        }
+
+        private void ExecuteChartRedraw(object o)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            _mtApiClient.ChartRedraw(chartId);
+            AddLog($"ChartRedraw: executed for chartid = {chartId}");
         }
         #endregion
 

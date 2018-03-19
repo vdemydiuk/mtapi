@@ -498,6 +498,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
@@ -511,9 +512,16 @@
                             <Button Command="{Binding ChartXYToTimePriceCommand}" Content="ChartXYToTimePrice" Margin="2"/>
                         </WrapPanel>
 
-                        <WrapPanel Grid.Row="2" VerticalAlignment="Top" Margin="5">
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="5">
+                            <TextBlock Text="ChartID" VerticalAlignment="Center" Margin="2"/>
+                            <TextBox Width="150" Text="{Binding ChartFunctionsChartIdValue}" Margin="2"/>
+                        </StackPanel>
+
+                        <WrapPanel Grid.Row="3" VerticalAlignment="Top" Margin="5">
                             <Button Command="{Binding ChartApplyTemplateCommand}" Content="ChartApplyTemplate" Margin="2"/>
                             <Button Command="{Binding ChartSaveTemplateCommand}" Content="ChartSaveTemplate" Margin="2"/>
+                            <Button Command="{Binding ChartIdCommand}" Content="ChartId" Margin="2"/>
+                            <Button Command="{Binding ChartRedrawCommand}" Content="ChartRedraw" Margin="2"/>
                         </WrapPanel>
                     </Grid>
                 </TabItem>
