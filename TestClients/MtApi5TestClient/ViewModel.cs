@@ -87,6 +87,8 @@ namespace MtApi5TestClient
         public DelegateCommand ChartCloseCommand { get; private set; }
         public DelegateCommand ChartPeriodCommand { get; private set; }
         public DelegateCommand ChartSetDoubleCommand { get; private set; }
+        public DelegateCommand ChartSetIntegerCommand { get; private set; }
+        public DelegateCommand ChartSetStringCommand { get; private set; }
 
         public DelegateCommand TimeTradeServerCommand { get; private set; }
         public DelegateCommand TimeLocalCommand { get; private set; }
@@ -327,6 +329,8 @@ namespace MtApi5TestClient
             ChartCloseCommand = new DelegateCommand(ExecuteChartClose);
             ChartPeriodCommand = new DelegateCommand(ExecuteChartPeriod);
             ChartSetDoubleCommand = new DelegateCommand(ExecuteChartSetDouble);
+            ChartSetIntegerCommand = new DelegateCommand(ExecuteChartSetInteger);
+            ChartSetStringCommand = new DelegateCommand(ExecuteChartSetString);
 
             TimeCurrentCommand = new DelegateCommand(ExecuteTimeCurrent);
             TimeTradeServerCommand = new DelegateCommand(ExecuteTimeTradeServer);
@@ -1257,6 +1261,20 @@ namespace MtApi5TestClient
             var chartId = ChartFunctionsChartIdValue;
             var result = await Execute(() => _mtApiClient.ChartSetDouble(chartId, ENUM_CHART_PROPERTY_DOUBLE.CHART_PRICE_MAX, 1.13));
             AddLog($"ChartSetDouble: result {result} for chartid = {chartId}");
+        }
+
+        private async void ExecuteChartSetInteger(object o)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            var result = await Execute(() => _mtApiClient.ChartSetInteger(chartId, ENUM_CHART_PROPERTY_INTEGER.CHART_SHOW_GRID, 0));
+            AddLog($"ChartSetInteger: result {result} for chartid = {chartId}");
+        }
+
+        private async void ExecuteChartSetString(object o)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            var result = await Execute(() => _mtApiClient.ChartSetString(chartId, ENUM_CHART_PROPERTY_STRING.CHART_COMMENT, "This is test comment from MtApi5"));
+            AddLog($"ChartSetString: result {result} for chartid = {chartId}");
         }
         #endregion
 
