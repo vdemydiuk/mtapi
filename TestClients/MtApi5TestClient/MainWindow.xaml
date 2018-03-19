@@ -533,6 +533,8 @@
                             <Button Command="{Binding ChartSetDoubleCommand}" Content="ChartSetDouble" Margin="2"/>
                             <Button Command="{Binding ChartSetIntegerCommand}" Content="ChartSetInteger" Margin="2"/>
                             <Button Command="{Binding ChartSetStringCommand}" Content="ChartSetString" Margin="2"/>
+                            <Button Command="{Binding ChartGetDoubleCommand}" Content="ChartGetDouble" Margin="2"/>
+                            <Button Command="{Binding ChartGetIntegerCommand}" Content="ChartGetInteger" Margin="2"/>
                         </WrapPanel>
                     </Grid>
                 </TabItem>

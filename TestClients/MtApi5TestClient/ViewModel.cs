@@ -89,6 +89,8 @@ namespace MtApi5TestClient
         public DelegateCommand ChartSetDoubleCommand { get; private set; }
         public DelegateCommand ChartSetIntegerCommand { get; private set; }
         public DelegateCommand ChartSetStringCommand { get; private set; }
+        public DelegateCommand ChartGetDoubleCommand { get; private set; }
+        public DelegateCommand ChartGetIntegerCommand { get; private set; }
 
         public DelegateCommand TimeTradeServerCommand { get; private set; }
         public DelegateCommand TimeLocalCommand { get; private set; }
@@ -331,6 +333,8 @@ namespace MtApi5TestClient
             ChartSetDoubleCommand = new DelegateCommand(ExecuteChartSetDouble);
             ChartSetIntegerCommand = new DelegateCommand(ExecuteChartSetInteger);
             ChartSetStringCommand = new DelegateCommand(ExecuteChartSetString);
+            ChartGetDoubleCommand = new DelegateCommand(ExecuteChartGetDouble);
+            ChartGetIntegerCommand = new DelegateCommand(ExecuteChartGetInteger);
 
             TimeCurrentCommand = new DelegateCommand(ExecuteTimeCurrent);
             TimeTradeServerCommand = new DelegateCommand(ExecuteTimeTradeServer);
@@ -1239,42 +1243,56 @@ namespace MtApi5TestClient
             const string shortname = "MACD(12,26,9)";
             var chartId = ChartFunctionsChartIdValue;
             var result = await Execute(() => _mtApiClient.ChartWindowFind(chartId, shortname));
-            AddLog($"ChartRedraw: result {result} for chartid = {chartId}");
+            AddLog($"ChartRedraw: result {result} for chartid {chartId}");
         }
 
         private async void ExecuteChartClose(object o)
         {
             var chartId = ChartFunctionsChartIdValue;
             var result = await Execute(() => _mtApiClient.ChartClose(chartId));
-            AddLog($"ChartClose: result {result} for chartid = {chartId}");
+            AddLog($"ChartClose: result {result} for chartid {chartId}");
         }
 
         private async void ExecuteChartPeriod(object o)
         {
             var chartId = ChartFunctionsChartIdValue;
             var result = await Execute(() => _mtApiClient.ChartPeriod(chartId));
-            AddLog($"ChartPeriod: result {result} for chartid = {chartId}");
+            AddLog($"ChartPeriod: result {result} for chartid {chartId}");
         }
 
         private async void ExecuteChartSetDouble(object o)
         {
             var chartId = ChartFunctionsChartIdValue;
             var result = await Execute(() => _mtApiClient.ChartSetDouble(chartId, ENUM_CHART_PROPERTY_DOUBLE.CHART_PRICE_MAX, 1.13));
-            AddLog($"ChartSetDouble: result {result} for chartid = {chartId}");
+            AddLog($"ChartSetDouble: result {result} for chartid {chartId}");
         }
 
         private async void ExecuteChartSetInteger(object o)
         {
             var chartId = ChartFunctionsChartIdValue;
             var result = await Execute(() => _mtApiClient.ChartSetInteger(chartId, ENUM_CHART_PROPERTY_INTEGER.CHART_SHOW_GRID, 0));
-            AddLog($"ChartSetInteger: result {result} for chartid = {chartId}");
+            AddLog($"ChartSetInteger: result {result} for chartid {chartId}");
         }
 
         private async void ExecuteChartSetString(object o)
         {
             var chartId = ChartFunctionsChartIdValue;
             var result = await Execute(() => _mtApiClient.ChartSetString(chartId, ENUM_CHART_PROPERTY_STRING.CHART_COMMENT, "This is test comment from MtApi5"));
-            AddLog($"ChartSetString: result {result} for chartid = {chartId}");
+            AddLog($"ChartSetString: result {result} for chartid {chartId}");
+        }
+
+        private async void ExecuteChartGetDouble(object o)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            var result = await Execute(() => _mtApiClient.ChartGetDouble(chartId, ENUM_CHART_PROPERTY_DOUBLE.CHART_PRICE_MAX, 0));
+            AddLog($"ChartGetDouble: result {result} for chartid {chartId}");
+        }
+
+        private async void ExecuteChartGetInteger(object o)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            var result = await Execute(() => _mtApiClient.ChartGetInteger(chartId, ENUM_CHART_PROPERTY_INTEGER.CHART_VISIBLE_BARS, 0));
+            AddLog($"ChartGetInteger: result {result} for chartid {chartId}");
         }
         #endregion
 
