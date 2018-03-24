@@ -807,6 +807,12 @@ int executeCommand()
    case 263: //ChartScreenShot
       Execute_ChartScreenShot();
    break;
+   case 280: //ChartIndicatorAdd
+      Execute_ChartIndicatorAdd();
+   break;
+   case 281: //ChartIndicatorGet
+      Execute_ChartIndicatorGet();
+   break;
    default:
       Print("Unknown command type = ", commandType);
       sendVoidResponse(ExpertHandle, _response_error);
@@ -6098,6 +6104,53 @@ void Execute_ChartScreenShot()
 #endif
 
    SEND_BOOL_RESPONSE(result)
+}
+
+void Execute_ChartIndicatorAdd()
+{
+   long chart_id;
+   int sub_window;
+   int indicator_handle;
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_INT_VALUE(2, sub_window, "sub_window")
+   GET_INT_VALUE(3, indicator_handle, "indicator_handle")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %I64d, sub_window = %d, indicator_handle = %d", __FUNCTION__, chart_id, sub_window, indicator_handle);
+#endif
+
+   bool result = ChartIndicatorAdd(chart_id, sub_window, indicator_handle);
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(result));
+#endif
+
+   SEND_BOOL_RESPONSE(result)
+}
+
+void Execute_ChartIndicatorGet()
+{
+   long chart_id;
+   int sub_window;
+   string indicator_shortname;
+   StringInit(indicator_shortname, 1000);
+   
+   GET_LONG_VALUE(0, chart_id, "chart_id")
+   GET_INT_VALUE(1, sub_window, "sub_window")
+   GET_STRING_VALUE(2, indicator_shortname, "indicator_shortname")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: chart_id = %I64d, sub_window = %d, indicator_shortname = %s", __FUNCTION__, chart_id, sub_window, indicator_shortname);
+#endif
+
+   int result = ChartIndicatorGet( chart_id, sub_window, indicator_shortname);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %d", __FUNCTION__, result);
+#endif
+
+   SEND_INT_RESPONSE(result)
 }
 
 void Execute_ChartApplyTemplate()

@@ -1798,6 +1798,21 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Adds an indicator with the specified handle into a specified chart window. Indicator and chart should be generated on the same symbol and time frame.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="subWindow">Number of the chart subwindow. 0 denotes the main chart subwindow.</param>
+        ///<param name="indicatorHandle">The handle of the indicator.</param>
+        ///<returns>
+        ///The function returns true in case of success, otherwise it returns false. 
+        ///</returns>
+        public bool ChartIndicatorAdd(long chartId, int subWindow, int indicatorHandle)
+        {
+            var commandParameters = new ArrayList { chartId, subWindow, indicatorHandle };
+            return SendCommand<bool>(Mt5CommandType.ChartIndicatorAdd, commandParameters);
+        }
+
+        ///<summary>
         ///Removes an indicator with a specified name from the specified chart window.
         ///</summary>
         ///<param name="chartId">Chart ID. 0 means the current chart.</param>
@@ -1810,6 +1825,21 @@ namespace MtApi5
         {
             var commandParameters = new ArrayList { chartId, subWindow, indicatorShortname };
             return SendCommand<bool>(Mt5CommandType.ChartIndicatorDelete, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the handle of the indicator with the specified short name in the specified chart window.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="subWindow">Number of the chart subwindow. 0 denotes the main chart subwindow.</param>
+        ///<param name="indicatorShortname">The short name of the indicator which is set in the INDICATOR_SHORTNAME property with the IndicatorSetString() function. To get the short name of an indicator use the ChartIndicatorName() function.</param>
+        ///<returns>
+        ///Returns an indicator handle if successful, otherwise returns INVALID_HANDLE. 
+        ///</returns>
+        public int ChartIndicatorGet(long chartId, int subWindow, string indicatorShortname)
+        {
+            var commandParameters = new ArrayList { chartId, subWindow, indicatorShortname };
+            return SendCommand<int>(Mt5CommandType.ChartIndicatorGet, commandParameters);
         }
 
         ///<summary>

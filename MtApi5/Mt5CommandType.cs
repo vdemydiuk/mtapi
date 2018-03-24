@@ -179,8 +179,6 @@ namespace MtApi5
 
         IndicatorRelease                    = 131,
 
-
-
         //Chart Operations
         ChartId                             = 206,
         ChartRedraw                         = 207,
@@ -212,7 +210,9 @@ namespace MtApi5
         ChartYOnDropped                     = 261,
         ChartSetSymbolPeriod                = 262,
         ChartScreenShot                     = 263,
-        
+        ChartIndicatorAdd                   = 280,
+        ChartIndicatorGet                   = 281,
+
         // Windows Operations
         WindowBarsPerChart                  = 264,
         WindowExpertName                    = 265,
