@@ -535,6 +535,17 @@
                             <Button Command="{Binding ChartSetStringCommand}" Content="ChartSetString" Margin="2"/>
                             <Button Command="{Binding ChartGetDoubleCommand}" Content="ChartGetDouble" Margin="2"/>
                             <Button Command="{Binding ChartGetIntegerCommand}" Content="ChartGetInteger" Margin="2"/>
+                            <Button Command="{Binding ChartNavigateCommand}" Content="ChartNavigate" Margin="2"/>
+                            <Button Command="{Binding ChartIndicatorDeleteCommand}" Content="ChartIndicatorDelete" Margin="2"/>
+                            <Button Command="{Binding ChartIndicatorNameCommand}" Content="ChartIndicatorName" Margin="2"/>
+                            <Button Command="{Binding ChartIndicatorsTotalCommand}" Content="ChartIndicatorsTotal" Margin="2"/>
+                            <Button Command="{Binding ChartWindowOnDroppedCommand}" Content="ChartWindowOnDropped" Margin="2"/>
+                            <Button Command="{Binding ChartPriceOnDroppedCommand}" Content="ChartPriceOnDropped" Margin="2"/>
+                            <Button Command="{Binding ChartTimeOnDroppedCommand}" Content="ChartTimeOnDropped" Margin="2"/>
+                            <Button Command="{Binding ChartXOnDroppedCommand}" Content="ChartXOnDropped" Margin="2"/>
+                            <Button Command="{Binding ChartYOnDroppedCommand}" Content="ChartYOnDropped" Margin="2"/>
+                            <Button Command="{Binding ChartSetSymbolPeriodCommand}" Content="ChartSetSymbolPeriod" Margin="2"/>
+                            <Button Command="{Binding ChartScreenShotCommand}" Content="ChartScreenShot" Margin="2"/>
                         </WrapPanel>
                     </Grid>
                 </TabItem>

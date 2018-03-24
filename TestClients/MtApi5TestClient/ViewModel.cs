@@ -91,6 +91,17 @@ namespace MtApi5TestClient
         public DelegateCommand ChartSetStringCommand { get; private set; }
         public DelegateCommand ChartGetDoubleCommand { get; private set; }
         public DelegateCommand ChartGetIntegerCommand { get; private set; }
+        public DelegateCommand ChartNavigateCommand { get; private set; }
+        public DelegateCommand ChartIndicatorDeleteCommand { get; private set; }
+        public DelegateCommand ChartIndicatorNameCommand { get; private set; }
+        public DelegateCommand ChartIndicatorsTotalCommand { get; private set; }
+        public DelegateCommand ChartWindowOnDroppedCommand { get; private set; }
+        public DelegateCommand ChartPriceOnDroppedCommand { get; private set; }
+        public DelegateCommand ChartTimeOnDroppedCommand { get; private set; }
+        public DelegateCommand ChartXOnDroppedCommand { get; private set; }
+        public DelegateCommand ChartYOnDroppedCommand { get; private set; }
+        public DelegateCommand ChartSetSymbolPeriodCommand { get; private set; }
+        public DelegateCommand ChartScreenShotCommand { get; private set; }
 
         public DelegateCommand TimeTradeServerCommand { get; private set; }
         public DelegateCommand TimeLocalCommand { get; private set; }
@@ -335,6 +346,17 @@ namespace MtApi5TestClient
             ChartSetStringCommand = new DelegateCommand(ExecuteChartSetString);
             ChartGetDoubleCommand = new DelegateCommand(ExecuteChartGetDouble);
             ChartGetIntegerCommand = new DelegateCommand(ExecuteChartGetInteger);
+            ChartNavigateCommand = new DelegateCommand(ExecuteChartNavigate);
+            ChartIndicatorDeleteCommand = new DelegateCommand(ExecuteChartIndicatorDelete);
+            ChartIndicatorNameCommand = new DelegateCommand(ExecuteChartIndicatorName);
+            ChartIndicatorsTotalCommand = new DelegateCommand(ExecuteChartIndicatorsTotal);
+            ChartWindowOnDroppedCommand = new DelegateCommand(ExecuteChartWindowOnDropped);
+            ChartPriceOnDroppedCommand = new DelegateCommand(ExecuteChartPriceOnDropped);
+            ChartTimeOnDroppedCommand = new DelegateCommand(ExecuteChartTimeOnDropped);
+            ChartXOnDroppedCommand = new DelegateCommand(ExecuteChartXOnDropped);
+            ChartYOnDroppedCommand = new DelegateCommand(ExecuteChartYOnDropped);
+            ChartSetSymbolPeriodCommand = new DelegateCommand(ExecuteChartSetSymbolPeriod);
+            ChartScreenShotCommand = new DelegateCommand(ExecuteChartScreenShot);
 
             TimeCurrentCommand = new DelegateCommand(ExecuteTimeCurrent);
             TimeTradeServerCommand = new DelegateCommand(ExecuteTimeTradeServer);
@@ -1052,7 +1074,7 @@ namespace MtApi5TestClient
         private void ExecuteResetLastError(object obj)
         {
             _mtApiClient.ResetLastError();
-            AddLog("GetLastError: executed.");
+            AddLog("ResetLastError: executed.");
         }
 
         private async void ExecuteICustom(object o)
@@ -1293,6 +1315,83 @@ namespace MtApi5TestClient
             var chartId = ChartFunctionsChartIdValue;
             var result = await Execute(() => _mtApiClient.ChartGetInteger(chartId, ENUM_CHART_PROPERTY_INTEGER.CHART_VISIBLE_BARS, 0));
             AddLog($"ChartGetInteger: result {result} for chartid {chartId}");
+        }
+
+        private async void ExecuteChartNavigate(object o)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            var result = await Execute(() => _mtApiClient.ChartNavigate(chartId, ENUM_CHART_POSITION.CHART_BEGIN, 0));
+            AddLog($"ChartNavigate: result {result} for chartid {chartId}");
+        }
+
+        private async void ExecuteChartIndicatorDelete(object o)
+        {
+            const string shortname = "MACD(12,26,9)";
+            var chartId = ChartFunctionsChartIdValue;
+            var result = await Execute(() => _mtApiClient.ChartIndicatorDelete(chartId, 1, shortname));
+            AddLog($"ChartIndicatorDelete: result {result} for chartid {chartId}");
+        }
+
+        private async void ExecuteChartIndicatorName(object obj)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            var result = await Execute(() => _mtApiClient.ChartIndicatorName(chartId, 1, 0));
+            AddLog($"ChartIndicatorName: result {result} for chartid {chartId}");
+        }
+
+        private async void ExecuteChartIndicatorsTotal(object obj)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            var result = await Execute(() => _mtApiClient.ChartIndicatorsTotal(chartId, 1));
+            AddLog($"ChartIndicatorsTotal: result {result} for chartid {chartId}");
+        }
+
+        private async void ExecuteChartWindowOnDropped(object obj)
+        {
+            var result = await Execute(() => _mtApiClient.ChartWindowOnDropped());
+            AddLog($"ChartWindowOnDropped: result {result}");
+        }
+
+        private async void ExecuteChartPriceOnDropped(object obj)
+        {
+            var result = await Execute(() => _mtApiClient.ChartPriceOnDropped());
+            AddLog($"ChartPriceOnDropped: result {result}");
+        }
+
+        private async void ExecuteChartTimeOnDropped(object obj)
+        {
+            var result = await Execute(() => _mtApiClient.ChartTimeOnDropped());
+            AddLog($"ChartTimeOnDropped: result {result}");
+        }
+
+        private async void ExecuteChartXOnDropped(object obj)
+        {
+            var result = await Execute(() => _mtApiClient.ChartXOnDropped());
+            AddLog($"ChartXOnDropped: result {result}");
+        }
+
+        private async void ExecuteChartYOnDropped(object obj)
+        {
+            var result = await Execute(() => _mtApiClient.ChartYOnDropped());
+            AddLog($"ChartYOnDropped: result {result}");
+        }
+
+        private async void ExecuteChartSetSymbolPeriod(object obj)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            var symbol = ChartFunctionsSymbolValue;
+            var result = await Execute(() => _mtApiClient.ChartSetSymbolPeriod(chartId, symbol, ENUM_TIMEFRAMES.PERIOD_M5));
+            AddLog($"ChartSetSymbolPeriod: result {result} for chartid {chartId}");
+        }
+
+        private async void ExecuteChartScreenShot(object obj)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            var filename = "ChartScreenShot_TestMtApi.gif";
+            const int width = 800;
+            const int height = 600;
+            var result = await Execute(() => _mtApiClient.ChartScreenShot(chartId, filename, width, height));
+            AddLog($"ChartScreenShot: result {result} for chartid {chartId}. Filename {filename}");
         }
         #endregion
 
