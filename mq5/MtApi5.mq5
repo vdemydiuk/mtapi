@@ -7059,7 +7059,7 @@ bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
    
    //Order
    CHECK_JSON_VALUE(jo, "Order", false);
-   request.order = jo.getLong("Magic");
+   request.order = jo.getLong("Order");
    
    //Symbol
    CHECK_JSON_VALUE(jo, "Symbol", false);
