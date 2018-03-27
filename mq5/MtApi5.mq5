@@ -1,7 +1,7 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      ""
 
-#property version   "1.4"
+#property version   "1.5"
 #property description "MtApi (MT5) connection expert"
 
 #include <json.mqh>
@@ -41,7 +41,7 @@
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
-#define __DEBUG_LOG__
+//#define __DEBUG_LOG__
 
 input int Port = 8228;
 
@@ -806,6 +806,9 @@ int executeCommand()
    break;
    case 263: //ChartScreenShot
       Execute_ChartScreenShot();
+   break;
+   case 264: //WindowBarsPerChart
+      Execute_WindowBarsPerChart();
    break;
    case 280: //ChartIndicatorAdd
       Execute_ChartIndicatorAdd();
@@ -6104,6 +6107,11 @@ void Execute_ChartScreenShot()
 #endif
 
    SEND_BOOL_RESPONSE(result)
+}
+
+void Execute_WindowBarsPerChart()
+{
+
 }
 
 void Execute_ChartIndicatorAdd()
