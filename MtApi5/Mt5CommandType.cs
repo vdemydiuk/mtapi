@@ -213,24 +213,6 @@ namespace MtApi5
         ChartIndicatorAdd                   = 280,
         ChartIndicatorGet                   = 281,
 
-        // Windows Operations
-        WindowBarsPerChart                  = 264,
-        WindowExpertName                    = 265,
-        WindowFind                          = 266,
-        WindowFirstVisibleBar               = 267,
-        WindowHandle                        = 268,
-        WindowIsVisible                     = 269,
-        WindowOnDropped                     = 270,
-        WindowPriceMax                      = 271,
-        WindowPriceMin                      = 272,
-        WindowPriceOnDropped                = 273,
-        WindowRedraw                        = 274,
-        WindowScreenShot                    = 275,
-        WindowTimeOnDropped                 = 276,
-        WindowsTotal                        = 277,
-        WindowXOnDropped                    = 278,
-        WindowYOnDropped                    = 279,
-
         // Terminal Operations
         TerminalCompany                     = 68,
         TerminalName                        = 69,
