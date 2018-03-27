@@ -6113,8 +6113,8 @@ void Execute_ChartIndicatorAdd()
    int indicator_handle;
    
    GET_LONG_VALUE(0, chart_id, "chart_id")
-   GET_INT_VALUE(2, sub_window, "sub_window")
-   GET_INT_VALUE(3, indicator_handle, "indicator_handle")
+   GET_INT_VALUE(1, sub_window, "sub_window")
+   GET_INT_VALUE(2, indicator_handle, "indicator_handle")
    
 #ifdef __DEBUG_LOG__
    PrintFormat("%s: chart_id = %I64d, sub_window = %d, indicator_handle = %d", __FUNCTION__, chart_id, sub_window, indicator_handle);

@@ -92,7 +92,9 @@ namespace MtApi5TestClient
         public DelegateCommand ChartGetDoubleCommand { get; private set; }
         public DelegateCommand ChartGetIntegerCommand { get; private set; }
         public DelegateCommand ChartNavigateCommand { get; private set; }
+        public DelegateCommand ChartIndicatorAddCommand { get; private set; }
         public DelegateCommand ChartIndicatorDeleteCommand { get; private set; }
+        public DelegateCommand ChartIndicatorGetCommand { get; private set; }
         public DelegateCommand ChartIndicatorNameCommand { get; private set; }
         public DelegateCommand ChartIndicatorsTotalCommand { get; private set; }
         public DelegateCommand ChartWindowOnDroppedCommand { get; private set; }
@@ -347,7 +349,9 @@ namespace MtApi5TestClient
             ChartGetDoubleCommand = new DelegateCommand(ExecuteChartGetDouble);
             ChartGetIntegerCommand = new DelegateCommand(ExecuteChartGetInteger);
             ChartNavigateCommand = new DelegateCommand(ExecuteChartNavigate);
+            ChartIndicatorAddCommand = new DelegateCommand(ExecuteChartIndicatorAdd);
             ChartIndicatorDeleteCommand = new DelegateCommand(ExecuteChartIndicatorDelete);
+            ChartIndicatorGetCommand = new DelegateCommand(ExecuteChartIndicatorGet);
             ChartIndicatorNameCommand = new DelegateCommand(ExecuteChartIndicatorName);
             ChartIndicatorsTotalCommand = new DelegateCommand(ExecuteChartIndicatorsTotal);
             ChartWindowOnDroppedCommand = new DelegateCommand(ExecuteChartWindowOnDropped);
@@ -1324,12 +1328,30 @@ namespace MtApi5TestClient
             AddLog($"ChartNavigate: result {result} for chartid {chartId}");
         }
 
+        private async void ExecuteChartIndicatorAdd(object obj)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            var symbol = ChartFunctionsSymbolValue;
+
+            var indicatorHandle = await Execute(() => _mtApiClient.iMACD(symbol, ENUM_TIMEFRAMES.PERIOD_CURRENT, 12, 26, 9, ENUM_APPLIED_PRICE.PRICE_CLOSE));
+            var result = await Execute(() => _mtApiClient.ChartIndicatorAdd(chartId, 1, indicatorHandle));
+            AddLog($"ChartIndicatorAdd: result {result} for chartid {chartId} with indicator {indicatorHandle}");
+        }
+
         private async void ExecuteChartIndicatorDelete(object o)
         {
             const string shortname = "MACD(12,26,9)";
             var chartId = ChartFunctionsChartIdValue;
             var result = await Execute(() => _mtApiClient.ChartIndicatorDelete(chartId, 1, shortname));
             AddLog($"ChartIndicatorDelete: result {result} for chartid {chartId}");
+        }
+
+        private async void ExecuteChartIndicatorGet(object obj)
+        {
+            const string shortname = "MACD(12,26,9)";
+            var chartId = ChartFunctionsChartIdValue;
+            var result = await Execute(() => _mtApiClient.ChartIndicatorGet(chartId, 1, shortname));
+            AddLog($"hartIndicatorGet: result {result} for chartid {chartId}");
         }
 
         private async void ExecuteChartIndicatorName(object obj)

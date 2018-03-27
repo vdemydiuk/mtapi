@@ -440,20 +440,20 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
 
-                                <ComboBox Grid.Row="0" Grid.Column="0" 
-                                          ItemsSource="{Binding Source={StaticResource ENUM_INDICATOR_Key}}"
-                                          SelectedItem="{Binding TimeSeriesValues.IndicatorType}"/>
-                                <Button Grid.Row="0" Grid.Column="1" Command="{Binding IndicatorCreateCommand}" Margin="2"
-                                        Content="IndicatorCreate" HorizontalAlignment="Left" />
-                                <Label Grid.Row="1" Grid.Column="0" Content="Indicator handle:" Margin="2"/>
-                                <TextBox Grid.Row="1" Grid.Column="0" Margin="2" Width="30" PreviewTextInput="NumberValidationTextBox" Text="{Binding TimeSeriesValues.IndicatorHandle}"></TextBox>
-                                <Button Grid.Row="1" Grid.Column="1" Command="{Binding IndicatorReleaseCommand}" Margin="2"
-                                        Content="IndicatorRelease" HorizontalAlignment="Left" />
+                                <DockPanel Grid.Row="0" LastChildFill="True">
+                                    <Button DockPanel.Dock="Right"  Command="{Binding IndicatorCreateCommand}" Margin="2"
+                                            Content="IndicatorCreate" HorizontalAlignment="Left" />
+                                    <ComboBox Margin="2"
+                                            ItemsSource="{Binding Source={StaticResource ENUM_INDICATOR_Key}}"
+                                            SelectedItem="{Binding TimeSeriesValues.IndicatorType}"/>
+                                </DockPanel>
+                                <StackPanel Grid.Row="1" Orientation="Horizontal">
+                                    <Label Content="Indicator handle:" Margin="2"/>
+                                    <TextBox Margin="2" Width="60" PreviewTextInput="NumberValidationTextBox" Text="{Binding TimeSeriesValues.IndicatorHandle}"/>
+                                    <Button Command="{Binding IndicatorReleaseCommand}" Margin="2"
+                                            Content="IndicatorRelease" HorizontalAlignment="Left" />
+                                </StackPanel>
                             </Grid>
                         </Grid>
 
@@ -536,7 +536,9 @@
                             <Button Command="{Binding ChartGetDoubleCommand}" Content="ChartGetDouble" Margin="2"/>
                             <Button Command="{Binding ChartGetIntegerCommand}" Content="ChartGetInteger" Margin="2"/>
                             <Button Command="{Binding ChartNavigateCommand}" Content="ChartNavigate" Margin="2"/>
+                            <Button Command="{Binding ChartIndicatorAddCommand}" Content="ChartIndicatorAdd" Margin="2"/>
                             <Button Command="{Binding ChartIndicatorDeleteCommand}" Content="ChartIndicatorDelete" Margin="2"/>
+                            <Button Command="{Binding ChartIndicatorGetCommand}" Content="ChartIndicatorGet" Margin="2"/>
                             <Button Command="{Binding ChartIndicatorNameCommand}" Content="ChartIndicatorName" Margin="2"/>
                             <Button Command="{Binding ChartIndicatorsTotalCommand}" Content="ChartIndicatorsTotal" Margin="2"/>
                             <Button Command="{Binding ChartWindowOnDroppedCommand}" Content="ChartWindowOnDropped" Margin="2"/>
