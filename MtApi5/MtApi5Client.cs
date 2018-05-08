@@ -40,12 +40,19 @@ namespace MtApi5
         private volatile bool _isBacktestingMode;
         private Mt5ConnectionState _connectionState = Mt5ConnectionState.Disconnected;
         private int _executorHandle;
+        private readonly Dictionary<Mt5EventTypes, Action<int, string>> _mtEventHandlers =
+            new Dictionary<Mt5EventTypes, Action<int, string>>();
+        
         #endregion
 
         #region Public Methods
         public MtApi5Client()
         {
             LogConfigurator.Setup(LogProfileName);
+
+            _mtEventHandlers[Mt5EventTypes.OnBookEvent] = ReceivedOnBookEvent;
+            _mtEventHandlers[Mt5EventTypes.OnTick] = ReceivedOnTickEvent;
+            _mtEventHandlers[Mt5EventTypes.OnTradeTransaction] = ReceivedOnTradeTransaction;
         }
 
         ///<summary>
@@ -3002,21 +3009,11 @@ namespace MtApi5
             }
         }
 
+
         private void _client_MtEventReceived(MtEvent e)
         {
             var eventType = (Mt5EventTypes)e.EventType;
-
-            switch (eventType)
-            {
-                case Mt5EventTypes.OnTradeTransaction:
-                    ReceivedOnTradeTransaction(e.ExpertHandle, e.Payload);
-                    break;
-                case Mt5EventTypes.OnBookEvent:
-                    ReceivedOnBookEvent(e.ExpertHandle, e.Payload);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            _mtEventHandlers[eventType](e.ExpertHandle, e.Payload);
         }
 
         private void ReceivedOnTradeTransaction(int expertHandler, string payload)
@@ -3039,6 +3036,21 @@ namespace MtApi5
                 ExpertHandle = expertHandler,
                 Symbol = e.Symbol
             });
+        }
+
+        private void ReceivedOnTickEvent(int expertHandler, string payload)
+        {
+            var e = JsonConvert.DeserializeObject<OnTickEvent>(payload);
+            var quote = new Mt5Quote(e.Instrument, e.Tick.bid, e.Tick.ask)
+            {
+                ExpertHandle = expertHandler,
+                Volume = e.Tick.volume,
+                Time = e.Tick.time,
+                Last = e.Tick.last
+            };
+
+            QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
+            QuoteUpdate?.Invoke(this, new Mt5QuoteEventArgs(quote));
         }
 
         private void Connect(string host, int port)

@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="CopyTicksFlag.cs" />
     <Compile Include="Events\OnBookEvent.cs" />
+    <Compile Include="Events\OnTickEvent.cs" />
     <Compile Include="Events\OnTradeTransactionEvent.cs" />
     <Compile Include="MqlBookInfo.cs" />
     <Compile Include="MqlParam.cs" />

@@ -3,6 +3,7 @@
     internal enum Mt5EventTypes
     {
         OnTradeTransaction = 1,
-        OnBookEvent        = 2
+        OnBookEvent        = 2,
+        OnTick             = 3
     }
 }

@@ -240,7 +240,6 @@ namespace MtApi5TestClient
             _mtApiClient.ConnectionStateChanged += mMtApiClient_ConnectionStateChanged;
             _mtApiClient.QuoteAdded += mMtApiClient_QuoteAdded;
             _mtApiClient.QuoteRemoved += mMtApiClient_QuoteRemoved;
-            _mtApiClient.QuoteUpdated += mMtApiClient_QuoteUpdated;
             _mtApiClient.QuoteUpdate += mMtApiClient_QuoteUpdate;
             _mtApiClient.OnTradeTransaction += mMtApiClient_OnTradeTransaction;
             _mtApiClient.OnBookEvent += _mtApiClient_OnBookEvent;
@@ -1427,13 +1426,13 @@ namespace MtApi5TestClient
             Application.Current?.Dispatcher.Invoke(action, args);
         }
 
-        private static void mMtApiClient_QuoteUpdated(object sender, string symbol, double bid, double ask)
-        {
-            Console.WriteLine(@"Quote: Symbol = {0}, Bid = {1}, Ask = {2}", symbol, bid, ask);
-        }
-
         private void mMtApiClient_QuoteUpdate(object sender, Mt5QuoteEventArgs e)
         {
+            var q = e.Quote;
+
+            Console.WriteLine(@"Quote: Symbol = {0}, Bid = {1}, Ask = {2}, Volume = {3}, Time = {4}, Last = {5}"
+                , q.Instrument, q.Bid, q.Ask, q.Volume, q.Time, q.Last);
+
             if (_quotesMap.ContainsKey(e.Quote.ExpertHandle))
             {
                 var qvm = _quotesMap[e.Quote.ExpertHandle];

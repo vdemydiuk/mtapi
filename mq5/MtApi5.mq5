@@ -1,7 +1,7 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      ""
 
-#property version   "1.5"
+#property version   "1.6"
 #property description "MtApi (MT5) connection expert"
 
 #include <json.mqh>
@@ -41,7 +41,7 @@
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
-//#define __DEBUG_LOG__
+#define __DEBUG_LOG__
 
 input int Port = 8228;
 
@@ -74,7 +74,13 @@ void OnDeinit(const int reason)
 
 void OnTick()
 {
-   start();
+   MqlTick last_tick;
+   SymbolInfoTick(Symbol(),last_tick);
+   
+   MtOnTickEvent * tick_event = new MtOnTickEvent(Symbol(), last_tick);
+   SendMtEvent(ON_TICK_EVENT, tick_event);
+   delete tick_event;
+   
    if (IsTesting()) OnTimer();
 }
 
@@ -210,21 +216,6 @@ int deinit()
       Print("Expert was deinitialized.");
    }
    
-   return (0);
-}
-
-int start() 
-{
-   MqlTick last_tick;
-   SymbolInfoTick(Symbol(),last_tick);
-   double Bid = last_tick.bid;
-   double Ask = last_tick.ask;
-   
-   if (!updateQuote(ExpertHandle, Symbol(), Bid, Ask, _error)) 
-   {
-      Print("updateQuote: [ERROR] ", _error);
-   }
-
    return (0);
 }
 
@@ -6980,7 +6971,8 @@ string ExecuteRequest_ChartXYToTimePrice(JSONObject *jo)
 enum MtEventTypes
 {
    ON_TRADE_TRANSACTION_EVENT = 1,
-   ON_BOOK_EVENT              = 2
+   ON_BOOK_EVENT              = 2,
+   ON_TICK_EVENT              = 3
 };
 
 class MtEvent
@@ -7031,6 +7023,29 @@ public:
    
 private:
    string _symbol;
+};
+
+class MtOnTickEvent : public MtEvent
+{
+public:
+   MtOnTickEvent(string symbol, const MqlTick& tick)
+   {
+      _symbol = symbol;
+      _tick = tick;
+   }
+   
+   virtual JSONObject* CreateJson()
+   {
+      JSONObject *jo = new JSONObject();
+      jo.put("Tick", MqlTickToJson(_tick));
+      jo.put("Instrument", new JSONString(_symbol));
+      jo.put("ExpertHandle", new JSONNumber(ExpertHandle));
+      return jo;
+   }
+   
+private:
+   string   _symbol;
+   MqlTick  _tick;
 };
 
 void SendMtEvent(MtEventTypes eventType, MtEvent* mtEvent)
