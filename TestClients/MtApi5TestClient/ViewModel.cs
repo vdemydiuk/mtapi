@@ -807,7 +807,7 @@ namespace MtApi5TestClient
                 foreach (var rates in result)
                 {
                     TimeSeriesResults.Add(
-                        $"time={rates.time}; open={rates.open}; high={rates.high}; low={rates.low}; close={rates.close}; tick_volume={rates.tick_volume}; spread={rates.spread}; real_volume={rates.tick_volume}");
+                        $"time={rates.time}; mt_time={rates.mt_time}; open={rates.open}; high={rates.high}; low={rates.low}; close={rates.close}; tick_volume={rates.tick_volume}; spread={rates.spread}; real_volume={rates.tick_volume}");
                 }
             });
 

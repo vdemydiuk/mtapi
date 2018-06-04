@@ -741,7 +741,7 @@ namespace MtApi5
                 ratesArray = new MqlRates[retVal.Length];
                 for(var i = 0; i < retVal.Length; i++)
                 {
-                    ratesArray[i] = new MqlRates(Mt5TimeConverter.ConvertFromMtTime(retVal[i].time)
+                    ratesArray[i] = new MqlRates(retVal[i].time
                         , retVal[i].open
                         , retVal[i].high
                         , retVal[i].low
@@ -775,7 +775,7 @@ namespace MtApi5
                 ratesArray = new MqlRates[retVal.Length];
                 for (var i = 0; i < retVal.Length; i++)
                 {
-                    ratesArray[i] = new MqlRates(Mt5TimeConverter.ConvertFromMtTime(retVal[i].time)
+                    ratesArray[i] = new MqlRates(retVal[i].time
                         , retVal[i].open
                         , retVal[i].high
                         , retVal[i].low
@@ -809,7 +809,7 @@ namespace MtApi5
                 ratesArray = new MqlRates[retVal.Length];
                 for (var i = 0; i < retVal.Length; i++)
                 {
-                    ratesArray[i] = new MqlRates(Mt5TimeConverter.ConvertFromMtTime(retVal[i].time)
+                    ratesArray[i] = new MqlRates(retVal[i].time
                         , retVal[i].open
                         , retVal[i].high
                         , retVal[i].low
