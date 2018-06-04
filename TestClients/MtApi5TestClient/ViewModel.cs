@@ -108,6 +108,18 @@ namespace MtApi5TestClient
         public DelegateCommand TimeTradeServerCommand { get; private set; }
         public DelegateCommand TimeLocalCommand { get; private set; }
         public DelegateCommand TimeGMTCommand { get; private set; }
+
+        public DelegateCommand GlobalVariableCheckCommand { get; private set; }
+        public DelegateCommand GlobalVariableTimeCommand { get; private set; }
+        public DelegateCommand GlobalVariableDelCommand { get; private set; }
+        public DelegateCommand GlobalVariableGetCommand { get; private set; }
+        public DelegateCommand GlobalVariableNameCommand { get; private set; }
+        public DelegateCommand GlobalVariableSetCommand { get; private set; }
+        public DelegateCommand GlobalVariablesFlushCommand { get; private set; }
+        public DelegateCommand GlobalVariableTempCommand { get; private set; }
+        public DelegateCommand GlobalVariableSetOnConditionCommand { get; private set; }
+        public DelegateCommand GlobalVariablesDeleteAllCommand { get; private set; }
+        public DelegateCommand GlobalVariablesTotalCommand { get; private set; }
         #endregion
 
         #region Properties
@@ -227,6 +239,28 @@ namespace MtApi5TestClient
             {
                 _chartFunctionsChartIdValue = value;
                 OnPropertyChanged("ChartFunctionsChartIdValue");
+            }
+        }
+
+        private string _globalVarName;
+        public string GlobalVarName
+        {
+            get { return _globalVarName; }
+            set
+            {
+                _globalVarName = value;
+                OnPropertyChanged("GlobalVarName");
+            }
+        }
+
+        private double _globalVarValue;
+        public double GlobalVarValue
+        {
+            get { return _globalVarValue; }
+            set
+            {
+                _globalVarValue = value;
+                OnPropertyChanged("GlobalVarValue");
             }
         }
         #endregion
@@ -365,6 +399,18 @@ namespace MtApi5TestClient
             TimeTradeServerCommand = new DelegateCommand(ExecuteTimeTradeServer);
             TimeLocalCommand = new DelegateCommand(ExecuteTimeLocal);
             TimeGMTCommand = new DelegateCommand(ExecuteTimeGMT);
+
+            GlobalVariableCheckCommand = new DelegateCommand(ExecuteGlobalVariableCheck);
+            GlobalVariableTimeCommand = new DelegateCommand(ExecuteGlobalVariableTime);
+            GlobalVariableDelCommand = new DelegateCommand(ExecuteGlobalVariableDel);
+            GlobalVariableGetCommand = new DelegateCommand(ExecuteGlobalVariableGet);
+            GlobalVariableNameCommand = new DelegateCommand(ExecuteGlobalVariableName);
+            GlobalVariableSetCommand = new DelegateCommand(ExecuteGlobalVariableSet);
+            GlobalVariablesFlushCommand = new DelegateCommand(ExecuteGlobalVariablesFlush);
+            GlobalVariableTempCommand = new DelegateCommand(ExecuteGlobalVariableTemp);
+            GlobalVariableSetOnConditionCommand = new DelegateCommand(ExecuteGlobalVariableSetOnCondition);
+            GlobalVariablesDeleteAllCommand = new DelegateCommand(ExecuteGlobalVariablesDeleteAll);
+            GlobalVariablesTotalCommand = new DelegateCommand(ExecuteGlobalVariablesTotal);
         }
 
         private bool CanExecuteConnect(object o)
@@ -1114,6 +1160,86 @@ namespace MtApi5TestClient
             var retVal = await Execute(() => _mtApiClient.TimeGMT());
             AddLog($"TimeGMT: {retVal}");
         }
+
+        #region Global Variable Commands
+        private async void ExecuteGlobalVariableCheck(object obj)
+        {
+            var name = GlobalVarName;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableCheck(name));
+            AddLog($"GlobalVariableCheck: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariableTime(object obj)
+        {
+            var name = GlobalVarName;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableTime(name));
+            AddLog($"GlobalVariableTime: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariableDel(object obj)
+        {
+            var name = GlobalVarName;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableDel(name));
+            AddLog($"GlobalVariableDel: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariableGet(object obj)
+        {
+            var name = GlobalVarName;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableGet(name));
+            GlobalVarValue = retVal;
+            AddLog($"GlobalVariableGet: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariableName(object obj)
+        {
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableName(0));
+            GlobalVarName = retVal;
+            AddLog($"GlobalVariableName: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariableSet(object obj)
+        {
+            var name = GlobalVarName;
+            var value = GlobalVarValue;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableSet(name, value));
+            AddLog($"GlobalVariableSet: {retVal}");
+        }
+
+        private void ExecuteGlobalVariablesFlush(object obj)
+        {
+            _mtApiClient.GlobalVariablesFlush();
+            AddLog("GlobalVariablesFlush: executed.");
+        }
+
+        private async void ExecuteGlobalVariableTemp(object obj)
+        {
+            var name = GlobalVarName;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableTemp(name));
+            AddLog($"GlobalVariableTemp: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariableSetOnCondition(object obj)
+        {
+            var name = GlobalVarName;
+            var value = GlobalVarValue;
+            const double checkValue = 2;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableSetOnCondition(name, value, checkValue));
+            AddLog($"GlobalVariableSetOnCondition: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariablesDeleteAll(object obj)
+        {
+            var retVal = await Execute(() => _mtApiClient.GlobalVariablesDeleteAll());
+            AddLog($"GlobalVariablesDeleteAll: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariablesTotal(object obj)
+        {
+            var retVal = await Execute(() => _mtApiClient.GlobalVariablesTotal());
+            AddLog($"GlobalVariablesTotal: {retVal}");
+        }
+        #endregion
 
         #region Chart Commands
         private async void ExecuteChartOpen(object o)

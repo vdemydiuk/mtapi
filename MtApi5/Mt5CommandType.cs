@@ -235,6 +235,19 @@ namespace MtApi5
         Print                               = 68,
         ResetLastError                      = 143,
         SendNotification                    = 144,  //TODO
-        SendMail                            = 145   //TODO
+        SendMail                            = 145,  //TODO
+
+        //Global Variables
+        GlobalVariableCheck                 = 146,
+        GlobalVariableTime                  = 147,
+        GlobalVariableDel                   = 148,
+        GlobalVariableGet                   = 149,
+        GlobalVariableName                  = 150,
+        GlobalVariableSet                   = 151,
+        GlobalVariablesFlush                = 152,
+        GlobalVariableTemp                  = 154,
+        GlobalVariableSetOnCondition        = 156,
+        GlobalVariablesDeleteAll            = 157,
+        GlobalVariablesTotal                = 158
     }
 }

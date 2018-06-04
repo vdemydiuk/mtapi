@@ -586,6 +586,42 @@
                         </Grid>
                     </Grid>
                 </TabItem>
+
+                <TabItem Header="Global Variables">
+                    <Grid Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Column="0" Grid.Row="0" Text="Global Variable Name" Margin="2,0,0,0"/>
+                            <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding GlobalVarName}" Margin="4,0,0,0"/>
+                            <TextBlock Grid.Column="0" Grid.Row="1" Text="Global Variable Value" Margin="2,2,0,0"/>
+                            <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding GlobalVarValue}" Margin="4,2,0,0"/>
+                        </Grid>
+                        <WrapPanel VerticalAlignment="Top" Grid.Row="1" Margin="0,5,0,0">
+                            <Button Command="{Binding GlobalVariableCheckCommand}" Content="GlobalVariableCheck" Margin="2"/>
+                            <Button Command="{Binding GlobalVariableTimeCommand}" Content="GlobalVariableTime" Margin="2"/>
+                            <Button Command="{Binding GlobalVariableDelCommand}" Content="GlobalVariableDel" Margin="2"/>
+                            <Button Command="{Binding GlobalVariableGetCommand}" Content="GlobalVariableGet" Margin="2"/>
+                            <Button Command="{Binding GlobalVariableNameCommand}" Content="GlobalVariableName" Margin="2"/>
+                            <Button Command="{Binding GlobalVariableSetCommand}" Content="GlobalVariableSet" Margin="2"/>
+                            <Button Command="{Binding GlobalVariablesFlushCommand}" Content="GlobalVariablesFlush" Margin="2"/>
+                            <Button Command="{Binding GlobalVariableTempCommand}" Content="GlobalVariableTemp" Margin="2"/>
+                            <Button Command="{Binding GlobalVariableSetOnConditionCommand}" Content="GlobalVariableSetOnCondition" Margin="2"/>
+                            <Button Command="{Binding GlobalVariablesDeleteAllCommand}" Content="GlobalVariablesDeleteAll" Margin="2"/>
+                            <Button Command="{Binding GlobalVariablesTotalCommand}" Content="GlobalVariablesTotal" Margin="2"/>
+                        </WrapPanel>
+                    </Grid>
+                </TabItem>
             </TabControl>
 
         </Grid>

@@ -2894,6 +2894,123 @@ namespace MtApi5
 
         #endregion
 
+        #region Global Variables
+
+        ///<summary>
+        ///Checks the existence of a global variable with the specified name.
+        ///</summary>
+        ///<param name="name">Global variable name.</param>
+        public bool GlobalVariableCheck(string name)
+        {
+            var commandParameters = new ArrayList { name };
+            return SendCommand<bool>(Mt5CommandType.GlobalVariableCheck, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the time when the global variable was last accessed.
+        ///</summary>
+        ///<param name="name">Name of the global variable.</param>
+        public DateTime GlobalVariableTime(string name)
+        {
+            var commandParameters = new ArrayList { name };
+            var res = SendCommand<int>(Mt5CommandType.GlobalVariableTime, commandParameters);
+            return Mt5TimeConverter.ConvertFromMtTime(res);
+        }
+
+        ///<summary>
+        ///Deletes a global variable from the client terminal.
+        ///</summary>
+        ///<param name="name">Name of the global variable.</param>
+        public bool GlobalVariableDel(string name)
+        {
+            var commandParameters = new ArrayList { name };
+            return SendCommand<bool>(Mt5CommandType.GlobalVariableDel, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the value of an existing global variable of the client terminal.
+        ///</summary>
+        ///<param name="name">Global variable name.</param>
+        public double GlobalVariableGet(string name)
+        {
+            var commandParameters = new ArrayList { name };
+            return SendCommand<double>(Mt5CommandType.GlobalVariableGet, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the name of a global variable by its ordinal number.
+        ///</summary>
+        ///<param name="index">Sequence number in the list of global variables. It should be greater than or equal to 0 and less than GlobalVariablesTotal().</param>
+        public string GlobalVariableName(int index)
+        {
+            var commandParameters = new ArrayList { index };
+            return SendCommand<string>(Mt5CommandType.GlobalVariableName, commandParameters);
+        }
+
+        ///<summary>
+        ///Sets a new value for a global variable. If the variable does not exist, the system creates a new global variable.
+        ///</summary>
+        ///<param name="name">Global variable name.</param>
+        ///<param name="value">The new numerical value.</param>
+        public DateTime GlobalVariableSet(string name, double value)
+        {
+            var commandParameters = new ArrayList { name, value };
+            var res = SendCommand<int>(Mt5CommandType.GlobalVariableSet, commandParameters);
+            return Mt5TimeConverter.ConvertFromMtTime(res);
+        }
+
+        ///<summary>
+        ///Forcibly saves contents of all global variables to a disk.
+        ///</summary>
+        public void GlobalVariablesFlush()
+        {
+            SendCommand<object>(Mt5CommandType.GlobalVariablesFlush, null);
+        }
+
+        ///<summary>
+        ///The function attempts to create a temporary global variable. If the variable doesn't exist, the system creates a new temporary global variable.
+        ///</summary>
+        ///<param name="name">The name of a temporary global variable.</param>
+        public bool GlobalVariableTemp(string name)
+        {
+            var commandParameters = new ArrayList { name };
+            return SendCommand<bool>(Mt5CommandType.GlobalVariableTemp, commandParameters);
+        }
+
+        ///<summary>
+        ///Sets the new value of the existing global variable if the current value equals to the third parameter check_value. If there is no global variable, the function will generate an error ERR_GLOBALVARIABLE_NOT_FOUND (4501) and return false.
+        ///</summary>
+        ///<param name="name">The name of a global variable.</param>
+        ///<param name="value">New value.</param>
+        ///<param name="checkValue">The value to check the current value of the global variable.</param>
+        public bool GlobalVariableSetOnCondition(string name, double value, double checkValue)
+        {
+            var commandParameters = new ArrayList { name, value, checkValue };
+            return SendCommand<bool>(Mt5CommandType.GlobalVariableSetOnCondition, commandParameters);
+        }
+
+        ///<summary>
+        ///Deletes global variables of the client terminal.
+        ///</summary>
+        ///<param name="prefixName">Name prefix global variables to remove. If you specify a prefix NULL or empty string, then all variables that meet the data criterion will be deleted.</param>
+        ///<param name="limitData">Date to select global variables by the time of their last modification. The function removes global variables, which were changed before this date. If the parameter is zero, then all variables that meet the first criterion (prefix) are deleted.</param>
+        public int GlobalVariablesDeleteAll(string prefixName = "", DateTime? limitData = null)
+        {
+            if (prefixName == null)
+                prefixName = "";
+            var commandParameters = new ArrayList { prefixName, Mt5TimeConverter.ConvertToMtTime(limitData) };
+            return SendCommand<int>(Mt5CommandType.GlobalVariablesDeleteAll, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the total number of global variables of the client terminal.
+        ///</summary>
+        public int GlobalVariablesTotal()
+        {
+            return SendCommand<int>(Mt5CommandType.GlobalVariablesTotal, null);
+        }
+        #endregion
+
         #endregion // Public Methods
 
         #region Properties

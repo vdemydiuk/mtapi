@@ -705,8 +705,41 @@ int executeCommand()
    case 143: //ResetLastError
       Execute_ResetLastError();
    break;
+   case 146: //GlobalVariableCheck
+      Execute_GlobalVariableCheck();
+   break;
+   case 147: //GlobalVariableTime
+      Execute_GlobalVariableTime();
+   break;
+   case 148: //GlobalVariableDel
+      Execute_GlobalVariableDel();
+   break;
+   case 149: //GlobalVariableGet
+      Execute_GlobalVariableGet();
+   break;
+   case 150: //GlobalVariableName
+      Execute_GlobalVariableName();
+   break;
+   case 151: //GlobalVariableSet
+      Execute_GlobalVariableSet();
+   break;
+   case 152: //GlobalVariablesFlush
+      Execute_GlobalVariablesFlush();
+   break;
    case 153: //TerminalInfoString
       Execute_TerminalInfoString();
+   break;
+   case 154: //GlobalVariableTemp
+      Execute_GlobalVariableTemp();
+   break;
+   case 156: //GlobalVariableSetOnCondition
+      Execute_GlobalVariableSetOnCondition();
+   break;
+   case 157: //GlobalVariablesDeleteAll
+      Execute_GlobalVariablesDeleteAll();
+   break;
+   case 158: //GlobalVariablesTotal
+      Execute_GlobalVariablesTotal();
    break;
    case 204: //TerminalInfoInteger
       Execute_TerminalInfoInteger();
@@ -5659,6 +5692,114 @@ void Execute_ResetLastError()
    SEND_VOID_RESPONSE
 }
 
+void Execute_GlobalVariableCheck()
+{
+   string name;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s", __FUNCTION__, name);
+#endif
+
+   bool res = GlobalVariableCheck(name);
+
+   SEND_BOOL_RESPONSE(res)
+}
+
+void Execute_GlobalVariableTime()
+{
+   string name;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s", __FUNCTION__, name);
+#endif
+
+   datetime time = GlobalVariableTime(name);
+
+   SEND_INT_RESPONSE((int)time)
+}
+
+void Execute_GlobalVariableDel()
+{
+   string name;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s", __FUNCTION__, name);
+#endif
+
+   bool res = GlobalVariableDel(name);
+
+   SEND_BOOL_RESPONSE(res)
+}
+
+void Execute_GlobalVariableGet()
+{
+   string name;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s", __FUNCTION__, name);
+#endif
+
+   double res = GlobalVariableGet(name);
+
+   SEND_DOUBLE_RESPONSE(res)
+}
+
+void Execute_GlobalVariableName()
+{
+   int index;
+   
+   GET_INT_VALUE(0, index, "index")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: index = %d", __FUNCTION__, index);
+#endif
+   
+   string name = GlobalVariableName(index);
+   
+   SEND_STRING_RESPONSE(name)
+}
+
+void Execute_GlobalVariableSet()
+{
+   string name;
+   double value;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   GET_DOUBLE_VALUE(1, value, "value")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s, value = %f", __FUNCTION__, name, value);
+#endif
+
+   datetime res = GlobalVariableSet(name, value);
+
+   SEND_INT_RESPONSE((int)res)
+}
+
+void Execute_GlobalVariablesFlush()
+{
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: called.", __FUNCTION__);
+#endif   
+
+   GlobalVariablesFlush();
+   
+   SEND_VOID_RESPONSE
+}
+
 void Execute_ChartOpen()
 {
    string symbol;
@@ -6245,6 +6386,79 @@ void Execute_TerminalInfoString()
    {
       PrintResponseError("TerminalInfoString", _response_error);
    }
+}
+
+void Execute_GlobalVariableTemp()
+{
+   string name;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s", __FUNCTION__, name);
+#endif
+
+   bool res = GlobalVariableTemp(name);
+
+   SEND_BOOL_RESPONSE(res)
+}
+
+void Execute_GlobalVariableSetOnCondition()
+{
+   string name;
+   double value;
+   double check_value;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   GET_DOUBLE_VALUE(1, value, "value")
+   GET_DOUBLE_VALUE(2, check_value, "check_value")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s, value = %f, check_value = %f", __FUNCTION__, name, value, check_value);
+#endif
+
+   bool res = GlobalVariableSetOnCondition(name, value, check_value);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(res));
+#endif
+
+   SEND_BOOL_RESPONSE(res)
+}
+
+void Execute_GlobalVariablesDeleteAll()
+{
+   string prefix_name;
+   int limit_data;
+   StringInit(prefix_name, 500);
+   
+   GET_STRING_VALUE(0, prefix_name, "prefix_name")
+   GET_INT_VALUE(1, limit_data, "limit_data")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: prefix_name = %s, limit_data = %d", __FUNCTION__, prefix_name, limit_data);
+#endif
+
+   int res = GlobalVariablesDeleteAll(prefix_name, (datetime)limit_data);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %d", __FUNCTION__, res);
+#endif
+
+   SEND_INT_RESPONSE(res)   
+}
+
+void Execute_GlobalVariablesTotal()
+{
+   int res = GlobalVariablesTotal();
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %d", __FUNCTION__, res);
+#endif
+
+   SEND_INT_RESPONSE(res)
 }
 
 void Execute_TerminalInfoInteger()
