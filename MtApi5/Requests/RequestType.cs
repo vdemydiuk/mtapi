@@ -14,6 +14,7 @@ namespace MtApi5.Requests
         IndicatorCreate     = 7,
         SymbolInfoString    = 8,
         ChartTimePriceToXY  = 9,
-        ChartXYToTimePrice  = 10
+        ChartXYToTimePrice  = 10,
+        PositionClose       = 11
     }
 }

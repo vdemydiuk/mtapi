@@ -41,7 +41,7 @@
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
-#define __DEBUG_LOG__
+//#define __DEBUG_LOG__
 
 input int Port = 8228;
 
@@ -6700,6 +6700,9 @@ string OnRequest(string json)
             case 10: //ChartXYToTimePrice
                response = ExecuteRequest_ChartXYToTimePrice(jo);
                break;
+            case 11: //PositionClose
+               response = ExecuteRequest_PositionClose(jo);
+               break;
             default:
                PrintFormat("%s [WARNING]: Unknown request type %d", __FUNCTION__, requestType);
                response = CreateErrorResponse(-1, "Unknown request type");
@@ -7178,6 +7181,37 @@ string ExecuteRequest_ChartXYToTimePrice(JSONObject *jo)
    result_value_jo.put("Price", new JSONNumber(price));
    
    return CreateSuccessResponse("Value", result_value_jo);
+}
+
+string ExecuteRequest_PositionClose(JSONObject *jo)
+{
+   //Ticket
+   CHECK_JSON_VALUE(jo, "Ticket", CreateErrorResponse(-1, "Undefinded mandatory parameter Ticket"));
+   ulong ticket = jo.getLong("Ticket");
+   
+   //Deviation
+   CHECK_JSON_VALUE(jo, "Deviation", CreateErrorResponse(-1, "Undefinded mandatory parameter Deviation"));
+   ulong deviation = jo.getLong("Deviation");
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: Ticket = %d, Deviation = %d", __FUNCTION__, ticket, deviation);
+#endif
+
+   CTrade trade;
+   bool ok = trade.PositionClose(ticket, deviation);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+   
+#ifdef __DEBUG_LOG__
+   Print("ExecuteRequest_PositionClose: retcode = ", trade.ResultRetcode());
+#endif
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse("Value", result_value_jo);  
 }
 
 //------------ Events -------------------------------------------------------

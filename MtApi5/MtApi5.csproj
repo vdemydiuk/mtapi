@@ -85,6 +85,8 @@
     <Compile Include="Requests\OrderCheckRequest.cs" />
     <Compile Include="Requests\OrderCheckResult.cs" />
     <Compile Include="Requests\OrderSendRequest.cs" />
+    <Compile Include="Requests\PositionCloseRequest.cs" />
+    <Compile Include="Requests\PositionCloseResult.cs" />
     <Compile Include="Requests\PositionOpenRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />
     <Compile Include="Requests\RequestType.cs" />

@@ -536,6 +536,36 @@ namespace MtApi5
             return SendCommand<bool>(Mt5CommandType.PositionClose, commandParameters);
         }
 
+        ///<summary>
+        ///Closes a position with the specified ticket.
+        ///</summary>
+        ///<param name="ticket">Ticket of the closed position.</param>
+        ///<param name="deviation">Maximal deviation from the current price (in points).</param>
+        /// <param name="result">output result</param>
+        public bool PositionClose(ulong ticket, ulong deviation, out MqlTradeResult result)
+        {
+            Log.Debug($"PositionClose: ticket = {ticket}, deviation = {deviation}");
+
+            var response = SendRequest<PositionCloseResult>(new PositionCloseRequest
+            {
+                Ticket = ticket,
+                Deviation = deviation
+            });
+
+            result = response?.TradeResult;
+            return response != null && response.RetVal;
+        }
+
+        ///<summary>
+        ///Closes a position with the specified ticket.
+        ///</summary>
+        ///<param name="ticket">Ticket of the closed position.</param>
+        /// <param name="result">output result</param>
+        public bool PositionClose(ulong ticket, out MqlTradeResult result)
+        {
+            return PositionClose(ticket, ulong.MaxValue, out result);
+        }
+
         /// <summary>
         /// Opens a position with the specified parameters.
         /// </summary>
@@ -566,7 +596,7 @@ namespace MtApi5
         /// <param name="comment">comment</param>
         /// <param name="result">output result</param>
         /// <returns>true - successful check of the basic structures, otherwise - false.</returns>
-        public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, string comment , out MqlTradeResult result)
+        public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, string comment, out MqlTradeResult result)
         {
             Log.Debug($"PositionOpen: symbol = {symbol}, orderType = {orderType}, volume = {volume}, price = {price}, sl = {sl}, tp = {tp}, comment = {comment}");
 
@@ -584,15 +614,31 @@ namespace MtApi5
             result = response?.TradeResult;
             return response != null && response.RetVal;
         }
+
+        /// <summary>
+        /// Opens a position with the specified parameters.
+        /// </summary>
+        /// <param name="symbol">symbol</param>
+        /// <param name="orderType">order type to open position </param>
+        /// <param name="volume">position volume</param>
+        /// <param name="price">execution price</param>
+        /// <param name="sl">Stop Loss price</param>
+        /// <param name="tp">Take Profit price</param>
+        /// <param name="result">output result</param>
+        /// <returns>true - successful check of the basic structures, otherwise - false.</returns>
+        public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, out MqlTradeResult result)
+        {
+            return PositionOpen(symbol, orderType, volume, price, sl, tp, "", out result);
+        }
         #endregion
 
         #region Account Information functions
 
-            ///<summary>
-            ///Returns the value of the corresponding account property. 
-            ///</summary>
-            ///<param name="propertyId">Identifier of the property.</param>
-            public double AccountInfoDouble(ENUM_ACCOUNT_INFO_DOUBLE propertyId)
+        ///<summary>
+        ///Returns the value of the corresponding account property. 
+        ///</summary>
+        ///<param name="propertyId">Identifier of the property.</param>
+        public double AccountInfoDouble(ENUM_ACCOUNT_INFO_DOUBLE propertyId)
         {
             var commandParameters = new ArrayList { (int)propertyId };
 

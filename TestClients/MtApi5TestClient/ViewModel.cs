@@ -66,6 +66,7 @@ namespace MtApi5TestClient
         public DelegateCommand MarketBookGetCommand { get; private set; }
 
         public DelegateCommand PositionOpenCommand { get; private set; }
+        public DelegateCommand PositionCloseCommand { get; private set; }
 
         public DelegateCommand GetLastErrorCommand { get; private set; }
         public DelegateCommand ResetLastErrorCommand { get; private set; }
@@ -263,6 +264,17 @@ namespace MtApi5TestClient
                 OnPropertyChanged("GlobalVarValue");
             }
         }
+
+        private ulong _positionTicketValue;
+        public ulong PositionTicketValue
+        {
+            get { return _positionTicketValue; }
+            set
+            {
+                _positionTicketValue = value;
+                OnPropertyChanged("PositionTicketValue");
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -358,6 +370,7 @@ namespace MtApi5TestClient
             MarketBookGetCommand = new DelegateCommand(ExecuteMarketBookGet);
 
             PositionOpenCommand = new DelegateCommand(ExecutePositionOpen);
+            PositionCloseCommand = new DelegateCommand(ExecutePositionClose);
 
             PrintCommand = new DelegateCommand(ExecutePrint);
             AlertCommand = new DelegateCommand(ExecuteAlert);
@@ -1096,6 +1109,15 @@ namespace MtApi5TestClient
 
             var retVal = await Execute (() => _mtApiClient.PositionOpen(symbol, orderType, volume, price, sl, tp, comment, out tradeResult));
             AddLog($"PositionOpen: symbol EURUSD retVal = {retVal}, result = {tradeResult}");
+        }
+
+        private async void ExecutePositionClose(object obj)
+        {
+            var ticket = PositionTicketValue;
+            MqlTradeResult tradeResult = null;
+
+            var retVal = await Execute(() => _mtApiClient.PositionClose(ticket, out tradeResult));
+            AddLog($"PositionClose: ticket {ticket} retVal = {retVal}, result = {tradeResult}");
         }
 
         private async void ExecutePrint(object obj)
