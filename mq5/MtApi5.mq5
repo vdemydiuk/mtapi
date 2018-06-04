@@ -7299,9 +7299,11 @@ bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
    request.order = jo.getLong("Order");
    
    //Symbol
-   CHECK_JSON_VALUE(jo, "Symbol", false);
-   StringInit(request.symbol, 100, 0);
-   request.symbol = jo.getString("Symbol");
+   if (jo.getValue("Symbol") != NULL)
+   {
+      StringInit(request.symbol, 100, 0);
+      request.symbol = jo.getString("Symbol");
+   }
    
    //Volume
    CHECK_JSON_VALUE(jo, "Volume", false);
