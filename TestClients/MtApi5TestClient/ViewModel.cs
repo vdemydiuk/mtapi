@@ -121,6 +121,8 @@ namespace MtApi5TestClient
         public DelegateCommand GlobalVariableSetOnConditionCommand { get; private set; }
         public DelegateCommand GlobalVariablesDeleteAllCommand { get; private set; }
         public DelegateCommand GlobalVariablesTotalCommand { get; private set; }
+
+        public DelegateCommand UnlockTicksCommand { get; private set; }
         #endregion
 
         #region Properties
@@ -289,6 +291,7 @@ namespace MtApi5TestClient
             _mtApiClient.QuoteUpdate += mMtApiClient_QuoteUpdate;
             _mtApiClient.OnTradeTransaction += mMtApiClient_OnTradeTransaction;
             _mtApiClient.OnBookEvent += _mtApiClient_OnBookEvent;
+            _mtApiClient.OnLastTimeBar += _mtApiClient_OnOnLastTimeBar;
 
             ConnectionState = _mtApiClient.ConnectionState;
             ConnectionMessage = "Disconnected";
@@ -424,6 +427,8 @@ namespace MtApi5TestClient
             GlobalVariableSetOnConditionCommand = new DelegateCommand(ExecuteGlobalVariableSetOnCondition);
             GlobalVariablesDeleteAllCommand = new DelegateCommand(ExecuteGlobalVariablesDeleteAll);
             GlobalVariablesTotalCommand = new DelegateCommand(ExecuteGlobalVariablesTotal);
+
+            UnlockTicksCommand = new DelegateCommand(ExecuteUnlockTicks);
         }
 
         private bool CanExecuteConnect(object o)
@@ -1564,6 +1569,11 @@ namespace MtApi5TestClient
         }
         #endregion
 
+        private void ExecuteUnlockTicks(object o)
+        {
+            _mtApiClient.UnlockTicks();
+        }
+
         private static void RunOnUiThread(Action action)
         {
             Application.Current?.Dispatcher.Invoke(action);
@@ -1638,6 +1648,11 @@ namespace MtApi5TestClient
         private void _mtApiClient_OnBookEvent(object sender, Mt5BookEventArgs e)
         {
             AddLog($"OnBookEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}");
+        }
+
+        private void _mtApiClient_OnOnLastTimeBar(object sender, Mt5TimeBarArgs e)
+        {
+            AddLog($"OnBookEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}, open = {e.Rates.open}, close = {e.Rates.close}, time = {e.Rates.time}, high = {e.Rates.high}, low = {e.Rates.low}");
         }
 
         private void AddQuote(Mt5Quote quote)

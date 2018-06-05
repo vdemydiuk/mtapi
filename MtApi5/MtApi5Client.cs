@@ -53,6 +53,7 @@ namespace MtApi5
             _mtEventHandlers[Mt5EventTypes.OnBookEvent] = ReceivedOnBookEvent;
             _mtEventHandlers[Mt5EventTypes.OnTick] = ReceivedOnTickEvent;
             _mtEventHandlers[Mt5EventTypes.OnTradeTransaction] = ReceivedOnTradeTransaction;
+            _mtEventHandlers[Mt5EventTypes.OnLastTimeBar] = ReceivedOnLastTimeBar;
         }
 
         ///<summary>
@@ -3057,6 +3058,18 @@ namespace MtApi5
         }
         #endregion
 
+        #region Backtesting functions
+
+        ///<summary>
+        ///The function unlock ticks in backtesting mode.
+        ///</summary>
+        public void UnlockTicks()
+        {
+            SendCommand<object>(Mt5CommandType.UnlockTicks, null);
+        }
+
+        #endregion
+
         #endregion // Public Methods
 
         #region Properties
@@ -3104,6 +3117,7 @@ namespace MtApi5
         public event EventHandler<Mt5ConnectionEventArgs> ConnectionStateChanged;
         public event EventHandler<Mt5TradeTransactionEventArgs> OnTradeTransaction;
         public event EventHandler<Mt5BookEventArgs> OnBookEvent;
+        public event EventHandler<Mt5TimeBarArgs> OnLastTimeBar;
         #endregion
 
         #region Private Methods
@@ -3214,6 +3228,12 @@ namespace MtApi5
 
             QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
             QuoteUpdate?.Invoke(this, new Mt5QuoteEventArgs(quote));
+        }
+
+        private void ReceivedOnLastTimeBar(int expertHandler, string payload)
+        {
+            var e = JsonConvert.DeserializeObject<OnLastTimeBarEvent>(payload);
+            OnLastTimeBar?.Invoke(this, new Mt5TimeBarArgs(expertHandler, e.Instrument, e.Rates));
         }
 
         private void Connect(string host, int port)

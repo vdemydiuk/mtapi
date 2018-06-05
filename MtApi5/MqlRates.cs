@@ -7,7 +7,6 @@ namespace MtApi5
     {
         public MqlRates(DateTime time, double open, double high, double low, double close, long tick_volume, int spread, long real_volume)
         {
-            this.time = time;
             mt_time = Mt5TimeConverter.ConvertToMtTime(time);
             this.open = open;
             this.high = high;
@@ -20,7 +19,6 @@ namespace MtApi5
 
         internal MqlRates(long time, double open, double high, double low, double close, long tick_volume, int spread, long real_volume)
         {
-            this.time = Mt5TimeConverter.ConvertFromMtTime(time);
             mt_time = time;
             this.open = open;
             this.high = high;
@@ -35,7 +33,7 @@ namespace MtApi5
         {
         }
 
-        public DateTime time { get; set; }         // Period start time
+        public DateTime time => Mt5TimeConverter.ConvertFromMtTime(mt_time); // Period start time              
         public long mt_time { get; set; }            // Period start time (original MT time)
         public double open { get; set; }         // Open price
         public double high { get; set; }         // The highest price of the period

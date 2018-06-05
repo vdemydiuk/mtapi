@@ -41,9 +41,17 @@
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
-//#define __DEBUG_LOG__
+#define __DEBUG_LOG__
+
+enum LockTickType
+{
+   NO_LOCK,
+   LOCK_EVERY_TICK,
+   LOCK_EVERY_CANDLE
+};
 
 input int Port = 8228;
+input LockTickType BacktestingLockTicks = NO_LOCK;
 
 int ExpertHandle;
 
@@ -52,6 +60,9 @@ string _response_error;
 bool isCrashed = false;
 
 bool IsRemoteReadyForTesting = false;
+
+long _last_bar_open_time = 0;
+bool _is_ticks_locked = false;
 
 string PARAM_SEPARATOR = ";";
 
@@ -74,14 +85,44 @@ void OnDeinit(const int reason)
 
 void OnTick()
 {
+   string symbol = Symbol();
+   
+   bool lastbar_time_changed = false;
+   long lastbar_time = SeriesInfoInteger(symbol, Period(), SERIES_LASTBAR_DATE); 
+   if (_last_bar_open_time != lastbar_time)
+   {
+      if (_last_bar_open_time != 0)
+      {
+         MqlRates rates_array[];
+         CopyRates(symbol, Period(), 1, 1, rates_array);
+      
+         MtTimeBar* timeBar = new MtTimeBar(symbol, rates_array[0]);
+         SendMtEvent(LAST_TIME_BAR_EVENT, timeBar);
+         delete timeBar;
+         
+         lastbar_time_changed = true;
+      }
+      
+      _last_bar_open_time = lastbar_time;
+   }
+
    MqlTick last_tick;
    SymbolInfoTick(Symbol(),last_tick);
    
-   MtOnTickEvent * tick_event = new MtOnTickEvent(Symbol(), last_tick);
+   MtOnTickEvent * tick_event = new MtOnTickEvent(symbol, last_tick);
    SendMtEvent(ON_TICK_EVENT, tick_event);
-   delete tick_event;
+   delete tick_event; 
    
-   if (IsTesting()) OnTimer();
+   if (IsTesting())
+   {
+      if (BacktestingLockTicks == LOCK_EVERY_TICK ||
+         (BacktestingLockTicks == LOCK_EVERY_CANDLE && lastbar_time_changed))
+      {
+         _is_ticks_locked = true;
+      }
+      
+      OnTimer();
+   }
 }
 
 void  OnTradeTransaction( 
@@ -224,10 +265,12 @@ void OnTimer()
    while(true)
    {
       int executedCommand = executeCommand();
+      
+      if (_is_ticks_locked)
+         continue;
+      
       if (executedCommand == 0)
-      {   
-         return;
-      }
+         break;
    }
 }
 
@@ -740,6 +783,9 @@ int executeCommand()
    break;
    case 158: //GlobalVariablesTotal
       Execute_GlobalVariablesTotal();
+   break;
+   case 159: //UnlockTiks
+      Execute_UnlockTicks();
    break;
    case 204: //TerminalInfoInteger
       Execute_TerminalInfoInteger();
@@ -6461,6 +6507,22 @@ void Execute_GlobalVariablesTotal()
    SEND_INT_RESPONSE(res)
 }
 
+void Execute_UnlockTicks()
+{
+   if (!IsTesting())
+   {
+      Print("WARNING: function UnlockTicks can be used only for backtesting");
+      return;
+   }
+   
+   _is_ticks_locked = false;
+
+   if (!sendVoidResponse(ExpertHandle, _response_error))
+   {
+      PrintResponseError("UnlockTicks", _response_error);
+   }
+}
+
 void Execute_TerminalInfoInteger()
 {
    int propertyId;
@@ -7220,7 +7282,8 @@ enum MtEventTypes
 {
    ON_TRADE_TRANSACTION_EVENT = 1,
    ON_BOOK_EVENT              = 2,
-   ON_TICK_EVENT              = 3
+   ON_TICK_EVENT              = 3,
+   LAST_TIME_BAR_EVENT        = 4
 };
 
 class MtEvent
@@ -7294,6 +7357,29 @@ public:
 private:
    string   _symbol;
    MqlTick  _tick;
+};
+
+class MtTimeBar: public MtEvent
+{
+public:
+   MtTimeBar(string symbol, const MqlRates& rates)
+   {
+      _symbol = symbol;
+      _rates = rates;
+   }
+   
+   virtual JSONObject* CreateJson()
+   {
+      JSONObject *jo = new JSONObject();
+      jo.put("Rates", MqlRatesToJson(_rates));
+      jo.put("Instrument", new JSONString(_symbol));
+      jo.put("ExpertHandle", new JSONNumber(ExpertHandle));
+      return jo;
+   }
+
+private: 
+   string _symbol;
+   MqlRates _rates;
 };
 
 void SendMtEvent(MtEventTypes eventType, MtEvent* mtEvent)
@@ -7477,5 +7563,19 @@ JSONObject* MqlTradeRequestToJson(MqlTradeRequest& request)
    jo.put("Type_time", new JSONNumber((int)request.type_time));
    jo.put("MtExpiration", new JSONNumber((int)request.expiration));
    jo.put("Comment", new JSONString(request.comment));
+   return jo;
+}
+
+JSONObject* MqlRatesToJson(MqlRates& rates)
+{
+   JSONObject *jo = new JSONObject();
+   jo.put("mt_time", new JSONNumber((int)rates.time));
+   jo.put("open", new JSONNumber(rates.open));
+   jo.put("high", new JSONNumber(rates.high));
+   jo.put("low", new JSONNumber(rates.low));
+   jo.put("close", new JSONNumber(rates.close));
+   jo.put("tick_volume", new JSONNumber(rates.tick_volume));
+   jo.put("spread", new JSONNumber(rates.spread));
+   jo.put("real_volume", new JSONNumber(rates.real_volume));
    return jo;
 }

@@ -4,6 +4,7 @@
     {
         OnTradeTransaction = 1,
         OnBookEvent        = 2,
-        OnTick             = 3
+        OnTick             = 3,
+        OnLastTimeBar      = 4
     }
 }

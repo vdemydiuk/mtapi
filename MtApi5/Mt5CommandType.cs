@@ -248,6 +248,8 @@ namespace MtApi5
         GlobalVariableTemp                  = 154,
         GlobalVariableSetOnCondition        = 156,
         GlobalVariablesDeleteAll            = 157,
-        GlobalVariablesTotal                = 158
+        GlobalVariablesTotal                = 158,
+
+        UnlockTicks                         = 159
     }
 }
