@@ -52,8 +52,9 @@ namespace MtApi5
 
             _mtEventHandlers[Mt5EventTypes.OnBookEvent] = ReceivedOnBookEvent;
             _mtEventHandlers[Mt5EventTypes.OnTick] = ReceivedOnTickEvent;
-            _mtEventHandlers[Mt5EventTypes.OnTradeTransaction] = ReceivedOnTradeTransaction;
-            _mtEventHandlers[Mt5EventTypes.OnLastTimeBar] = ReceivedOnLastTimeBar;
+            _mtEventHandlers[Mt5EventTypes.OnTradeTransaction] = ReceivedOnTradeTransactionEvent;
+            _mtEventHandlers[Mt5EventTypes.OnLastTimeBar] = ReceivedOnLastTimeBarEvent;
+            _mtEventHandlers[Mt5EventTypes.OnLockTicks] = ReceivedOnLockTicksEvent;
         }
 
         ///<summary>
@@ -3118,6 +3119,7 @@ namespace MtApi5
         public event EventHandler<Mt5TradeTransactionEventArgs> OnTradeTransaction;
         public event EventHandler<Mt5BookEventArgs> OnBookEvent;
         public event EventHandler<Mt5TimeBarArgs> OnLastTimeBar;
+        public event EventHandler<Mt5LockTicksEventArgs> OnLockTicks;
         #endregion
 
         #region Private Methods
@@ -3193,7 +3195,7 @@ namespace MtApi5
             _mtEventHandlers[eventType](e.ExpertHandle, e.Payload);
         }
 
-        private void ReceivedOnTradeTransaction(int expertHandler, string payload)
+        private void ReceivedOnTradeTransactionEvent(int expertHandler, string payload)
         {
             var e = JsonConvert.DeserializeObject<OnTradeTransactionEvent>(payload);
             OnTradeTransaction?.Invoke(this, new Mt5TradeTransactionEventArgs
@@ -3230,10 +3232,16 @@ namespace MtApi5
             QuoteUpdate?.Invoke(this, new Mt5QuoteEventArgs(quote));
         }
 
-        private void ReceivedOnLastTimeBar(int expertHandler, string payload)
+        private void ReceivedOnLastTimeBarEvent(int expertHandler, string payload)
         {
             var e = JsonConvert.DeserializeObject<OnLastTimeBarEvent>(payload);
             OnLastTimeBar?.Invoke(this, new Mt5TimeBarArgs(expertHandler, e.Instrument, e.Rates));
+        }
+
+        private void ReceivedOnLockTicksEvent(int expertHandler, string payload)
+        {
+            var e = JsonConvert.DeserializeObject<OnLockTicksEvent>(payload);
+            OnLockTicks?.Invoke(this, new Mt5LockTicksEventArgs(e.Instrument));
         }
 
         private void Connect(string host, int port)

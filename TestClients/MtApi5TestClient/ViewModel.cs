@@ -291,7 +291,8 @@ namespace MtApi5TestClient
             _mtApiClient.QuoteUpdate += mMtApiClient_QuoteUpdate;
             _mtApiClient.OnTradeTransaction += mMtApiClient_OnTradeTransaction;
             _mtApiClient.OnBookEvent += _mtApiClient_OnBookEvent;
-            _mtApiClient.OnLastTimeBar += _mtApiClient_OnOnLastTimeBar;
+            _mtApiClient.OnLastTimeBar += _mtApiClient_OnLastTimeBar;
+            _mtApiClient.OnLockTicks += _mtApiClient_OnLockTicks;
 
             ConnectionState = _mtApiClient.ConnectionState;
             ConnectionMessage = "Disconnected";
@@ -1650,9 +1651,14 @@ namespace MtApi5TestClient
             AddLog($"OnBookEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}");
         }
 
-        private void _mtApiClient_OnOnLastTimeBar(object sender, Mt5TimeBarArgs e)
+        private void _mtApiClient_OnLastTimeBar(object sender, Mt5TimeBarArgs e)
         {
             AddLog($"OnBookEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}, open = {e.Rates.open}, close = {e.Rates.close}, time = {e.Rates.time}, high = {e.Rates.high}, low = {e.Rates.low}");
+        }
+
+        private void _mtApiClient_OnLockTicks(object sender, Mt5LockTicksEventArgs e)
+        {
+            AddLog($"OnLockTicksEvent: Symbol = {e.Symbol}");
         }
 
         private void AddQuote(Mt5Quote quote)

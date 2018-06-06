@@ -96,9 +96,9 @@ void OnTick()
          MqlRates rates_array[];
          CopyRates(symbol, Period(), 1, 1, rates_array);
       
-         MtTimeBar* timeBar = new MtTimeBar(symbol, rates_array[0]);
-         SendMtEvent(LAST_TIME_BAR_EVENT, timeBar);
-         delete timeBar;
+         MtTimeBarEvent* time_bar = new MtTimeBarEvent(symbol, rates_array[0]);
+         SendMtEvent(ON_LAST_TIME_BAR_EVENT, time_bar);
+         delete time_bar;
          
          lastbar_time_changed = true;
       }
@@ -119,6 +119,10 @@ void OnTick()
          (BacktestingLockTicks == LOCK_EVERY_CANDLE && lastbar_time_changed))
       {
          _is_ticks_locked = true;
+         
+         MtLockTickEvent * lock_tick_event = new MtLockTickEvent(symbol);
+         SendMtEvent(ON_LOCK_TICKS_EVENT, lock_tick_event);
+         delete lock_tick_event;
       }
       
       OnTimer();
@@ -7283,7 +7287,8 @@ enum MtEventTypes
    ON_TRADE_TRANSACTION_EVENT = 1,
    ON_BOOK_EVENT              = 2,
    ON_TICK_EVENT              = 3,
-   LAST_TIME_BAR_EVENT        = 4
+   ON_LAST_TIME_BAR_EVENT     = 4,
+   ON_LOCK_TICKS_EVENT        = 5
 };
 
 class MtEvent
@@ -7359,10 +7364,10 @@ private:
    MqlTick  _tick;
 };
 
-class MtTimeBar: public MtEvent
+class MtTimeBarEvent: public MtEvent
 {
 public:
-   MtTimeBar(string symbol, const MqlRates& rates)
+   MtTimeBarEvent(string symbol, const MqlRates& rates)
    {
       _symbol = symbol;
       _rates = rates;
@@ -7380,6 +7385,25 @@ public:
 private: 
    string _symbol;
    MqlRates _rates;
+};
+
+class MtLockTickEvent: public MtEvent
+{
+public:
+   MtLockTickEvent(string symbol)
+   {
+      _symbol = symbol;
+   }
+   
+   virtual JSONObject* CreateJson()
+   {
+      JSONObject *jo = new JSONObject();
+      jo.put("Instrument", new JSONString(_symbol));
+      return jo;
+   }
+   
+private:
+   string _symbol;
 };
 
 void SendMtEvent(MtEventTypes eventType, MtEvent* mtEvent)
