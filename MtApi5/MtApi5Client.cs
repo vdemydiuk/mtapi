@@ -521,9 +521,18 @@ namespace MtApi5
         ///<summary>
         ///Close all open positions. 
         ///</summary>
+        [Obsolete("OrderCloseAll is deprecated, please use PositionCloseAll instead.")]
         public bool OrderCloseAll()
         {
             return SendCommand<bool>(Mt5CommandType.OrderCloseAll, null);
+        }
+
+        ///<summary>
+        ///Close all open positions. Returns count of closed positions.
+        ///</summary>
+        public int PositionCloseAll()
+        {
+            return SendCommand<int>(Mt5CommandType.PositionCloseAll, null);
         }
 
         ///<summary>

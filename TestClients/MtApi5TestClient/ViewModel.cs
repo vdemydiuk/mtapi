@@ -67,6 +67,7 @@ namespace MtApi5TestClient
 
         public DelegateCommand PositionOpenCommand { get; private set; }
         public DelegateCommand PositionCloseCommand { get; private set; }
+        public DelegateCommand PositionCloseAllCommand { get; private set; }
 
         public DelegateCommand GetLastErrorCommand { get; private set; }
         public DelegateCommand ResetLastErrorCommand { get; private set; }
@@ -375,6 +376,7 @@ namespace MtApi5TestClient
 
             PositionOpenCommand = new DelegateCommand(ExecutePositionOpen);
             PositionCloseCommand = new DelegateCommand(ExecutePositionClose);
+            PositionCloseAllCommand = new DelegateCommand(ExecutePositionCloseAll);
 
             PrintCommand = new DelegateCommand(ExecutePrint);
             AlertCommand = new DelegateCommand(ExecuteAlert);
@@ -1124,6 +1126,12 @@ namespace MtApi5TestClient
 
             var retVal = await Execute(() => _mtApiClient.PositionClose(ticket, out tradeResult));
             AddLog($"PositionClose: ticket {ticket} retVal = {retVal}, result = {tradeResult}");
+        }
+
+        private async void ExecutePositionCloseAll(object obj)
+        {
+            var retVal = await Execute(() => _mtApiClient.PositionCloseAll());
+            AddLog($"PositionCloseAll: count = {retVal}");
         }
 
         private async void ExecutePrint(object obj)

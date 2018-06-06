@@ -250,6 +250,7 @@ namespace MtApi5
         GlobalVariablesDeleteAll            = 157,
         GlobalVariablesTotal                = 158,
 
-        UnlockTicks                         = 159
+        UnlockTicks                         = 159,
+        PositionCloseAll                    = 160
     }
 }

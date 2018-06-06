@@ -791,6 +791,9 @@ int executeCommand()
    case 159: //UnlockTiks
       Execute_UnlockTicks();
    break;
+   case 160: //PositionCloseAll
+      Execute_PositionCloseAll();
+   break;
    case 204: //TerminalInfoInteger
       Execute_TerminalInfoInteger();
    break;
@@ -6527,6 +6530,17 @@ void Execute_UnlockTicks()
    }
 }
 
+void Execute_PositionCloseAll()
+{
+   int res = PositionCloseAll();
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %d", __FUNCTION__, res);
+#endif
+
+   SEND_INT_RESPONSE(res)
+}
+
 void Execute_TerminalInfoInteger()
 {
    int propertyId;
@@ -6712,6 +6726,18 @@ bool OrderCloseAll()
       if (trade.PositionClose(PositionGetSymbol(i))) i--;
    }
    return true;
+}
+
+int PositionCloseAll()
+{
+   CTrade trade;
+   int total = PositionsTotal();
+   int i = total -1;
+   while (i >= 0)
+   {
+      if (trade.PositionClose(PositionGetSymbol(i))) i--;
+   }
+   return total;
 }
 
 //------------ Requests -------------------------------------------------------
@@ -7408,10 +7434,6 @@ private:
 
 void SendMtEvent(MtEventTypes eventType, MtEvent* mtEvent)
 {
-#ifdef __DEBUG_LOG__
-   PrintFormat("%s: eventType = %d", __FUNCTION__, eventType);
-#endif 
-
    JSONObject* json = mtEvent.CreateJson();
    if (sendEvent(ExpertHandle, (int)eventType, json.toString(), _error))
    {

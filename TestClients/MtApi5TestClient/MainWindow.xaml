@@ -486,6 +486,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Button Grid.Row="0" Command="{Binding PositionOpenCommand}" Content="PositionOpen" Margin="2" HorizontalAlignment="Left"/>
                         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4">
@@ -493,6 +494,7 @@
                             <TextBox Text="{Binding PositionTicketValue}" Width="150" Margin="2"/>
                             <Button Command="{Binding PositionCloseCommand}" Content="PositionClose" Margin="2"/>
                         </StackPanel>
+                        <Button Grid.Row="2" Command="{Binding PositionCloseAllCommand}" Content="PositionCloseAll" Margin="2" HorizontalAlignment="Left"/>
                     </Grid>
                 </TabItem>
 
