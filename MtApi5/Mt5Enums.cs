@@ -181,8 +181,7 @@ namespace MtApi5
         SYMBOL_BACKGROUND_COLOR = 79,
         SYMBOL_CHART_MODE = 80,
         SYMBOL_SELECT = 0,
-        //FIXME: SYMBOL_VISIBLE not found in MQL5 environment!
-        //SYMBOL_VISIBLE = ?
+        SYMBOL_VISIBLE = 76,
         SYMBOL_SESSION_DEALS = 56,
         SYMBOL_SESSION_BUY_ORDERS = 60,
         SYMBOL_SESSION_SELL_ORDERS = 62,

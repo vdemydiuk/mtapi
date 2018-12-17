@@ -1,7 +1,7 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      ""
 
-#property version   "1.5"
+#property version   "1.6"
 #property description "MtApi (MT5) connection expert"
 
 #include <json.mqh>
@@ -43,7 +43,15 @@
 
 //#define __DEBUG_LOG__
 
+enum LockTickType
+{
+   NO_LOCK,
+   LOCK_EVERY_TICK,
+   LOCK_EVERY_CANDLE
+};
+
 input int Port = 8228;
+input LockTickType BacktestingLockTicks = NO_LOCK;
 
 int ExpertHandle;
 
@@ -52,6 +60,9 @@ string _response_error;
 bool isCrashed = false;
 
 bool IsRemoteReadyForTesting = false;
+
+long _last_bar_open_time = 0;
+bool _is_ticks_locked = false;
 
 string PARAM_SEPARATOR = ";";
 
@@ -74,8 +85,48 @@ void OnDeinit(const int reason)
 
 void OnTick()
 {
-   start();
-   if (IsTesting()) OnTimer();
+   string symbol = Symbol();
+   
+   bool lastbar_time_changed = false;
+   long lastbar_time = SeriesInfoInteger(symbol, Period(), SERIES_LASTBAR_DATE); 
+   if (_last_bar_open_time != lastbar_time)
+   {
+      if (_last_bar_open_time != 0)
+      {
+         MqlRates rates_array[];
+         CopyRates(symbol, Period(), 1, 1, rates_array);
+      
+         MtTimeBarEvent* time_bar = new MtTimeBarEvent(symbol, rates_array[0]);
+         SendMtEvent(ON_LAST_TIME_BAR_EVENT, time_bar);
+         delete time_bar;
+         
+         lastbar_time_changed = true;
+      }
+      
+      _last_bar_open_time = lastbar_time;
+   }
+
+   MqlTick last_tick;
+   SymbolInfoTick(Symbol(),last_tick);
+   
+   MtOnTickEvent * tick_event = new MtOnTickEvent(symbol, last_tick);
+   SendMtEvent(ON_TICK_EVENT, tick_event);
+   delete tick_event; 
+   
+   if (IsTesting())
+   {
+      if (BacktestingLockTicks == LOCK_EVERY_TICK ||
+         (BacktestingLockTicks == LOCK_EVERY_CANDLE && lastbar_time_changed))
+      {
+         _is_ticks_locked = true;
+         
+         MtLockTickEvent * lock_tick_event = new MtLockTickEvent(symbol);
+         SendMtEvent(ON_LOCK_TICKS_EVENT, lock_tick_event);
+         delete lock_tick_event;
+      }
+      
+      OnTimer();
+   }
 }
 
 void  OnTradeTransaction( 
@@ -213,30 +264,17 @@ int deinit()
    return (0);
 }
 
-int start() 
-{
-   MqlTick last_tick;
-   SymbolInfoTick(Symbol(),last_tick);
-   double Bid = last_tick.bid;
-   double Ask = last_tick.ask;
-   
-   if (!updateQuote(ExpertHandle, Symbol(), Bid, Ask, _error)) 
-   {
-      Print("updateQuote: [ERROR] ", _error);
-   }
-
-   return (0);
-}
-
 void OnTimer()
 {
    while(true)
    {
       int executedCommand = executeCommand();
+      
+      if (_is_ticks_locked)
+         continue;
+      
       if (executedCommand == 0)
-      {   
-         return;
-      }
+         break;
    }
 }
 
@@ -714,8 +752,47 @@ int executeCommand()
    case 143: //ResetLastError
       Execute_ResetLastError();
    break;
+   case 146: //GlobalVariableCheck
+      Execute_GlobalVariableCheck();
+   break;
+   case 147: //GlobalVariableTime
+      Execute_GlobalVariableTime();
+   break;
+   case 148: //GlobalVariableDel
+      Execute_GlobalVariableDel();
+   break;
+   case 149: //GlobalVariableGet
+      Execute_GlobalVariableGet();
+   break;
+   case 150: //GlobalVariableName
+      Execute_GlobalVariableName();
+   break;
+   case 151: //GlobalVariableSet
+      Execute_GlobalVariableSet();
+   break;
+   case 152: //GlobalVariablesFlush
+      Execute_GlobalVariablesFlush();
+   break;
    case 153: //TerminalInfoString
       Execute_TerminalInfoString();
+   break;
+   case 154: //GlobalVariableTemp
+      Execute_GlobalVariableTemp();
+   break;
+   case 156: //GlobalVariableSetOnCondition
+      Execute_GlobalVariableSetOnCondition();
+   break;
+   case 157: //GlobalVariablesDeleteAll
+      Execute_GlobalVariablesDeleteAll();
+   break;
+   case 158: //GlobalVariablesTotal
+      Execute_GlobalVariablesTotal();
+   break;
+   case 159: //UnlockTiks
+      Execute_UnlockTicks();
+   break;
+   case 160: //PositionCloseAll
+      Execute_PositionCloseAll();
    break;
    case 204: //TerminalInfoInteger
       Execute_TerminalInfoInteger();
@@ -5668,6 +5745,114 @@ void Execute_ResetLastError()
    SEND_VOID_RESPONSE
 }
 
+void Execute_GlobalVariableCheck()
+{
+   string name;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s", __FUNCTION__, name);
+#endif
+
+   bool res = GlobalVariableCheck(name);
+
+   SEND_BOOL_RESPONSE(res)
+}
+
+void Execute_GlobalVariableTime()
+{
+   string name;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s", __FUNCTION__, name);
+#endif
+
+   datetime time = GlobalVariableTime(name);
+
+   SEND_INT_RESPONSE((int)time)
+}
+
+void Execute_GlobalVariableDel()
+{
+   string name;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s", __FUNCTION__, name);
+#endif
+
+   bool res = GlobalVariableDel(name);
+
+   SEND_BOOL_RESPONSE(res)
+}
+
+void Execute_GlobalVariableGet()
+{
+   string name;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s", __FUNCTION__, name);
+#endif
+
+   double res = GlobalVariableGet(name);
+
+   SEND_DOUBLE_RESPONSE(res)
+}
+
+void Execute_GlobalVariableName()
+{
+   int index;
+   
+   GET_INT_VALUE(0, index, "index")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: index = %d", __FUNCTION__, index);
+#endif
+   
+   string name = GlobalVariableName(index);
+   
+   SEND_STRING_RESPONSE(name)
+}
+
+void Execute_GlobalVariableSet()
+{
+   string name;
+   double value;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   GET_DOUBLE_VALUE(1, value, "value")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s, value = %f", __FUNCTION__, name, value);
+#endif
+
+   datetime res = GlobalVariableSet(name, value);
+
+   SEND_INT_RESPONSE((int)res)
+}
+
+void Execute_GlobalVariablesFlush()
+{
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: called.", __FUNCTION__);
+#endif   
+
+   GlobalVariablesFlush();
+   
+   SEND_VOID_RESPONSE
+}
+
 void Execute_ChartOpen()
 {
    string symbol;
@@ -6256,6 +6441,106 @@ void Execute_TerminalInfoString()
    }
 }
 
+void Execute_GlobalVariableTemp()
+{
+   string name;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s", __FUNCTION__, name);
+#endif
+
+   bool res = GlobalVariableTemp(name);
+
+   SEND_BOOL_RESPONSE(res)
+}
+
+void Execute_GlobalVariableSetOnCondition()
+{
+   string name;
+   double value;
+   double check_value;
+   StringInit(name, 500);
+   
+   GET_STRING_VALUE(0, name, "name")
+   GET_DOUBLE_VALUE(1, value, "value")
+   GET_DOUBLE_VALUE(2, check_value, "check_value")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: name = %s, value = %f, check_value = %f", __FUNCTION__, name, value, check_value);
+#endif
+
+   bool res = GlobalVariableSetOnCondition(name, value, check_value);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(res));
+#endif
+
+   SEND_BOOL_RESPONSE(res)
+}
+
+void Execute_GlobalVariablesDeleteAll()
+{
+   string prefix_name;
+   int limit_data;
+   StringInit(prefix_name, 500);
+   
+   GET_STRING_VALUE(0, prefix_name, "prefix_name")
+   GET_INT_VALUE(1, limit_data, "limit_data")
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: prefix_name = %s, limit_data = %d", __FUNCTION__, prefix_name, limit_data);
+#endif
+
+   int res = GlobalVariablesDeleteAll(prefix_name, (datetime)limit_data);
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %d", __FUNCTION__, res);
+#endif
+
+   SEND_INT_RESPONSE(res)   
+}
+
+void Execute_GlobalVariablesTotal()
+{
+   int res = GlobalVariablesTotal();
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %d", __FUNCTION__, res);
+#endif
+
+   SEND_INT_RESPONSE(res)
+}
+
+void Execute_UnlockTicks()
+{
+   if (!IsTesting())
+   {
+      Print("WARNING: function UnlockTicks can be used only for backtesting");
+      return;
+   }
+   
+   _is_ticks_locked = false;
+
+   if (!sendVoidResponse(ExpertHandle, _response_error))
+   {
+      PrintResponseError("UnlockTicks", _response_error);
+   }
+}
+
+void Execute_PositionCloseAll()
+{
+   int res = PositionCloseAll();
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %d", __FUNCTION__, res);
+#endif
+
+   SEND_INT_RESPONSE(res)
+}
+
 void Execute_TerminalInfoInteger()
 {
    int propertyId;
@@ -6443,6 +6728,18 @@ bool OrderCloseAll()
    return true;
 }
 
+int PositionCloseAll()
+{
+   CTrade trade;
+   int total = PositionsTotal();
+   int i = total -1;
+   while (i >= 0)
+   {
+      if (trade.PositionClose(PositionGetSymbol(i))) i--;
+   }
+   return total;
+}
+
 //------------ Requests -------------------------------------------------------
 
 string OnRequest(string json)
@@ -6494,6 +6791,9 @@ string OnRequest(string json)
                break;
             case 10: //ChartXYToTimePrice
                response = ExecuteRequest_ChartXYToTimePrice(jo);
+               break;
+            case 11: //PositionClose
+               response = ExecuteRequest_PositionClose(jo);
                break;
             default:
                PrintFormat("%s [WARNING]: Unknown request type %d", __FUNCTION__, requestType);
@@ -6975,12 +7275,46 @@ string ExecuteRequest_ChartXYToTimePrice(JSONObject *jo)
    return CreateSuccessResponse("Value", result_value_jo);
 }
 
+string ExecuteRequest_PositionClose(JSONObject *jo)
+{
+   //Ticket
+   CHECK_JSON_VALUE(jo, "Ticket", CreateErrorResponse(-1, "Undefinded mandatory parameter Ticket"));
+   ulong ticket = jo.getLong("Ticket");
+   
+   //Deviation
+   CHECK_JSON_VALUE(jo, "Deviation", CreateErrorResponse(-1, "Undefinded mandatory parameter Deviation"));
+   ulong deviation = jo.getLong("Deviation");
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: Ticket = %d, Deviation = %d", __FUNCTION__, ticket, deviation);
+#endif
+
+   CTrade trade;
+   bool ok = trade.PositionClose(ticket, deviation);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+   
+#ifdef __DEBUG_LOG__
+   Print("ExecuteRequest_PositionClose: retcode = ", trade.ResultRetcode());
+#endif
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse("Value", result_value_jo);  
+}
+
 //------------ Events -------------------------------------------------------
 
 enum MtEventTypes
 {
    ON_TRADE_TRANSACTION_EVENT = 1,
-   ON_BOOK_EVENT              = 2
+   ON_BOOK_EVENT              = 2,
+   ON_TICK_EVENT              = 3,
+   ON_LAST_TIME_BAR_EVENT     = 4,
+   ON_LOCK_TICKS_EVENT        = 5
 };
 
 class MtEvent
@@ -7033,12 +7367,73 @@ private:
    string _symbol;
 };
 
+class MtOnTickEvent : public MtEvent
+{
+public:
+   MtOnTickEvent(string symbol, const MqlTick& tick)
+   {
+      _symbol = symbol;
+      _tick = tick;
+   }
+   
+   virtual JSONObject* CreateJson()
+   {
+      JSONObject *jo = new JSONObject();
+      jo.put("Tick", MqlTickToJson(_tick));
+      jo.put("Instrument", new JSONString(_symbol));
+      jo.put("ExpertHandle", new JSONNumber(ExpertHandle));
+      return jo;
+   }
+   
+private:
+   string   _symbol;
+   MqlTick  _tick;
+};
+
+class MtTimeBarEvent: public MtEvent
+{
+public:
+   MtTimeBarEvent(string symbol, const MqlRates& rates)
+   {
+      _symbol = symbol;
+      _rates = rates;
+   }
+   
+   virtual JSONObject* CreateJson()
+   {
+      JSONObject *jo = new JSONObject();
+      jo.put("Rates", MqlRatesToJson(_rates));
+      jo.put("Instrument", new JSONString(_symbol));
+      jo.put("ExpertHandle", new JSONNumber(ExpertHandle));
+      return jo;
+   }
+
+private: 
+   string _symbol;
+   MqlRates _rates;
+};
+
+class MtLockTickEvent: public MtEvent
+{
+public:
+   MtLockTickEvent(string symbol)
+   {
+      _symbol = symbol;
+   }
+   
+   virtual JSONObject* CreateJson()
+   {
+      JSONObject *jo = new JSONObject();
+      jo.put("Instrument", new JSONString(_symbol));
+      return jo;
+   }
+   
+private:
+   string _symbol;
+};
+
 void SendMtEvent(MtEventTypes eventType, MtEvent* mtEvent)
 {
-#ifdef __DEBUG_LOG__
-   PrintFormat("%s: eventType = %d", __FUNCTION__, eventType);
-#endif 
-
    JSONObject* json = mtEvent.CreateJson();
    if (sendEvent(ExpertHandle, (int)eventType, json.toString(), _error))
    {
@@ -7070,9 +7465,11 @@ bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
    request.order = jo.getLong("Order");
    
    //Symbol
-   CHECK_JSON_VALUE(jo, "Symbol", false);
-   StringInit(request.symbol, 100, 0);
-   request.symbol = jo.getString("Symbol");
+   if (jo.getValue("Symbol") != NULL)
+   {
+      StringInit(request.symbol, 100, 0);
+      request.symbol = jo.getString("Symbol");
+   }
    
    //Volume
    CHECK_JSON_VALUE(jo, "Volume", false);
@@ -7212,5 +7609,19 @@ JSONObject* MqlTradeRequestToJson(MqlTradeRequest& request)
    jo.put("Type_time", new JSONNumber((int)request.type_time));
    jo.put("MtExpiration", new JSONNumber((int)request.expiration));
    jo.put("Comment", new JSONString(request.comment));
+   return jo;
+}
+
+JSONObject* MqlRatesToJson(MqlRates& rates)
+{
+   JSONObject *jo = new JSONObject();
+   jo.put("mt_time", new JSONNumber((int)rates.time));
+   jo.put("open", new JSONNumber(rates.open));
+   jo.put("high", new JSONNumber(rates.high));
+   jo.put("low", new JSONNumber(rates.low));
+   jo.put("close", new JSONNumber(rates.close));
+   jo.put("tick_volume", new JSONNumber(rates.tick_volume));
+   jo.put("spread", new JSONNumber(rates.spread));
+   jo.put("real_volume", new JSONNumber(rates.real_volume));
    return jo;
 }

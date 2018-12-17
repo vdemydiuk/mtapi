@@ -66,6 +66,7 @@ namespace MTApiService
             }
 
             server.AddExpert(expert);
+            expert.Deinited += ExpertOnDeinited;
 
             Log.Info("AddExpert: end");
         }
@@ -81,7 +82,6 @@ namespace MTApiService
                 if (_experts.ContainsKey(expertHandle))
                 {
                     expert = _experts[expertHandle];
-                    _experts.Remove(expertHandle);
                 }
             }
 
@@ -269,6 +269,31 @@ namespace MTApiService
                     _servers.Remove(port);
                 }
             }
+        }
+
+
+        private void ExpertOnDeinited(object sender, EventArgs eventArgs)
+        {
+            Log.Debug("ExpertOnDeinited: begin.");
+
+            var expert = sender as MtExpert;
+            if (expert == null)
+            {
+                Log.Warn("expert_Deinited: end. Expert is not defined.");
+                return;
+            }
+
+            lock (_experts)
+            {
+                if (_experts.ContainsKey(expert.Handle))
+                {
+                    _experts.Remove(expert.Handle);
+                }
+            }
+
+            Log.DebugFormat("ExpertOnDeinited: removed expert {0}", expert.Handle);
+
+            Log.Debug("ExpertOnDeinited: end.");
         }
         #endregion
     }

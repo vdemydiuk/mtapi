@@ -48,7 +48,7 @@ namespace MTApiService
             Log.Debug("SendResponse: end.");
         }
 
-        public int GetCommandType()
+        public virtual int GetCommandType()
         {
             Log.Debug("GetCommandType: called.");
 
@@ -110,7 +110,7 @@ namespace MTApiService
             return command.NamedParams.ContainsKey(name);
         }
 
-        public void SendEvent(MtEvent mtEvent)
+        public virtual void SendEvent(MtEvent mtEvent)
         {
             Log.DebugFormat("SendEvent: begin. event = {0}", mtEvent);
 
@@ -119,7 +119,7 @@ namespace MTApiService
             Log.Debug("SendEvent: end.");
         }
 
-        public virtual void UpdateQuote(MtQuote quote)
+        public void UpdateQuote(MtQuote quote)
         {
             Log.DebugFormat("UpdateQuote: begin. quote = {0}", quote);
 

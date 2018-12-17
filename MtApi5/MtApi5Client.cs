@@ -40,12 +40,21 @@ namespace MtApi5
         private volatile bool _isBacktestingMode;
         private Mt5ConnectionState _connectionState = Mt5ConnectionState.Disconnected;
         private int _executorHandle;
+        private readonly Dictionary<Mt5EventTypes, Action<int, string>> _mtEventHandlers =
+            new Dictionary<Mt5EventTypes, Action<int, string>>();
+        
         #endregion
 
         #region Public Methods
         public MtApi5Client()
         {
             LogConfigurator.Setup(LogProfileName);
+
+            _mtEventHandlers[Mt5EventTypes.OnBookEvent] = ReceivedOnBookEvent;
+            _mtEventHandlers[Mt5EventTypes.OnTick] = ReceivedOnTickEvent;
+            _mtEventHandlers[Mt5EventTypes.OnTradeTransaction] = ReceivedOnTradeTransactionEvent;
+            _mtEventHandlers[Mt5EventTypes.OnLastTimeBar] = ReceivedOnLastTimeBarEvent;
+            _mtEventHandlers[Mt5EventTypes.OnLockTicks] = ReceivedOnLockTicksEvent;
         }
 
         ///<summary>
@@ -512,9 +521,18 @@ namespace MtApi5
         ///<summary>
         ///Close all open positions. 
         ///</summary>
+        [Obsolete("OrderCloseAll is deprecated, please use PositionCloseAll instead.")]
         public bool OrderCloseAll()
         {
             return SendCommand<bool>(Mt5CommandType.OrderCloseAll, null);
+        }
+
+        ///<summary>
+        ///Close all open positions. Returns count of closed positions.
+        ///</summary>
+        public int PositionCloseAll()
+        {
+            return SendCommand<int>(Mt5CommandType.PositionCloseAll, null);
         }
 
         ///<summary>
@@ -527,6 +545,36 @@ namespace MtApi5
             var commandParameters = new ArrayList { ticket, deviation };
 
             return SendCommand<bool>(Mt5CommandType.PositionClose, commandParameters);
+        }
+
+        ///<summary>
+        ///Closes a position with the specified ticket.
+        ///</summary>
+        ///<param name="ticket">Ticket of the closed position.</param>
+        ///<param name="deviation">Maximal deviation from the current price (in points).</param>
+        /// <param name="result">output result</param>
+        public bool PositionClose(ulong ticket, ulong deviation, out MqlTradeResult result)
+        {
+            Log.Debug($"PositionClose: ticket = {ticket}, deviation = {deviation}");
+
+            var response = SendRequest<PositionCloseResult>(new PositionCloseRequest
+            {
+                Ticket = ticket,
+                Deviation = deviation
+            });
+
+            result = response?.TradeResult;
+            return response != null && response.RetVal;
+        }
+
+        ///<summary>
+        ///Closes a position with the specified ticket.
+        ///</summary>
+        ///<param name="ticket">Ticket of the closed position.</param>
+        /// <param name="result">output result</param>
+        public bool PositionClose(ulong ticket, out MqlTradeResult result)
+        {
+            return PositionClose(ticket, ulong.MaxValue, out result);
         }
 
         /// <summary>
@@ -559,7 +607,7 @@ namespace MtApi5
         /// <param name="comment">comment</param>
         /// <param name="result">output result</param>
         /// <returns>true - successful check of the basic structures, otherwise - false.</returns>
-        public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, string comment , out MqlTradeResult result)
+        public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, string comment, out MqlTradeResult result)
         {
             Log.Debug($"PositionOpen: symbol = {symbol}, orderType = {orderType}, volume = {volume}, price = {price}, sl = {sl}, tp = {tp}, comment = {comment}");
 
@@ -577,15 +625,31 @@ namespace MtApi5
             result = response?.TradeResult;
             return response != null && response.RetVal;
         }
+
+        /// <summary>
+        /// Opens a position with the specified parameters.
+        /// </summary>
+        /// <param name="symbol">symbol</param>
+        /// <param name="orderType">order type to open position </param>
+        /// <param name="volume">position volume</param>
+        /// <param name="price">execution price</param>
+        /// <param name="sl">Stop Loss price</param>
+        /// <param name="tp">Take Profit price</param>
+        /// <param name="result">output result</param>
+        /// <returns>true - successful check of the basic structures, otherwise - false.</returns>
+        public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, out MqlTradeResult result)
+        {
+            return PositionOpen(symbol, orderType, volume, price, sl, tp, "", out result);
+        }
         #endregion
 
         #region Account Information functions
 
-            ///<summary>
-            ///Returns the value of the corresponding account property. 
-            ///</summary>
-            ///<param name="propertyId">Identifier of the property.</param>
-            public double AccountInfoDouble(ENUM_ACCOUNT_INFO_DOUBLE propertyId)
+        ///<summary>
+        ///Returns the value of the corresponding account property. 
+        ///</summary>
+        ///<param name="propertyId">Identifier of the property.</param>
+        public double AccountInfoDouble(ENUM_ACCOUNT_INFO_DOUBLE propertyId)
         {
             var commandParameters = new ArrayList { (int)propertyId };
 
@@ -734,7 +798,7 @@ namespace MtApi5
                 ratesArray = new MqlRates[retVal.Length];
                 for(var i = 0; i < retVal.Length; i++)
                 {
-                    ratesArray[i] = new MqlRates(Mt5TimeConverter.ConvertFromMtTime(retVal[i].time)
+                    ratesArray[i] = new MqlRates(retVal[i].time
                         , retVal[i].open
                         , retVal[i].high
                         , retVal[i].low
@@ -768,7 +832,7 @@ namespace MtApi5
                 ratesArray = new MqlRates[retVal.Length];
                 for (var i = 0; i < retVal.Length; i++)
                 {
-                    ratesArray[i] = new MqlRates(Mt5TimeConverter.ConvertFromMtTime(retVal[i].time)
+                    ratesArray[i] = new MqlRates(retVal[i].time
                         , retVal[i].open
                         , retVal[i].high
                         , retVal[i].low
@@ -802,7 +866,7 @@ namespace MtApi5
                 ratesArray = new MqlRates[retVal.Length];
                 for (var i = 0; i < retVal.Length; i++)
                 {
-                    ratesArray[i] = new MqlRates(Mt5TimeConverter.ConvertFromMtTime(retVal[i].time)
+                    ratesArray[i] = new MqlRates(retVal[i].time
                         , retVal[i].open
                         , retVal[i].high
                         , retVal[i].low
@@ -2887,6 +2951,135 @@ namespace MtApi5
 
         #endregion
 
+        #region Global Variables
+
+        ///<summary>
+        ///Checks the existence of a global variable with the specified name.
+        ///</summary>
+        ///<param name="name">Global variable name.</param>
+        public bool GlobalVariableCheck(string name)
+        {
+            var commandParameters = new ArrayList { name };
+            return SendCommand<bool>(Mt5CommandType.GlobalVariableCheck, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the time when the global variable was last accessed.
+        ///</summary>
+        ///<param name="name">Name of the global variable.</param>
+        public DateTime GlobalVariableTime(string name)
+        {
+            var commandParameters = new ArrayList { name };
+            var res = SendCommand<int>(Mt5CommandType.GlobalVariableTime, commandParameters);
+            return Mt5TimeConverter.ConvertFromMtTime(res);
+        }
+
+        ///<summary>
+        ///Deletes a global variable from the client terminal.
+        ///</summary>
+        ///<param name="name">Name of the global variable.</param>
+        public bool GlobalVariableDel(string name)
+        {
+            var commandParameters = new ArrayList { name };
+            return SendCommand<bool>(Mt5CommandType.GlobalVariableDel, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the value of an existing global variable of the client terminal.
+        ///</summary>
+        ///<param name="name">Global variable name.</param>
+        public double GlobalVariableGet(string name)
+        {
+            var commandParameters = new ArrayList { name };
+            return SendCommand<double>(Mt5CommandType.GlobalVariableGet, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the name of a global variable by its ordinal number.
+        ///</summary>
+        ///<param name="index">Sequence number in the list of global variables. It should be greater than or equal to 0 and less than GlobalVariablesTotal().</param>
+        public string GlobalVariableName(int index)
+        {
+            var commandParameters = new ArrayList { index };
+            return SendCommand<string>(Mt5CommandType.GlobalVariableName, commandParameters);
+        }
+
+        ///<summary>
+        ///Sets a new value for a global variable. If the variable does not exist, the system creates a new global variable.
+        ///</summary>
+        ///<param name="name">Global variable name.</param>
+        ///<param name="value">The new numerical value.</param>
+        public DateTime GlobalVariableSet(string name, double value)
+        {
+            var commandParameters = new ArrayList { name, value };
+            var res = SendCommand<int>(Mt5CommandType.GlobalVariableSet, commandParameters);
+            return Mt5TimeConverter.ConvertFromMtTime(res);
+        }
+
+        ///<summary>
+        ///Forcibly saves contents of all global variables to a disk.
+        ///</summary>
+        public void GlobalVariablesFlush()
+        {
+            SendCommand<object>(Mt5CommandType.GlobalVariablesFlush, null);
+        }
+
+        ///<summary>
+        ///The function attempts to create a temporary global variable. If the variable doesn't exist, the system creates a new temporary global variable.
+        ///</summary>
+        ///<param name="name">The name of a temporary global variable.</param>
+        public bool GlobalVariableTemp(string name)
+        {
+            var commandParameters = new ArrayList { name };
+            return SendCommand<bool>(Mt5CommandType.GlobalVariableTemp, commandParameters);
+        }
+
+        ///<summary>
+        ///Sets the new value of the existing global variable if the current value equals to the third parameter check_value. If there is no global variable, the function will generate an error ERR_GLOBALVARIABLE_NOT_FOUND (4501) and return false.
+        ///</summary>
+        ///<param name="name">The name of a global variable.</param>
+        ///<param name="value">New value.</param>
+        ///<param name="checkValue">The value to check the current value of the global variable.</param>
+        public bool GlobalVariableSetOnCondition(string name, double value, double checkValue)
+        {
+            var commandParameters = new ArrayList { name, value, checkValue };
+            return SendCommand<bool>(Mt5CommandType.GlobalVariableSetOnCondition, commandParameters);
+        }
+
+        ///<summary>
+        ///Deletes global variables of the client terminal.
+        ///</summary>
+        ///<param name="prefixName">Name prefix global variables to remove. If you specify a prefix NULL or empty string, then all variables that meet the data criterion will be deleted.</param>
+        ///<param name="limitData">Date to select global variables by the time of their last modification. The function removes global variables, which were changed before this date. If the parameter is zero, then all variables that meet the first criterion (prefix) are deleted.</param>
+        public int GlobalVariablesDeleteAll(string prefixName = "", DateTime? limitData = null)
+        {
+            if (prefixName == null)
+                prefixName = "";
+            var commandParameters = new ArrayList { prefixName, Mt5TimeConverter.ConvertToMtTime(limitData) };
+            return SendCommand<int>(Mt5CommandType.GlobalVariablesDeleteAll, commandParameters);
+        }
+
+        ///<summary>
+        ///Returns the total number of global variables of the client terminal.
+        ///</summary>
+        public int GlobalVariablesTotal()
+        {
+            return SendCommand<int>(Mt5CommandType.GlobalVariablesTotal, null);
+        }
+        #endregion
+
+        #region Backtesting functions
+
+        ///<summary>
+        ///The function unlock ticks in backtesting mode.
+        ///</summary>
+        public void UnlockTicks()
+        {
+            SendCommand<object>(Mt5CommandType.UnlockTicks, null);
+        }
+
+        #endregion
+
         #endregion // Public Methods
 
         #region Properties
@@ -2934,6 +3127,8 @@ namespace MtApi5
         public event EventHandler<Mt5ConnectionEventArgs> ConnectionStateChanged;
         public event EventHandler<Mt5TradeTransactionEventArgs> OnTradeTransaction;
         public event EventHandler<Mt5BookEventArgs> OnBookEvent;
+        public event EventHandler<Mt5TimeBarArgs> OnLastTimeBar;
+        public event EventHandler<Mt5LockTicksEventArgs> OnLockTicks;
         #endregion
 
         #region Private Methods
@@ -3002,24 +3197,14 @@ namespace MtApi5
             }
         }
 
+
         private void _client_MtEventReceived(MtEvent e)
         {
             var eventType = (Mt5EventTypes)e.EventType;
-
-            switch (eventType)
-            {
-                case Mt5EventTypes.OnTradeTransaction:
-                    ReceivedOnTradeTransaction(e.ExpertHandle, e.Payload);
-                    break;
-                case Mt5EventTypes.OnBookEvent:
-                    ReceivedOnBookEvent(e.ExpertHandle, e.Payload);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            _mtEventHandlers[eventType](e.ExpertHandle, e.Payload);
         }
 
-        private void ReceivedOnTradeTransaction(int expertHandler, string payload)
+        private void ReceivedOnTradeTransactionEvent(int expertHandler, string payload)
         {
             var e = JsonConvert.DeserializeObject<OnTradeTransactionEvent>(payload);
             OnTradeTransaction?.Invoke(this, new Mt5TradeTransactionEventArgs
@@ -3039,6 +3224,33 @@ namespace MtApi5
                 ExpertHandle = expertHandler,
                 Symbol = e.Symbol
             });
+        }
+
+        private void ReceivedOnTickEvent(int expertHandler, string payload)
+        {
+            var e = JsonConvert.DeserializeObject<OnTickEvent>(payload);
+            var quote = new Mt5Quote(e.Instrument, e.Tick.bid, e.Tick.ask)
+            {
+                ExpertHandle = expertHandler,
+                Volume = e.Tick.volume,
+                Time = e.Tick.time,
+                Last = e.Tick.last
+            };
+
+            QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
+            QuoteUpdate?.Invoke(this, new Mt5QuoteEventArgs(quote));
+        }
+
+        private void ReceivedOnLastTimeBarEvent(int expertHandler, string payload)
+        {
+            var e = JsonConvert.DeserializeObject<OnLastTimeBarEvent>(payload);
+            OnLastTimeBar?.Invoke(this, new Mt5TimeBarArgs(expertHandler, e.Instrument, e.Rates));
+        }
+
+        private void ReceivedOnLockTicksEvent(int expertHandler, string payload)
+        {
+            var e = JsonConvert.DeserializeObject<OnLockTicksEvent>(payload);
+            OnLockTicks?.Invoke(this, new Mt5LockTicksEventArgs(e.Instrument));
         }
 
         private void Connect(string host, int port)

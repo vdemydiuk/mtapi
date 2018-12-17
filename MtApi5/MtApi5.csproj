@@ -49,7 +49,12 @@
   <ItemGroup>
     <Compile Include="CopyTicksFlag.cs" />
     <Compile Include="Events\OnBookEvent.cs" />
+    <Compile Include="Events\OnLastTimeBarEvent.cs" />
+    <Compile Include="Events\OnLockTicksEvent.cs" />
+    <Compile Include="Events\OnTickEvent.cs" />
     <Compile Include="Events\OnTradeTransactionEvent.cs" />
+    <Compile Include="Mt5LockTicksEventArgs.cs" />
+    <Compile Include="Mt5TimeBarArgs.cs" />
     <Compile Include="MqlBookInfo.cs" />
     <Compile Include="MqlParam.cs" />
     <Compile Include="MqlRates.cs" />
@@ -84,6 +89,8 @@
     <Compile Include="Requests\OrderCheckRequest.cs" />
     <Compile Include="Requests\OrderCheckResult.cs" />
     <Compile Include="Requests\OrderSendRequest.cs" />
+    <Compile Include="Requests\PositionCloseRequest.cs" />
+    <Compile Include="Requests\PositionCloseResult.cs" />
     <Compile Include="Requests\PositionOpenRequest.cs" />
     <Compile Include="Requests\RequestBase.cs" />
     <Compile Include="Requests\RequestType.cs" />

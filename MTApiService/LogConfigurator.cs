@@ -54,7 +54,7 @@ namespace MTApiService
 
     public class LogConfigurator
     {
-        private const string LogFileNameExtension = "txt";
+        private const string LogFileNameExtension = "log";
 
         public static void Setup(string profileName)
         {

@@ -66,6 +66,8 @@ namespace MtApi5TestClient
         public DelegateCommand MarketBookGetCommand { get; private set; }
 
         public DelegateCommand PositionOpenCommand { get; private set; }
+        public DelegateCommand PositionCloseCommand { get; private set; }
+        public DelegateCommand PositionCloseAllCommand { get; private set; }
 
         public DelegateCommand GetLastErrorCommand { get; private set; }
         public DelegateCommand ResetLastErrorCommand { get; private set; }
@@ -108,6 +110,20 @@ namespace MtApi5TestClient
         public DelegateCommand TimeTradeServerCommand { get; private set; }
         public DelegateCommand TimeLocalCommand { get; private set; }
         public DelegateCommand TimeGMTCommand { get; private set; }
+
+        public DelegateCommand GlobalVariableCheckCommand { get; private set; }
+        public DelegateCommand GlobalVariableTimeCommand { get; private set; }
+        public DelegateCommand GlobalVariableDelCommand { get; private set; }
+        public DelegateCommand GlobalVariableGetCommand { get; private set; }
+        public DelegateCommand GlobalVariableNameCommand { get; private set; }
+        public DelegateCommand GlobalVariableSetCommand { get; private set; }
+        public DelegateCommand GlobalVariablesFlushCommand { get; private set; }
+        public DelegateCommand GlobalVariableTempCommand { get; private set; }
+        public DelegateCommand GlobalVariableSetOnConditionCommand { get; private set; }
+        public DelegateCommand GlobalVariablesDeleteAllCommand { get; private set; }
+        public DelegateCommand GlobalVariablesTotalCommand { get; private set; }
+
+        public DelegateCommand UnlockTicksCommand { get; private set; }
         #endregion
 
         #region Properties
@@ -229,6 +245,39 @@ namespace MtApi5TestClient
                 OnPropertyChanged("ChartFunctionsChartIdValue");
             }
         }
+
+        private string _globalVarName;
+        public string GlobalVarName
+        {
+            get { return _globalVarName; }
+            set
+            {
+                _globalVarName = value;
+                OnPropertyChanged("GlobalVarName");
+            }
+        }
+
+        private double _globalVarValue;
+        public double GlobalVarValue
+        {
+            get { return _globalVarValue; }
+            set
+            {
+                _globalVarValue = value;
+                OnPropertyChanged("GlobalVarValue");
+            }
+        }
+
+        private ulong _positionTicketValue;
+        public ulong PositionTicketValue
+        {
+            get { return _positionTicketValue; }
+            set
+            {
+                _positionTicketValue = value;
+                OnPropertyChanged("PositionTicketValue");
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -240,10 +289,11 @@ namespace MtApi5TestClient
             _mtApiClient.ConnectionStateChanged += mMtApiClient_ConnectionStateChanged;
             _mtApiClient.QuoteAdded += mMtApiClient_QuoteAdded;
             _mtApiClient.QuoteRemoved += mMtApiClient_QuoteRemoved;
-            _mtApiClient.QuoteUpdated += mMtApiClient_QuoteUpdated;
             _mtApiClient.QuoteUpdate += mMtApiClient_QuoteUpdate;
             _mtApiClient.OnTradeTransaction += mMtApiClient_OnTradeTransaction;
             _mtApiClient.OnBookEvent += _mtApiClient_OnBookEvent;
+            _mtApiClient.OnLastTimeBar += _mtApiClient_OnLastTimeBar;
+            _mtApiClient.OnLockTicks += _mtApiClient_OnLockTicks;
 
             ConnectionState = _mtApiClient.ConnectionState;
             ConnectionMessage = "Disconnected";
@@ -325,6 +375,8 @@ namespace MtApi5TestClient
             MarketBookGetCommand = new DelegateCommand(ExecuteMarketBookGet);
 
             PositionOpenCommand = new DelegateCommand(ExecutePositionOpen);
+            PositionCloseCommand = new DelegateCommand(ExecutePositionClose);
+            PositionCloseAllCommand = new DelegateCommand(ExecutePositionCloseAll);
 
             PrintCommand = new DelegateCommand(ExecutePrint);
             AlertCommand = new DelegateCommand(ExecuteAlert);
@@ -366,6 +418,20 @@ namespace MtApi5TestClient
             TimeTradeServerCommand = new DelegateCommand(ExecuteTimeTradeServer);
             TimeLocalCommand = new DelegateCommand(ExecuteTimeLocal);
             TimeGMTCommand = new DelegateCommand(ExecuteTimeGMT);
+
+            GlobalVariableCheckCommand = new DelegateCommand(ExecuteGlobalVariableCheck);
+            GlobalVariableTimeCommand = new DelegateCommand(ExecuteGlobalVariableTime);
+            GlobalVariableDelCommand = new DelegateCommand(ExecuteGlobalVariableDel);
+            GlobalVariableGetCommand = new DelegateCommand(ExecuteGlobalVariableGet);
+            GlobalVariableNameCommand = new DelegateCommand(ExecuteGlobalVariableName);
+            GlobalVariableSetCommand = new DelegateCommand(ExecuteGlobalVariableSet);
+            GlobalVariablesFlushCommand = new DelegateCommand(ExecuteGlobalVariablesFlush);
+            GlobalVariableTempCommand = new DelegateCommand(ExecuteGlobalVariableTemp);
+            GlobalVariableSetOnConditionCommand = new DelegateCommand(ExecuteGlobalVariableSetOnCondition);
+            GlobalVariablesDeleteAllCommand = new DelegateCommand(ExecuteGlobalVariablesDeleteAll);
+            GlobalVariablesTotalCommand = new DelegateCommand(ExecuteGlobalVariablesTotal);
+
+            UnlockTicksCommand = new DelegateCommand(ExecuteUnlockTicks);
         }
 
         private bool CanExecuteConnect(object o)
@@ -762,7 +828,7 @@ namespace MtApi5TestClient
                 foreach (var rates in result)
                 {
                     TimeSeriesResults.Add(
-                        $"time={rates.time}; open={rates.open}; high={rates.high}; low={rates.low}; close={rates.close}; tick_volume={rates.tick_volume}; spread={rates.spread}; real_volume={rates.tick_volume}");
+                        $"time={rates.time}; mt_time={rates.mt_time}; open={rates.open}; high={rates.high}; low={rates.low}; close={rates.close}; tick_volume={rates.tick_volume}; spread={rates.spread}; real_volume={rates.tick_volume}");
                 }
             });
 
@@ -1053,6 +1119,21 @@ namespace MtApi5TestClient
             AddLog($"PositionOpen: symbol EURUSD retVal = {retVal}, result = {tradeResult}");
         }
 
+        private async void ExecutePositionClose(object obj)
+        {
+            var ticket = PositionTicketValue;
+            MqlTradeResult tradeResult = null;
+
+            var retVal = await Execute(() => _mtApiClient.PositionClose(ticket, out tradeResult));
+            AddLog($"PositionClose: ticket {ticket} retVal = {retVal}, result = {tradeResult}");
+        }
+
+        private async void ExecutePositionCloseAll(object obj)
+        {
+            var retVal = await Execute(() => _mtApiClient.PositionCloseAll());
+            AddLog($"PositionCloseAll: count = {retVal}");
+        }
+
         private async void ExecutePrint(object obj)
         {
             var message = MessageText;
@@ -1115,6 +1196,86 @@ namespace MtApi5TestClient
             var retVal = await Execute(() => _mtApiClient.TimeGMT());
             AddLog($"TimeGMT: {retVal}");
         }
+
+        #region Global Variable Commands
+        private async void ExecuteGlobalVariableCheck(object obj)
+        {
+            var name = GlobalVarName;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableCheck(name));
+            AddLog($"GlobalVariableCheck: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariableTime(object obj)
+        {
+            var name = GlobalVarName;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableTime(name));
+            AddLog($"GlobalVariableTime: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariableDel(object obj)
+        {
+            var name = GlobalVarName;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableDel(name));
+            AddLog($"GlobalVariableDel: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariableGet(object obj)
+        {
+            var name = GlobalVarName;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableGet(name));
+            GlobalVarValue = retVal;
+            AddLog($"GlobalVariableGet: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariableName(object obj)
+        {
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableName(0));
+            GlobalVarName = retVal;
+            AddLog($"GlobalVariableName: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariableSet(object obj)
+        {
+            var name = GlobalVarName;
+            var value = GlobalVarValue;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableSet(name, value));
+            AddLog($"GlobalVariableSet: {retVal}");
+        }
+
+        private void ExecuteGlobalVariablesFlush(object obj)
+        {
+            _mtApiClient.GlobalVariablesFlush();
+            AddLog("GlobalVariablesFlush: executed.");
+        }
+
+        private async void ExecuteGlobalVariableTemp(object obj)
+        {
+            var name = GlobalVarName;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableTemp(name));
+            AddLog($"GlobalVariableTemp: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariableSetOnCondition(object obj)
+        {
+            var name = GlobalVarName;
+            var value = GlobalVarValue;
+            const double checkValue = 2;
+            var retVal = await Execute(() => _mtApiClient.GlobalVariableSetOnCondition(name, value, checkValue));
+            AddLog($"GlobalVariableSetOnCondition: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariablesDeleteAll(object obj)
+        {
+            var retVal = await Execute(() => _mtApiClient.GlobalVariablesDeleteAll());
+            AddLog($"GlobalVariablesDeleteAll: {retVal}");
+        }
+
+        private async void ExecuteGlobalVariablesTotal(object obj)
+        {
+            var retVal = await Execute(() => _mtApiClient.GlobalVariablesTotal());
+            AddLog($"GlobalVariablesTotal: {retVal}");
+        }
+        #endregion
 
         #region Chart Commands
         private async void ExecuteChartOpen(object o)
@@ -1417,6 +1578,11 @@ namespace MtApi5TestClient
         }
         #endregion
 
+        private void ExecuteUnlockTicks(object o)
+        {
+            _mtApiClient.UnlockTicks();
+        }
+
         private static void RunOnUiThread(Action action)
         {
             Application.Current?.Dispatcher.Invoke(action);
@@ -1427,13 +1593,13 @@ namespace MtApi5TestClient
             Application.Current?.Dispatcher.Invoke(action, args);
         }
 
-        private static void mMtApiClient_QuoteUpdated(object sender, string symbol, double bid, double ask)
-        {
-            Console.WriteLine(@"Quote: Symbol = {0}, Bid = {1}, Ask = {2}", symbol, bid, ask);
-        }
-
         private void mMtApiClient_QuoteUpdate(object sender, Mt5QuoteEventArgs e)
         {
+            var q = e.Quote;
+
+            Console.WriteLine(@"Quote: Symbol = {0}, Bid = {1}, Ask = {2}, Volume = {3}, Time = {4}, Last = {5}"
+                , q.Instrument, q.Bid, q.Ask, q.Volume, q.Time, q.Last);
+
             if (_quotesMap.ContainsKey(e.Quote.ExpertHandle))
             {
                 var qvm = _quotesMap[e.Quote.ExpertHandle];
@@ -1491,6 +1657,16 @@ namespace MtApi5TestClient
         private void _mtApiClient_OnBookEvent(object sender, Mt5BookEventArgs e)
         {
             AddLog($"OnBookEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}");
+        }
+
+        private void _mtApiClient_OnLastTimeBar(object sender, Mt5TimeBarArgs e)
+        {
+            AddLog($"OnBookEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}, open = {e.Rates.open}, close = {e.Rates.close}, time = {e.Rates.time}, high = {e.Rates.high}, low = {e.Rates.low}");
+        }
+
+        private void _mtApiClient_OnLockTicks(object sender, Mt5LockTicksEventArgs e)
+        {
+            AddLog($"OnLockTicksEvent: Symbol = {e.Symbol}");
         }
 
         private void AddQuote(Mt5Quote quote)
