@@ -894,10 +894,6 @@ int executeCommand()
       Execute_ChartIndicatorGet();
    break;
    case 3001: //TesterStop 
-
-   #ifdef __DEBUG_LOG__
-    PrintFormat("Execute function TesterStop()", __FUNCTION__, message);
-   #endif
       Execute_TesterStop();
    break;
 
@@ -5671,6 +5667,10 @@ void Execute_iVolumes()
 
 void Execute_TesterStop()
 {
+   #ifdef __DEBUG_LOG__
+    PrintFormat("Execute function TesterStop()", __FUNCTION__, message);
+   #endif
+   
    TesterStop();
 }
 
