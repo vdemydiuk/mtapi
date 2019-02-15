@@ -2073,6 +2073,19 @@ namespace MtApi5
             SendCommand<object>(Mt5CommandType.Alert, commandParameters);
         }
 
+        ///<summary>
+        ///Gives program operation completion command when testing
+        ///</summary>
+        
+        public void TesterStop()
+        {
+            
+            SendCommand<object>(Mt5CommandType.TesterStop, null );
+        }
+
+
+
+
         #endregion // Common Functions
 
         #region Object Functions

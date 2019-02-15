@@ -234,6 +234,7 @@ namespace MtApi5
         PlaySound                           = 142,  //TODO
         Print                               = 68,
         ResetLastError                      = 143,
+        TesterStop                          = 3001,
         SendNotification                    = 144,  //TODO
         SendMail                            = 145,  //TODO
 
