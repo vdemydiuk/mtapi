@@ -548,7 +548,6 @@ namespace MtApi5
         POSITION_SL = 6,                //Stop Loss level of opened position
         POSITION_TP = 7,                //Take Profit level of opened position
         POSITION_PRICE_CURRENT = 5,     //Current price of the position symbol
-        POSITION_COMMISSION = 8,        //FIXME: Undocumented!
         POSITION_SWAP = 9,              //Cumulative swap
         POSITION_PROFIT = 10            //Current profit
     }
