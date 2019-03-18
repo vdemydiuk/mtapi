@@ -1030,6 +1030,7 @@ namespace MtApi5TestClient
             AddLog($"SymbolInfoTick(EURUSD) tick.ask = {result.ask}");
             AddLog($"SymbolInfoTick(EURUSD) tick.last = {result.last}");
             AddLog($"SymbolInfoTick(EURUSD) tick.volume = {result.volume}");
+            AddLog($"SymbolInfoTick(EURUSD) tick.volume_real = {result.volume_real}");
         }
 
         private async void ExecuteSymbolInfoSessionQuote(object o)
@@ -1100,7 +1101,7 @@ namespace MtApi5TestClient
 
             for (var i = 0; i < result.Length; i++)
             {
-                AddLog($"MarketBookGet: [{i}] - {result[i].price} | {result[i].volume} | {result[i].type}");
+                AddLog($"MarketBookGet: [{i}] - {result[i].price} | {result[i].volume} | {result[i].type} | {result[i].volume_real}");
             }
         }
 

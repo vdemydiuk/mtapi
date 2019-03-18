@@ -98,6 +98,7 @@
     <Compile Include="Requests\Response.cs" />
     <Compile Include="Requests\SymbolInfoStringRequest.cs" />
     <Compile Include="Requests\SymbolInfoStringResult.cs" />
+    <Compile Include="Requests\SymbolInfoTickRequest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MTApiService\MTApiService.csproj">

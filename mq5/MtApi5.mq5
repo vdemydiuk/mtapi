@@ -1,7 +1,7 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      ""
 
-#property version   "1.7"
+#property version   "1.6"
 #property description "MtApi (MT5) connection expert"
 
 #include <json.mqh>
@@ -25,8 +25,6 @@
    bool sendULongResponse(int expertHandle, ulong response, string& err);
    bool sendLongArrayResponse(int expertHandle, long& values[], int size, string& err);
    bool sendMqlRatesArrayResponse(int expertHandle, MqlRates& values[], int size, string& err);   
-   bool sendMqlTickResponse(int expertHandle, MqlTick& response, string& err);
-   bool sendMqlBookInfoArrayResponse(int expertHandle, MqlBookInfo& values[], int size, string& err);   
    bool sendErrorResponse(int expertHandle, int code, string message, string& err);
    
    bool sendEvent(int expertHandle, int eventType, string payload, string& err);  
@@ -41,7 +39,7 @@
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
-//#define __DEBUG_LOG__
+#define __DEBUG_LOG__
 
 enum LockTickType
 {
@@ -532,9 +530,8 @@ int executeCommand()
    case 56: //SymbolInfoString
       Execute_SymbolInfoString();
    break;    
-   case 57: //SymbolInfoTick
-      Execute_SymbolInfoTick();
-   break;
+//   case 57: //SymbolInfoTick
+//   break;
    case 58: //SymbolInfoSessionQuote
       Execute_SymbolInfoSessionQuote();
    break;     
@@ -3150,37 +3147,6 @@ void Execute_SymbolInfoString()
    }
 }
 
-void Execute_SymbolInfoTick()
-{
-   string symbol;
-   StringInit(symbol, 100, 0);
-      
-   if (!getStringValue(ExpertHandle, 0, symbol, _error))
-   {
-      PrintParamError("SymbolInfoTick", "symbol", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
-   
-   MqlTick tick={0}; 
-   bool ok = SymbolInfoTick(symbol, tick);       
-   
-   if (ok)
-   {
-      if (!sendMqlTickResponse(ExpertHandle, tick, _response_error))
-      {
-         PrintResponseError("SymbolInfoTick", _response_error);
-      }
-   }
-   else
-   {
-      if (!sendVoidResponse(ExpertHandle, _response_error))
-      {
-         PrintResponseError("SymbolInfoTick", _response_error);
-      }
-   }
-}
-
 void Execute_SymbolInfoSessionQuote()
 {
    string symbol;
@@ -3433,87 +3399,52 @@ void Execute_PositionSelectByTicket()
 
 void Execute_ObjectCreate()
 {
-   int nParameter = 0;
    long chartId;
    string name;
    int type;
    int nwin;
-   int time1;
-   double price1;
-   int arrTime[29];
-   double arrPrice[29];  
+   int time;
+   double price;
    StringInit(name, 200, 0);
    
-   if (!getIntValue(ExpertHandle, 0, nParameter, _error))
-   {
-      PrintParamError("ObjectCreate", "nParameter", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
-   
-   if (!getLongValue(ExpertHandle, 1, chartId, _error))
+   if (!getLongValue(ExpertHandle, 0, chartId, _error))
    {
       PrintParamError("ObjectCreate", "chartId", _error);
       sendErrorResponse(ExpertHandle, -1, _error, _response_error);
       return;
    }
-   if (!getStringValue(ExpertHandle, 2, name, _error))
+   if (!getStringValue(ExpertHandle, 1, name, _error))
    {
       PrintParamError("ObjectCreate", "name", _error);
       sendErrorResponse(ExpertHandle, -1, _error, _response_error);
       return;
    }
-   if (!getIntValue(ExpertHandle, 3, type, _error))
+   if (!getIntValue(ExpertHandle, 2, type, _error))
    {
       PrintParamError("ObjectCreate", "type", _error);
       sendErrorResponse(ExpertHandle, -1, _error, _response_error);
       return;
    }
-   if (!getIntValue(ExpertHandle, 4, nwin, _error))
+   if (!getIntValue(ExpertHandle, 3, nwin, _error))
    {
       PrintParamError("ObjectCreate", "nwin", _error);
       sendErrorResponse(ExpertHandle, -1, _error, _response_error);
       return;
    }
-   if (!getIntValue(ExpertHandle, 5, time1, _error))
+   if (!getIntValue(ExpertHandle, 4, time, _error))
    {
-      PrintParamError("ObjectCreate", "time1", _error);
+      PrintParamError("ObjectCreate", "time", _error);
       sendErrorResponse(ExpertHandle, -1, _error, _response_error);
       return;
    }
-   if (!getDoubleValue(ExpertHandle, 6, price1, _error))
+   if (!getDoubleValue(ExpertHandle, 5, price, _error))
    {
-      PrintParamError("ObjectCreate", "price1", _error);
+      PrintParamError("ObjectCreate", "price", _error);
       sendErrorResponse(ExpertHandle, -1, _error, _response_error);
       return;
    }
    
-   ArrayInitialize(arrTime, 0);
-   ArrayInitialize(arrPrice, 0);
-   for(int i = 0; i * 2 + 6 < nParameter; i++)
-   {
-      if (!getIntValue(ExpertHandle, i * 2 + 7, arrTime[i], _error))
-      {
-         PrintParamError("ObjectCreate", "time" + IntegerToString(i * 2 + 7), _error);
-         sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-         return;
-      }
-      else if (!getDoubleValue(ExpertHandle, i * 2 + 8, arrPrice[i], _error))
-      {
-         PrintParamError("ObjectCreate", "price" + IntegerToString(i * 2 + 8), _error);
-         sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-         return;
-      }    
-   }
-   
-   if (!sendBooleanResponse(ExpertHandle 
-         ,ObjectCreate(chartId, name, (ENUM_OBJECT)type, nwin, (datetime)time1, price1 
-            ,(datetime)arrTime[0], arrPrice[0],(datetime)arrTime[1], arrPrice[1],(datetime)arrTime[2], arrPrice[2],(datetime)arrTime[3], arrPrice[3],(datetime)arrTime[4], arrPrice[4],(datetime)arrTime[5], arrPrice[5] 
-            ,(datetime)arrTime[6], arrPrice[6],(datetime)arrTime[7], arrPrice[7],(datetime)arrTime[8], arrPrice[8],(datetime)arrTime[9], arrPrice[9],(datetime)arrTime[10], arrPrice[10],(datetime)arrTime[11], arrPrice[11] 
-            ,(datetime)arrTime[12], arrPrice[12],(datetime)arrTime[13], arrPrice[13],(datetime)arrTime[14], arrPrice[14],(datetime)arrTime[15], arrPrice[15],(datetime)arrTime[16], arrPrice[16],(datetime)arrTime[17], arrPrice[17] 
-            ,(datetime)arrTime[18], arrPrice[18],(datetime)arrTime[19], arrPrice[19],(datetime)arrTime[20], arrPrice[20],(datetime)arrTime[21], arrPrice[21],(datetime)arrTime[22], arrPrice[22],(datetime)arrTime[23], arrPrice[23] 
-            ,(datetime)arrTime[24], arrPrice[24],(datetime)arrTime[25], arrPrice[25],(datetime)arrTime[26], arrPrice[26],(datetime)arrTime[27], arrPrice[27],(datetime)arrTime[28], arrPrice[28])
-         , _response_error))
+   if (!sendBooleanResponse(ExpertHandle, ObjectCreate(chartId, name, (ENUM_OBJECT)type, nwin, (datetime)time, price), _response_error))
    {
       PrintResponseError("ObjectCreate", _response_error);
    }
@@ -6830,6 +6761,9 @@ string OnRequest(string json)
             case 11: //PositionClose
                response = ExecuteRequest_PositionClose(jo);
                break;
+            case 12: //SymbolInfoTick
+               response = ExecuteRequest_SymbolInfoTick(jo);
+               break;
             default:
                PrintFormat("%s [WARNING]: Unknown request type %d", __FUNCTION__, requestType);
                response = CreateErrorResponse(-1, "Unknown request type");
@@ -7118,6 +7052,7 @@ JSONObject* MqlBookInfoToJson(MqlBookInfo& info)
     jo.put("type", new JSONNumber((int)info.type));
     jo.put("price", new JSONNumber(info.price));
     jo.put("volume", new JSONNumber(info.volume));
+    jo.put("volume_real", new JSONNumber(info.volume_real));
     return jo;
 }
 
@@ -7339,6 +7274,25 @@ string ExecuteRequest_PositionClose(JSONObject *jo)
    result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
 
    return CreateSuccessResponse("Value", result_value_jo);  
+}
+
+string ExecuteRequest_SymbolInfoTick(JSONObject *jo)
+{
+   CHECK_JSON_VALUE(jo, "SymbolName", CreateErrorResponse(-1, "Undefinded mandatory parameter SymbolName"));
+   string symbol_name = jo.getString("SymbolName");
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: symbol_name = %s", __FUNCTION__, symbol_name);
+#endif
+
+   MqlTick tick={0};
+   bool ok = SymbolInfoTick(symbol_name, tick);
+     
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: ok = %s", __FUNCTION__, BoolToString(ok));
+#endif
+
+   return CreateSuccessResponse("Value", MqlTickToJson(tick));      
 }
 
 //------------ Events -------------------------------------------------------
@@ -7572,6 +7526,7 @@ JSONObject* MqlTickToJson(MqlTick& tick)
     jo.put("ask", new JSONNumber(tick.ask));
     jo.put("last", new JSONNumber(tick.last));
     jo.put("volume", new JSONNumber(tick.volume));
+    jo.put("volume_real", new JSONNumber(tick.volume_real));
     return jo;
 }
 

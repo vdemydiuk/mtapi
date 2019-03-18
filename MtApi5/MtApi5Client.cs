@@ -1476,19 +1476,27 @@ namespace MtApi5
         ///<param name="tick"> Link to the structure of the MqlTick type, to which the current prices and time of the last price update will be placed.</param>
         public bool SymbolInfoTick(string symbol, out MqlTick  tick)
         {
-            var commandParameters = new ArrayList { symbol };
-
-            var retVal = SendCommand<MtMqlTick>(Mt5CommandType.SymbolInfoTick, commandParameters);
-
-            tick = null;
-            if (retVal != null)
+            tick = SendRequest<MqlTick>(new SymbolInfoTickRequest
             {
-                tick = new MqlTick { MtTime = retVal.time, ask = retVal.ask, bid = retVal.bid, last = retVal.last, volume = retVal.volume };
-            }
+                SymbolName = symbol
+            });
 
             return tick != null;
         }
 
+        ///<summary>
+        ///The function returns current prices of a specified symbol in a variable of the MqlTick type.
+        ///</summary>
+        ///<param name="symbol">Symbol name.</param>
+        public MqlTick SymbolInfoTick(string symbol)
+        {
+            var tick = SendRequest<MqlTick>(new SymbolInfoTickRequest
+            {
+                SymbolName = symbol
+            });
+
+            return tick;
+        }
 
         ///<summary>
         ///Allows receiving time of beginning and end of the specified quoting sessions for a specified symbol and weekday.
