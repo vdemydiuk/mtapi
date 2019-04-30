@@ -39,7 +39,7 @@
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
 #import
 
-#define __DEBUG_LOG__
+//#define __DEBUG_LOG__
 
 enum LockTickType
 {
