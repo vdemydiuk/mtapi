@@ -74,7 +74,6 @@ namespace MtApi5TestClient
         public DelegateCommand PrintCommand { get; private set; }
         public DelegateCommand AlertCommand { get; private set; }
 
-        public DelegateCommand TesterStopCommand { get; private set; }
         public DelegateCommand iCustomCommand { get; private set; }
 
         public DelegateCommand TimeCurrentCommand { get; private set; }
@@ -381,7 +380,6 @@ namespace MtApi5TestClient
 
             PrintCommand = new DelegateCommand(ExecutePrint);
             AlertCommand = new DelegateCommand(ExecuteAlert);
-            TesterStopCommand = new DelegateCommand(ExecuteTesterStop);
             GetLastErrorCommand = new DelegateCommand(ExecuteGetLastError);
             ResetLastErrorCommand = new DelegateCommand(ExecuteResetLastError);
 
@@ -1150,13 +1148,6 @@ namespace MtApi5TestClient
 
             _mtApiClient.Alert(message);
             AddLog($"Alert: send alert to MetaTrader - {message}.");
-        }
-       private void ExecuteTesterStop(object obj)
-        {
-            var message = MessageText;
-
-            _mtApiClient.TesterStop();
-            AddLog("TesterStop: executed");
         }
 
         private async void ExecuteGetLastError(object obj)

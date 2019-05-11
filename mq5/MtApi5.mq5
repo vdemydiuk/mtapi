@@ -893,15 +893,6 @@ int executeCommand()
    case 281: //ChartIndicatorGet
       Execute_ChartIndicatorGet();
    break;
-   case 3001: //TesterStop 
-
-   #ifdef __DEBUG_LOG__
-    PrintFormat("Execute function TesterStop()", __FUNCTION__, message);
-   #endif
-      Execute_TesterStop();
-   break;
-
-      
    default:
       Print("Unknown command type = ", commandType);
       sendVoidResponse(ExpertHandle, _response_error);
@@ -5667,11 +5658,6 @@ void Execute_iVolumes()
    {
       PrintResponseError("iVolumes", _response_error);
    }
-}
-
-void Execute_TesterStop()
-{
-   TesterStop();
 }
 
 void Execute_TimeCurrent()
