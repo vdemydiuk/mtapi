@@ -72,9 +72,7 @@
     <Compile Include="MtClient.cs" />
     <Compile Include="MtCommandTask.cs" />
     <Compile Include="MtEvent.cs" />
-    <Compile Include="MtMqlBookInfo.cs" />
     <Compile Include="MtMqlRates.cs" />
-    <Compile Include="MtMqlTick.cs" />
     <Compile Include="MtMqlTradeRequest.cs" />
     <Compile Include="MtRegistryManager.cs" />
     <Compile Include="MtConnectionProfile.cs" />

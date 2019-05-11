@@ -17,9 +17,8 @@ namespace MTApiService
                                 typeof(MtResponseString), typeof(MtResponseBool),
                                 typeof(MtResponseLong), typeof(MtResponseULong),
                                 typeof(MtResponseDoubleArray), typeof(MtResponseIntArray),
-                                typeof(MtResponseLongArray), typeof(MtResponseMqlTick),
-                                typeof(MtResponseArrayList), typeof(MtResponseMqlRatesArray),
-                                typeof(MtResponseMqlBookInfoArray)};
+                                typeof(MtResponseLongArray),
+                                typeof(MtResponseArrayList), typeof(MtResponseMqlRatesArray)};
         }
 
         public abstract object GetValue();
@@ -255,43 +254,4 @@ namespace MTApiService
             return Value.ToString();
         }
     }
-
-    [DataContract]
-    public class MtResponseMqlTick : MtResponse
-    {
-        public MtResponseMqlTick(MtMqlTick value)
-        {
-            Value = value;
-        }
-
-        [DataMember]
-        public MtMqlTick Value { get; private set; }
-
-        public override object GetValue() { return Value; }
-
-        public override string ToString()
-        {
-            return Value.ToString();
-        }
-    }
-
-    [DataContract]
-    public class MtResponseMqlBookInfoArray : MtResponse
-    {
-        public MtResponseMqlBookInfoArray(MtMqlBookInfo[] value)
-        {
-            Value = value;
-        }
-
-        [DataMember]
-        public MtMqlBookInfo[] Value { get; private set; }
-
-        public override object GetValue() { return Value; }
-
-        public override string ToString()
-        {
-            return Value.ToString();
-        }
-    }
-    
 }

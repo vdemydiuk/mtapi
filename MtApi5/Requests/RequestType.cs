@@ -15,6 +15,7 @@ namespace MtApi5.Requests
         SymbolInfoString    = 8,
         ChartTimePriceToXY  = 9,
         ChartXYToTimePrice  = 10,
-        PositionClose       = 11
+        PositionClose       = 11,
+        SymbolInfoTick      = 12
     }
 }

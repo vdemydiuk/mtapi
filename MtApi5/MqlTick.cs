@@ -23,7 +23,8 @@ namespace MtApi5
         public double bid { get; set; }           // Current Bid price
         public double ask { get; set; }           // Current Ask price
         public double last { get; set; }          // Price of the last deal (Last)
-        public ulong volume { get; set; }        // Volume for the current Last price
+        public ulong volume { get; set; }         // Volume for the current Last price
+        public double volume_real { get; set; }   // Volume for the current Last price with greater accuracy 
 
         public DateTime time => Mt5TimeConverter.ConvertFromMtTime(MtTime);
     }

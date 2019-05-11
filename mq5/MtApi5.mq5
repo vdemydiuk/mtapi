@@ -25,8 +25,6 @@
    bool sendULongResponse(int expertHandle, ulong response, string& err);
    bool sendLongArrayResponse(int expertHandle, long& values[], int size, string& err);
    bool sendMqlRatesArrayResponse(int expertHandle, MqlRates& values[], int size, string& err);   
-   bool sendMqlTickResponse(int expertHandle, MqlTick& response, string& err);
-   bool sendMqlBookInfoArrayResponse(int expertHandle, MqlBookInfo& values[], int size, string& err);   
    bool sendErrorResponse(int expertHandle, int code, string message, string& err);
    
    bool sendEvent(int expertHandle, int eventType, string payload, string& err);  
@@ -532,9 +530,8 @@ int executeCommand()
    case 56: //SymbolInfoString
       Execute_SymbolInfoString();
    break;    
-   case 57: //SymbolInfoTick
-      Execute_SymbolInfoTick();
-   break;
+//   case 57: //SymbolInfoTick
+//   break;
    case 58: //SymbolInfoSessionQuote
       Execute_SymbolInfoSessionQuote();
    break;     
@@ -3147,37 +3144,6 @@ void Execute_SymbolInfoString()
    if (!sendStringResponse(ExpertHandle, SymbolInfoString(symbol, (ENUM_SYMBOL_INFO_STRING)prop_id), _response_error))
    {
       PrintResponseError("SymbolInfoString", _response_error);
-   }
-}
-
-void Execute_SymbolInfoTick()
-{
-   string symbol;
-   StringInit(symbol, 100, 0);
-      
-   if (!getStringValue(ExpertHandle, 0, symbol, _error))
-   {
-      PrintParamError("SymbolInfoTick", "symbol", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
-   
-   MqlTick tick={0}; 
-   bool ok = SymbolInfoTick(symbol, tick);       
-   
-   if (ok)
-   {
-      if (!sendMqlTickResponse(ExpertHandle, tick, _response_error))
-      {
-         PrintResponseError("SymbolInfoTick", _response_error);
-      }
-   }
-   else
-   {
-      if (!sendVoidResponse(ExpertHandle, _response_error))
-      {
-         PrintResponseError("SymbolInfoTick", _response_error);
-      }
    }
 }
 
@@ -6795,6 +6761,9 @@ string OnRequest(string json)
             case 11: //PositionClose
                response = ExecuteRequest_PositionClose(jo);
                break;
+            case 12: //SymbolInfoTick
+               response = ExecuteRequest_SymbolInfoTick(jo);
+               break;
             default:
                PrintFormat("%s [WARNING]: Unknown request type %d", __FUNCTION__, requestType);
                response = CreateErrorResponse(-1, "Unknown request type");
@@ -7083,6 +7052,7 @@ JSONObject* MqlBookInfoToJson(MqlBookInfo& info)
     jo.put("type", new JSONNumber((int)info.type));
     jo.put("price", new JSONNumber(info.price));
     jo.put("volume", new JSONNumber(info.volume));
+    jo.put("volume_real", new JSONNumber(info.volume_real));
     return jo;
 }
 
@@ -7304,6 +7274,25 @@ string ExecuteRequest_PositionClose(JSONObject *jo)
    result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
 
    return CreateSuccessResponse("Value", result_value_jo);  
+}
+
+string ExecuteRequest_SymbolInfoTick(JSONObject *jo)
+{
+   CHECK_JSON_VALUE(jo, "SymbolName", CreateErrorResponse(-1, "Undefinded mandatory parameter SymbolName"));
+   string symbol_name = jo.getString("SymbolName");
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: symbol_name = %s", __FUNCTION__, symbol_name);
+#endif
+
+   MqlTick tick={0};
+   bool ok = SymbolInfoTick(symbol_name, tick);
+     
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: ok = %s", __FUNCTION__, BoolToString(ok));
+#endif
+
+   return CreateSuccessResponse("Value", MqlTickToJson(tick));      
 }
 
 //------------ Events -------------------------------------------------------
@@ -7537,6 +7526,7 @@ JSONObject* MqlTickToJson(MqlTick& tick)
     jo.put("ask", new JSONNumber(tick.ask));
     jo.put("last", new JSONNumber(tick.last));
     jo.put("volume", new JSONNumber(tick.volume));
+    jo.put("volume_real", new JSONNumber(tick.volume_real));
     return jo;
 }
 

@@ -16,6 +16,7 @@ namespace MtApi5
         public ENUM_BOOK_TYPE type { get; set; }    // Order type from ENUM_BOOK_TYPE enumeration
         public double price { get; set; }           // Price
         public long volume { get; set; }            // Volume
+        public double volume_real { get; set; }   // Volume for the current Last price with greater accuracy 
 
         public override string ToString()
         {

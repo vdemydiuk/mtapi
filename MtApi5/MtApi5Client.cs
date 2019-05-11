@@ -1476,19 +1476,27 @@ namespace MtApi5
         ///<param name="tick"> Link to the structure of the MqlTick type, to which the current prices and time of the last price update will be placed.</param>
         public bool SymbolInfoTick(string symbol, out MqlTick  tick)
         {
-            var commandParameters = new ArrayList { symbol };
-
-            var retVal = SendCommand<MtMqlTick>(Mt5CommandType.SymbolInfoTick, commandParameters);
-
-            tick = null;
-            if (retVal != null)
+            tick = SendRequest<MqlTick>(new SymbolInfoTickRequest
             {
-                tick = new MqlTick { MtTime = retVal.time, ask = retVal.ask, bid = retVal.bid, last = retVal.last, volume = retVal.volume };
-            }
+                SymbolName = symbol
+            });
 
             return tick != null;
         }
 
+        ///<summary>
+        ///The function returns current prices of a specified symbol in a variable of the MqlTick type.
+        ///</summary>
+        ///<param name="symbol">Symbol name.</param>
+        public MqlTick SymbolInfoTick(string symbol)
+        {
+            var tick = SendRequest<MqlTick>(new SymbolInfoTickRequest
+            {
+                SymbolName = symbol
+            });
+
+            return tick;
+        }
 
         ///<summary>
         ///Allows receiving time of beginning and end of the specified quoting sessions for a specified symbol and weekday.
@@ -2086,9 +2094,24 @@ namespace MtApi5
         ///<param name="nwin">Number of the chart subwindow. 0 means the main chart window. The specified subwindow must exist, otherwise the function returns false.</param>
         ///<param name="time">The time coordinate of the first anchor.</param>
         ///<param name="price">The price coordinate of the first anchor point.</param>
-        public bool ObjectCreate(long chartId, string name, ENUM_OBJECT type, int nwin, DateTime time, double price)
+        ///<param name="listOfCoordinates">List of further anchor points (tuple of time and price).</param>
+        public bool ObjectCreate(long chartId, string name, ENUM_OBJECT type, int nwin, DateTime time, double price, List<Tuple<DateTime, double>> listOfCoordinates = null)
         {
-            var commandParameters = new ArrayList { chartId, name, (int)type, nwin, Mt5TimeConverter.ConvertToMtTime(time), price };
+            //Count the additional coordinates
+            int iAdditionalCoordinates = (listOfCoordinates != null) ? listOfCoordinates.Count() : 0;
+            if(iAdditionalCoordinates > 29)
+            {
+                throw new ArgumentOutOfRangeException("listOfCoordinates", "The maximum amount of coordinates in 30.");
+            }
+
+            int nParameter = 6 + iAdditionalCoordinates * 2;
+
+            var commandParameters = new ArrayList { nParameter, chartId, name, (int)type, nwin, Mt5TimeConverter.ConvertToMtTime(time), price };
+            foreach (Tuple<DateTime, double> coordinateTuple in listOfCoordinates)
+            {
+                commandParameters.Add(Mt5TimeConverter.ConvertToMtTime(coordinateTuple.Item1));
+                commandParameters.Add(coordinateTuple.Item2);
+            }
             return SendCommand<bool>(Mt5CommandType.ObjectCreate, commandParameters);
         }
 

@@ -31,22 +31,6 @@ public struct CMqlRates
     int     spread;       // Spread
     __int64 real_volume;  // Trade volume
 };
-
-public struct CMqlTick
-{
-    __int64                time;          // Time of the last prices update
-    double                bid;           // Current Bid price
-    double                ask;           // Current Ask price
-    double                last;          // Price of the last deal (Last)
-    unsigned __int64    volume;        // Volume for the current Last price
-};
-
-public struct CMqlBookInfo
-{
-    int        type;       // Order type from ENUM_BOOK_TYPE enumeration
-    double    price;      // Price
-    __int64    volume;     // Volume
-};
 #pragma pack(pop)
 
 void convertSystemString(wchar_t* dest, String^ src)
@@ -220,37 +204,6 @@ _DLLAPI int _stdcall sendMqlRatesArrayResponse(int expertHandle, CMqlRates value
             list[i] = rates;
         }
         MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseMqlRatesArray(list));
-        return 1;
-    }, err, 0);
-}
-
-_DLLAPI int _stdcall sendMqlTickResponse(int expertHandle, CMqlTick* response, wchar_t* err)
-{
-    return Execute<int>([&expertHandle, response]() {
-        MtMqlTick^ mtResponse = gcnew MtMqlTick();
-        mtResponse->time = response->time;
-        mtResponse->bid = response->bid;
-        mtResponse->ask = response->ask;
-        mtResponse->last = response->last;
-        mtResponse->volume = response->volume;
-        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseMqlTick(mtResponse));
-        return 1;
-    }, err, 0);
-}
-
-_DLLAPI int _stdcall sendMqlBookInfoArrayResponse(int expertHandle, CMqlBookInfo values[], int size, wchar_t* err)
-{
-    return Execute<int>([&expertHandle, values, &size]() {
-        array<MtMqlBookInfo^>^ list = gcnew array<MtMqlBookInfo^>(size);
-        for (int i = 0; i < size; i++)
-        {
-            MtMqlBookInfo^ info = gcnew MtMqlBookInfo();
-            info->type = values[i].type;
-            info->price = values[i].price;
-            info->volume = values[i].volume;
-            list[i] = info;
-        }
-        MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseMqlBookInfoArray(list));
         return 1;
     }, err, 0);
 }
