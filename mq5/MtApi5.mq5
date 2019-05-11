@@ -5668,9 +5668,9 @@ void Execute_iVolumes()
 void Execute_TesterStop()
 {
    #ifdef __DEBUG_LOG__
-    PrintFormat("%s: Execute function TesterStop()", __FUNCTION__);
+    PrintFormat("Execute function TesterStop()", __FUNCTION__, message);
    #endif
-
+   
    TesterStop();
 }
 
