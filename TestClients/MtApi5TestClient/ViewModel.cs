@@ -73,6 +73,7 @@ namespace MtApi5TestClient
         public DelegateCommand ResetLastErrorCommand { get; private set; }
         public DelegateCommand PrintCommand { get; private set; }
         public DelegateCommand AlertCommand { get; private set; }
+        public DelegateCommand TesterStopCommand { get; private set; }
 
         public DelegateCommand iCustomCommand { get; private set; }
 
@@ -382,6 +383,7 @@ namespace MtApi5TestClient
             AlertCommand = new DelegateCommand(ExecuteAlert);
             GetLastErrorCommand = new DelegateCommand(ExecuteGetLastError);
             ResetLastErrorCommand = new DelegateCommand(ExecuteResetLastError);
+            TesterStopCommand = new DelegateCommand(ExecuteTesterStop);
 
             iCustomCommand = new DelegateCommand(ExecuteICustom);
 
@@ -1167,6 +1169,12 @@ namespace MtApi5TestClient
         {
             _mtApiClient.ResetLastError();
             AddLog("ResetLastError: executed.");
+        }
+
+        private void ExecuteTesterStop(object obj)
+        {
+            _mtApiClient.TesterStop();
+            AddLog("TesterStop: executed.");
         }
 
         private async void ExecuteICustom(object o)

@@ -791,6 +791,9 @@ int executeCommand()
    case 160: //PositionCloseAll
       Execute_PositionCloseAll();
    break;
+   case 161: //TesterStop
+      Execute_TesterStop();
+   break;   
    case 204: //TerminalInfoInteger
       Execute_TerminalInfoInteger();
    break;
@@ -6505,6 +6508,24 @@ void Execute_PositionCloseAll()
 #endif
 
    SEND_INT_RESPONSE(res)
+}
+
+void Execute_TesterStop()
+{
+   if (!IsTesting())
+   {
+      Print("WARNING: function UnlockTicks can be used only for backtesting");
+   }
+   else
+   {
+      Print("TesterStop called.");
+      TesterStop();
+   }
+
+   if (!sendVoidResponse(ExpertHandle, _response_error))
+   {
+      PrintResponseError("TesterStop", _response_error);
+   }   
 }
 
 void Execute_TerminalInfoInteger()
