@@ -552,6 +552,9 @@ int executeCommand()
 //   case 1065: //PositionOpenWithResult
 //      Execute_PositionOpen(true);
 //   break;   
+   case 6066: //PositionModify
+      Execute_PositionModify();
+   break;
    case 66: //BacktestingReady
       Execute_BacktestingReady();
    break;
@@ -3253,6 +3256,41 @@ void Execute_MarketBookRelease()
    {
       PrintResponseError("MarketBookRelease", _response_error);
    }
+}
+
+void Execute_PositionModify()
+{
+   ulong ticket;
+   double sl;
+   double tp;
+
+   if (!getULongValue(ExpertHandle, 0, ticket, _error))
+   {
+      PrintParamError("PositionModify", "ticket", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 1, sl, _error))
+   {
+      PrintParamError("PositionModify", "sl", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 2, tp, _error))
+   {
+      PrintParamError("PositionModify", "tp", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   CTrade trade;
+   bool ok = trade.PositionModify(ticket,sl,tp);
+   Print("command PositionModify: result = ", ok);
+
+    if (!sendBooleanResponse(ExpertHandle, ok, _response_error))
+    {
+      PrintResponseError("PositionModify", _response_error);
+    }
 }
 
 void Execute_PositionOpen(bool isTradeResultRequired)

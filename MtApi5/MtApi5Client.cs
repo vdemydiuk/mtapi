@@ -547,6 +547,20 @@ namespace MtApi5
             return SendCommand<bool>(Mt5CommandType.PositionClose, commandParameters);
         }
 
+        /// <summary>
+        /// Modifies existing position
+        /// </summary>
+        /// <param name="ticket">>Ticket of the position</param>
+        /// <param name="sl">Stop loss</param>
+        /// <param name="tp">Take profit</param>
+        /// <returns></returns>
+        public bool PositionModify(ulong ticket, double sl, double tp)
+        {
+            var commandParameters = new ArrayList { ticket, sl,tp };
+
+            return SendCommand<bool>(Mt5CommandType.PositionModify, commandParameters);
+        }
+
         ///<summary>
         ///Closes a position with the specified ticket.
         ///</summary>
