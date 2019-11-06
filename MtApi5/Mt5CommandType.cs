@@ -101,6 +101,7 @@ namespace MtApi5
         //CTrade
         PositionClose                       = 64,
         PositionOpen                        = 65,
+        PositionModify                      = 6066,
         //PositionOpenWithResult              = 1065,
 
         //Backtesting
