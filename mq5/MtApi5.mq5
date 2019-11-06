@@ -552,6 +552,9 @@ int executeCommand()
 //   case 1065: //PositionOpenWithResult
 //      Execute_PositionOpen(true);
 //   break;   
+   case 6066: //PositionModify
+      Execute_PositionModify();
+   break;
    case 66: //BacktestingReady
       Execute_BacktestingReady();
    break;
@@ -3255,6 +3258,41 @@ void Execute_MarketBookRelease()
    }
 }
 
+void Execute_PositionModify()
+{
+   ulong ticket;
+   double sl;
+   double tp;
+
+   if (!getULongValue(ExpertHandle, 0, ticket, _error))
+   {
+      PrintParamError("PositionModify", "ticket", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 1, sl, _error))
+   {
+      PrintParamError("PositionModify", "sl", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 2, tp, _error))
+   {
+      PrintParamError("PositionModify", "tp", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+
+   CTrade trade;
+   bool ok = trade.PositionModify(ticket,sl,tp);
+   Print("command PositionModify: result = ", ok);
+
+    if (!sendBooleanResponse(ExpertHandle, ok, _response_error))
+    {
+      PrintResponseError("PositionModify", _response_error);
+    }
+}
+
 void Execute_PositionOpen(bool isTradeResultRequired)
 {
    string symbol;
@@ -3399,52 +3437,87 @@ void Execute_PositionSelectByTicket()
 
 void Execute_ObjectCreate()
 {
+   int nParameter = 0;
    long chartId;
    string name;
    int type;
    int nwin;
-   int time;
-   double price;
+   int time1;
+   double price1;
+   int arrTime[29];
+   double arrPrice[29];  
    StringInit(name, 200, 0);
    
-   if (!getLongValue(ExpertHandle, 0, chartId, _error))
+   if (!getIntValue(ExpertHandle, 0, nParameter, _error))
+   {
+      PrintParamError("ObjectCreate", "nParameter", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   if (!getLongValue(ExpertHandle, 1, chartId, _error))
    {
       PrintParamError("ObjectCreate", "chartId", _error);
       sendErrorResponse(ExpertHandle, -1, _error, _response_error);
       return;
    }
-   if (!getStringValue(ExpertHandle, 1, name, _error))
+   if (!getStringValue(ExpertHandle, 2, name, _error))
    {
       PrintParamError("ObjectCreate", "name", _error);
       sendErrorResponse(ExpertHandle, -1, _error, _response_error);
       return;
    }
-   if (!getIntValue(ExpertHandle, 2, type, _error))
+   if (!getIntValue(ExpertHandle, 3, type, _error))
    {
       PrintParamError("ObjectCreate", "type", _error);
       sendErrorResponse(ExpertHandle, -1, _error, _response_error);
       return;
    }
-   if (!getIntValue(ExpertHandle, 3, nwin, _error))
+   if (!getIntValue(ExpertHandle, 4, nwin, _error))
    {
       PrintParamError("ObjectCreate", "nwin", _error);
       sendErrorResponse(ExpertHandle, -1, _error, _response_error);
       return;
    }
-   if (!getIntValue(ExpertHandle, 4, time, _error))
+   if (!getIntValue(ExpertHandle, 5, time1, _error))
    {
-      PrintParamError("ObjectCreate", "time", _error);
+      PrintParamError("ObjectCreate", "time1", _error);
       sendErrorResponse(ExpertHandle, -1, _error, _response_error);
       return;
    }
-   if (!getDoubleValue(ExpertHandle, 5, price, _error))
+   if (!getDoubleValue(ExpertHandle, 6, price1, _error))
    {
-      PrintParamError("ObjectCreate", "price", _error);
+      PrintParamError("ObjectCreate", "price1", _error);
       sendErrorResponse(ExpertHandle, -1, _error, _response_error);
       return;
    }
    
-   if (!sendBooleanResponse(ExpertHandle, ObjectCreate(chartId, name, (ENUM_OBJECT)type, nwin, (datetime)time, price), _response_error))
+   ArrayInitialize(arrTime, 0);
+   ArrayInitialize(arrPrice, 0);
+   for(int i = 0; i * 2 + 6 < nParameter; i++)
+   {
+      if (!getIntValue(ExpertHandle, i * 2 + 7, arrTime[i], _error))
+      {
+         PrintParamError("ObjectCreate", "time" + IntegerToString(i * 2 + 7), _error);
+         sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+         return;
+      }
+      else if (!getDoubleValue(ExpertHandle, i * 2 + 8, arrPrice[i], _error))
+      {
+         PrintParamError("ObjectCreate", "price" + IntegerToString(i * 2 + 8), _error);
+         sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+         return;
+      }    
+   }
+   
+   if (!sendBooleanResponse(ExpertHandle 
+         ,ObjectCreate(chartId, name, (ENUM_OBJECT)type, nwin, (datetime)time1, price1 
+            ,(datetime)arrTime[0], arrPrice[0],(datetime)arrTime[1], arrPrice[1],(datetime)arrTime[2], arrPrice[2],(datetime)arrTime[3], arrPrice[3],(datetime)arrTime[4], arrPrice[4],(datetime)arrTime[5], arrPrice[5] 
+            ,(datetime)arrTime[6], arrPrice[6],(datetime)arrTime[7], arrPrice[7],(datetime)arrTime[8], arrPrice[8],(datetime)arrTime[9], arrPrice[9],(datetime)arrTime[10], arrPrice[10],(datetime)arrTime[11], arrPrice[11] 
+            ,(datetime)arrTime[12], arrPrice[12],(datetime)arrTime[13], arrPrice[13],(datetime)arrTime[14], arrPrice[14],(datetime)arrTime[15], arrPrice[15],(datetime)arrTime[16], arrPrice[16],(datetime)arrTime[17], arrPrice[17] 
+            ,(datetime)arrTime[18], arrPrice[18],(datetime)arrTime[19], arrPrice[19],(datetime)arrTime[20], arrPrice[20],(datetime)arrTime[21], arrPrice[21],(datetime)arrTime[22], arrPrice[22],(datetime)arrTime[23], arrPrice[23] 
+            ,(datetime)arrTime[24], arrPrice[24],(datetime)arrTime[25], arrPrice[25],(datetime)arrTime[26], arrPrice[26],(datetime)arrTime[27], arrPrice[27],(datetime)arrTime[28], arrPrice[28])
+         , _response_error))
    {
       PrintResponseError("ObjectCreate", _response_error);
    }

@@ -547,6 +547,20 @@ namespace MtApi5
             return SendCommand<bool>(Mt5CommandType.PositionClose, commandParameters);
         }
 
+        /// <summary>
+        /// Modifies existing position
+        /// </summary>
+        /// <param name="ticket">>Ticket of the position</param>
+        /// <param name="sl">Stop loss</param>
+        /// <param name="tp">Take profit</param>
+        /// <returns></returns>
+        public bool PositionModify(ulong ticket, double sl, double tp)
+        {
+            var commandParameters = new ArrayList { ticket, sl,tp };
+
+            return SendCommand<bool>(Mt5CommandType.PositionModify, commandParameters);
+        }
+
         ///<summary>
         ///Closes a position with the specified ticket.
         ///</summary>
@@ -2105,13 +2119,17 @@ namespace MtApi5
             }
 
             int nParameter = 6 + iAdditionalCoordinates * 2;
-
             var commandParameters = new ArrayList { nParameter, chartId, name, (int)type, nwin, Mt5TimeConverter.ConvertToMtTime(time), price };
-            foreach (Tuple<DateTime, double> coordinateTuple in listOfCoordinates)
+
+            if (iAdditionalCoordinates > 0)
             {
-                commandParameters.Add(Mt5TimeConverter.ConvertToMtTime(coordinateTuple.Item1));
-                commandParameters.Add(coordinateTuple.Item2);
+                foreach (Tuple<DateTime, double> coordinateTuple in listOfCoordinates)
+                {
+                    commandParameters.Add(Mt5TimeConverter.ConvertToMtTime(coordinateTuple.Item1));
+                    commandParameters.Add(coordinateTuple.Item2);
+                }
             }
+
             return SendCommand<bool>(Mt5CommandType.ObjectCreate, commandParameters);
         }
 
