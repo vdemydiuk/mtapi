@@ -12,7 +12,7 @@ MTApiService is a common engine communication project of the API for MT4 and MT5
 MTApiService library should be placed in Windows GAC (Global Assembly Cache). Installers in the project will be copied to GAC automatically.
 
 # How to Build Solution
-The project is supported by Visual Studio 2015 and requires WIX Tools (http://wixtoolset.org/).
+The project is supported by Visual Studio 2017 and requires WIX Tools (http://wixtoolset.org/).
 
 To make an API for MetaTrader4 use MtApiInstaller and for MetaTrader5 use MtApi5Installer. 
 All installers will be placed in the folder "[root]\build\installers\" and all *.dll files will be placed in "[root]\build\products\".
