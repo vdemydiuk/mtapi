@@ -50,6 +50,12 @@ enum LockTickType
 
 input int Port = 8228;
 input LockTickType BacktestingLockTicks = NO_LOCK;
+input group           "Disable Events "
+input bool Enable_OnBookEvent = true;                 
+input bool Enable_OnTickEvent = true;                 
+input bool Enable_OnTradeTransactionEvent = true;     
+input bool Enable_OnLastBarEvent = true;    
+
 
 int ExpertHandle;
 
@@ -89,27 +95,31 @@ void OnTick()
    long lastbar_time = SeriesInfoInteger(symbol, Period(), SERIES_LASTBAR_DATE); 
    if (_last_bar_open_time != lastbar_time)
    {
-      if (_last_bar_open_time != 0)
+      if (_last_bar_open_time != 0 )
       {
-         MqlRates rates_array[];
-         CopyRates(symbol, Period(), 1, 1, rates_array);
+         if(Enable_OnLastBarEvent)
+         {
+           MqlRates rates_array[];
+           CopyRates(symbol, Period(), 1, 1, rates_array);
       
-         MtTimeBarEvent* time_bar = new MtTimeBarEvent(symbol, rates_array[0]);
-         SendMtEvent(ON_LAST_TIME_BAR_EVENT, time_bar);
-         delete time_bar;
-         
-         lastbar_time_changed = true;
+           MtTimeBarEvent* time_bar = new MtTimeBarEvent(symbol, rates_array[0]);
+           SendMtEvent(ON_LAST_TIME_BAR_EVENT, time_bar);
+           delete time_bar;
+         }
+        lastbar_time_changed = true;
       }
       
       _last_bar_open_time = lastbar_time;
    }
-
-   MqlTick last_tick;
-   SymbolInfoTick(Symbol(),last_tick);
+   if (Enable_OnTickEvent)
+     {
+       MqlTick last_tick;
+       SymbolInfoTick(Symbol(),last_tick);
    
-   MtOnTickEvent * tick_event = new MtOnTickEvent(symbol, last_tick);
-   SendMtEvent(ON_TICK_EVENT, tick_event);
-   delete tick_event; 
+       MtOnTickEvent * tick_event = new MtOnTickEvent(symbol, last_tick);
+       SendMtEvent(ON_TICK_EVENT, tick_event);
+       delete tick_event; 
+     }
    
    if (IsTesting())
    {
@@ -132,26 +142,33 @@ void  OnTradeTransaction(
    const MqlTradeRequest&        request,      // request structure 
    const MqlTradeResult&         result        // result structure 
    )
-{
-#ifdef __DEBUG_LOG__
-   PrintFormat("%s:", __FUNCTION__);
-#endif 
-   
-   MtOnTradeTransactionEvent* trans_event = new MtOnTradeTransactionEvent(trans, request, result);
-   SendMtEvent(ON_TRADE_TRANSACTION_EVENT, trans_event);
-   delete trans_event;
-}
-
+   {
+      if(!Enable_OnTradeTransactionEvent) return;
+      
+      #ifdef __DEBUG_LOG__
+       PrintFormat("%s:", __FUNCTION__);
+      #endif 
+      
+       
+      MtOnTradeTransactionEvent* trans_event = new MtOnTradeTransactionEvent(trans, request, result);
+      SendMtEvent(ON_TRADE_TRANSACTION_EVENT, trans_event);
+      delete trans_event;
+       
+   }
 void OnBookEvent(const string& symbol)
-{
-#ifdef __DEBUG_LOG__
-   PrintFormat("%s: %s", __FUNCTION__, symbol);
-#endif 
+   {
+   
+    if(!Enable_OnBookEvent) return;
+    
+    #ifdef __DEBUG_LOG__
+      PrintFormat("%s: %s", __FUNCTION__, symbol);
+    #endif 
 
-   MtOnBookEvent * book_event = new MtOnBookEvent(symbol);
-   SendMtEvent(ON_BOOK_EVENT, book_event);
-   delete book_event;
-}
+    MtOnBookEvent * book_event = new MtOnBookEvent(symbol);
+    SendMtEvent(ON_BOOK_EVENT, book_event);
+    delete book_event;
+      
+   }
 
 int preinit()
 {
@@ -7521,6 +7538,7 @@ void SendMtEvent(MtEventTypes eventType, MtEvent* mtEvent)
    if (sendEvent(ExpertHandle, (int)eventType, json.toString(), _error))
    {
 #ifdef __DEBUG_LOG__
+      PrintFormat("%s: event = %s", __FUNCTION__, EnumToString(eventType));
       PrintFormat("%s: payload = %s", __FUNCTION__, json.toString());
 #endif
    }
