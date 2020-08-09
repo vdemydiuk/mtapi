@@ -1676,7 +1676,7 @@ namespace MtApi5TestClient
 
         private void _mtApiClient_OnLastTimeBar(object sender, Mt5TimeBarArgs e)
         {
-            AddLog($"OnBookEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}, open = {e.Rates.open}, close = {e.Rates.close}, time = {e.Rates.time}, high = {e.Rates.high}, low = {e.Rates.low}");
+            AddLog($"OnLastTimeBarEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}, open = {e.Rates.open}, close = {e.Rates.close}, time = {e.Rates.time}, high = {e.Rates.high}, low = {e.Rates.low}");
         }
 
         private void _mtApiClient_OnLockTicks(object sender, Mt5LockTicksEventArgs e)
