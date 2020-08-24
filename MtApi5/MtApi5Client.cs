@@ -655,6 +655,34 @@ namespace MtApi5
         {
             return PositionOpen(symbol, orderType, volume, price, sl, tp, "", out result);
         }
+
+        /// <summary>
+        /// Partially closes a position on a specified symbol in case of a "hedging" accounting.
+        /// </summary>
+        /// <param name="symbol">Name of a trading instrument, on which a position is closed partially.</param>
+        /// <param name="volume"> Volume, by which a position should be decreased. If the value exceeds the volume of a partially closed position, it is closed in full. No position in the opposite direction is opened.</param>
+        /// <param name="deviation">The maximum deviation from the current price (in points).</param>
+        /// <returns>true if the basic check of structures is successful, otherwise false.</returns>
+        public bool PositionClosePartial(string symbol, double volume, ulong deviation = ulong.MaxValue)
+        {
+            var commandParameters = new ArrayList { symbol, volume, deviation };
+
+            return SendCommand<bool>(Mt5CommandType.PositionClosePartial_bySymbol, commandParameters);
+        }
+
+        /// <summary>
+        /// Partially closes a position on a specified symbol in case of a "hedging" accounting.
+        /// </summary>
+        /// <param name="ticket">Closed position ticket.</param>
+        /// <param name="volume"> Volume, by which a position should be decreased. If the value exceeds the volume of a partially closed position, it is closed in full. No position in the opposite direction is opened.</param>
+        /// <param name="deviation">The maximum deviation from the current price (in points).</param>
+        /// <returns>true if the basic check of structures is successful, otherwise false.</returns>
+        public bool PositionClosePartial(ulong ticket, double volume, ulong deviation = ulong.MaxValue)
+        {
+            var commandParameters = new ArrayList { ticket, volume, deviation };
+
+            return SendCommand<bool>(Mt5CommandType.PositionClosePartial_byTicket, commandParameters);
+        }
         #endregion
 
         #region Account Information functions

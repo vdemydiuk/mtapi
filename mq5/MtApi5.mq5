@@ -572,6 +572,12 @@ int executeCommand()
    case 6066: //PositionModify
       Execute_PositionModify();
    break;
+   case 6067: //PositionClosePartial_bySymbol
+      Execute_PositionClosePartial_bySymbol();
+   break;
+   case 6068: //Execute_PositionClosePartial_byTicket
+      Execute_PositionClosePartial_byTicket();
+   break;
    case 66: //BacktestingReady
       Execute_BacktestingReady();
    break;
@@ -3311,6 +3317,80 @@ void Execute_PositionModify()
     {
       PrintResponseError("PositionModify", _response_error);
     }
+}
+
+void Execute_PositionClosePartial_bySymbol()
+{
+   string symbol;
+   double volume;
+   ulong deviation;
+   
+   if (!getStringValue(ExpertHandle, 0, symbol, _error))
+   {
+      PrintParamError("PositionClosePartial (1)", "symbol", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 1, volume, _error))
+   {
+      PrintParamError("PositionClosePartial (1)", "volume", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getULongValue(ExpertHandle, 2, deviation, _error))
+   {
+      PrintParamError("PositionClosePartial (1)", "deviation", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   CTrade trade;
+   bool ok = trade.PositionClosePartial(symbol, volume, deviation);
+#ifdef __DEBUG_LOG__      
+   Print("command PositionClosePartial (1): result = ", ok);
+#endif   
+
+   if (!sendBooleanResponse(ExpertHandle, ok, _response_error))
+   {
+      PrintResponseError("PositionClosePartial (1)", _response_error);
+   }
+}
+
+void Execute_PositionClosePartial_byTicket()
+{
+   ulong ticket;
+   double volume;
+   ulong deviation;
+   
+   if (!getULongValue(ExpertHandle, 0, ticket, _error))
+   {
+      PrintParamError("PositionClosePartial (2)", "ticket", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getDoubleValue(ExpertHandle, 1, volume, _error))
+   {
+      PrintParamError("PositionClosePartial (2)", "volume", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   if (!getULongValue(ExpertHandle, 2, deviation, _error))
+   {
+      PrintParamError("PositionClosePartial (2)", "deviation", _error);
+      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+      return;
+   }
+   
+   CTrade trade;
+   bool ok = trade.PositionClosePartial(ticket, volume, deviation);
+#ifdef __DEBUG_LOG__      
+   Print("command PositionClosePartial (2): result = ", ok);
+#endif   
+
+   if (!sendBooleanResponse(ExpertHandle, ok, _response_error))
+   {
+      PrintResponseError("PositionClosePartial (2)", _response_error);
+   }
 }
 
 void Execute_PositionOpen(bool isTradeResultRequired)

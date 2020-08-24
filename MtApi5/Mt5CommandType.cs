@@ -102,6 +102,8 @@ namespace MtApi5
         PositionClose                       = 64,
         PositionOpen                        = 65,
         PositionModify                      = 6066,
+        PositionClosePartial_bySymbol       = 6067,
+        PositionClosePartial_byTicket       = 6068,
         //PositionOpenWithResult              = 1065,
 
         //Backtesting
