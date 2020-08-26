@@ -4554,7 +4554,7 @@ void Execute_iBullsPower()
    }
 
    if (!sendIntResponse(ExpertHandle, 
-      iBearsPower(symbol, (ENUM_TIMEFRAMES)period, ma_period), 
+      iBullsPower(symbol, (ENUM_TIMEFRAMES)period, ma_period), 
          _error))
    {
       PrintResponseError("iBullsPower", _response_error);
