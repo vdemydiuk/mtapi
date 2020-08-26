@@ -439,6 +439,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <DockPanel Grid.Row="0" LastChildFill="True">
@@ -454,6 +455,15 @@
                                     <Button Command="{Binding IndicatorReleaseCommand}" Margin="2"
                                             Content="IndicatorRelease" HorizontalAlignment="Left" />
                                 </StackPanel>
+                                <WrapPanel Grid.Row="2" Margin="2">
+                                    <Button Command="{Binding iCustomCommand}" Content="iCustom" Margin="2"/>
+                                    <Button Command="{Binding iBullsPowerCommand}" Content="iBullPower" Margin="2"/>
+                                    <Button Command="{Binding iBearsPowerCommand}" Content="iBearPower" Margin="2"/>
+                                </WrapPanel>
+                                <WrapPanel Grid.Row="3">
+                                    <Button  Command="{Binding BarsCalculatedCommand}" Content="BarsCalculated" Margin="2"/>
+                                    <Button  Command="{Binding CopyBufferCommand}" Content="CopyBuffer" Margin="2"/>
+                                </WrapPanel>
                             </Grid>
                         </Grid>
 
@@ -498,11 +508,6 @@
                     </Grid>
                 </TabItem>
 
-                <TabItem Header="Indicators">
-                    <WrapPanel VerticalAlignment="Top" Margin="5">
-                        <Button Command="{Binding iCustomCommand}" Content="iCustom" Margin="2"/>
-                    </WrapPanel>
-                </TabItem>
                 <TabItem Header="Chart Functions">
                     <Grid>
                         <Grid.RowDefinitions>

@@ -44,6 +44,11 @@ namespace MtApi5TestClient
         public DelegateCommand CopyCloseCommand { get; private set; }
         public DelegateCommand IndicatorCreateCommand { get; private set; }
         public DelegateCommand IndicatorReleaseCommand { get; private set; }
+        public DelegateCommand iCustomCommand { get; private set; }
+        public DelegateCommand iBullsPowerCommand { get; private set; }
+        public DelegateCommand iBearsPowerCommand { get; private set; }
+        public DelegateCommand BarsCalculatedCommand { get; private set; }
+        public DelegateCommand CopyBufferCommand { get; private set; }
 
         public DelegateCommand CopyTickVolumeCommand { get; private set; }
         public DelegateCommand CopyRealVolumeCommand { get; private set; }
@@ -74,8 +79,6 @@ namespace MtApi5TestClient
         public DelegateCommand PrintCommand { get; private set; }
         public DelegateCommand AlertCommand { get; private set; }
         public DelegateCommand TesterStopCommand { get; private set; }
-
-        public DelegateCommand iCustomCommand { get; private set; }
 
         public DelegateCommand TimeCurrentCommand { get; private set; }
 
@@ -354,6 +357,11 @@ namespace MtApi5TestClient
             CopyCloseCommand = new DelegateCommand(ExecuteCopyClose);
             IndicatorCreateCommand = new DelegateCommand(ExecuteIndicatorCreate);
             IndicatorReleaseCommand = new DelegateCommand(ExecuteIndicatorRelease);
+            iCustomCommand = new DelegateCommand(ExecuteICustom);
+            iBullsPowerCommand = new DelegateCommand(ExecuteIBullsPowerCommand);
+            iBearsPowerCommand = new DelegateCommand(ExecuteIBearsPowerCommand);
+            BarsCalculatedCommand = new DelegateCommand(ExecuteBarsCalculatedCommand);
+            CopyBufferCommand = new DelegateCommand(ExecuteCopyBufferCommand);
 
             CopyTickVolumeCommand = new DelegateCommand(ExecuteCopyTickVolume);
             CopyRealVolumeCommand = new DelegateCommand(ExecuteCopyRealVolume);
@@ -384,8 +392,6 @@ namespace MtApi5TestClient
             GetLastErrorCommand = new DelegateCommand(ExecuteGetLastError);
             ResetLastErrorCommand = new DelegateCommand(ExecuteResetLastError);
             TesterStopCommand = new DelegateCommand(ExecuteTesterStop);
-
-            iCustomCommand = new DelegateCommand(ExecuteICustom);
 
             ChartOpenCommand = new DelegateCommand(ExecuteChartOpen);
             ChartTimePriceToXYCommand = new DelegateCommand(ExecuteChartTimePriceToXY);
@@ -806,6 +812,68 @@ namespace MtApi5TestClient
             AddLog($"IndicatorRelease [{indicatorHandle}]: result - {retVal}");
         }
 
+        private async void ExecuteICustom(object o)
+        {
+            const string name = @"Examples\Custom Moving Average";
+            int[] parameters = { 0, 21, (int)ENUM_APPLIED_PRICE.PRICE_CLOSE };
+
+            var retVal = await Execute(() => _mtApiClient.iCustom(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, name, parameters));
+            TimeSeriesValues.IndicatorHandle = retVal;
+            AddLog($"Custom Moving Average: result - {retVal}");
+        }
+
+        private async void ExecuteIBullsPowerCommand(object o)
+        {
+            const int maPeriod = 13;
+            var retVal = await Execute(() => _mtApiClient.iBullsPower(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, maPeriod));
+            TimeSeriesValues.IndicatorHandle = retVal;
+
+            AddLog($"iBullPower: result - {retVal}");
+        }
+
+        private async void ExecuteIBearsPowerCommand(object o)
+        {
+            const int maPeriod = 13;
+            var retVal = await Execute(() => _mtApiClient.iBearsPower(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, maPeriod));
+            TimeSeriesValues.IndicatorHandle = retVal;
+
+            AddLog($"iBearsPower: result - {retVal}");
+        }
+
+        private async void ExecuteBarsCalculatedCommand(object o)
+        {
+            var retVal = await Execute(() => _mtApiClient.BarsCalculated(TimeSeriesValues.IndicatorHandle));
+
+            AddLog($"BarsCalculated: result - {retVal}");
+        }
+
+        private async void ExecuteCopyBufferCommand(object o)
+        {
+            TimeSeriesResults.Clear();
+
+            var result = await Execute(() =>
+            {
+                var count = _mtApiClient.CopyBuffer(TimeSeriesValues.IndicatorHandle, 0, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out var values);
+                return count > 0 ? values : null;
+            });
+
+            if (result == null)
+            {
+                AddLog("CopyRates: result is null");
+                return;
+            }
+
+            RunOnUiThread(() =>
+            {
+                foreach (var value in result)
+                {
+                    TimeSeriesResults.Add($"{value:F6}");
+                }
+            });
+
+            AddLog("CopyRates: success");
+        }
+
         private async void ExecuteCopyRates(object o)
         {
             if (string.IsNullOrEmpty(TimeSeriesValues?.SymbolValue)) return;
@@ -1175,17 +1243,6 @@ namespace MtApi5TestClient
         {
             _mtApiClient.TesterStop();
             AddLog("TesterStop: executed.");
-        }
-
-        private async void ExecuteICustom(object o)
-        {
-            const string symbol = "EURUSD";
-            const ENUM_TIMEFRAMES timeframe = ENUM_TIMEFRAMES.PERIOD_H1;
-            const string name = @"Examples\Custom Moving Average";
-            int[] parameters = { 0, 21, (int)ENUM_APPLIED_PRICE.PRICE_CLOSE };
-
-            var retVal = await Execute(() => _mtApiClient.iCustom(symbol, timeframe, name, parameters));
-            AddLog($"Custom Moving Average: result - {retVal}");
         }
 
         private async void ExecuteTimeCurrent(object o)
