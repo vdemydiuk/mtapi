@@ -1,7 +1,7 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      ""
 
-#property version   "1.6"
+#property version   "1.7"
 #property description "MtApi (MT5) connection expert"
 
 #include <json.mqh>
@@ -172,6 +172,7 @@ void OnBookEvent(const string& symbol)
 
 int preinit()
 {
+   StringInit(_error,1000,0);
    StringInit(_response_error,1000,0);
 
    return (0);
