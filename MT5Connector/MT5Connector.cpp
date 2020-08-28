@@ -208,6 +208,16 @@ _DLLAPI int _stdcall sendMqlRatesArrayResponse(int expertHandle, CMqlRates value
     }, err, 0);
 }
 
+_DLLAPI bool _stdcall sendErrorResponse(int expertHandle, int code, wchar_t* message, wchar_t* err)
+{
+    return Execute<bool>([&expertHandle, &code, message]() {
+        MtResponseString^ res = gcnew MtResponseString(gcnew String(message));
+        res->ErrorCode = code;
+        MtAdapter::GetInstance()->SendResponse(expertHandle, res);
+        return true;
+    }, err, false);
+}
+
 //----------- get values -------------------------------
 
 _DLLAPI int _stdcall getCommandType(int expertHandle, int* res, wchar_t* err)
