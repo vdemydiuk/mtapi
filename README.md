@@ -21,3 +21,6 @@ Changing the source code of MQL expert requires recompilation with MetaEditor. R
 
 # Home Website
 Please visit http://mtapi4.net
+
+#Telegram Channel
+https://t.me/mtapi4
