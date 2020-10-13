@@ -21,6 +21,11 @@ namespace MtApi.Monitors
         #endregion
 
         #region ctor
+        /// <summary>
+        /// Constructor for initializing an instance of <see cref="TradeMonitor"/>.
+        /// </summary>
+        /// <param name="apiClient">The <see cref="MtApiClient"/> which will be used to communicate with MetaTrader.</param>
+        /// <param name="monitorTrigger">The custom instance of <see cref="IMonitorTrigger"/> which will be used to trigger this instance of <see cref="TradeMonitor"/>.</param>
         public TradeMonitor(MtApiClient apiClient, IMonitorTrigger monitorTrigger) : base(apiClient, monitorTrigger) { }
         #endregion
 

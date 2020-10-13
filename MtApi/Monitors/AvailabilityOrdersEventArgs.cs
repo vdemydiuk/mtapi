@@ -10,8 +10,13 @@ namespace MtApi.Monitors
             Opened = opened;
             Closed = closed;
         }
-
+        /// <summary>
+        /// Contains all newly opened orders since the last time the monitor checked the open orders.
+        /// </summary>
         public List<MtOrder> Opened { get; private set; }
+        /// <summary>
+        /// Contains all newly closed orders since the last time the monitor checked the open orders.
+        /// </summary>
         public List<MtOrder> Closed { get; private set; }
     }
 }
