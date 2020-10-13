@@ -15,12 +15,11 @@ namespace MtApi.Monitors
         public TimerTradeMonitor(MtApiClient apiClient)
             : this(apiClient, new TimeElapsedTrigger(TimeSpan.FromSeconds(10)))
         {
-
+            SyncTrigger = true; //Sync-Trigger set to true, to have the same behavior as before
         }
         public TimerTradeMonitor(MtApiClient apiClient, TimeElapsedTrigger timeElapsedTrigger)
             : base(apiClient, timeElapsedTrigger)
         {
-            SyncTrigger = true; //Sync-Trigger set to true, to have the same behavior as before
             _timeElapsedTrigger = timeElapsedTrigger;
         }
     }

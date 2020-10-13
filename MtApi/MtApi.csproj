@@ -77,7 +77,7 @@
     <Compile Include="FlagFontStyle.cs" />
     <Compile Include="Monitors\AvailabilityOrdersEventArgs.cs" />
     <Compile Include="Monitors\MtMonitorBase.cs" />
-    <Compile Include="Monitors\Triggers\ITrigger.cs" />
+    <Compile Include="Monitors\Triggers\IMonitorTrigger.cs" />
     <Compile Include="Monitors\Triggers\NewBarTrigger.cs" />
     <Compile Include="Monitors\Triggers\TimeElapsedTrigger.cs" />
     <Compile Include="MqlRates.cs" />
