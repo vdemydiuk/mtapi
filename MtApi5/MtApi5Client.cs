@@ -135,6 +135,38 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Function is used for conducting asynchronous trade operations without waiting for the trade server's response to a sent request.
+        ///</summary>
+        ///<param name="request">Reference to a object of MqlTradeRequest type describing the trade activity of the client.</param>
+        ///<param name="result">Reference to a object of MqlTradeResult type describing the result of trade operation in case of a successful completion (if true is returned).</param>
+        /// <returns>
+        /// Returns true if the request is sent to a trade server. In case the request is not sent, it returns false. 
+        /// In case the request is sent, in the result variable the response code contains TRADE_RETCODE_PLACED value (code 10008) – "order placed". 
+        /// Successful execution means only the fact of sending, but does not give any guarantee that the request has reached the trade server and has been accepted for processing. 
+        /// When processing the received request, a trade server sends a reply to a client terminal notifying of change in the current state of positions, 
+        /// orders and deals, which leads to the generation of the Trade event.
+        /// </returns>
+        public bool OrderSendAsync(MqlTradeRequest request, out MqlTradeResult result)
+        {
+            Log.Debug($"OrderSend: request = {request}");
+
+            if (request == null)
+            {
+                Log.Warn("OrderSend: request is not defined!");
+                result = null;
+                return false;
+            }
+
+            var response = SendRequest<OrderSendResult>(new OrderSendAsyncRequest
+            {
+                TradeRequest = request
+            });
+
+            result = response?.TradeResult;
+            return response != null && response.RetVal;
+        }
+
+        ///<summary>
         ///The function calculates the margin required for the specified order type, on the current account
         ///, in the current market environment not taking into account current pending orders and open positions
         ///. It allows the evaluation of margin for the trade operation planned. The value is returned in the account currency.

@@ -1,7 +1,7 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      ""
 
-#property version   "1.8"
+#property version   "1.9"
 #property description "MtApi (MT5) connection expert"
 
 #include <json.mqh>
@@ -6961,7 +6961,10 @@ string OnRequest(string json)
                break;
             case 14: //Sell
                response = ExecuteRequest_Sell(jo);
-               break;                              
+               break;
+            case 15: //OrderSendAsync
+               response = ExecuteRequest_OrderSendAsync(jo);
+               break;
             default:
                PrintFormat("%s [WARNING]: Unknown request type %d", __FUNCTION__, requestType);
                response = CreateErrorResponse(-1, "Unknown request type");
@@ -7159,6 +7162,30 @@ string ExecuteRequest_OrderSend(JSONObject *jo)
    
    MqlTradeResult trade_result = {0};   
    bool ok = OrderSend(trade_request, trade_result);
+   
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: return value = %s", __FUNCTION__, ok ? "true" : "false");
+#endif    
+      
+   return CreateSuccessResponse("Value", result_value_jo);
+}
+
+string ExecuteRequest_OrderSendAsync(JSONObject *jo)
+{
+   CHECK_JSON_VALUE(jo, "TradeRequest", CreateErrorResponse(-1, "Undefinded mandatory parameter TradeRequest"));
+   JSONObject* trade_request_jo = jo.getObject("TradeRequest");
+      
+   MqlTradeRequest trade_request = {0};
+   bool converted = JsonToMqlTradeRequest(trade_request_jo, trade_request);
+   if (converted == false)
+      return CreateErrorResponse(-1, "Failed to parse parameter TradeRequest");
+   
+   MqlTradeResult trade_result = {0};   
+   bool ok = OrderSendAsync(trade_request, trade_result);
    
    JSONObject* result_value_jo = new JSONObject();
    result_value_jo.put("RetVal", new JSONBool(ok));

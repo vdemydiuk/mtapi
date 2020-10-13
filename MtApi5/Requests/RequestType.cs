@@ -18,6 +18,7 @@ namespace MtApi5.Requests
         PositionClose       = 11,
         SymbolInfoTick      = 12,
         Buy                 = 13,
-        Sell                = 14
+        Sell                = 14,
+        OrderSendAsync      = 15
     }
 }

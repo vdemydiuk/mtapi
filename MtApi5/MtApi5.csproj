@@ -89,6 +89,7 @@
     <Compile Include="Requests\MarketBookGetRequest.cs" />
     <Compile Include="Requests\OrderCheckRequest.cs" />
     <Compile Include="Requests\OrderCheckResult.cs" />
+    <Compile Include="Requests\OrderSendAsyncRequest.cs" />
     <Compile Include="Requests\OrderSendRequest.cs" />
     <Compile Include="Requests\PositionCloseRequest.cs" />
     <Compile Include="Requests\PositionCloseResult.cs" />
