@@ -1,90 +1,27 @@
-﻿using System.Timers;
+﻿using System;
+using MtApi.Monitors.Triggers;
 
 namespace MtApi.Monitors
 {
     public class TimerTradeMonitor : TradeMonitor
     {
-        #region Fields
-        private readonly Timer _timer = new Timer();
-        #endregion
-
-        #region ctor
-        public TimerTradeMonitor(MtApiClient apiClient) 
-            : base(apiClient)
-        {
-            _timer.Interval = 10000; //default interval 10 sec
-            _timer.Elapsed += _timer_Elapsed;
-
-        }
-        #endregion
-
-        #region Public Methods
-        //
-        // Summary:
-        //     Gets or sets the interval, expressed in milliseconds, at which to check orders
-        //
-        // Returns:
-        //     The time, in milliseconds, between checking events. The value
-        //     must be greater than zero, and less than or equal to System.Int32.MaxValue. 
-        //     The default is 10000 milliseconds.
-        //
-        // Exceptions:
-        //   T:System.ArgumentException:
-        //     The interval is less than or equal to zero.-or-The interval is greater than System.Int32.MaxValue,
-        //     and the PositionMonitor is currently started.
+        private readonly TimeElapsedTrigger _timeElapsedTrigger;
         public double Interval
         {
-            get { return _timer.Interval; }
-            set { _timer.Interval = value; }
+            get => _timeElapsedTrigger.Interval.TotalMilliseconds;
+            set => _timeElapsedTrigger.Interval = TimeSpan.FromMilliseconds(value);
         }
 
-        //
-        // Summary:
-        //     Gets a value indicating whether the PositionMonitor should raise checking orders
-        //
-        // Returns:
-        //     true if TimerTradeMonitor should check orders
-        //     otherwise, false.
-        public override bool IsStarted
+        public TimerTradeMonitor(MtApiClient apiClient)
+            : this(apiClient, new TimeElapsedTrigger(TimeSpan.FromSeconds(10)))
         {
-            get { return _timer.Enabled; }
-        }
-        #endregion
 
-        #region Protected Methods
-        protected override void OnStart()
+        }
+        public TimerTradeMonitor(MtApiClient apiClient, TimeElapsedTrigger timeElapsedTrigger)
+            : base(apiClient, timeElapsedTrigger)
         {
-            if (IsMtConnected)
-            {
-                _timer.Start();
-            }
+            SyncTrigger = true; //Sync-Trigger set to true, to have the same behavior as before
+            _timeElapsedTrigger = timeElapsedTrigger;
         }
-
-        protected override void OnStop()
-        {
-            _timer.Stop();
-        }
-
-        protected override void OnMtConnected()
-        {
-            _timer.Start();
-        }
-
-        protected override void OnMtDisconnected()
-        {
-            _timer.Stop();
-        }
-        #endregion
-
-        #region Private Methods
-        private void _timer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            _timer.Elapsed -= _timer_Elapsed; //unregister from events to prevent rise condition during work with orders
-
-            Check();
-
-            _timer.Elapsed += _timer_Elapsed; //register again
-        }
-        #endregion
     }
 }

@@ -1,61 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using MtApi.Monitors.Triggers;
 
 namespace MtApi.Monitors
 {
-    public abstract class TradeMonitor
+    public class TradeMonitor : MtMonitorBase
     {
         #region Fields
-        private readonly MtApiClient _apiClient;
         private List<MtOrder> _prevOrders;
         private readonly object _locker = new object();
-        #endregion
-
-        #region ctor
-        protected TradeMonitor(MtApiClient apiClient)
-        {
-            if (apiClient == null)
-                throw new ArgumentNullException(nameof(apiClient));
-
-            _apiClient = apiClient;
-        }
-        #endregion
-
-        #region Public Methods
-        //
-        // Summary:
-        //     Gets a value indicating whether the TradeMonitor should raise checking orders
-        //
-        // Returns:
-        //     true if TradeMonitor should check orders
-        //     otherwise, false.
-        public abstract bool IsStarted { get; }
-
-        //
-        // Summary:
-        //     Start checking orders.
-        //
-        public void Start()
-        {
-            _apiClient.ConnectionStateChanged += _apiClient_ConnectionStateChanged;
-            if (IsMtConnected)
-            {
-                InitialCheck();
-            }
-
-            OnStart();
-        }
-
-        //
-        // Summary:
-        //     Stop checking orders.
-        //
-        public void Stop()
-        {
-            _apiClient.ConnectionStateChanged -= _apiClient_ConnectionStateChanged;
-            OnStop();
-        }
         #endregion
 
         #region Events
@@ -65,17 +20,23 @@ namespace MtApi.Monitors
         public event EventHandler<AvailabilityOrdersEventArgs> AvailabilityOrdersChanged;
         #endregion
 
-        #region Protected Methods
+        #region ctor
+        public TradeMonitor(MtApiClient apiClient, IMonitorTrigger monitorTrigger) : base(apiClient, monitorTrigger) { }
+        #endregion
 
-        protected abstract void OnStart();
-        protected abstract void OnStop();
-
-        protected abstract void OnMtConnected();
-        protected abstract void OnMtDisconnected();
-
-        public bool IsMtConnected => _apiClient.ConnectionState == MtConnectionState.Connected;
-
-        protected void Check()
+        protected override void OnMtConnected()
+        {
+            InitialCheck();
+            base.OnMtConnected();
+        }
+        protected override void OnStart()
+        {
+            if (IsMtConnected)
+                InitialCheck();
+            base.OnStart();
+        }
+        protected override void OnTriggerRaised() => Check();
+        private void Check()
         {
             try
             {
@@ -90,92 +51,48 @@ namespace MtApi.Monitors
                 //TODO: write error to log
             }
         }
-        #endregion
+        private void InitialCheck()
+        {
+            lock (_locker)
+                _prevOrders = null;
 
-        #region Private Methods
+            Task.Factory.StartNew(Check);
+        }
         private void CheckOrders()
         {
             var openedOrders = new List<MtOrder>();
             var closedOrders = new List<MtOrder>();
+            List<MtOrder> prevOrders;
 
             // get current orders from MetaTrader
-            var tradesOrders = _apiClient.GetOrders(OrderSelectSource.MODE_TRADES);
+            var tradesOrders = ApiClient.GetOrders(OrderSelectSource.MODE_TRADES);
 
-            List<MtOrder> prevOrders;
-            lock(_locker)
-            {
+            lock (_locker)
                 prevOrders = _prevOrders;
-            }
 
             if (prevOrders != null) //skip checking on first load orders
             {
                 //check open orders
-                foreach (var order in tradesOrders)
-                {
-                    if (prevOrders.Find(a => a.Ticket == order.Ticket) == null)
-                    {
-                        openedOrders.Add(order);
-                    }
-                }
+                openedOrders = tradesOrders.Where(to => prevOrders.Find(a => a.Ticket == to.Ticket) == null).ToList();
 
                 //check closed orders
-                var closeOrdersTemp = new List<MtOrder>();
-                foreach (var order in prevOrders)
-                {
-                    if (tradesOrders.Find(a => a.Ticket == order.Ticket) == null)
-                    {
-                        closeOrdersTemp.Add(order);
-                    }
-                }
+                var closeOrdersTemp = prevOrders.Where(po => tradesOrders.Find(a => a.Ticket == po.Ticket) == null).ToList();
 
                 if (closeOrdersTemp.Count > 0)
                 {
                     //get closed orders from history with actual values
-                    var historyOrders = _apiClient.GetOrders(OrderSelectSource.MODE_HISTORY);
-                    foreach (var order in closeOrdersTemp)
-                    {
-                        var closedOrder = historyOrders.Find(a => a.Ticket == order.Ticket);
-                        if (closedOrder != null)
-                        {
-                            closedOrders.Add(closedOrder);
-                        }
-                    }
+                    var historyOrders = ApiClient.GetOrders(OrderSelectSource.MODE_HISTORY);
+                    closedOrders = closeOrdersTemp.Where(cot => historyOrders.Find(a => a.Ticket == cot.Ticket) != null).ToList();
                 }
             }
 
-            lock(_locker)
-            {
+            lock (_locker)
                 _prevOrders = tradesOrders;
-            }
 
             if (openedOrders.Count > 0 || closedOrders.Count > 0)
             {
                 AvailabilityOrdersChanged?.Invoke(this, new AvailabilityOrdersEventArgs(openedOrders, closedOrders));
             }
         }
-
-        private void _apiClient_ConnectionStateChanged(object sender, MtConnectionEventArgs e)
-        {
-            if (e.Status == MtConnectionState.Connected)
-            {
-                InitialCheck();
-                OnMtConnected();
-            }
-            else if (e.Status == MtConnectionState.Failed || e.Status == MtConnectionState.Disconnected)
-            {
-                OnMtDisconnected();
-            }
-        }
-
-        private void InitialCheck()
-        {
-            lock (_locker)
-            {
-                _prevOrders = null;
-            }
-
-            Task.Factory.StartNew(Check);
-        }
-        #endregion
     }
 }
