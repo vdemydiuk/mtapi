@@ -20,7 +20,7 @@ MQL files have been build to ex4 and stored into folders "mq4" for MetaTrader an
 Changing the source code of MQL expert requires recompilation with MetaEditor. Resulting in the need to copy files "hash.mqh" and "json.mqh" to the MetaEditor include folder.
 
 # Home Website
-Please visit http://mtapi4.net
 
-#Telegram Channel
+# Telegram Channel
 https://t.me/mtapi4
+https://t.me/joinchat/GfnfUxvelQCLvvIvLO16-w
