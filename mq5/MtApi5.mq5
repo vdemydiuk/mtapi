@@ -1,7 +1,7 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      ""
 
-#property version   "1.7"
+#property version   "1.8"
 #property description "MtApi (MT5) connection expert"
 
 #include <json.mqh>
@@ -6956,6 +6956,12 @@ string OnRequest(string json)
             case 12: //SymbolInfoTick
                response = ExecuteRequest_SymbolInfoTick(jo);
                break;
+            case 13: //Buy
+               response = ExecuteRequest_Buy(jo);
+               break;
+            case 14: //Sell
+               response = ExecuteRequest_Sell(jo);
+               break;                              
             default:
                PrintFormat("%s [WARNING]: Unknown request type %d", __FUNCTION__, requestType);
                response = CreateErrorResponse(-1, "Unknown request type");
@@ -7485,6 +7491,98 @@ string ExecuteRequest_SymbolInfoTick(JSONObject *jo)
 #endif
 
    return CreateSuccessResponse("Value", MqlTickToJson(tick));      
+}
+
+string ExecuteRequest_Buy(JSONObject *jo)
+{
+   //Symbol
+   string symbol=Symbol();
+   if (jo.getValue("Symbol") != NULL)
+      symbol = jo.getString("Symbol");   
+     
+   //Volume
+   CHECK_JSON_VALUE(jo, "Volume", CreateErrorResponse(-1, "Undefinded mandatory parameter Volume"));
+   double volume = jo.getDouble("Volume");
+
+   //Price
+   CHECK_JSON_VALUE(jo, "Price", CreateErrorResponse(-1, "Undefinded mandatory parameter Price"));
+   double price = jo.getDouble("Price");
+
+   //Sl
+   CHECK_JSON_VALUE(jo, "Sl", CreateErrorResponse(-1, "Undefinded mandatory parameter Sl"));
+   double sl = jo.getDouble("Sl");
+   
+   //Tp
+   CHECK_JSON_VALUE(jo, "Tp", CreateErrorResponse(-1, "Undefinded mandatory parameter Tp"));
+   double tp = jo.getDouble("Tp");
+   
+   //Comment
+   string comment="";
+   if (jo.getValue("Comment") != NULL)
+      comment = jo.getString("Comment");
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: symbol = %s, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
+      __FUNCTION__, symbol, volume, price, sl, tp, comment);
+#endif
+
+   CTrade trade;
+   bool ok = trade.Buy(volume, symbol, price, sl, tp, comment);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse("Value", result_value_jo);   
+}
+
+string ExecuteRequest_Sell(JSONObject *jo)
+{
+   //Symbol
+   string symbol=Symbol();
+   if (jo.getValue("Symbol") != NULL)
+      symbol = jo.getString("Symbol");   
+     
+   //Volume
+   CHECK_JSON_VALUE(jo, "Volume", CreateErrorResponse(-1, "Undefinded mandatory parameter Volume"));
+   double volume = jo.getDouble("Volume");
+
+   //Price
+   CHECK_JSON_VALUE(jo, "Price", CreateErrorResponse(-1, "Undefinded mandatory parameter Price"));
+   double price = jo.getDouble("Price");
+
+   //Sl
+   CHECK_JSON_VALUE(jo, "Sl", CreateErrorResponse(-1, "Undefinded mandatory parameter Sl"));
+   double sl = jo.getDouble("Sl");
+   
+   //Tp
+   CHECK_JSON_VALUE(jo, "Tp", CreateErrorResponse(-1, "Undefinded mandatory parameter Tp"));
+   double tp = jo.getDouble("Tp");
+   
+   //Comment
+   string comment="";
+   if (jo.getValue("Comment") != NULL)
+      comment = jo.getString("Comment");
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: symbol = %s, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
+      __FUNCTION__, symbol, volume, price, sl, tp, comment);
+#endif
+
+   CTrade trade;
+   bool ok = trade.Sell(volume, symbol, price, sl, tp, comment);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse("Value", result_value_jo); 
 }
 
 //------------ Events -------------------------------------------------------

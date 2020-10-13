@@ -683,6 +683,64 @@ namespace MtApi5
 
             return SendCommand<bool>(Mt5CommandType.PositionClosePartial_byTicket, commandParameters);
         }
+
+        /// <summary>
+        /// Opens a long position with specified parameters with current market Ask price
+        /// </summary>
+        /// <param name="result">output result</param>
+        /// <param name="volume">Requested position volume.</param>
+        /// <param name="symbol">Position symbol. If it is not specified, the current symbol will be used.</param>
+        /// <param name="price">Execution price.</param>
+        /// <param name="sl">Stop Loss price.</param>
+        /// <param name="tp">Take Profit price.</param>
+        /// <param name="comment">Comment.</param>
+        /// <returns>true - successful check of the structures, otherwise - false.</returns>
+        public bool Buy(out MqlTradeResult result, double volume, string symbol = null, double price = 0.0, double sl = 0.0, double tp = 0.0, string comment = null)
+        {
+            Log.Debug($"Buy: volume = {volume}, symbol = {symbol}, sl = {sl}, tp = {tp}, comment = {comment}");
+
+            var response = SendRequest<OrderSendResult>(new BuyRequest
+            {
+                Volume = volume,
+                Symbol = symbol,
+                Price = price,
+                Sl = sl,
+                Tp = tp,
+                Comment = comment
+            });
+
+            result = response?.TradeResult;
+            return response != null && response.RetVal;
+        }
+
+        /// <summary>
+        /// Opens a short position with specified parameters with current market Bid price
+        /// </summary>
+        /// <param name="result">output result</param>
+        /// <param name="volume">Requested position volume.</param>
+        /// <param name="symbol">Position symbol. If it is not specified, the current symbol will be used.</param>
+        /// <param name="price">Execution price.</param>
+        /// <param name="sl">Stop Loss price.</param>
+        /// <param name="tp">Take Profit price.</param>
+        /// <param name="comment">Comment.</param>
+        /// <returns>true - successful check of the structures, otherwise - false.</returns>
+        public bool Sell(out MqlTradeResult result, double volume, string symbol = null, double price = 0.0, double sl = 0.0, double tp = 0.0, string comment = null)
+        {
+            Log.Debug($"Sell: volume = {volume}, symbol = {symbol}, sl = {sl}, tp = {tp}, comment = {comment}");
+
+            var response = SendRequest<OrderSendResult>(new SellRequest
+            {
+                Volume = volume,
+                Symbol = symbol,
+                Price = price,
+                Sl = sl,
+                Tp = tp,
+                Comment = comment
+            });
+
+            result = response?.TradeResult;
+            return response != null && response.RetVal;
+        }
         #endregion
 
         #region Account Information functions

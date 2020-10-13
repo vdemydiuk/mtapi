@@ -78,6 +78,7 @@
     <Compile Include="Events\Mt5EventTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Mt5Quote.cs" />
+    <Compile Include="Requests\BuyRequest.cs" />
     <Compile Include="Requests\ChartTimePriceToXyRequest.cs" />
     <Compile Include="Requests\ChartTimePriceToXyResult.cs" />
     <Compile Include="Requests\ChartXyToTimePriceRequest.cs" />
@@ -96,6 +97,7 @@
     <Compile Include="Requests\RequestType.cs" />
     <Compile Include="Requests\OrderSendResult.cs" />
     <Compile Include="Requests\Response.cs" />
+    <Compile Include="Requests\SellRequest.cs" />
     <Compile Include="Requests\SymbolInfoStringRequest.cs" />
     <Compile Include="Requests\SymbolInfoStringResult.cs" />
     <Compile Include="Requests\SymbolInfoTickRequest.cs" />
