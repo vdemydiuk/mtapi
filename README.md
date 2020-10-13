@@ -23,4 +23,5 @@ Changing the source code of MQL expert requires recompilation with MetaEditor. R
 
 # Telegram Channel
 https://t.me/mtapi4
+
 https://t.me/joinchat/GfnfUxvelQCLvvIvLO16-w
