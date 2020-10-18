@@ -43,8 +43,8 @@ Can be used to get updates on modified trades (takeprofit, stoploss, operation).
 1. `None` would cause no monitoring. But please use `Start()` and `Stop()` instead.
 2. `TakeProfit` would cause observing whether the TakeProfit were changed.
 3. `StopLoss` would cause observing whether the StopLoss were changed.
-`Operation` would cause observing trades which changed from a stop / limit order to an open order.
-4. `All` would cause observing all above defined.
+4. `Operation` would cause observing trades which changed from a stop / limit order to an open order.
+5. `All` would cause observing all above defined.
 
 Because `OrderModifiedTypes` is defined with the Flag-Attribute, you can combine the above monitoring types with a pipe: `OrderModifiedTypes.TakeProfit | OrderModifiedTypes.StopLoss`.
 
