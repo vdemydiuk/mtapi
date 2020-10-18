@@ -76,7 +76,11 @@
     <Compile Include="EnumTerminalInfoInteger.cs" />
     <Compile Include="FlagFontStyle.cs" />
     <Compile Include="Monitors\AvailabilityOrdersEventArgs.cs" />
+    <Compile Include="Monitors\OrderModification\ModifiedOrdersEventArgs.cs" />
+    <Compile Include="Monitors\OrderModification\ModifiedOrdersMonitor.cs" />
+    <Compile Include="Monitors\OrderModification\MtModifiedOrder.cs" />
     <Compile Include="Monitors\MtMonitorBase.cs" />
+    <Compile Include="Monitors\OrderModification\OrderModifiedTypes.cs" />
     <Compile Include="Monitors\Triggers\IMonitorTrigger.cs" />
     <Compile Include="Monitors\Triggers\NewBarTrigger.cs" />
     <Compile Include="Monitors\Triggers\TimeElapsedTrigger.cs" />
