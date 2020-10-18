@@ -73,6 +73,8 @@ namespace MtApi5TestClient
         public DelegateCommand PositionOpenCommand { get; private set; }
         public DelegateCommand PositionCloseCommand { get; private set; }
         public DelegateCommand PositionCloseAllCommand { get; private set; }
+        public DelegateCommand BuyCommand { get; private set; }
+        public DelegateCommand SellCommand { get; private set; }
 
         public DelegateCommand GetLastErrorCommand { get; private set; }
         public DelegateCommand ResetLastErrorCommand { get; private set; }
@@ -386,6 +388,8 @@ namespace MtApi5TestClient
             PositionOpenCommand = new DelegateCommand(ExecutePositionOpen);
             PositionCloseCommand = new DelegateCommand(ExecutePositionClose);
             PositionCloseAllCommand = new DelegateCommand(ExecutePositionCloseAll);
+            BuyCommand = new DelegateCommand(ExecuteBuy);
+            SellCommand = new DelegateCommand(ExecuteSell);
 
             PrintCommand = new DelegateCommand(ExecutePrint);
             AlertCommand = new DelegateCommand(ExecuteAlert);
@@ -1209,6 +1213,26 @@ namespace MtApi5TestClient
         {
             var retVal = await Execute(() => _mtApiClient.PositionCloseAll());
             AddLog($"PositionCloseAll: count = {retVal}");
+        }
+
+        private async void ExecuteBuy(object obj)
+        {
+            const string symbol = "EURUSD";
+            const double volume = 0.1;
+            MqlTradeResult tradeResult = null;
+
+            var retVal = await Execute(() => _mtApiClient.Buy(out tradeResult, volume, symbol));
+            AddLog($"Buy: symbol EURUSD retVal = {retVal}, result = {tradeResult}");
+        }
+
+        private async void ExecuteSell(object obj)
+        {
+            const string symbol = "EURUSD";
+            const double volume = 0.1;
+            MqlTradeResult tradeResult = null;
+
+            var retVal = await Execute(() => _mtApiClient.Sell(out tradeResult, volume, symbol));
+            AddLog($"Sell: symbol EURUSD retVal = {retVal}, result = {tradeResult}");
         }
 
         private async void ExecutePrint(object obj)
