@@ -254,6 +254,7 @@ namespace MtApi5
         GlobalVariablesTotal                = 158,
 
         UnlockTicks                         = 159,
-        PositionCloseAll                    = 160
+        PositionCloseAll                    = 160,
+        TesterStop                          = 161
     }
 }
