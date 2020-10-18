@@ -135,38 +135,6 @@ namespace MtApi5
         }
 
         ///<summary>
-        ///Function is used for conducting asynchronous trade operations without waiting for the trade server's response to a sent request.
-        ///</summary>
-        ///<param name="request">Reference to a object of MqlTradeRequest type describing the trade activity of the client.</param>
-        ///<param name="result">Reference to a object of MqlTradeResult type describing the result of trade operation in case of a successful completion (if true is returned).</param>
-        /// <returns>
-        /// Returns true if the request is sent to a trade server. In case the request is not sent, it returns false. 
-        /// In case the request is sent, in the result variable the response code contains TRADE_RETCODE_PLACED value (code 10008) – "order placed". 
-        /// Successful execution means only the fact of sending, but does not give any guarantee that the request has reached the trade server and has been accepted for processing. 
-        /// When processing the received request, a trade server sends a reply to a client terminal notifying of change in the current state of positions, 
-        /// orders and deals, which leads to the generation of the Trade event.
-        /// </returns>
-        public bool OrderSendAsync(MqlTradeRequest request, out MqlTradeResult result)
-        {
-            Log.Debug($"OrderSend: request = {request}");
-
-            if (request == null)
-            {
-                Log.Warn("OrderSend: request is not defined!");
-                result = null;
-                return false;
-            }
-
-            var response = SendRequest<OrderSendResult>(new OrderSendAsyncRequest
-            {
-                TradeRequest = request
-            });
-
-            result = response?.TradeResult;
-            return response != null && response.RetVal;
-        }
-
-        ///<summary>
         ///The function calculates the margin required for the specified order type, on the current account
         ///, in the current market environment not taking into account current pending orders and open positions
         ///. It allows the evaluation of margin for the trade operation planned. The value is returned in the account currency.
@@ -714,64 +682,6 @@ namespace MtApi5
             var commandParameters = new ArrayList { ticket, volume, deviation };
 
             return SendCommand<bool>(Mt5CommandType.PositionClosePartial_byTicket, commandParameters);
-        }
-
-        /// <summary>
-        /// Opens a long position with specified parameters with current market Ask price
-        /// </summary>
-        /// <param name="result">output result</param>
-        /// <param name="volume">Requested position volume.</param>
-        /// <param name="symbol">Position symbol. If it is not specified, the current symbol will be used.</param>
-        /// <param name="price">Execution price.</param>
-        /// <param name="sl">Stop Loss price.</param>
-        /// <param name="tp">Take Profit price.</param>
-        /// <param name="comment">Comment.</param>
-        /// <returns>true - successful check of the structures, otherwise - false.</returns>
-        public bool Buy(out MqlTradeResult result, double volume, string symbol = null, double price = 0.0, double sl = 0.0, double tp = 0.0, string comment = null)
-        {
-            Log.Debug($"Buy: volume = {volume}, symbol = {symbol}, sl = {sl}, tp = {tp}, comment = {comment}");
-
-            var response = SendRequest<OrderSendResult>(new BuyRequest
-            {
-                Volume = volume,
-                Symbol = symbol,
-                Price = price,
-                Sl = sl,
-                Tp = tp,
-                Comment = comment
-            });
-
-            result = response?.TradeResult;
-            return response != null && response.RetVal;
-        }
-
-        /// <summary>
-        /// Opens a short position with specified parameters with current market Bid price
-        /// </summary>
-        /// <param name="result">output result</param>
-        /// <param name="volume">Requested position volume.</param>
-        /// <param name="symbol">Position symbol. If it is not specified, the current symbol will be used.</param>
-        /// <param name="price">Execution price.</param>
-        /// <param name="sl">Stop Loss price.</param>
-        /// <param name="tp">Take Profit price.</param>
-        /// <param name="comment">Comment.</param>
-        /// <returns>true - successful check of the structures, otherwise - false.</returns>
-        public bool Sell(out MqlTradeResult result, double volume, string symbol = null, double price = 0.0, double sl = 0.0, double tp = 0.0, string comment = null)
-        {
-            Log.Debug($"Sell: volume = {volume}, symbol = {symbol}, sl = {sl}, tp = {tp}, comment = {comment}");
-
-            var response = SendRequest<OrderSendResult>(new SellRequest
-            {
-                Volume = volume,
-                Symbol = symbol,
-                Price = price,
-                Sl = sl,
-                Tp = tp,
-                Comment = comment
-            });
-
-            result = response?.TradeResult;
-            return response != null && response.RetVal;
         }
         #endregion
 
