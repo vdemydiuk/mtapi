@@ -40,7 +40,13 @@ namespace MtApi.Monitors
                 InitialCheck();
             base.OnStart();
         }
-        protected override void OnTriggerRaised() => Check();
+
+        protected override void OnTriggerRaised()
+        {
+            if (IsMtConnected)
+                Check();
+        }
+        
         private void Check()
         {
             try
