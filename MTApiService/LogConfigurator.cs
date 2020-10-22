@@ -52,16 +52,37 @@ namespace MTApiService
         #endregion
     }
 
+    public enum LogLevel
+    {
+        Off,
+        Debug,
+        Info
+    }
+
     public class LogConfigurator
     {
         private const string LogFileNameExtension = "log";
 
         public static void Setup(string profileName)
         {
+#if (DEBUG)
+            const LogLevel logLevel = LogLevel.Debug;
+#else
+            const LogLevel logLevel = LogLevel.Info;
+#endif
+            Setup(profileName, logLevel);
+        }
+
+        public static void Setup(string profileName, LogLevel logLevel)
+        {
             if (string.IsNullOrEmpty(profileName))
                 throw new ArgumentNullException();
 
             var hierarchy = (Hierarchy) LogManager.GetRepository();
+
+            //check if logger is already configurated to avoid creation many empty logs files
+            if (hierarchy.Configured)
+                return;
 
             var patternLayout = new PatternLayout
             {
@@ -69,7 +90,7 @@ namespace MTApiService
             };
             patternLayout.ActivateOptions();
 
-            string filename = $"{DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss")}-{Process.GetCurrentProcess().Id}.{LogFileNameExtension}";
+            var filename = $"{DateTime.Now:yyyy-dd-M--HH-mm-ss}-{Process.GetCurrentProcess().Id}.{LogFileNameExtension}";
 
             var roller = new RollingFileAppender
             {
@@ -84,12 +105,7 @@ namespace MTApiService
             };
             roller.ActivateOptions();
             hierarchy.Root.AddAppender(roller);
-
-#if (DEBUG)
-            hierarchy.Root.Level = Level.Debug;
-#else
-            hierarchy.Root.Level = Level.Info;
-#endif
+            hierarchy.Root.Level = ConvertLogLevel(logLevel);
             hierarchy.Configured = true;
         }
 
@@ -99,6 +115,18 @@ namespace MTApiService
                 throw new ArgumentNullException(nameof(type));
 
             return new MtLog(type);
+        }
+
+        private static Level ConvertLogLevel(LogLevel logLevel)
+        {
+            switch (logLevel)
+            {
+                case LogLevel.Debug: return Level.Debug;
+                case LogLevel.Info: return Level.Info;
+                case LogLevel.Off: return Level.Off;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
+            }
         }
     }
 }
