@@ -1,56 +1,18 @@
-﻿
+﻿using MtApi.Monitors.Triggers;
+
 namespace MtApi.Monitors
 {
     public class TimeframeTradeMonitor : TradeMonitor
     {
-        #region Fields
-        private volatile bool _isStarted;
-        #endregion
-
-        #region ctor
-        public TimeframeTradeMonitor(MtApiClient apiClient) 
-            : base(apiClient)
+        /// <summary>
+        /// Constructor for initializing a new instance with a trigger instance of <see cref="NewBarTrigger"/>.
+        /// <para>SyncTrigger is set to true by default</para>
+        /// </summary>
+        /// <param name="apiClient">The <see cref="MtApiClient"/> which will be used to communicate with MetaTrader.</param>
+        public TimeframeTradeMonitor(MtApiClient apiClient)
+            : base(apiClient, new NewBarTrigger(apiClient))
         {
-            apiClient.OnLastTimeBar += ApiClient_OnLastTimeBar;
+            SyncTrigger = true; //Sync-Trigger set to true, to have the same behavior as before
         }
-        #endregion
-
-        #region Public Methods
-        //
-        // Summary:
-        //     Gets a value indicating whether the TimeframeTradeMonitor should raise checking orders
-        //
-        // Returns:
-        //     true if PositionMonitor should check orders
-        //     otherwise, false.
-        public override bool IsStarted => _isStarted;
-
-        #endregion
-
-        #region Protected Methods
-        protected override void OnMtConnected() {}
-
-        protected override void OnMtDisconnected() {}
-
-        protected override void OnStart()
-        {
-            _isStarted = true;
-        }
-
-        protected override void OnStop()
-        {
-            _isStarted = false;
-        }
-        #endregion
-
-        #region Private Methods
-        private void ApiClient_OnLastTimeBar(object sender, TimeBarArgs e)
-        {
-            if (_isStarted)
-            {
-                Check();
-            }
-        }
-        #endregion
     }
 }

@@ -1,89 +1,46 @@
-﻿using System.Timers;
+﻿using System;
+using MtApi.Monitors.Triggers;
 
 namespace MtApi.Monitors
 {
     public class TimerTradeMonitor : TradeMonitor
     {
         #region Fields
-        private readonly Timer _timer = new Timer();
+        private readonly TimeElapsedTrigger _timeElapsedTrigger;
         #endregion
 
-        #region ctor
-        public TimerTradeMonitor(MtApiClient apiClient) 
-            : base(apiClient)
-        {
-            _timer.Interval = 10000; //default interval 10 sec
-            _timer.Elapsed += _timer_Elapsed;
-
-        }
-        #endregion
-
-        #region Public Methods
-        //
-        // Summary:
-        //     Gets or sets the interval, expressed in milliseconds, at which to check orders
-        //
-        // Returns:
-        //     The time, in milliseconds, between checking events. The value
-        //     must be greater than zero, and less than or equal to System.Int32.MaxValue. 
-        //     The default is 10000 milliseconds.
-        //
-        // Exceptions:
-        //   T:System.ArgumentException:
-        //     The interval is less than or equal to zero.-or-The interval is greater than System.Int32.MaxValue,
-        //     and the PositionMonitor is currently started.
+        #region Properties
+        /// <summary>
+        /// Interval for raising the trigger
+        /// </summary>
         public double Interval
         {
-            get { return _timer.Interval; }
-            set { _timer.Interval = value; }
-        }
-
-        //
-        // Summary:
-        //     Gets a value indicating whether the PositionMonitor should raise checking orders
-        //
-        // Returns:
-        //     true if TimerTradeMonitor should check orders
-        //     otherwise, false.
-        public override bool IsStarted
-        {
-            get { return _timer.Enabled; }
+            get => _timeElapsedTrigger.Interval.TotalMilliseconds;
+            set => _timeElapsedTrigger.Interval = TimeSpan.FromMilliseconds(value);
         }
         #endregion
 
-        #region Protected Methods
-        protected override void OnStart()
+        #region ctors
+        /// <summary>
+        /// Constructor for initializing a new instance with a default <see cref="Interval"/> of 10 seconds.
+        /// <para>SyncTrigger is set to true by default</para>
+        /// </summary>
+        /// <param name="apiClient">The <see cref="MtApiClient"/> which will be used to communicate with MetaTrader.</param>
+        public TimerTradeMonitor(MtApiClient apiClient)
+            : this(apiClient, new TimeElapsedTrigger(TimeSpan.FromSeconds(10)))
         {
-            if (IsMtConnected)
-            {
-                _timer.Start();
-            }
+            SyncTrigger = true; //Sync-Trigger set to true, to have the same behavior as before
         }
-
-        protected override void OnStop()
+        /// <summary>
+        ///  Constructor for initializing a new instance with a custom instance of <see cref="TimeElapsedTrigger"/>.
+        /// <para>SyncTrigger is set to false by default</para>
+        /// </summary>
+        /// <param name="apiClient">The <see cref="MtApiClient"/> which will be used to communicate with MetaTrader.</param>
+        /// <param name="timeElapsedTrigger">The custom instance of <see cref="TimeElapsedTrigger"/> which will be used to trigger this instance of <see cref="TradeMonitor"/>.</param>
+        public TimerTradeMonitor(MtApiClient apiClient, TimeElapsedTrigger timeElapsedTrigger)
+            : base(apiClient, timeElapsedTrigger)
         {
-            _timer.Stop();
-        }
-
-        protected override void OnMtConnected()
-        {
-            _timer.Start();
-        }
-
-        protected override void OnMtDisconnected()
-        {
-            _timer.Stop();
-        }
-        #endregion
-
-        #region Private Methods
-        private void _timer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            _timer.Elapsed -= _timer_Elapsed; //unregister from events to prevent rise condition during work with orders
-
-            Check();
-
-            _timer.Elapsed += _timer_Elapsed; //register again
+            _timeElapsedTrigger = timeElapsedTrigger;
         }
         #endregion
     }
