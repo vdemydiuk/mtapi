@@ -1718,6 +1718,18 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Returns the ID of the chart.
+        ///</summary>
+        ///<param name="expertHandle">Handle of expert linked to the chart.</param>
+        ///<returns>
+        /// Value of long type.
+        ///</returns>
+        public long ChartId(int expertHandle)
+        {
+            return SendCommand<long>(Mt5CommandType.ChartId, null, null, expertHandle);
+        }
+
+        ///<summary>
         ///This function calls a forced redrawing of a specified chart.
         ///</summary>
         ///<param name="chartId">Chart ID. 0 means the current chart.</param>
@@ -3468,7 +3480,7 @@ namespace MtApi5
             ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
         }
 
-        private T SendCommand<T>(Mt5CommandType commandType, ArrayList commandParameters, Dictionary<string, object> namedParams = null)
+        private T SendCommand<T>(Mt5CommandType commandType, ArrayList commandParameters, Dictionary<string, object> namedParams = null, int? executor = null)
         {
             MtResponse response;
 
@@ -3480,7 +3492,7 @@ namespace MtApi5
 
             try
             {
-                response = client.SendCommand((int)commandType, commandParameters, namedParams, ExecutorHandle);
+                response = client.SendCommand((int)commandType, commandParameters, namedParams, executor ?? ExecutorHandle);
             }
             catch (CommunicationException ex)
             {

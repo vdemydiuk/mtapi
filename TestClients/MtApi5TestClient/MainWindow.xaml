@@ -542,6 +542,7 @@
 
                         <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="5">
                             <Button Command="{Binding ChartIdCommand}" Content="ChartId" Margin="2"/>
+                            <Button Command="{Binding ChartIdByExpertHandleCommand}" Content="ChartId by ExpertHandle" Margin="2"/>
                             <TextBlock Text="ChartID" VerticalAlignment="Center" Margin="20,2,2,2"/>
                             <TextBox Width="150" Text="{Binding ChartFunctionsChartIdValue}" Margin="2"/>
                         </StackPanel>

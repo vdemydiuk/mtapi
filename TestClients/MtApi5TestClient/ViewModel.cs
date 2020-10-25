@@ -90,6 +90,7 @@ namespace MtApi5TestClient
         public DelegateCommand ChartApplyTemplateCommand { get; private set; }
         public DelegateCommand ChartSaveTemplateCommand { get; private set; }
         public DelegateCommand ChartIdCommand { get; private set; }
+        public DelegateCommand ChartIdByExpertHandleCommand { get; private set; }
         public DelegateCommand ChartRedrawCommand { get; private set; }
         public DelegateCommand ChartWindowFindCommand { get; private set; }
         public DelegateCommand ChartCloseCommand { get; private set; }
@@ -403,6 +404,7 @@ namespace MtApi5TestClient
             ChartApplyTemplateCommand = new DelegateCommand(ExecuteChartApplyTemplate);
             ChartSaveTemplateCommand = new DelegateCommand(ExecuteChartSaveTemplate);
             ChartIdCommand = new DelegateCommand(ExecuteChartId);
+            ChartIdByExpertHandleCommand = new DelegateCommand(ExecuteChartIdByExpertHandle);
             ChartRedrawCommand = new DelegateCommand(ExecuteChartRedraw);
             ChartWindowFindCommand = new DelegateCommand(ExecuteChartWindowFind);
             ChartCloseCommand = new DelegateCommand(ExecuteChartClose);
@@ -1512,6 +1514,22 @@ namespace MtApi5TestClient
                 ChartFunctionsChartIdValue = result;
             });
             AddLog($"ChartId: chartid = {result}");
+        }
+
+        private async void ExecuteChartIdByExpertHandle(object o)
+        {
+            if (SelectedQuote == null)
+            {
+                AddLog("Instrument is not selected.");
+                return;
+            }
+
+            var result = await Execute(() => _mtApiClient.ChartId(SelectedQuote.ExpertHandle));
+            RunOnUiThread(() =>
+            {
+                ChartFunctionsChartIdValue = result;
+            });
+            AddLog($"ChartIdByExpertHandle: chartid = {result}");
         }
 
         private void ExecuteChartRedraw(object o)
