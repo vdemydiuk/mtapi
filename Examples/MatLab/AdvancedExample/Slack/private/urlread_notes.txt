@@ -1,0 +1,86 @@
+==========================================================================
+                            Unicode & Matlab
+==========================================================================
+native2unicode - works with uint8, fails with char
+
+Taking a unicode character and encoding as bytes:
+unicode2native(char(1002),'UTF-8')
+back to the character:
+native2unicode(uint8([207  170]),'UTF-8')
+this doesn't work:
+native2unicode(char([207  170]),'UTF-8')
+in documentation: If BYTES is a CHAR vector, it is returned unchanged.
+
+Java - only supports int8
+Matlab to Java -> uint8 or int8 to bytes
+Java to Matlab -> bytes to int8
+char - 16 bit
+
+Maintenance of underlying bytes:
+typecast(java.lang.String(uint8(250)).getBytes,'uint8') = 250
+see documentation: Handling Data Returned from a Java Method
+
+Command Window difficulty
+--------------------------------------------------------------------
+The typical font in the Matlab command window will often fail to render
+unicode properly. I often can see unicode better in the variable editor
+although this may be fixed if you change your font preferences ...
+Copying unicode from the command window often results in the
+generations of the value 26 (aka substitute)
+
+More documentation on input/output to urlread2 to follow eventually ...
+
+small notes to self:
+for output
+native2unicode(uint8(output),encoding)
+
+==========================================================================
+                              HTTP Headers
+==========================================================================
+Handling of repeated http readers is a bit of a tricky situation. Most 
+headers are not repeated although sometimes http clients will assume this 
+for too many headers which can result in a problem if you want to see
+duplicated headers. I've passed the problem onto the user who can decide
+to handle it how they wish instead of providing the right solution, which 
+after some brief searching, I am not sure exists.
+
+==========================================================================
+                               PROBLEMS
+==========================================================================
+1) Page requires following a redirect:
+%-------------------------------------------
+ref: http://www.mathworks.com/matlabcentral/newsreader/view_thread/302571
+fix: FOLLOW_REDIRECTS is enabled by default, you're fine.
+
+2) Basic authentication required:
+%------------------------------------------
+Create and pass in the following header:
+user     = 'test';
+password = 'test';
+encoder  = sun.misc.BASE64Encoder();
+str      = java.lang.String([user ':' password]) %NOTE: format may be
+%different for your server
+header   = http_createHeader('Authorization',char(encoder.encode(str.getBytes())))
+NOTE: Ideally you would make this a function
+
+3) The text returned doesn't make sense.
+%-----------------------------------------
+The text may not be encoded correctly. Requires native2unicode function.
+See Unicode & Matlab section above.
+
+4) I get a different result in my web browser than I do in Matlab
+%-----------------------------------------
+This is generally seen for two reasons. 
+1 - The easiest and silly reason is user agent filtering. 
+When you make a request you identify yourself
+as being a particular "broswer" or "user agent". Setting a header
+with the user agent of the browser may fix the problem.
+See: http://en.wikipedia.org/wiki/User_agent
+See: http://whatsmyuseragent.com
+value = ''
+header = http_createHeader('User-Agent',value);
+2 - You are not processing cookies and the server is not sending
+you information because you haven't sent it cookies (everyone likes em!)
+I've implemented cookie support but it requires some extra files that
+I need to clean up. Feel free to email me if you'd really like to have them.
+
