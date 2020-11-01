@@ -185,7 +185,7 @@ namespace MTApiService
             return retval;
         }
 
-        public object GetCommandParameter(int expertHandle, int index)
+        public T GetCommandParameter<T>(int expertHandle, int index)
         {
             Log.DebugFormat("GetCommandParameter: begin. expertHandle = {0}, index = {1}", expertHandle, index);
 
@@ -204,7 +204,7 @@ namespace MTApiService
 
             Log.DebugFormat("GetCommandParameter: end. retval = {0}", retval);
 
-            return retval;
+            return (T)retval;
         }
 
         public object GetNamedParameter(int expertHandle, string name)
@@ -249,6 +249,11 @@ namespace MTApiService
             Log.DebugFormat("ContainsNamedParameter: end. retval = {0}", retval);
 
             return retval;
+        }
+
+        public void LogError(string message)
+        {
+            Log.Error(message);
         }
         #endregion
 
