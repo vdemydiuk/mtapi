@@ -212,8 +212,8 @@ namespace TestApiClientUI
                 foreach (var quote in quotes)
                 {
                     AddNewQuote(quote);
-                }                    
-            }            
+                }
+            }
         }
 
         private void OnDisconnected()
@@ -456,7 +456,7 @@ namespace TestApiClientUI
                 ticket = (int)listBoxSendedOrders.SelectedItems[0];
             else if (listBoxClosedOrders.SelectedItems.Count > 0)
                 ticket = (int)listBoxClosedOrders.SelectedItems[0];
-            
+
             if (ticket >= 0)
             {
                 var result = _apiClient.OrderSelect(ticket, OrderSelectMode.SELECT_BY_POS);

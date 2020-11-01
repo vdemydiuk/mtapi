@@ -48,7 +48,12 @@ namespace MtApi5
         #region Public Methods
         public MtApi5Client()
         {
-            LogConfigurator.Setup(LogProfileName);
+#if (DEBUG)
+            const LogLevel logLevel = LogLevel.Debug;
+#else
+            const LogLevel logLevel = LogLevel.Info;
+#endif
+            LogConfigurator.Setup(LogProfileName, logLevel);
 
             _mtEventHandlers[Mt5EventTypes.OnBookEvent] = ReceivedOnBookEvent;
             _mtEventHandlers[Mt5EventTypes.OnTick] = ReceivedOnTickEvent;
@@ -64,6 +69,7 @@ namespace MtApi5
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(string host, int port)
         {
+            Log.Info($"BeginConnect: host = {host}, port = {port}");
             Task.Factory.StartNew(() => Connect(host, port));
         }
 
@@ -73,6 +79,7 @@ namespace MtApi5
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(int port)
         {
+            Log.Info($"BeginConnect: port = {port}");
             Task.Factory.StartNew(() => Connect(port));
         }
 
@@ -81,6 +88,7 @@ namespace MtApi5
         ///</summary>
         public void BeginDisconnect()
         {
+            Log.Info("BeginDisconnect called.");
             Task.Factory.StartNew(() => Disconnect(false));
         }
 
@@ -126,6 +134,38 @@ namespace MtApi5
             }
 
             var response = SendRequest<OrderSendResult>(new OrderSendRequest
+            {
+                TradeRequest = request
+            });
+
+            result = response?.TradeResult;
+            return response != null && response.RetVal;
+        }
+
+        ///<summary>
+        ///Function is used for conducting asynchronous trade operations without waiting for the trade server's response to a sent request.
+        ///</summary>
+        ///<param name="request">Reference to a object of MqlTradeRequest type describing the trade activity of the client.</param>
+        ///<param name="result">Reference to a object of MqlTradeResult type describing the result of trade operation in case of a successful completion (if true is returned).</param>
+        /// <returns>
+        /// Returns true if the request is sent to a trade server. In case the request is not sent, it returns false. 
+        /// In case the request is sent, in the result variable the response code contains TRADE_RETCODE_PLACED value (code 10008) – "order placed". 
+        /// Successful execution means only the fact of sending, but does not give any guarantee that the request has reached the trade server and has been accepted for processing. 
+        /// When processing the received request, a trade server sends a reply to a client terminal notifying of change in the current state of positions, 
+        /// orders and deals, which leads to the generation of the Trade event.
+        /// </returns>
+        public bool OrderSendAsync(MqlTradeRequest request, out MqlTradeResult result)
+        {
+            Log.Debug($"OrderSend: request = {request}");
+
+            if (request == null)
+            {
+                Log.Warn("OrderSend: request is not defined!");
+                result = null;
+                return false;
+            }
+
+            var response = SendRequest<OrderSendResult>(new OrderSendAsyncRequest
             {
                 TradeRequest = request
             });
@@ -682,6 +722,64 @@ namespace MtApi5
             var commandParameters = new ArrayList { ticket, volume, deviation };
 
             return SendCommand<bool>(Mt5CommandType.PositionClosePartial_byTicket, commandParameters);
+        }
+
+        /// <summary>
+        /// Opens a long position with specified parameters with current market Ask price
+        /// </summary>
+        /// <param name="result">output result</param>
+        /// <param name="volume">Requested position volume.</param>
+        /// <param name="symbol">Position symbol. If it is not specified, the current symbol will be used.</param>
+        /// <param name="price">Execution price.</param>
+        /// <param name="sl">Stop Loss price.</param>
+        /// <param name="tp">Take Profit price.</param>
+        /// <param name="comment">Comment.</param>
+        /// <returns>true - successful check of the structures, otherwise - false.</returns>
+        public bool Buy(out MqlTradeResult result, double volume, string symbol = null, double price = 0.0, double sl = 0.0, double tp = 0.0, string comment = null)
+        {
+            Log.Debug($"Buy: volume = {volume}, symbol = {symbol}, sl = {sl}, tp = {tp}, comment = {comment}");
+
+            var response = SendRequest<OrderSendResult>(new BuyRequest
+            {
+                Volume = volume,
+                Symbol = symbol,
+                Price = price,
+                Sl = sl,
+                Tp = tp,
+                Comment = comment
+            });
+
+            result = response?.TradeResult;
+            return response != null && response.RetVal;
+        }
+
+        /// <summary>
+        /// Opens a short position with specified parameters with current market Bid price
+        /// </summary>
+        /// <param name="result">output result</param>
+        /// <param name="volume">Requested position volume.</param>
+        /// <param name="symbol">Position symbol. If it is not specified, the current symbol will be used.</param>
+        /// <param name="price">Execution price.</param>
+        /// <param name="sl">Stop Loss price.</param>
+        /// <param name="tp">Take Profit price.</param>
+        /// <param name="comment">Comment.</param>
+        /// <returns>true - successful check of the structures, otherwise - false.</returns>
+        public bool Sell(out MqlTradeResult result, double volume, string symbol = null, double price = 0.0, double sl = 0.0, double tp = 0.0, string comment = null)
+        {
+            Log.Debug($"Sell: volume = {volume}, symbol = {symbol}, sl = {sl}, tp = {tp}, comment = {comment}");
+
+            var response = SendRequest<OrderSendResult>(new SellRequest
+            {
+                Volume = volume,
+                Symbol = symbol,
+                Price = price,
+                Sl = sl,
+                Tp = tp,
+                Comment = comment
+            });
+
+            result = response?.TradeResult;
+            return response != null && response.RetVal;
         }
         #endregion
 
@@ -1625,6 +1723,18 @@ namespace MtApi5
         public long ChartId()
         {
             return SendCommand<long>(Mt5CommandType.ChartId, null);
+        }
+
+        ///<summary>
+        ///Returns the ID of the chart.
+        ///</summary>
+        ///<param name="expertHandle">Handle of expert linked to the chart.</param>
+        ///<returns>
+        /// Value of long type.
+        ///</returns>
+        public long ChartId(int expertHandle)
+        {
+            return SendCommand<long>(Mt5CommandType.ChartId, null, null, expertHandle);
         }
 
         ///<summary>
@@ -3249,6 +3359,8 @@ namespace MtApi5
                 {
                     client.Dispose();
                     message = string.IsNullOrEmpty(client.Host) ? $"Failed connection to localhost:{client.Port}. {e.Message}" : $"Failed connection to {client.Host}:{client.Port}. {e.Message}";
+
+                    Log.Warn(message);
                 }
 
                 if (state == Mt5ConnectionState.Connected)
@@ -3261,6 +3373,8 @@ namespace MtApi5
                     _client.ServerFailed += _client_ServerFailed;
                     _client.MtEventReceived += _client_MtEventReceived;
                     message = string.IsNullOrEmpty(client.Host) ? $"Connected to localhost:{client.Port}" : $"Connected to  { client.Host}:{client.Port}";
+
+                    Log.Info(message);
                 }
 
                 _connectionState = state;
@@ -3375,35 +3489,41 @@ namespace MtApi5
                 _connectionState = state;
             }
 
+            Log.Info(message);
+
             ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
         }
 
-        private T SendCommand<T>(Mt5CommandType commandType, ArrayList commandParameters, Dictionary<string, object> namedParams = null)
+        private T SendCommand<T>(Mt5CommandType commandType, ArrayList commandParameters, Dictionary<string, object> namedParams = null, int? executor = null)
         {
             MtResponse response;
 
             var client = Client;
             if (client == null)
             {
+                Log.Warn("SendCommand: No connection");
                 throw new Exception("No connection");
             }
 
             try
             {
-                response = client.SendCommand((int)commandType, commandParameters, namedParams, ExecutorHandle);
+                response = client.SendCommand((int)commandType, commandParameters, namedParams, executor ?? ExecutorHandle);
             }
             catch (CommunicationException ex)
             {
+                Log.Warn($"SendCommand: {ex.Message}");
                 throw new Exception(ex.Message, ex);
             }
 
             if (response == null)
             {
+                Log.Warn("SendCommand: Response from MetaTrader is null");
                 throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
             }
 
             if (response.ErrorCode != 0)
             {
+                Log.Warn($"SendCommand: ErrorCode = {response.ErrorCode}. {response}");
                 throw new ExecutionException((ErrorCode)response.ErrorCode, response.ToString());
             }
 
@@ -3427,12 +3547,14 @@ namespace MtApi5
 
             if (res == null)
             {
+                Log.Warn("SendRequest: Response from MetaTrader is null");
                 throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
             }
 
             var response = JsonConvert.DeserializeObject<Response<T>>(res);
             if (response.ErrorCode != 0)
             {
+                Log.Warn($"SendRequest: ErrorCode = {response.ErrorCode}. {response}");
                 throw new ExecutionException((ErrorCode)response.ErrorCode, response.ErrorMessage);
             }
 

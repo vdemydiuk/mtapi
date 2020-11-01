@@ -26,6 +26,8 @@ namespace MtApi
         #endregion
 
         #region Private Fields
+        private static readonly MtLog Log = LogConfigurator.GetLogger(typeof(MtApiClient));
+
         private MtClient _client;
         private readonly object _locker = new object();
         private MtConnectionState _connectionState = MtConnectionState.Disconnected;
@@ -37,7 +39,12 @@ namespace MtApi
 
         public MtApiClient()
         {
-            LogConfigurator.Setup(LogProfileName);
+#if (DEBUG)
+            const LogLevel logLevel = LogLevel.Debug;
+#else
+            const LogLevel logLevel = LogLevel.Info;
+#endif
+            LogConfigurator.Setup(LogProfileName, logLevel);
         }
         #endregion
 
@@ -49,6 +56,7 @@ namespace MtApi
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(string host, int port)
         {
+            Log.Info($"BeginConnect: host = {host}, port = {port}");
             Task.Factory.StartNew(() => Connect(host, port));
         }
 
@@ -58,6 +66,7 @@ namespace MtApi
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(int port)
         {
+            Log.Info($"BeginConnect: port = {port}");
             Task.Factory.StartNew(() => Connect(port));
         }
 
@@ -66,6 +75,7 @@ namespace MtApi
         ///</summary>
         public void BeginDisconnect()
         {
+            Log.Info("BeginDisconnect called.");
             Task.Factory.StartNew(() => Disconnect(false));
         }
 
@@ -251,6 +261,8 @@ namespace MtApi
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
             , string comment, int magic, DateTime expiration, Color arrowColor)
         {
+            Log.Debug($"OrderSend: symbol = {symbol}, cmd = {cmd}, volume = {volume}, price = {price}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}, comment = {comment}, magic = {magic}, expiration = {expiration}, arrowColor = {arrowColor}");
+
             var response = SendRequest<OrderSendResponse>(new OrderSendRequest
             {
                 Symbol = symbol,
@@ -271,6 +283,8 @@ namespace MtApi
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
                     , string comment, int magic, DateTime expiration)
         {
+            Log.Debug($"OrderSend: symbol = {symbol}, cmd = {cmd}, volume = {volume}, price = {price}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}, comment = {comment}, magic = {magic}, expiration = {expiration}");
+
             var response = SendRequest<OrderSendResponse>(new OrderSendRequest
             {
                 Symbol = symbol,
@@ -290,6 +304,8 @@ namespace MtApi
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
                     , string comment, int magic)
         {
+            Log.Debug($"OrderSend: symbol = {symbol}, cmd = {cmd}, volume = {volume}, price = {price}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}, comment = {comment}, magic = {magic}");
+
             var response = SendRequest<OrderSendResponse>(new OrderSendRequest
             {
                 Symbol = symbol,
@@ -308,6 +324,8 @@ namespace MtApi
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
                     , string comment)
         {
+            Log.Debug($"OrderSend: symbol = {symbol}, cmd = {cmd}, volume = {volume}, price = {price}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}, comment = {comment}");
+
             var response = SendRequest<OrderSendResponse>(new OrderSendRequest
             {
                 Symbol = symbol,
@@ -324,6 +342,8 @@ namespace MtApi
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit)
         {
+            Log.Debug($"OrderSend: symbol = {symbol}, cmd = {cmd}, volume = {volume}, price = {price}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}");
+
             var response = SendRequest<OrderSendResponse>(new OrderSendRequest
             {
                 Symbol = symbol,
@@ -339,6 +359,8 @@ namespace MtApi
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, string price, int slippage, double stoploss, double takeprofit)
         {
+            Log.Debug($"OrderSend: symbol = {symbol}, cmd = {cmd}, volume = {volume}, price = {price}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}");
+
             double dPrice;
             return double.TryParse(price, out dPrice) ? 
                 OrderSend(symbol, cmd, volume, dPrice, slippage, stoploss, takeprofit) : 0;
@@ -346,6 +368,8 @@ namespace MtApi
 
         public int OrderSendBuy(string symbol, double volume, int slippage)
         {
+            Log.Debug($"OrderSendBuy: symbol = {symbol}, volume = {volume}, slippage = {slippage}");
+
             return OrderSendBuy(symbol, volume, slippage, 0, 0, null, 0);
         }
 
@@ -366,6 +390,8 @@ namespace MtApi
 
         public int OrderSendBuy(string symbol, double volume, int slippage, double stoploss, double takeprofit, string comment, int magic)
         {
+            Log.Debug($"OrderSendBuy: symbol = {symbol}, volume = {volume}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}, comment = {comment}, magic = {magic}");
+
             var response = SendRequest<OrderSendResponse>(new OrderSendRequest
             {
                 Symbol = symbol,
@@ -382,6 +408,8 @@ namespace MtApi
 
         public int OrderSendSell(string symbol, double volume, int slippage, double stoploss, double takeprofit, string comment, int magic)
         {
+            Log.Debug($"OrderSendSell: symbol = {symbol}, volume = {volume}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}, comment = {comment}, magic = {magic}");
+
             var response = SendRequest<OrderSendResponse>(new OrderSendRequest
             {
                 Symbol = symbol,
@@ -398,6 +426,8 @@ namespace MtApi
 
         public bool OrderClose(int ticket, double lots, double price, int slippage, Color color)
         {
+            Log.Debug($"OrderClose: ticket = {ticket}, lots = {lots}, price = {price}, slippage = {slippage}, color = {color}");
+
             var response = SendRequest<ResponseBase>(new OrderCloseRequest
             {
                 Ticket = ticket,
@@ -411,6 +441,8 @@ namespace MtApi
 
         public bool OrderClose(int ticket, double lots, double price, int slippage)
         {
+            Log.Debug($"OrderClose: ticket = {ticket}, lots = {lots}, price = {price}, slippage = {slippage}");
+
             var response = SendRequest<ResponseBase>(new OrderCloseRequest
             {
                 Ticket = ticket,
@@ -423,6 +455,8 @@ namespace MtApi
 
         public bool OrderClose(int ticket, double lots, int slippage)
         {
+            Log.Debug($"OrderClose: ticket = {ticket}, lots = {lots}, slippage = {slippage}");
+
             var response = SendRequest<ResponseBase>(new OrderCloseRequest
             {
                 Ticket = ticket,
@@ -434,6 +468,8 @@ namespace MtApi
 
         public bool OrderClose(int ticket, int slippage)
         {
+            Log.Debug($"OrderClose: ticket = {ticket}, slippage = {slippage}");
+
             var response = SendRequest<ResponseBase>(new OrderCloseRequest
             {
                 Ticket = ticket,
@@ -444,6 +480,8 @@ namespace MtApi
 
         public bool OrderCloseBy(int ticket, int opposite, Color color)
         {
+            Log.Debug($"OrderCloseBy: ticket = {ticket}, opposite = {opposite}, color = {color}");
+
             var response = SendRequest<ResponseBase>(new OrderCloseByRequest
             {
                 Ticket = ticket,
@@ -455,6 +493,8 @@ namespace MtApi
 
         public bool OrderCloseBy(int ticket, int opposite)
         {
+            Log.Debug($"OrderCloseBy: ticket = {ticket}, opposite = {opposite}");
+
             var response = SendRequest<ResponseBase>(new OrderCloseByRequest
             {
                 Ticket = ticket,
@@ -465,6 +505,8 @@ namespace MtApi
 
         public bool OrderDelete(int ticket, Color color)
         {
+            Log.Debug($"OrderDelete: ticket = {ticket}, color = {color}");
+
             var response = SendRequest<ResponseBase>(new OrderDeleteRequest
             {
                 Ticket = ticket,
@@ -475,6 +517,8 @@ namespace MtApi
 
         public bool OrderDelete(int ticket)
         {
+            Log.Debug($"OrderDelete: ticket = {ticket}");
+
             var response = SendRequest<ResponseBase>(new OrderDeleteRequest
             {
                 Ticket = ticket,
@@ -484,6 +528,8 @@ namespace MtApi
 
         public bool OrderModify(int ticket, double price, double stoploss, double takeprofit, DateTime expiration, Color arrowColor)
         {
+            Log.Debug($"OrderModify: ticket = {ticket}, price = {price}, stoploss = {stoploss}, takeprofit = {takeprofit}, expiration = {expiration}, arrowColor = {arrowColor}");
+
             var response = SendRequest<ResponseBase>(new OrderModifyRequest
             {
                 Ticket = ticket,
@@ -498,6 +544,8 @@ namespace MtApi
 
         public bool OrderModify(int ticket, double price, double stoploss, double takeprofit, DateTime expiration)
         {
+            Log.Debug($"OrderModify: ticket = {ticket}, price = {price}, stoploss = {stoploss}, takeprofit = {takeprofit}, expiration = {expiration}");
+
             var response = SendRequest<ResponseBase>(new OrderModifyRequest
             {
                 Ticket = ticket,
@@ -516,6 +564,8 @@ namespace MtApi
 
         public bool OrderSelect(int index, OrderSelectMode select, OrderSelectSource pool)
         {
+            Log.Debug($"OrderSelect: index = {index}, select = {select}, pool = {pool}");
+
             var commandParameters = new ArrayList { index, (int)select, (int)pool };
             return SendCommand<bool>(MtCommandType.OrderSelect, commandParameters);
         }
@@ -2894,6 +2944,8 @@ namespace MtApi
                 {
                     client.Dispose();
                     message = string.IsNullOrEmpty(client.Host) ? $"Failed connection to localhost:{client.Port}. {e.Message}" : $"Failed connection to {client.Host}:{client.Port}. {e.Message}";
+
+                    Log.Warn(message);
                 }
 
                 if (state == MtConnectionState.Connected)
@@ -2906,6 +2958,8 @@ namespace MtApi
                     _client.ServerFailed += _client_ServerFailed;
                     _client.MtEventReceived += _client_MtEventReceived;
                     message = string.IsNullOrEmpty(client.Host) ? $"Connected to localhost:{client.Port}" : $"Connected to  { client.Host}:{client.Port}";
+
+                    Log.Info(message);
                 }
 
                 _connectionState = state;
@@ -2973,6 +3027,7 @@ namespace MtApi
                 _connectionState = state;
             }
 
+            Log.Info(message);
 
             ConnectionStateChanged?.Invoke(this, new MtConnectionEventArgs(state, message));
         }
@@ -2984,6 +3039,7 @@ namespace MtApi
             var client = Client;
             if (client == null)
             {
+                Log.Warn("SendCommand: No connection");
                 throw new MtConnectionException("No connection");
             }
 
@@ -2993,16 +3049,19 @@ namespace MtApi
             }
             catch (CommunicationException ex)
             {
+                Log.Warn($"SendCommand: {ex.Message}");
                 throw new MtConnectionException(ex.Message, ex);
             }
 
             if (response == null)
             {
+                Log.Warn("SendCommand: Response from MetaTrader is null");
                 throw new MtExecutionException(MtErrorCode.MtApiCustomError, "Response from MetaTrader is null");
             }
 
             if (response.ErrorCode != 0)
             {
+                Log.Warn($"SendCommand: ErrorCode = {response.ErrorCode}. {response}");
                 throw new MtExecutionException((MtErrorCode)response.ErrorCode, response.ToString());
             }
 
@@ -3026,12 +3085,14 @@ namespace MtApi
 
             if (res == null)
             {
+                Log.Warn("SendRequest: Response from MetaTrader is null");
                 throw new MtExecutionException(MtErrorCode.MtApiCustomError, "Response from MetaTrader is null");
             }
 
             var response = JsonConvert.DeserializeObject<T>(res);
             if (response.ErrorCode != 0)
             {
+                Log.Warn($"SendRequest: ErrorCode = {response.ErrorCode}. {response}");
                 throw new MtExecutionException((MtErrorCode)response.ErrorCode, response.ErrorMessage);
             }
 
