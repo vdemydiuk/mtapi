@@ -1,11 +1,11 @@
-# Introduction
+## Introduction
 MtApi provides a .NET API for working with famous trading platfrom [MetaTrader(MetaQuotes)](https://www.metatrader5.com/).  
 It is not API for connection to MT servers directly. MtApi is just a bridge between MT terminal and .NET applications designed by developers.  
 MtApi executes MQL commands and functions by MtApi's expert linked to chart of MetaTrader.  
 Most of the API's functions duplicates MQL interface.  
 The project was designed using [WCF](https://docs.microsoft.com/en-us/dotnet/framework/wcf/whats-wcf) framework with the intention of using flexibility to setup connections.
 
-# Build environment
+## Build environment
 The project is supported by Visual Studio 2017.  
 It requires WIX Tools for preparing project's installers (http://wixtoolset.org/).
 
@@ -21,44 +21,72 @@ For example, if you use VS 2017, go [here](https://marketplace.visualstudio.com/
 
 Use [MetaEditor](https://www.metatrader5.com/en/automated-trading/metaeditor) to working with MQL files.
 
-# How to Build Solution
-To build the solution for MT4 you need to choose configuration x86 and start build MtApiInstaller.  
-It will build all projects related to MT4: MtApi, MTApiService, MTConnector.
+## How to Build Solution
 
-For bulding solution used with MT5 choose configuration x64 (or x86) and start build MtApi5Installer.  
-It will build projects related to MT5: MtApi5, MTApiService, MT5Connector.
+To build the solution for **MT4**, you need to choose the configuration to build for **`x86`** 
+and start with building the **`MtApiInstaller`**. This will build all projects related to MT4:  
+- `MtApi` 
+- `MTApiService` 
+- `MTConnector`
 
-All binaries are placed in folder [root]/build.  
-Installers (*.msi, *.exe) - [root]/build/installers/  
-Binaries (*.dll) - [root]/bin/
+For building the solution for MT5, you need to choose the configuration to build for **`x64`** (or **`x86`** for the 32-bit MT5)) and start build **`MtApi5Installer`**.  This will build all projects related to MT5:  
+- `MtApi5` 
+- `MTApiService` 
+- `MT5Connector`
 
-MQL files have been pre-compiled to ex4 and stored into repository:  
-[root]\mql4\  
-[root]\mql5\
+All binaries are placed in the project root folder, in the *build* directory:   **`../build/`**.   
+The installers (**`*.msi, *.exe`**) will be found under:  **`../build/installers/`**.   
+All the DLL library binaries (**`*.dll`**) in:  **`../bin/`**.
 
-Changing the source code of MQL expert requires recompilation with MetaEditor.  
-The files "hash.mqh" and "json.mqh" must be placed to the MetaEditor include folder before compile. For example:  
-c:\Users\[username]\AppData\Roaming\MetaQuotes\Terminal\[ID]\MQL5\Include\.
+MQL files have been pre-compiled to **`*.ex4`** and can be found in the repository here:  
+- **`..\mql4\`**  
+- **`..\mql5\`**
 
-# Project Structure
-MTApiService (C#, .dll) - common engine communication project of the API. It contains the implementations of client and server sides.  
-MTConnector, MT5Connector (C++/CLI, .dll) - libraries that working as proxy between MQL and C# layers. They provides interfaces  
-MtApi, MtApi5 (C#, .dll) - client side libraries that are using in user's projects.  
-MQL (MQL4/MQL5, .ex4) - MT4 and MT5 expets linked to terminal's charts. They executes API's functions and provides trading events.  
-MtApiInstaller, MtApi5Installer (WIX, .msi) - project's installers.  
-MtApiBootstrapper, MtApi5Bootstrapper (WIX, .exe) - installation package bundles. There are wrappers for installers that contains the vc_redist libraries (Visual C++ runtime) placed in [root]\vcredist\.  
+Changing the source code of the MQL *Expert Advisor* (EA), requires recompilation with *`MetaEditor`*.  
 
-# Installation
-Use installers to setup all libraries automatically.  
-MtApiInstaller setup the API's files for MetaTrader 4.  
-MtApi5Installer setup the API's files for MetaTrader 5.  
-MtApiBootstrapper or MtApi5Bootstrapper are installation package bundles contains installers and vc_redist libraries.
+Before you can recompile the EA, you need to add/place the following MQL library files, in the *MetaEditor* **`../Include/`** folder.
+- **`hash.mqh`**
+- **`json.mqh`**
 
-The installers places MTApiService.dll into Windows GAC (Global Assembly Cache) and copies MTConnector.dll and MT5Connector.dll into Windows's system folder.  
-After instalation MtApi expert (MtApi.ex4 or MtApi5.ex5) must be copied into folder for Expert Advisors (/MQL5/Experts).
-To quickly navigate to the trading platform data folder, click "Open data folder" in the File menu.
+The *`MetaEditor`* *include* folder is usually located here:  
+```xml
+C:\Users\<username>\AppData\Roaming\MetaQuotes\Terminal\<terminal-hash>\MQL5\Include\.
+```
 
-# Using
+
+## Project Structure
+
+* `MTApiService`: **`(C#, .dll)`**  
+The common engine communication  project of the API. It contains the implementations of client and server sides.  
+
+* `MTConnector, MT5Connector`: **`(C++/CLI, .dll)`**   
+The libraries  that are working as proxy between MQL and C# layers. They provides the interfaces.
+
+* `MtApi, MtApi5`: **`(C#, .dll)`**  
+The client side libraries that are using in user's projects.  
+
+* **`(MQL4/MQL5, .ex4)`**  
+MT4 and MT5 *Expert Advisors* linked to terminal's charts.  They executes API's functions and provides trading events.  
+
+* `MtApiInstaller, MtApi5Installer` **`(WIX, .msi)`**  
+The project's installers.  
+
+* `MtApiBootstrapper, MtApi5Bootstrapper` **`(WIX, .exe)`**  
+The installation package bundles.  There are wrappers for installers that contains the vc_redist 
+libraries (Visual C++ runtime) placed in [root]\vcredist\.
+
+
+## Installation
+
+Use the installers to setup all libraries automatically.  
+- For *MT4*, use:  `MtApiInstaller_setup.exe`  
+- For *MT5*, use:  `MtApi5Installer setup.exe`
+
+`MtApiBootstrapper` and `MtApi5Bootstrapper` are installation package bundles that contain the installers and `vc_redist` Windows libraries. The installers place the `MTApiService.dll` into the Windows GAC (*Global Assembly Cache*) and copies `MTConnector.dll` and `MT5Connector.dll` into the Windows's system folder, whose location depend on your Windows OS. After installation, the **`MtApi.ex4`**  (or **`MtApi5.ex5`**) EA, must be copied into your Terminal data folder for Expert Advisors, which is normally located in: **`../MQL5/Experts/`**.
+
+To quickly navigate to the trading platform *data folder*, click:  **`File >> "Open data folder"`** in your *MetaTrader* Terminal.
+
+## Using
 MtApi provides two types of connection to MetaTrader terminal: local (using Pipe or TCP) and remote (via TCP).  
 The port of connection is defined by MtApi expert.
 
