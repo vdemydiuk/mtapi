@@ -7,13 +7,24 @@
 *.sln.docstates
 
 # Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
+#[Dd]ebug/
+#[Dd]ebugPublic/
+/**/[Dd]ebug/
+/**/[Dd]ebugPublic/
+#[Rr]elease/
+#[Rr]eleases/
+/**/[Rr]elease/
+/**/[Rr]eleases/
 x64/
 x86/
-build/
+#------------------------------
+# We want to keep Release DLL's
+#------------------------------
+#build/
+# We can override any previous exclusion with:
+!build/products/[Rr]elease/*.dll
+#!/build/products/Release/*.dll
+#------------------------------
 bld/
 [Bb]in/
 [Oo]bj/
