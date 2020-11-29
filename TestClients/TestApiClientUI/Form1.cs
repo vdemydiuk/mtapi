@@ -44,6 +44,7 @@ namespace TestApiClientUI
             _apiClient.ConnectionStateChanged += apiClient_ConnectionStateChanged;
             _apiClient.OnLastTimeBar += _apiClient_OnLastTimeBar;
             _apiClient.OnChartEvent += _apiClient_OnChartEvent;
+            _apiClient.OnLockTicks += _apiClient_OnLockTicks;
 
             InitOrderCommandsGroup();
 
@@ -145,6 +146,14 @@ namespace TestApiClientUI
         {
             var msg =
                 $"OnChartEvent: ExpertHandle = {e.ExpertHandle}, ChartId = {e.ChartId}, EventId = {e.EventId}, Lparam = {e.Lparam}, Dparam = {e.Dparam}, Sparam = {e.Sparam}";
+            Console.WriteLine(msg);
+            PrintLog(msg);
+        }
+
+        private void _apiClient_OnLockTicks(object sender, MtLockTicksEventArgs e)
+        {
+            var msg =
+                $"OnLockTicks: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}";
             Console.WriteLine(msg);
             PrintLog(msg);
         }

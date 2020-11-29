@@ -74,6 +74,7 @@
     <Compile Include="EnumSymbolInfoInteger.cs" />
     <Compile Include="EnumTerminalInfoDouble.cs" />
     <Compile Include="EnumTerminalInfoInteger.cs" />
+    <Compile Include="Events\OnLockTicksEvent.cs" />
     <Compile Include="FlagFontStyle.cs" />
     <Compile Include="Monitors\AvailabilityOrdersEventArgs.cs" />
     <Compile Include="Monitors\OrderModification\ModifiedOrdersEventArgs.cs" />
@@ -86,14 +87,15 @@
     <Compile Include="Monitors\Triggers\TimeElapsedTrigger.cs" />
     <Compile Include="MqlRates.cs" />
     <Compile Include="MqlTick.cs" />
-    <Compile Include="MtChartEvent.cs" />
+    <Compile Include="Events\MtChartEvent.cs" />
     <Compile Include="MtConnectionEventArgs.cs" />
     <Compile Include="MtConnectionException.cs" />
     <Compile Include="MtConnectionState.cs" />
     <Compile Include="MtCommandType.cs" />
     <Compile Include="MtErrorCode.cs" />
-    <Compile Include="MtEventTypes.cs" />
+    <Compile Include="Events\MtEventTypes.cs" />
     <Compile Include="MtExecutionException.cs" />
+    <Compile Include="MtLockTicksEventArgs.cs" />
     <Compile Include="MtOrder.cs" />
     <Compile Include="MtQuote.cs" />
     <Compile Include="MtQuoteEventArgs.cs" />

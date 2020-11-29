@@ -9,6 +9,7 @@ using MtApi.Requests;
 using MtApi.Responses;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using MtApi.Events;
 
 namespace MtApi
 {
@@ -3140,6 +3141,9 @@ namespace MtApi
                 case MtEventTypes.ChartEvent:
                     FireOnChartEvent(e.ExpertHandle, JsonConvert.DeserializeObject<MtChartEvent>(e.Payload));
                     break;
+                case MtEventTypes.OnLockTicks:
+                    FireOnLockTicks(e.ExpertHandle, JsonConvert.DeserializeObject<OnLockTicksEvent>(e.Payload));
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -3153,6 +3157,11 @@ namespace MtApi
         private void FireOnChartEvent(int expertHandler, MtChartEvent chartEvent)
         {
             OnChartEvent?.Invoke(this, new ChartEventArgs(expertHandler, chartEvent));
+        }
+
+        private void FireOnLockTicks(int expertHandler, OnLockTicksEvent lockTicksEvent)
+        {
+            OnLockTicks?.Invoke(this, new MtLockTicksEventArgs(expertHandler, lockTicksEvent.Instrument));
         }
 
         private void BacktestingReady()
@@ -3171,6 +3180,7 @@ namespace MtApi
         public event EventHandler<MtConnectionEventArgs> ConnectionStateChanged;
         public event EventHandler<TimeBarArgs> OnLastTimeBar;
         public event EventHandler<ChartEventArgs> OnChartEvent;
+        public event EventHandler<MtLockTicksEventArgs> OnLockTicks;
 
         #endregion
     }
