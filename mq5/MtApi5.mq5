@@ -6685,7 +6685,7 @@ void Execute_TesterStop()
 {
    if (!IsTesting())
    {
-      Print("WARNING: function UnlockTicks can be used only for backtesting");
+      Print("WARNING: function TesterStop can be used only for backtesting");
    }
    else
    {
