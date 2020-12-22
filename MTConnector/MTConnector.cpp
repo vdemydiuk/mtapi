@@ -37,6 +37,7 @@ template <typename T> T Execute(std::function<T()> func, wchar_t* err, T default
     catch (Exception^ e)
     {
         convertSystemString(err, e->Message);
+        MtAdapter::GetInstance()->LogError(e->Message);
     }
     return result;
 }
@@ -167,20 +168,20 @@ _DLLAPI bool _stdcall getCommandType(int expertHandle, int* res, wchar_t* err)
     }, err, false);
 }
 
+// --- index parameters
+
 _DLLAPI bool _stdcall getIntValue(int expertHandle, int paramIndex, int* res, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &paramIndex, res]() {
-        *res = (int)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = MtAdapter::GetInstance()->GetCommandParameter<int>(expertHandle, paramIndex);
         return true;
     }, err, false);
 }
 
-// --- index parameters
-
 _DLLAPI bool _stdcall getDoubleValue(int expertHandle, int paramIndex, double* res, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &paramIndex, res]() {
-        *res = (double)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = MtAdapter::GetInstance()->GetCommandParameter<double>(expertHandle, paramIndex);
         return true;
     }, err, false);
 }
@@ -188,7 +189,7 @@ _DLLAPI bool _stdcall getDoubleValue(int expertHandle, int paramIndex, double* r
 _DLLAPI bool _stdcall getStringValue(int expertHandle, int paramIndex, wchar_t* res, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &paramIndex, res]() {
-        convertSystemString(res, (String^)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex));
+        convertSystemString(res, MtAdapter::GetInstance()->GetCommandParameter<String^>(expertHandle, paramIndex));
         return true;
     }, err, false);
 }
@@ -196,7 +197,7 @@ _DLLAPI bool _stdcall getStringValue(int expertHandle, int paramIndex, wchar_t* 
 _DLLAPI bool _stdcall getBooleanValue(int expertHandle, int paramIndex, int* res, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &paramIndex, res]() {
-        *res = (bool)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = MtAdapter::GetInstance()->GetCommandParameter<bool>(expertHandle, paramIndex);
         return true;
     }, err, false);
 }
@@ -204,7 +205,7 @@ _DLLAPI bool _stdcall getBooleanValue(int expertHandle, int paramIndex, int* res
 _DLLAPI bool _stdcall getLongValue(int expertHandle, int paramIndex, __int64* res, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &paramIndex, res]() {
-        *res = (__int64)MtAdapter::GetInstance()->GetCommandParameter(expertHandle, paramIndex);
+        *res = MtAdapter::GetInstance()->GetCommandParameter<__int64>(expertHandle, paramIndex);
         return true;
     }, err, false);
 }

@@ -1,4 +1,4 @@
-﻿namespace MtApi
+﻿namespace MtApi.Events
 {
     internal class MtChartEvent
     {
