@@ -1,123 +1,23 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{AC8B5010-DA75-477E-9CA5-547C649E12D8}</ProjectGuid>
+    <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MtApi5</RootNamespace>
-    <AssemblyName>MtApi5</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
     <OutputPath>..\build\products\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
     <OutputPath>..\build\products\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net40\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration.Install" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <ProjectReference Include="..\MtApiServiceNetCore\MtApiServiceNetCore.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CopyTicksFlag.cs" />
-    <Compile Include="Events\OnBookEvent.cs" />
-    <Compile Include="Events\OnLastTimeBarEvent.cs" />
-    <Compile Include="Events\OnLockTicksEvent.cs" />
-    <Compile Include="Events\OnTickEvent.cs" />
-    <Compile Include="Events\OnTradeTransactionEvent.cs" />
-    <Compile Include="Mt5LockTicksEventArgs.cs" />
-    <Compile Include="Mt5TimeBarArgs.cs" />
-    <Compile Include="MqlBookInfo.cs" />
-    <Compile Include="MqlParam.cs" />
-    <Compile Include="MqlRates.cs" />
-    <Compile Include="MqlTick.cs" />
-    <Compile Include="MqlTradeCheckResult.cs" />
-    <Compile Include="MqlTradeTransaction.cs" />
-    <Compile Include="Mt5BookEventArgs.cs" />
-    <Compile Include="Mt5TimeConverter.cs" />
-    <Compile Include="Mt5Enums.cs" />
-    <Compile Include="Mt5ConnectionEventArgs.cs" />
-    <Compile Include="Mt5ConnectionState.cs" />
-    <Compile Include="MqlTradeRequest.cs" />
-    <Compile Include="MqlTradeResult.cs" />
-    <Compile Include="Mt5QuoteEventArgs.cs" />
-    <Compile Include="Mt5TradeTransactionEventArgs.cs" />
-    <Compile Include="MtApi5Client.cs" />
-    <Compile Include="Mt5CommandType.cs" />
-    <Compile Include="MtConverters.cs" />
-    <Compile Include="ErrorCode.cs" />
-    <Compile Include="ExecutionException.cs" />
-    <Compile Include="Events\Mt5EventTypes.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Mt5Quote.cs" />
-    <Compile Include="Requests\BuyRequest.cs" />
-    <Compile Include="Requests\ChartTimePriceToXyRequest.cs" />
-    <Compile Include="Requests\ChartTimePriceToXyResult.cs" />
-    <Compile Include="Requests\ChartXyToTimePriceRequest.cs" />
-    <Compile Include="Requests\ChartXyToTimePriceResult.cs" />
-    <Compile Include="Requests\CopyTicksRequest.cs" />
-    <Compile Include="Requests\ICustomRequest.cs" />
-    <Compile Include="Requests\IndicatorCreateRequest.cs" />
-    <Compile Include="Requests\MarketBookGetRequest.cs" />
-    <Compile Include="Requests\OrderCheckRequest.cs" />
-    <Compile Include="Requests\OrderCheckResult.cs" />
-    <Compile Include="Requests\OrderSendAsyncRequest.cs" />
-    <Compile Include="Requests\OrderSendRequest.cs" />
-    <Compile Include="Requests\PositionCloseRequest.cs" />
-    <Compile Include="Requests\PositionCloseResult.cs" />
-    <Compile Include="Requests\PositionOpenRequest.cs" />
-    <Compile Include="Requests\RequestBase.cs" />
-    <Compile Include="Requests\RequestType.cs" />
-    <Compile Include="Requests\OrderSendResult.cs" />
-    <Compile Include="Requests\Response.cs" />
-    <Compile Include="Requests\SellRequest.cs" />
-    <Compile Include="Requests\SymbolInfoStringRequest.cs" />
-    <Compile Include="Requests\SymbolInfoStringResult.cs" />
-    <Compile Include="Requests\SymbolInfoTickRequest.cs" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MTApiService\MTApiService.csproj">
-      <Project>{DE76D5C7-B99C-4467-8408-78173BDD84E0}</Project>
-      <Name>MTApiService</Name>
-    </ProjectReference>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

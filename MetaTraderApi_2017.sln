@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApiClientUI", "TestClients\TestApiClientUI\TestApiClientUI.csproj", "{663CC515-EAAE-47D4-8933-5008C2DA1160}"
 EndProject
@@ -46,6 +46,8 @@ Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "MtApiBootstrapper", "MtApiB
 	ProjectSection(ProjectDependencies) = postProject
 		{78B94552-DB17-40EC-B7C6-23D32DB85DC1} = {78B94552-DB17-40EC-B7C6-23D32DB85DC1}
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MtApiServiceNetCore", "MtApiServiceNetCore\MtApiServiceNetCore.csproj", "{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -232,6 +234,22 @@ Global
 		{8E63046B-56E5-4623-8808-558AD72A8F2B}.Release|x64.ActiveCfg = Release|x86
 		{8E63046B-56E5-4623-8808-558AD72A8F2B}.Release|x86.ActiveCfg = Release|x86
 		{8E63046B-56E5-4623-8808-558AD72A8F2B}.Release|x86.Build.0 = Release|x86
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Debug|Win32.Build.0 = Debug|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Debug|x64.Build.0 = Debug|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Debug|x86.Build.0 = Debug|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Release|Win32.ActiveCfg = Release|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Release|Win32.Build.0 = Release|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Release|x64.ActiveCfg = Release|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Release|x64.Build.0 = Release|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Release|x86.ActiveCfg = Release|Any CPU
+		{7CAFAAE2-0C15-479A-B16D-C2FCE0A48E11}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -240,5 +258,8 @@ Global
 		{663CC515-EAAE-47D4-8933-5008C2DA1160} = {B91FF338-E05D-4EF1-948B-A2376DB37ECA}
 		{38B9C657-BC2F-44F0-8824-54B31F2A64F5} = {B91FF338-E05D-4EF1-948B-A2376DB37ECA}
 		{EB7C228D-9494-4985-845E-B8312450DF3D} = {B91FF338-E05D-4EF1-948B-A2376DB37ECA}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {23C8878C-16A5-47DF-9A57-73CCF847780D}
 	EndGlobalSection
 EndGlobal
