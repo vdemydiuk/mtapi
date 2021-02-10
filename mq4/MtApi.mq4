@@ -2945,7 +2945,7 @@ void Execute_iBandsOnArray()
    }
 
    param_index++;
-   if (getIntValue(ExpertHandle, param_index, total, _error))
+   if (!getIntValue(ExpertHandle, param_index, total, _error))
    {
       PrintParamError("iBandsOnArray", "total", _error);
       sendErrorResponse(ExpertHandle, -1, _error, _response_error);
