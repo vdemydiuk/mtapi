@@ -90,7 +90,8 @@ namespace MTApiService
             };
             patternLayout.ActivateOptions();
 
-            var filename = $"{DateTime.Now:yyyy-dd-M--HH-mm-ss}-{Process.GetCurrentProcess().Id}.{LogFileNameExtension}";
+            //var filename = $"{DateTime.Now:yyyy-dd-M--HH-mm-ss}-{Process.GetCurrentProcess().Id}.{LogFileNameExtension}";  // This filename format keeps generating tons of log files with same content but different per-second/thread filenames until the harddisk have 0KB space left
+            var filename = $"{DateTime.Now:yyyy-MM-dd}.{LogFileNameExtension}";
 
             var roller = new RollingFileAppender
             {
