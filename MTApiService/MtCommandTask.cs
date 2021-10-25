@@ -11,10 +11,7 @@ namespace MTApiService
 
         public MtCommandTask(MtCommand command)
         {
-            if (command == null)
-                throw new ArgumentNullException(nameof(command));
-
-            Command = command;
+            Command = command ?? throw new ArgumentNullException(nameof(command));
         }
 
         public MtCommand Command { get; }

@@ -46,7 +46,7 @@ namespace MtApi.Monitors.Triggers
         public TimeElapsedTrigger(TimeSpan time, bool autoReset = true)
         {
             _timer = new Timer(time.TotalMilliseconds);
-            _timer.Elapsed += _timer_Elapsed;
+            _timer.Elapsed += Timer_Elapsed;
             AutoReset = autoReset;
         }
         #endregion
@@ -63,11 +63,11 @@ namespace MtApi.Monitors.Triggers
         #endregion
 
         #region private methods
-        private void _timer_Elapsed(object sender, ElapsedEventArgs e)
+        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            _timer.Elapsed -= _timer_Elapsed;
+            _timer.Elapsed -= Timer_Elapsed;
             Raised?.Invoke(this, EventArgs.Empty);
-            _timer.Elapsed += _timer_Elapsed;
+            _timer.Elapsed += Timer_Elapsed;
         }
         #endregion
     }

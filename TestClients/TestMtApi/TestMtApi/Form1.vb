@@ -2,7 +2,7 @@
 
 Public Class Form1
 
-    Private apiClient As MtApiClient
+    Private ReadOnly apiClient As MtApiClient
 
     Public Sub New()
 
@@ -28,11 +28,11 @@ Public Class Form1
 
     End Sub
 
-    Private Sub btnConnect_Click(sender As System.Object, e As System.EventArgs) Handles btnConnect.Click
+    Private Sub BtnConnect_Click(sender As System.Object, e As System.EventArgs) Handles btnConnect.Click
         apiClient.BeginConnect(8222)
     End Sub
 
-    Private Sub btnDisconnect_Click(sender As System.Object, e As System.EventArgs) Handles btnDisconnect.Click
+    Private Sub BtnDisconnect_Click(sender As System.Object, e As System.EventArgs) Handles btnDisconnect.Click
         apiClient.BeginDisconnect()
     End Sub
 End Class

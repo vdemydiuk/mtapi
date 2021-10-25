@@ -194,14 +194,14 @@ _DLLAPI int _stdcall sendMqlRatesArrayResponse(int expertHandle, CMqlRates value
         for (int i = 0; i < size; i++)
         {
             MtMqlRates^ rates = gcnew MtMqlRates();
-            rates->time = values[i].time;
-            rates->open = values[i].open;
-            rates->high = values[i].high;
-            rates->low = values[i].low;
-            rates->close = values[i].close;
-            rates->tick_volume = values[i].tick_volume;
-            rates->spread = values[i].spread;
-            rates->real_volume = values[i].real_volume;
+            rates->Time = values[i].time;
+            rates->Open = values[i].open;
+            rates->High = values[i].high;
+            rates->Low = values[i].low;
+            rates->Close = values[i].close;
+            rates->Tick_volume = values[i].tick_volume;
+            rates->Spread = values[i].spread;
+            rates->Real_volume = values[i].real_volume;
             list[i] = rates;
         }
         MtAdapter::GetInstance()->SendResponse(expertHandle, gcnew MtResponseMqlRatesArray(list));

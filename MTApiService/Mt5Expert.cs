@@ -42,7 +42,7 @@ namespace MTApiService
                         Interval = StopExpertInterval,
                         AutoReset = false
                     };
-                    _stopTimer.Elapsed += _stopTimer_Elapsed;
+                    _stopTimer.Elapsed += StopTimer_Elapsed;
                 }
             }
 
@@ -51,14 +51,14 @@ namespace MTApiService
             Log.Debug("SendEvent: end.");
         }
 
-        private void _stopTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void StopTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             Log.Debug("_stopTimer_Elapsed: begin.");
 
             Log.Warn("Mt5Expert has received new tick during 2 sec in testing mode. The possible cause: user has stopped the tester manually in MetaTrader 5.");
             Deinit();
 
-            _stopTimer.Elapsed -= _stopTimer_Elapsed;
+            _stopTimer.Elapsed -= StopTimer_Elapsed;
             _stopTimer = null;
 
             Log.Debug("_stopTimer_Elapsed: end.");

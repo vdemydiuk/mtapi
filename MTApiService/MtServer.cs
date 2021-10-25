@@ -143,8 +143,8 @@ namespace MTApiService
                 return;
             }
 
-            expert.Deinited += expert_Deinited;
-            expert.QuoteChanged += expert_QuoteChanged;
+            expert.Deinited += Expert_Deinited;
+            expert.QuoteChanged += Expert_QuoteChanged;
             expert.OnMtEvent += Expert_OnMtEvent;
 
             lock (_experts)
@@ -204,7 +204,7 @@ namespace MTApiService
         #endregion
 
         #region Private Methods
-        private void stopTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void StopTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             Log.DebugFormat("stopTimer_Elapsed: begin");
 
@@ -224,11 +224,10 @@ namespace MTApiService
                 Stop();
             }
 
-            var stopTimer = sender as System.Timers.Timer;
-            if (stopTimer == null) return;
+            if (!(sender is System.Timers.Timer stopTimer)) return;
 
             stopTimer.Stop();
-            stopTimer.Elapsed -= stopTimer_Elapsed;
+            stopTimer.Elapsed -= StopTimer_Elapsed;
 
             Log.DebugFormat("stopTimer_Elapsed: end");
         }
@@ -364,12 +363,11 @@ namespace MTApiService
             Log.Debug("Stop: end.");
         }
 
-        private void expert_Deinited(object sender, EventArgs e)
+        private void Expert_Deinited(object sender, EventArgs e)
         {
             Log.Debug("expert_Deinited: begin.");
 
-            var expert = sender as MtExpert;
-            if (expert == null)
+            if (!(sender is MtExpert expert))
             {
                 Log.Warn("expert_Deinited: end. Expert is not defined.");
                 return;
@@ -385,15 +383,15 @@ namespace MTApiService
 
             _executorManager.RemoveExecutor(expert);
 
-            expert.Deinited -= expert_Deinited;
-            expert.QuoteChanged -= expert_QuoteChanged;
+            expert.Deinited -= Expert_Deinited;
+            expert.QuoteChanged -= Expert_QuoteChanged;
 
             _service.OnQuoteRemoved(expert.Quote);
 
             if (expertsCount == 0)
             {
                 var stopTimer = new System.Timers.Timer();
-                stopTimer.Elapsed += stopTimer_Elapsed;
+                stopTimer.Elapsed += StopTimer_Elapsed;
                 stopTimer.Interval = StopExpertInterval;
                 stopTimer.Start();
             }
@@ -401,7 +399,7 @@ namespace MTApiService
             Log.Debug("expert_Deinited: end.");
         }
 
-        private void expert_QuoteChanged(MtExpert expert, MtQuote quote)
+        private void Expert_QuoteChanged(MtExpert expert, MtQuote quote)
         {
             Log.DebugFormat("expert_QuoteChanged: begin. expert = {0}, quote = {1}", expert, quote);
 

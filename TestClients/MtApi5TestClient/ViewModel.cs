@@ -44,9 +44,9 @@ namespace MtApi5TestClient
         public DelegateCommand CopyCloseCommand { get; private set; }
         public DelegateCommand IndicatorCreateCommand { get; private set; }
         public DelegateCommand IndicatorReleaseCommand { get; private set; }
-        public DelegateCommand iCustomCommand { get; private set; }
-        public DelegateCommand iBullsPowerCommand { get; private set; }
-        public DelegateCommand iBearsPowerCommand { get; private set; }
+        public DelegateCommand ICustomCommand { get; private set; }
+        public DelegateCommand IBullsPowerCommand { get; private set; }
+        public DelegateCommand IBearsPowerCommand { get; private set; }
         public DelegateCommand BarsCalculatedCommand { get; private set; }
         public DelegateCommand CopyBufferCommand { get; private set; }
 
@@ -293,14 +293,14 @@ namespace MtApi5TestClient
             // Init MtApi client
             _mtApiClient = new MtApi5Client();
 
-            _mtApiClient.ConnectionStateChanged += mMtApiClient_ConnectionStateChanged;
-            _mtApiClient.QuoteAdded += mMtApiClient_QuoteAdded;
-            _mtApiClient.QuoteRemoved += mMtApiClient_QuoteRemoved;
-            _mtApiClient.QuoteUpdate += mMtApiClient_QuoteUpdate;
-            _mtApiClient.OnTradeTransaction += mMtApiClient_OnTradeTransaction;
-            _mtApiClient.OnBookEvent += _mtApiClient_OnBookEvent;
-            _mtApiClient.OnLastTimeBar += _mtApiClient_OnLastTimeBar;
-            _mtApiClient.OnLockTicks += _mtApiClient_OnLockTicks;
+            _mtApiClient.ConnectionStateChanged += MMtApiClient_ConnectionStateChanged;
+            _mtApiClient.QuoteAdded += MMtApiClient_QuoteAdded;
+            _mtApiClient.QuoteRemoved += MMtApiClient_QuoteRemoved;
+            _mtApiClient.QuoteUpdate += MMtApiClient_QuoteUpdate;
+            _mtApiClient.OnTradeTransaction += MMtApiClient_OnTradeTransaction;
+            _mtApiClient.OnBookEvent += MtApiClient_OnBookEvent;
+            _mtApiClient.OnLastTimeBar += MtApiClient_OnLastTimeBar;
+            _mtApiClient.OnLockTicks += MtApiClient_OnLockTicks;
 
             ConnectionState = _mtApiClient.ConnectionState;
             ConnectionMessage = "Disconnected";
@@ -360,9 +360,9 @@ namespace MtApi5TestClient
             CopyCloseCommand = new DelegateCommand(ExecuteCopyClose);
             IndicatorCreateCommand = new DelegateCommand(ExecuteIndicatorCreate);
             IndicatorReleaseCommand = new DelegateCommand(ExecuteIndicatorRelease);
-            iCustomCommand = new DelegateCommand(ExecuteICustom);
-            iBullsPowerCommand = new DelegateCommand(ExecuteIBullsPowerCommand);
-            iBearsPowerCommand = new DelegateCommand(ExecuteIBearsPowerCommand);
+            ICustomCommand = new DelegateCommand(ExecuteICustom);
+            IBullsPowerCommand = new DelegateCommand(ExecuteIBullsPowerCommand);
+            IBearsPowerCommand = new DelegateCommand(ExecuteIBearsPowerCommand);
             BarsCalculatedCommand = new DelegateCommand(ExecuteBarsCalculatedCommand);
             CopyBufferCommand = new DelegateCommand(ExecuteCopyBufferCommand);
 
@@ -633,8 +633,7 @@ namespace MtApi5TestClient
 
             var result = await Execute(() =>
             {
-                DateTime[] array;
-                var count = _mtApiClient.CopyTime(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                var count = _mtApiClient.CopyTime(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out DateTime[] array);
                 return count > 0 ? array : null;
             });
 
@@ -663,8 +662,7 @@ namespace MtApi5TestClient
 
             var result = await Execute(() =>
             {
-                double[] array;
-                var count = _mtApiClient.CopyOpen(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                var count = _mtApiClient.CopyOpen(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out double[] array);
                 return count > 0 ? array : null;
             });
 
@@ -693,9 +691,7 @@ namespace MtApi5TestClient
 
             var result = await Execute(() =>
             {
-                double[] array;
-                var count = _mtApiClient.CopyHigh(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
-                return count > 0 ? array : null;
+                return _mtApiClient.CopyHigh(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out double[] array) > 0 ? array : null;
             });
 
             if (result == null)
@@ -723,8 +719,7 @@ namespace MtApi5TestClient
 
             var result = await Execute(() =>
             {
-                double[] array;
-                var count = _mtApiClient.CopyLow(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                var count = _mtApiClient.CopyLow(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out double[] array);
                 return count > 0 ? array : null;
             });
 
@@ -753,9 +748,8 @@ namespace MtApi5TestClient
 
             var result = await Execute(() =>
             {
-                double[] array;
                 var count = _mtApiClient.CopyClose(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame,
-                    TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                    TimeSeriesValues.StartPos, TimeSeriesValues.Count, out double[] array);
                 return count > 0 ? array : null;
             });
 
@@ -823,7 +817,7 @@ namespace MtApi5TestClient
             const string name = @"Examples\Custom Moving Average";
             int[] parameters = { 0, 21, (int)ENUM_APPLIED_PRICE.PRICE_CLOSE };
 
-            var retVal = await Execute(() => _mtApiClient.iCustom(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, name, parameters));
+            var retVal = await Execute(() => _mtApiClient.ICustom(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, name, parameters));
             TimeSeriesValues.IndicatorHandle = retVal;
             AddLog($"Custom Moving Average: result - {retVal}");
         }
@@ -831,7 +825,7 @@ namespace MtApi5TestClient
         private async void ExecuteIBullsPowerCommand(object o)
         {
             const int maPeriod = 13;
-            var retVal = await Execute(() => _mtApiClient.iBullsPower(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, maPeriod));
+            var retVal = await Execute(() => _mtApiClient.IBullsPower(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, maPeriod));
             TimeSeriesValues.IndicatorHandle = retVal;
 
             AddLog($"iBullPower: result - {retVal}");
@@ -840,7 +834,7 @@ namespace MtApi5TestClient
         private async void ExecuteIBearsPowerCommand(object o)
         {
             const int maPeriod = 13;
-            var retVal = await Execute(() => _mtApiClient.iBearsPower(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, maPeriod));
+            var retVal = await Execute(() => _mtApiClient.IBearsPower(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, maPeriod));
             TimeSeriesValues.IndicatorHandle = retVal;
 
             AddLog($"iBearsPower: result - {retVal}");
@@ -888,9 +882,7 @@ namespace MtApi5TestClient
 
             var result = await Execute(() =>
             {
-                MqlRates[] array;
-                var count = _mtApiClient.CopyRates(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
-                return count > 0 ? array : null;
+                return _mtApiClient.CopyRates(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame, TimeSeriesValues.StartPos, TimeSeriesValues.Count, out MqlRates[] array) > 0 ? array : null;
             });
 
             if (result == null)
@@ -904,7 +896,7 @@ namespace MtApi5TestClient
                 foreach (var rates in result)
                 {
                     TimeSeriesResults.Add(
-                        $"time={rates.time}; mt_time={rates.mt_time}; open={rates.open}; high={rates.high}; low={rates.low}; close={rates.close}; tick_volume={rates.tick_volume}; spread={rates.spread}; real_volume={rates.tick_volume}");
+                        $"time={rates.Time}; mt_time={rates.Mt_time}; open={rates.Open}; high={rates.High}; low={rates.Low}; close={rates.Close}; tick_volume={rates.Tick_volume}; spread={rates.Spread}; real_volume={rates.Tick_volume}");
                 }
             });
 
@@ -920,9 +912,8 @@ namespace MtApi5TestClient
 
             var result = await Execute(() =>
             {
-                long[] array;
                 var count = _mtApiClient.CopyTickVolume(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame,
-                    TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                    TimeSeriesValues.StartPos, TimeSeriesValues.Count, out long[] array);
                 return count > 0 ? array : null;
             });
 
@@ -951,9 +942,8 @@ namespace MtApi5TestClient
 
             var result = await Execute(() =>
             {
-                long[] array;
                 var count = _mtApiClient.CopyRealVolume(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame,
-                    TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                    TimeSeriesValues.StartPos, TimeSeriesValues.Count, out long[] array);
                 return count > 0 ? array : null;
             });
 
@@ -982,9 +972,8 @@ namespace MtApi5TestClient
 
             var result = await Execute(() =>
             {
-                int[] array;
                 var count = _mtApiClient.CopySpread(TimeSeriesValues.SymbolValue, TimeSeriesValues.TimeFrame,
-                    TimeSeriesValues.StartPos, TimeSeriesValues.Count, out array);
+                    TimeSeriesValues.StartPos, TimeSeriesValues.Count, out int[] array);
                 return count > 0 ? array : null;
             });
 
@@ -1025,7 +1014,7 @@ namespace MtApi5TestClient
             {
                 foreach (var v in result)
                 {
-                    var tickStr = $"time = {v.time}, bid = {v.bid}, ask = {v.ask}, last = {v.last}, volume = {v.volume}";
+                    var tickStr = $"time = {v.Time}, bid = {v.Bid}, ask = {v.Ask}, last = {v.Last}, volume = {v.Volume}";
                     TimeSeriesResults.Add(tickStr);
                 }
             });
@@ -1100,34 +1089,30 @@ namespace MtApi5TestClient
         {
             var result = await Execute(() =>
             {
-                MqlTick tick;
-                var ok = _mtApiClient.SymbolInfoTick("EURUSD", out tick);
+                var ok = _mtApiClient.SymbolInfoTick("EURUSD", out MqlTick tick);
                 return ok ? tick : null;
             });
 
             if (result == null) return;
             AddLog("SymbolInfoTick(EURUSD) success");
-            AddLog($"SymbolInfoTick(EURUSD) tick.time = {result.time}");
-            AddLog($"SymbolInfoTick(EURUSD) tick.bid = {result.bid}");
-            AddLog($"SymbolInfoTick(EURUSD) tick.ask = {result.ask}");
-            AddLog($"SymbolInfoTick(EURUSD) tick.last = {result.last}");
-            AddLog($"SymbolInfoTick(EURUSD) tick.volume = {result.volume}");
-            AddLog($"SymbolInfoTick(EURUSD) tick.volume_real = {result.volume_real}");
+            AddLog($"SymbolInfoTick(EURUSD) tick.time = {result.Time}");
+            AddLog($"SymbolInfoTick(EURUSD) tick.bid = {result.Bid}");
+            AddLog($"SymbolInfoTick(EURUSD) tick.ask = {result.Ask}");
+            AddLog($"SymbolInfoTick(EURUSD) tick.last = {result.Last}");
+            AddLog($"SymbolInfoTick(EURUSD) tick.volume = {result.Volume}");
+            AddLog($"SymbolInfoTick(EURUSD) tick.volume_real = {result.Volume_real}");
         }
 
         private async void ExecuteSymbolInfoSessionQuote(object o)
         {
             var retVal = await Execute(() =>
             {
-                DateTime from;
-                DateTime to;
-                var ok = _mtApiClient.SymbolInfoSessionQuote("EURUSD", ENUM_DAY_OF_WEEK.MONDAY, 0, out from, out to);
-                if (ok)
+                if (_mtApiClient.SymbolInfoSessionQuote("EURUSD", ENUM_DAY_OF_WEEK.MONDAY, 0, out DateTime from, out DateTime to))
                 {
                     AddLog($"SymbolInfoSessionQuote(EURUSD) from = {from}");
                     AddLog($"SymbolInfoSessionQuote(EURUSD) to = {to}");
                 }
-                return ok;
+                return _mtApiClient.SymbolInfoSessionQuote("EURUSD", ENUM_DAY_OF_WEEK.MONDAY, 0, out from, out to);
             });
 
             AddLog($"SymbolInfoSessionQuote(EURUSD): result = {retVal}");
@@ -1138,9 +1123,7 @@ namespace MtApi5TestClient
         {
             var retVal = await Execute(() =>
             {
-                DateTime from;
-                DateTime to;
-                var ok = _mtApiClient.SymbolInfoSessionTrade("EURUSD", ENUM_DAY_OF_WEEK.MONDAY, 0, out from, out to);
+                var ok = _mtApiClient.SymbolInfoSessionTrade("EURUSD", ENUM_DAY_OF_WEEK.MONDAY, 0, out DateTime from, out DateTime to);
                 if (ok)
                 {
                     AddLog($"SymbolInfoSessionTrade(EURUSD) from = {from}");
@@ -1168,8 +1151,7 @@ namespace MtApi5TestClient
         {
             var result = await Execute(() =>
             {
-                MqlBookInfo[] book;
-                var ok = _mtApiClient.MarketBookGet("EURUSD", out book);
+                var ok = _mtApiClient.MarketBookGet("EURUSD", out MqlBookInfo[] book);
                 return ok ? book : null;
             });
 
@@ -1183,7 +1165,7 @@ namespace MtApi5TestClient
 
             for (var i = 0; i < result.Length; i++)
             {
-                AddLog($"MarketBookGet: [{i}] - {result[i].price} | {result[i].volume} | {result[i].type} | {result[i].volume_real}");
+                AddLog($"MarketBookGet: [{i}] - {result[i].Price} | {result[i].Volume} | {result[i].Type} | {result[i].Volume_real}");
             }
         }
 
@@ -1457,8 +1439,10 @@ namespace MtApi5TestClient
 
                 var MT5Path = _mtApiClient.TerminalInfoString(ENUM_TERMINAL_INFO_STRING.TERMINAL_DATA_PATH);
 
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                openFileDialog.Filter = "Template File (*.tpl)|*.tpl|All files (*.*)|*.*";
+                OpenFileDialog openFileDialog = new OpenFileDialog
+                {
+                    Filter = "Template File (*.tpl)|*.tpl|All files (*.*)|*.*"
+                };
                 if (openFileDialog.ShowDialog() == true)
                 {
                     var TemplateName = "\\Files\\mt5api_copy.tpl";
@@ -1608,7 +1592,7 @@ namespace MtApi5TestClient
             var chartId = ChartFunctionsChartIdValue;
             var symbol = ChartFunctionsSymbolValue;
 
-            var indicatorHandle = await Execute(() => _mtApiClient.iMACD(symbol, ENUM_TIMEFRAMES.PERIOD_CURRENT, 12, 26, 9, ENUM_APPLIED_PRICE.PRICE_CLOSE));
+            var indicatorHandle = await Execute(() => _mtApiClient.IMACD(symbol, ENUM_TIMEFRAMES.PERIOD_CURRENT, 12, 26, 9, ENUM_APPLIED_PRICE.PRICE_CLOSE));
             var result = await Execute(() => _mtApiClient.ChartIndicatorAdd(chartId, 1, indicatorHandle));
             AddLog($"ChartIndicatorAdd: result {result} for chartid {chartId} with indicator {indicatorHandle}");
         }
@@ -1707,7 +1691,7 @@ namespace MtApi5TestClient
             Application.Current?.Dispatcher.Invoke(action, args);
         }
 
-        private void mMtApiClient_QuoteUpdate(object sender, Mt5QuoteEventArgs e)
+        private void MMtApiClient_QuoteUpdate(object sender, Mt5QuoteEventArgs e)
         {
             var q = e.Quote;
 
@@ -1734,17 +1718,17 @@ namespace MtApi5TestClient
             }
         }
 
-        private void mMtApiClient_QuoteRemoved(object sender, Mt5QuoteEventArgs e)
+        private void MMtApiClient_QuoteRemoved(object sender, Mt5QuoteEventArgs e)
         {
             RunOnUiThread<Mt5Quote>(RemoveQuote, e.Quote);
         }
 
-        private void mMtApiClient_QuoteAdded(object sender, Mt5QuoteEventArgs e)
+        private void MMtApiClient_QuoteAdded(object sender, Mt5QuoteEventArgs e)
         {
             RunOnUiThread<Mt5Quote>(AddQuote, e.Quote);
         }
 
-        private void mMtApiClient_ConnectionStateChanged(object sender, Mt5ConnectionEventArgs e)
+        private void MMtApiClient_ConnectionStateChanged(object sender, Mt5ConnectionEventArgs e)
         {
             ConnectionState = e.Status;
             ConnectionMessage = e.ConnectionMessage;
@@ -1763,22 +1747,22 @@ namespace MtApi5TestClient
             }
         }
 
-        private void mMtApiClient_OnTradeTransaction(object sender, Mt5TradeTransactionEventArgs e)
+        private void MMtApiClient_OnTradeTransaction(object sender, Mt5TradeTransactionEventArgs e)
         {
             AddLog($"OnTradeTransaction: ExpertHandle = {e.ExpertHandle}.{Environment.NewLine}Transaction = {e.Trans}.{Environment.NewLine}Request = {e.Request}.{Environment.NewLine}Result = {e.Result}.");
         }
 
-        private void _mtApiClient_OnBookEvent(object sender, Mt5BookEventArgs e)
+        private void MtApiClient_OnBookEvent(object sender, Mt5BookEventArgs e)
         {
             AddLog($"OnBookEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}");
         }
 
-        private void _mtApiClient_OnLastTimeBar(object sender, Mt5TimeBarArgs e)
+        private void MtApiClient_OnLastTimeBar(object sender, Mt5TimeBarArgs e)
         {
-            AddLog($"OnLastTimeBarEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}, open = {e.Rates.open}, close = {e.Rates.close}, time = {e.Rates.time}, high = {e.Rates.high}, low = {e.Rates.low}");
+            AddLog($"OnLastTimeBarEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}, open = {e.Rates.Open}, close = {e.Rates.Close}, time = {e.Rates.Time}, high = {e.Rates.High}, low = {e.Rates.Low}");
         }
 
-        private void _mtApiClient_OnLockTicks(object sender, Mt5LockTicksEventArgs e)
+        private void MtApiClient_OnLockTicks(object sender, Mt5LockTicksEventArgs e)
         {
             AddLog($"OnLockTicksEvent: Symbol = {e.Symbol}");
         }

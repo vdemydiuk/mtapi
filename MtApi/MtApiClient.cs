@@ -86,7 +86,7 @@ namespace MtApi
         public List<MtQuote> GetQuotes()
         {
             var client = Client;
-            var quotes = client != null ? client.GetQuotes() : null;
+            var quotes = client?.GetQuotes();
             return quotes?.Select(q => new MtQuote(q)).ToList();
         }
         #endregion
@@ -362,8 +362,7 @@ namespace MtApi
         {
             Log.Debug($"OrderSend: symbol = {symbol}, cmd = {cmd}, volume = {volume}, price = {price}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}");
 
-            double dPrice;
-            return double.TryParse(price, out dPrice) ? 
+            return double.TryParse(price, out double dPrice) ?
                 OrderSend(symbol, cmd, volume, dPrice, slippage, stoploss, takeprofit) : 0;
         }
 
@@ -1165,55 +1164,55 @@ namespace MtApi
         #endregion
 
         #region Technical Indicators
-        public double iAC(string symbol, ChartPeriod timeframe, int shift)
+        public double IAC(string symbol, ChartPeriod timeframe, int shift)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
             return SendCommand<double>(MtCommandType.iAC, commandParameters);
         }
 
-        public double iAD(string symbol, int timeframe, int shift)
+        public double IAD(string symbol, int timeframe, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, shift };
             return SendCommand<double>(MtCommandType.iAD, commandParameters);
         }
 
-        public double iAlligator(string symbol, int timeframe, int jawPeriod, int jawShift, int teethPeriod, int teethShift, int lipsPeriod, int lipsShift, int maMethod, int appliedPrice, int mode, int shift)
+        public double IAlligator(string symbol, int timeframe, int jawPeriod, int jawShift, int teethPeriod, int teethShift, int lipsPeriod, int lipsShift, int maMethod, int appliedPrice, int mode, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, jawPeriod, jawShift, teethPeriod, teethShift, lipsPeriod, lipsShift, maMethod, appliedPrice, mode, shift };
             return SendCommand<double>(MtCommandType.iAlligator, commandParameters);
         }
 
-        public double iADX(string symbol, int timeframe, int period, int appliedPrice, int mode, int shift)
+        public double IADX(string symbol, int timeframe, int period, int appliedPrice, int mode, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, appliedPrice, mode, shift };
             return SendCommand<double>(MtCommandType.iADX, commandParameters);
         }
 
-        public double iATR(string symbol, int timeframe, int period, int shift)
+        public double IATR(string symbol, int timeframe, int period, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, shift };
             return SendCommand<double>(MtCommandType.iATR, commandParameters);
         }
 
-        public double iAO(string symbol, int timeframe, int shift)
+        public double IAO(string symbol, int timeframe, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, shift };
             return SendCommand<double>(MtCommandType.iAO, commandParameters);
         }
 
-        public double iBearsPower(string symbol, int timeframe, int period, int appliedPrice, int shift)
+        public double IBearsPower(string symbol, int timeframe, int period, int appliedPrice, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, appliedPrice, shift };
             return SendCommand<double>(MtCommandType.iBearsPower, commandParameters);
         }
 
-        public double iBands(string symbol, int timeframe, int period, int deviation, int bandsShift, int appliedPrice, int mode, int shift)
+        public double IBands(string symbol, int timeframe, int period, int deviation, int bandsShift, int appliedPrice, int mode, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, deviation, bandsShift, appliedPrice, mode, shift };
             return SendCommand<double>(MtCommandType.iBands, commandParameters);
         }
 
-        public double iBandsOnArray(double[] array, int total, int period, int deviation, int bandsShift, int mode, int shift)
+        public double IBandsOnArray(double[] array, int total, int period, int deviation, int bandsShift, int mode, int shift)
         {
             var arraySize = array?.Length ?? 0;
             var commandParameters = new ArrayList { arraySize };
@@ -1228,19 +1227,19 @@ namespace MtApi
             return SendCommand<double>(MtCommandType.iBandsOnArray, commandParameters);
         }
 
-        public double iBullsPower(string symbol, int timeframe, int period, int appliedPrice, int shift)
+        public double IBullsPower(string symbol, int timeframe, int period, int appliedPrice, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, appliedPrice, shift };
             return SendCommand<double>(MtCommandType.iBullsPower, commandParameters);
         }
 
-        public double iCCI(string symbol, int timeframe, int period, int appliedPrice, int shift)
+        public double ICCI(string symbol, int timeframe, int period, int appliedPrice, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, appliedPrice, shift };
             return SendCommand<double>(MtCommandType.iCCI, commandParameters);
         }
 
-        public double iCCIOnArray(double[] array, int total, int period, int shift)
+        public double ICCIOnArray(double[] array, int total, int period, int shift)
         {
             var arraySize = array?.Length ?? 0;
             var commandParameters = new ArrayList { arraySize };
@@ -1252,7 +1251,7 @@ namespace MtApi
             return SendCommand<double>(MtCommandType.iCCIOnArray, commandParameters);
         }
 
-        public double iCustom(string symbol, int timeframe, string name, int[] parameters, int mode, int shift)
+        public double ICustom(string symbol, int timeframe, string name, int[] parameters, int mode, int shift)
         {
             var response = SendRequest<ICustomResponse>(new ICustomRequest
             {
@@ -1267,7 +1266,7 @@ namespace MtApi
             return response?.Value ?? double.NaN;
         }
 
-        public double iCustom(string symbol, int timeframe, string name, double[] parameters, int mode, int shift)
+        public double ICustom(string symbol, int timeframe, string name, double[] parameters, int mode, int shift)
         {
             var response = SendRequest<ICustomResponse>(new ICustomRequest
             {
@@ -1282,7 +1281,7 @@ namespace MtApi
             return response?.Value ?? double.NaN;
         }
 
-        public double iCustom(string symbol, int timeframe, string name, int mode, int shift)
+        public double ICustom(string symbol, int timeframe, string name, int mode, int shift)
         {
             var response = SendRequest<ICustomResponse>(new ICustomRequest
             {
@@ -1295,19 +1294,19 @@ namespace MtApi
             return response?.Value ?? double.NaN;
         }
 
-        public double iDeMarker(string symbol, int timeframe, int period, int shift)
+        public double IDeMarker(string symbol, int timeframe, int period, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, shift };
             return SendCommand<double>(MtCommandType.iDeMarker, commandParameters);
         }
 
-        public double iEnvelopes(string symbol, int timeframe, int maPeriod, int maMethod, int maShift, int appliedPrice, double deviation, int mode, int shift)
+        public double IEnvelopes(string symbol, int timeframe, int maPeriod, int maMethod, int maShift, int appliedPrice, double deviation, int mode, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, maPeriod, maMethod, maShift, appliedPrice, deviation, mode, shift };
             return SendCommand<double>(MtCommandType.iEnvelopes, commandParameters);
         }
 
-        public double iEnvelopesOnArray(double[] array, int total, int maPeriod, int maMethod, int maShift, double deviation, int mode, int shift)
+        public double IEnvelopesOnArray(double[] array, int total, int maPeriod, int maMethod, int maShift, double deviation, int mode, int shift)
         {
             var arraySize = array?.Length ?? 0;
             var commandParameters = new ArrayList { arraySize };
@@ -1323,43 +1322,43 @@ namespace MtApi
             return SendCommand<double>(MtCommandType.iEnvelopesOnArray, commandParameters);
         }
 
-        public double iForce(string symbol, int timeframe, int period, int maMethod, int appliedPrice, int shift)
+        public double IForce(string symbol, int timeframe, int period, int maMethod, int appliedPrice, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, maMethod, appliedPrice, shift };
             return SendCommand<double>(MtCommandType.iForce, commandParameters);
         }
 
-        public double iFractals(string symbol, int timeframe, int mode, int shift)
+        public double IFractals(string symbol, int timeframe, int mode, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, mode, shift };
             return SendCommand<double>(MtCommandType.iFractals, commandParameters);
         }
 
-        public double iGator(string symbol, int timeframe, int jawPeriod, int jawShift, int teethPeriod, int teethShift, int lipsPeriod, int lipsShift, int maMethod, int appliedPrice, int mode, int shift)
+        public double IGator(string symbol, int timeframe, int jawPeriod, int jawShift, int teethPeriod, int teethShift, int lipsPeriod, int lipsShift, int maMethod, int appliedPrice, int mode, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, jawPeriod, jawShift, teethPeriod, teethShift, lipsPeriod, lipsShift, maMethod, appliedPrice, mode, shift };
             return SendCommand<double>(MtCommandType.iGator, commandParameters);
         }
 
-        public double iIchimoku(string symbol, int timeframe, int tenkanSen, int kijunSen, int senkouSpanB, int mode, int shift)
+        public double IIchimoku(string symbol, int timeframe, int tenkanSen, int kijunSen, int senkouSpanB, int mode, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, tenkanSen, kijunSen, senkouSpanB, mode, shift };
             return SendCommand<double>(MtCommandType.iIchimoku, commandParameters);
         }
 
-        public double iBWMFI(string symbol, int timeframe, int shift)
+        public double IBWMFI(string symbol, int timeframe, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, shift };
             return SendCommand<double>(MtCommandType.iBWMFI, commandParameters);
         }
 
-        public double iMomentum(string symbol, int timeframe, int period, int appliedPrice, int shift)
+        public double IMomentum(string symbol, int timeframe, int period, int appliedPrice, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, appliedPrice, shift };
             return SendCommand<double>(MtCommandType.iMomentum, commandParameters);
         }
 
-        public double iMomentumOnArray(double[] array, int total, int period, int shift)
+        public double IMomentumOnArray(double[] array, int total, int period, int shift)
         {
             var arraySize = array?.Length ?? 0;
             var commandParameters = new ArrayList { arraySize };
@@ -1371,19 +1370,19 @@ namespace MtApi
             return SendCommand<double>(MtCommandType.iMomentumOnArray, commandParameters);
         }
 
-        public double iMFI(string symbol, int timeframe, int period, int shift)
+        public double IMFI(string symbol, int timeframe, int period, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, shift };
             return SendCommand<double>(MtCommandType.iMFI, commandParameters);
         }
 
-        public double iMA(string symbol, int timeframe, int period, int maShift, int maMethod, int appliedPrice, int shift)
+        public double IMA(string symbol, int timeframe, int period, int maShift, int maMethod, int appliedPrice, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, maShift, maMethod, appliedPrice, shift };
             return SendCommand<double>(MtCommandType.iMA, commandParameters);
         }
 
-        public double iMAOnArray(double[] array, int total, int period, int maShift, int maMethod, int shift)
+        public double IMAOnArray(double[] array, int total, int period, int maShift, int maMethod, int shift)
         {
             var arraySize = array?.Length ?? 0;
             var commandParameters = new ArrayList { arraySize };
@@ -1397,37 +1396,37 @@ namespace MtApi
             return SendCommand<double>(MtCommandType.iMAOnArray, commandParameters);
         }
 
-        public double iOsMA(string symbol, int timeframe, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, int appliedPrice, int shift)
+        public double IOsMA(string symbol, int timeframe, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, int appliedPrice, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, fastEmaPeriod, slowEmaPeriod, signalPeriod, appliedPrice, shift };
             return SendCommand<double>(MtCommandType.iOsMA, commandParameters);
         }
 
-        public double iMACD(string symbol, int timeframe, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, int appliedPrice, int mode, int shift)
+        public double IMACD(string symbol, int timeframe, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, int appliedPrice, int mode, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, fastEmaPeriod, slowEmaPeriod, signalPeriod, appliedPrice, mode, shift };
             return SendCommand<double>(MtCommandType.iMACD, commandParameters);
         }
 
-        public double iOBV(string symbol, int timeframe, int appliedPrice, int shift)
+        public double IOBV(string symbol, int timeframe, int appliedPrice, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, appliedPrice, shift };
             return SendCommand<double>(MtCommandType.iOBV, commandParameters);
         }
 
-        public double iSAR(string symbol, int timeframe, double step, double maximum, int shift)
+        public double ISAR(string symbol, int timeframe, double step, double maximum, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, step, maximum, shift };
             return SendCommand<double>(MtCommandType.iSAR, commandParameters);
         }
 
-        public double iRSI( string symbol, int timeframe, int period, int appliedPrice, int shift)
+        public double IRSI( string symbol, int timeframe, int period, int appliedPrice, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, appliedPrice, shift };
             return SendCommand<double>(MtCommandType.iRSI, commandParameters);
         }
 
-        public double iRSIOnArray(double[] array, int total, int period, int shift)
+        public double IRSIOnArray(double[] array, int total, int period, int shift)
         {
             var arraySize = array?.Length ?? 0;
             var commandParameters = new ArrayList { arraySize };
@@ -1439,19 +1438,19 @@ namespace MtApi
             return SendCommand<double>(MtCommandType.iMomentumOnArray, commandParameters);
         }
 
-        public double iRVI(string symbol, int timeframe, int period, int mode, int shift)
+        public double IRVI(string symbol, int timeframe, int period, int mode, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, mode, shift };
             return SendCommand<double>(MtCommandType.iRVI, commandParameters);
         }
 
-        public double iStdDev(string symbol, int timeframe, int maPeriod, int maShift, int maMethod, int appliedPrice, int shift)
+        public double IStdDev(string symbol, int timeframe, int maPeriod, int maShift, int maMethod, int appliedPrice, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, maPeriod, maShift, maMethod, appliedPrice, shift };
             return SendCommand<double>(MtCommandType.iStdDev, commandParameters);
         }
 
-        public double iStdDevOnArray(double[] array, int total, int maPeriod, int maShift, int maMethod, int shift)
+        public double IStdDevOnArray(double[] array, int total, int maPeriod, int maShift, int maMethod, int shift)
         {
             var arraySize = array?.Length ?? 0;
             var commandParameters = new ArrayList { arraySize };
@@ -1465,13 +1464,13 @@ namespace MtApi
             return SendCommand<double>(MtCommandType.iStdDevOnArray, commandParameters);
         }
 
-        public double iStochastic(string symbol, int timeframe, int pKperiod, int pDperiod, int slowing, int method, int priceField, int mode, int shift)
+        public double IStochastic(string symbol, int timeframe, int pKperiod, int pDperiod, int slowing, int method, int priceField, int mode, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, pKperiod, pDperiod, slowing, method, priceField, mode, shift };
             return SendCommand<double>(MtCommandType.iStochastic, commandParameters);
         }
 
-        public double iWPR(string symbol, int timeframe, int period, int shift)
+        public double IWPR(string symbol, int timeframe, int period, int shift)
         {
             var commandParameters = new ArrayList { symbol, timeframe, period, shift };
             return SendCommand<double>(MtCommandType.iWPR, commandParameters);
@@ -1479,62 +1478,62 @@ namespace MtApi
         #endregion
 
         #region Timeseries access
-        public int iBars(string symbol, ChartPeriod timeframe)
+        public int IBars(string symbol, ChartPeriod timeframe)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe };
             return SendCommand<int>(MtCommandType.iBars, commandParameters);
         }
 
-        public int iBarShift(string symbol, ChartPeriod timeframe, DateTime time, bool exact)
+        public int IBarShift(string symbol, ChartPeriod timeframe, DateTime time, bool exact)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe, MtApiTimeConverter.ConvertToMtTime(time), exact };
             return SendCommand<int>(MtCommandType.iBarShift, commandParameters);
         }
 
-        public double iClose(string symbol, ChartPeriod timeframe, int shift)
+        public double IClose(string symbol, ChartPeriod timeframe, int shift)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
             return SendCommand<double>(MtCommandType.iClose, commandParameters);
         }
 
-        public double iHigh(string symbol, ChartPeriod timeframe, int shift)
+        public double IHigh(string symbol, ChartPeriod timeframe, int shift)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
             return SendCommand<double>(MtCommandType.iHigh, commandParameters);
         }
 
-        public int iHighest(string symbol, ChartPeriod timeframe, SeriesIdentifier type, int count, int start)
+        public int IHighest(string symbol, ChartPeriod timeframe, SeriesIdentifier type, int count, int start)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe, (int)type, count, start };
             return SendCommand<int>(MtCommandType.iHighest, commandParameters);
         }
 
-        public double iLow(string symbol, ChartPeriod timeframe, int shift)
+        public double ILow(string symbol, ChartPeriod timeframe, int shift)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
             return SendCommand<double>(MtCommandType.iLow, commandParameters);
         }
 
-        public int iLowest(string symbol, ChartPeriod timeframe, SeriesIdentifier type, int count, int start)
+        public int ILowest(string symbol, ChartPeriod timeframe, SeriesIdentifier type, int count, int start)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe, (int)type, count, start };
             return SendCommand<int>(MtCommandType.iLowest, commandParameters);
         }
 
-        public double iOpen(string symbol, ChartPeriod timeframe, int shift)
+        public double IOpen(string symbol, ChartPeriod timeframe, int shift)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
             return SendCommand<double>(MtCommandType.iOpen, commandParameters);
         }
 
-        public DateTime iTime(string symbol, ChartPeriod timeframe, int shift)
+        public DateTime ITime(string symbol, ChartPeriod timeframe, int shift)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
             var commandResponse = SendCommand<int>(MtCommandType.iTime, commandParameters);
             return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
         }
 
-        public double iVolume(string symbol, ChartPeriod timeframe, int shift)
+        public double IVolume(string symbol, ChartPeriod timeframe, int shift)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
             return SendCommand<double>(MtCommandType.iVolume, commandParameters);
@@ -1568,37 +1567,37 @@ namespace MtApi
         //    return SendCommand<double[]>(MtCommandType.iCloseArray, commandParameters);
         //}
 
-        public double[] iCloseArray(string symbol, ChartPeriod timeframe)
+        public double[] ICloseArray(string symbol, ChartPeriod timeframe)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe };
             return SendCommand<double[]>(MtCommandType.iCloseArray, commandParameters);
         }
 
-        public double[] iHighArray(string symbol, ChartPeriod timeframe)
+        public double[] IHighArray(string symbol, ChartPeriod timeframe)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe };
             return SendCommand<double[]>(MtCommandType.iHighArray, commandParameters);
         }
 
-        public double[] iLowArray(string symbol, ChartPeriod timeframe)
+        public double[] ILowArray(string symbol, ChartPeriod timeframe)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe };
             return SendCommand<double[]>(MtCommandType.iLowArray, commandParameters);
         }
 
-        public double[] iOpenArray(string symbol, ChartPeriod timeframe)
+        public double[] IOpenArray(string symbol, ChartPeriod timeframe)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe };
             return SendCommand<double[]>(MtCommandType.iOpenArray, commandParameters);
         }
 
-        public double[] iVolumeArray(string symbol, ChartPeriod timeframe)
+        public double[] IVolumeArray(string symbol, ChartPeriod timeframe)
         {
             var commandParameters = new ArrayList { symbol, (int)timeframe };
             return SendCommand<double[]>(MtCommandType.iVolumeArray, commandParameters);
         }
 
-        public DateTime[] iTimeArray(string symbol, ChartPeriod timeframe)
+        public DateTime[] ITimeArray(string symbol, ChartPeriod timeframe)
         {
             DateTime[] result = null;
 
@@ -1944,8 +1943,7 @@ namespace MtApi
                 if (values.Length > 2)
                 {
                     int.TryParse(values[0], out subWindow);
-                    int mt4Time;
-                    int.TryParse(values[1], out mt4Time);
+                    int.TryParse(values[1], out int mt4Time);
                     time = MtApiTimeConverter.ConvertFromMtTime(mt4Time);
                     double.TryParse(values[2], out price);
                     res = true;
@@ -2952,12 +2950,12 @@ namespace MtApi
                 if (state == MtConnectionState.Connected)
                 {
                     _client = client;
-                    _client.QuoteAdded += _client_QuoteAdded;
-                    _client.QuoteRemoved += _client_QuoteRemoved;
-                    _client.QuoteUpdated += _client_QuoteUpdated;
-                    _client.ServerDisconnected += _client_ServerDisconnected;
-                    _client.ServerFailed += _client_ServerFailed;
-                    _client.MtEventReceived += _client_MtEventReceived;
+                    _client.QuoteAdded += Client_QuoteAdded;
+                    _client.QuoteRemoved += Client_QuoteRemoved;
+                    _client.QuoteUpdated += Client_QuoteUpdated;
+                    _client.ServerDisconnected += Client_ServerDisconnected;
+                    _client.ServerFailed += Client_ServerFailed;
+                    _client.MtEventReceived += Client_MtEventReceived;
                     message = string.IsNullOrEmpty(client.Host) ? $"Connected to localhost:{client.Port}" : $"Connected to  { client.Host}:{client.Port}";
 
                     Log.Info(message);
@@ -3008,12 +3006,12 @@ namespace MtApi
 
                 if (_client != null)
                 {
-                    _client.QuoteAdded -= _client_QuoteAdded;
-                    _client.QuoteRemoved -= _client_QuoteRemoved;
-                    _client.QuoteUpdated -= _client_QuoteUpdated;
-                    _client.ServerDisconnected -= _client_ServerDisconnected;
-                    _client.ServerFailed -= _client_ServerFailed;
-                    _client.MtEventReceived -= _client_MtEventReceived;
+                    _client.QuoteAdded -= Client_QuoteAdded;
+                    _client.QuoteRemoved -= Client_QuoteRemoved;
+                    _client.QuoteUpdated -= Client_QuoteUpdated;
+                    _client.ServerDisconnected -= Client_ServerDisconnected;
+                    _client.ServerFailed -= Client_ServerFailed;
+                    _client.MtEventReceived -= Client_MtEventReceived;
 
                     if (!failed)
                     {
@@ -3067,13 +3065,13 @@ namespace MtApi
             }
 
             var responseValue = response.GetValue();
-            return responseValue != null ? (T)responseValue : default(T);
+            return responseValue != null ? (T)responseValue : default;
         }
 
         private T SendRequest<T>(RequestBase request) where T : ResponseBase, new()
         {
             if (request == null)
-                return default(T);
+                return default;
 
             var serializer = JsonConvert.SerializeObject(request, Formatting.None,
                             new JsonSerializerSettings
@@ -3100,7 +3098,7 @@ namespace MtApi
             return response;
         }
 
-        private void _client_QuoteUpdated(MTApiService.MtQuote quote)
+        private void Client_QuoteUpdated(MTApiService.MtQuote quote)
         {
             if (quote != null)
             {
@@ -3109,27 +3107,27 @@ namespace MtApi
             }
         }
 
-        private void _client_ServerDisconnected(object sender, EventArgs e)
+        private void Client_ServerDisconnected(object sender, EventArgs e)
         {
             Disconnect(false);
         }
 
-        private void _client_ServerFailed(object sender, EventArgs e)
+        private void Client_ServerFailed(object sender, EventArgs e)
         {
             Disconnect(true);
         }
 
-        private void _client_QuoteRemoved(MTApiService.MtQuote quote)
+        private void Client_QuoteRemoved(MTApiService.MtQuote quote)
         {
             QuoteRemoved?.Invoke(this, new MtQuoteEventArgs(new MtQuote(quote)));
         }
 
-        private void _client_QuoteAdded(MTApiService.MtQuote quote)
+        private void Client_QuoteAdded(MTApiService.MtQuote quote)
         {
             QuoteAdded?.Invoke(this, new MtQuoteEventArgs(new MtQuote(quote)));
         }
 
-        private void _client_MtEventReceived(MtEvent e)
+        private void Client_MtEventReceived(MtEvent e)
         {
             var eventType = (MtEventTypes) e.EventType;
 

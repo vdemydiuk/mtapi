@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
   <?if $(var.Platform) = x64 ?>
     <?define VcRedistFileName="vc_redist.x64.exe"?>
@@ -22,16 +23,101 @@
       <bal:WixStandardBootstrapperApplication LicenseFile="..\LICENSE.rtf"/>
     </BootstrapperApplicationRef>
 
+    <bal:Condition Message="This application requires Service Pack 2 for Windows Vista / Server 2008.">
+      <![CDATA[NOT (VersionNT = v6.0 AND ServicePackLevel < 2)]]>
+    </bal:Condition>
+
+    <!-- v6.1 Service Pack 1 -->
+    <bal:Condition Message="This application requires Service Pack 1 for Windows 7 / Server 2008 R2.">
+      <![CDATA[NOT (VersionNT = v6.1 AND ServicePackLevel < 1)]]>
+    </bal:Condition>
+
+    <!-- v6.3 KB2919355 -->
+    <util:FileSearch
+      Id="HAL.DLL"
+      Path="[WindowsFolder]System32\hal.dll"
+      Result="version"
+      Variable="NT603HALVER"
+      Condition="VersionNT = v6.3" />
+    <bal:Condition Message="This application requires S14 Update (KB2919355) for Windows 8.1 / Server 2012 R2.">
+      <![CDATA[NOT (VersionNT = v6.3 AND NT603HALVER < v6.3.9600.17031)]]>
+    </bal:Condition>
+
+    <!-- Visual C++ 2015-2019 Redistributable (x64) minimum runtime msi package version -->
+    <util:ProductSearch
+      Id="VCRedist2015x64"
+      Result="version"
+      Variable="VCRedist2015x64"
+      UpgradeCode="36F68A90-239C-34DF-B58C-64B30153CE35"
+      Condition="VersionNT64" />
+
+    <!-- Visual C++ 2015-2019 Redistributable (x86) minimum runtime msi package version -->
+    <util:ProductSearch
+      Id="VCRedist2015x86"
+      Result="version"
+      Variable="VCRedist2015x86"
+      UpgradeCode="65E5BD06-6392-3027-8C26-853107D3CF1A"
+      Condition="VersionNT" />
+
+    <!-- Visual C++ 2015-2019 Redistributable minimum runtime msi package version -->
+    <Variable Name="VCRedist2015" Type="version" Value="14.29.30133.0" />
+
     <Chain>
-      <ExePackage SourceFile="..\vcredist\$(var.VcRedistFileName)"
-                  Name="Redist\$(var.VcRedistFileName)"
-                  Cache="no"
-                  Compressed="yes"
-                  InstallCommand="/install /quiet /norestart">
+      <!-- Visual C++ 2015-2019 Redistributable (x64) - 14.29.30133 -->
+      <ExePackage
+        Id="vc_redist.x64.exe"
+        Name="vc_redist.x64.14.29.30133.0.exe"
+        DisplayName="Microsoft Visual C++ 2015-2019 Redistributable (x64) - 14.29.30133"
+        Cache="no"
+        Compressed="no"
+        PerMachine="yes"
+        Permanent="yes"
+        Protocol="burn"
+        InstallCondition="VersionNT64"
+        DetectCondition="VCRedist2015x64 >= VCRedist2015"
+        DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/7239cdc3-bd73-4f27-9943-22de059a6267/003063723B2131DA23F40E2063FB79867BAE275F7B5C099DBD1792E25845872B/VC_redist.x64.exe"
+        InstallCommand="/install /quiet /norestart"
+        RepairCommand="/repair /quiet /norestart"
+        UninstallCommand="/uninstall /quiet /norestart" >
+        <RemotePayload
+          ProductName="Microsoft Visual C++ 2015-2019 Redistributable (x64) - 14.29.30133"
+          Description="Microsoft Visual C++ 2015-2019 Redistributable (x64) - 14.29.30133"
+          Version="14.29.30133.0"
+          CertificatePublicKey="358CD8B7FB6F985952B53A93374BBB6E1F3DEE08"
+          CertificateThumbprint="C774204049D25D30AF9AC2F116B3C1FB88EE00A4"
+          Hash="27FBB5058BAD2B41B353900792A3D808E95331B5"
+          Size="25167488" />
         <!-- Ignore "Newer version installed" error -->
         <ExitCode Value="1638" Behavior="success"/>
       </ExePackage>
 
+      <!-- Visual C++ 2015-2019 Redistributable (x86) - 14.29.30133 -->
+      <ExePackage
+        Id="vc_redist.x86.exe"
+        Name="vc_redist.x86.14.29.30133.0.exe"
+        DisplayName="Microsoft Visual C++ 2015-2019 Redistributable (x86) - 14.29.30133"
+        Cache="no"
+        Compressed="no"
+        PerMachine="yes"
+        Permanent="yes"
+        Protocol="burn"
+        InstallCondition="VersionNT"
+        DetectCondition="VCRedist2015x86 >= VCRedist2015"
+        DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/221ed2ae-1269-497b-a962-e113045001fa/1ACD8D5EA1CDC3EB2EB4C87BE3AB28722D0825C15449E5C9CEEF95D897DE52FA/VC_redist.x86.exe"
+        InstallCommand="/install /quiet /norestart"
+        RepairCommand="/repair /quiet /norestart"
+        UninstallCommand="/uninstall /quiet /norestart" >
+        <RemotePayload
+          ProductName="Microsoft Visual C++ 2015-2019 Redistributable (x86) - 14.29.30133"
+          Description="Microsoft Visual C++ 2015-2019 Redistributable (x86) - 14.29.30133"
+          Version="14.29.30133.0"
+          CertificatePublicKey="358CD8B7FB6F985952B53A93374BBB6E1F3DEE08"
+          CertificateThumbprint="C774204049D25D30AF9AC2F116B3C1FB88EE00A4"
+          Hash="2C1AE47103E7F8D6072DF4A8D9CEB382724AC59B"
+          Size="13782872" />
+        <!-- Ignore "Newer version installed" error -->
+        <ExitCode Value="1638" Behavior="success"/>
+      </ExePackage>
       <MsiPackage Id="MtApiMsi"
                   SourceFile="..\build\installers\$(var.Configuration)\$(var.MsiSourceFileName)"
                   Visible="yes"

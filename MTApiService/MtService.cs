@@ -51,10 +51,7 @@ namespace MTApiService
 
         public MtService(IMtApiServer serverCallback)
         {
-            if (serverCallback == null)
-                throw new ArgumentNullException(nameof(serverCallback));
-
-            _server = serverCallback;
+            _server = serverCallback ?? throw new ArgumentNullException(nameof(serverCallback));
         }
 
         #region IMtApi

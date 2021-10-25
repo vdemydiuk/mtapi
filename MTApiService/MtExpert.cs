@@ -21,12 +21,9 @@ namespace MTApiService
         #region Public Methods
         public MtExpert(int handle, string symbol, double bid, double ask, IMetaTraderHandler mtHandler)
         {
-            if (mtHandler == null)
-                throw new ArgumentNullException(nameof(mtHandler));
-
             _quote = new MtQuote { ExpertHandle = handle, Instrument = symbol, Bid = bid, Ask =  ask};
             Handle = handle;
-            _mtHadler = mtHandler;
+            _mtHadler = mtHandler ?? throw new ArgumentNullException(nameof(mtHandler));
         }
 
         public virtual void Deinit()

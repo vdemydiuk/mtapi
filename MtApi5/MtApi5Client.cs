@@ -938,14 +938,14 @@ namespace MtApi5
                 ratesArray = new MqlRates[retVal.Length];
                 for(var i = 0; i < retVal.Length; i++)
                 {
-                    ratesArray[i] = new MqlRates(retVal[i].time
-                        , retVal[i].open
-                        , retVal[i].high
-                        , retVal[i].low
-                        , retVal[i].close
-                        , retVal[i].tick_volume
-                        , retVal[i].spread
-                        , retVal[i].real_volume);
+                    ratesArray[i] = new MqlRates(retVal[i].Time
+                        , retVal[i].Open
+                        , retVal[i].High
+                        , retVal[i].Low
+                        , retVal[i].Close
+                        , retVal[i].Tick_volume
+                        , retVal[i].Spread
+                        , retVal[i].Real_volume);
                 }
             }
 
@@ -972,14 +972,14 @@ namespace MtApi5
                 ratesArray = new MqlRates[retVal.Length];
                 for (var i = 0; i < retVal.Length; i++)
                 {
-                    ratesArray[i] = new MqlRates(retVal[i].time
-                        , retVal[i].open
-                        , retVal[i].high
-                        , retVal[i].low
-                        , retVal[i].close
-                        , retVal[i].tick_volume
-                        , retVal[i].spread
-                        , retVal[i].real_volume);
+                    ratesArray[i] = new MqlRates(retVal[i].Time
+                        , retVal[i].Open
+                        , retVal[i].High
+                        , retVal[i].Low
+                        , retVal[i].Close
+                        , retVal[i].Tick_volume
+                        , retVal[i].Spread
+                        , retVal[i].Real_volume);
                 }
             }
 
@@ -1006,14 +1006,14 @@ namespace MtApi5
                 ratesArray = new MqlRates[retVal.Length];
                 for (var i = 0; i < retVal.Length; i++)
                 {
-                    ratesArray[i] = new MqlRates(retVal[i].time
-                        , retVal[i].open
-                        , retVal[i].high
-                        , retVal[i].low
-                        , retVal[i].close
-                        , retVal[i].tick_volume
-                        , retVal[i].spread
-                        , retVal[i].real_volume);
+                    ratesArray[i] = new MqlRates(retVal[i].Time
+                        , retVal[i].Open
+                        , retVal[i].High
+                        , retVal[i].Low
+                        , retVal[i].Close
+                        , retVal[i].Tick_volume
+                        , retVal[i].Spread
+                        , retVal[i].Real_volume);
                 }
             }
 
@@ -2467,7 +2467,7 @@ namespace MtApi5
         ///</summary>
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
-        public int iAC(string symbol, ENUM_TIMEFRAMES period)
+        public int IAC(string symbol, ENUM_TIMEFRAMES period)
         {
             var commandParameters = new ArrayList { symbol, (int)period };
             return SendCommand<int>(Mt5CommandType.iAC, commandParameters);
@@ -2479,7 +2479,7 @@ namespace MtApi5
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="appliedVolume">The volume used. Can be any of ENUM_APPLIED_VOLUME values.</param>
-        public int iAD(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
+        public int IAD(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
         {
             var commandParameters = new ArrayList { symbol, (int)period, (int)appliedVolume };
             return SendCommand<int>(Mt5CommandType.iAD, commandParameters);
@@ -2491,7 +2491,7 @@ namespace MtApi5
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="adxPeriod">Period to calculate the index.</param>
-        public int iADX(string symbol, ENUM_TIMEFRAMES period, int adxPeriod)
+        public int IADX(string symbol, ENUM_TIMEFRAMES period, int adxPeriod)
         {
             var commandParameters = new ArrayList { symbol, (int)period, adxPeriod };
             return SendCommand<int>(Mt5CommandType.iADX, commandParameters);
@@ -2503,7 +2503,7 @@ namespace MtApi5
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="adxPeriod">Period to calculate the index.</param>
-        public int iADXWilder(string symbol, ENUM_TIMEFRAMES period, int adxPeriod)
+        public int IADXWilder(string symbol, ENUM_TIMEFRAMES period, int adxPeriod)
         {
             var commandParameters = new ArrayList { symbol, (int)period, adxPeriod };
             return SendCommand<int>(Mt5CommandType.iADXWilder, commandParameters);
@@ -2522,7 +2522,7 @@ namespace MtApi5
         ///<param name="lipsShift">The shift of the green line relative to the price chart.</param>
         ///<param name="maMethod">The method of averaging. Can be any of the ENUM_MA_METHOD values.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iAlligator(string symbol, ENUM_TIMEFRAMES period, int jawPeriod, int jawShift, int teethPeriod, 
+        public int IAlligator(string symbol, ENUM_TIMEFRAMES period, int jawPeriod, int jawShift, int teethPeriod, 
             int teethShift, int lipsPeriod, int lipsShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, jawPeriod, jawShift, teethPeriod, teethShift, lipsPeriod, lipsShift, (int)maMethod, (int)appliedPrice };
@@ -2539,7 +2539,7 @@ namespace MtApi5
         ///<param name="slowMaPeriod">Slow period for the smoothing coefficient calculation in the absence of trend.</param>
         ///<param name="amaShift">Shift of the indicator relative to the price chart.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iAMA(string symbol, ENUM_TIMEFRAMES period, int amaPeriod, int fastMaPeriod, int slowMaPeriod, int amaShift, ENUM_APPLIED_PRICE appliedPrice)
+        public int IAMA(string symbol, ENUM_TIMEFRAMES period, int amaPeriod, int fastMaPeriod, int slowMaPeriod, int amaShift, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, amaPeriod, fastMaPeriod, slowMaPeriod, amaShift, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iAMA, commandParameters);
@@ -2550,7 +2550,7 @@ namespace MtApi5
         ///</summary>
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
-        public int iAO(string symbol, ENUM_TIMEFRAMES period)
+        public int IAO(string symbol, ENUM_TIMEFRAMES period)
         {
             var commandParameters = new ArrayList { symbol, (int)period };
             return SendCommand<int>(Mt5CommandType.iAO, commandParameters);
@@ -2562,7 +2562,7 @@ namespace MtApi5
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="maPeriod">The value of the averaging period for the indicator calculation.</param>
-        public int iATR(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
+        public int IATR(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
             return SendCommand<int>(Mt5CommandType.iATR, commandParameters);
@@ -2574,7 +2574,7 @@ namespace MtApi5
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="maPeriod">The value of the averaging period for the indicator calculation.</param>
-        public int iBearsPower(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
+        public int IBearsPower(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
             return SendCommand<int>(Mt5CommandType.iBearsPower, commandParameters);
@@ -2589,7 +2589,7 @@ namespace MtApi5
         ///<param name="bandsShift">The shift the indicator relative to the price chart.</param>
         ///<param name="deviation">Deviation from the main line.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iBands(string symbol, ENUM_TIMEFRAMES period, int bandsPeriod, int bandsShift, double deviation, ENUM_APPLIED_PRICE appliedPrice)
+        public int IBands(string symbol, ENUM_TIMEFRAMES period, int bandsPeriod, int bandsShift, double deviation, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, bandsPeriod, bandsShift, deviation, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iBands, commandParameters);
@@ -2601,7 +2601,7 @@ namespace MtApi5
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="maPeriod">The averaging period for the indicator calculation.</param>
-        public int iBullsPower(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
+        public int IBullsPower(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
             return SendCommand<int>(Mt5CommandType.iBullsPower, commandParameters);
@@ -2614,7 +2614,7 @@ namespace MtApi5
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="maPeriod">The averaging period for the indicator calculation.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iCCI(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_PRICE appliedPrice)
+        public int ICCI(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iCCI, commandParameters);
@@ -2629,7 +2629,7 @@ namespace MtApi5
         ///<param name="slowMaPeriod">Slow averaging period for calculations.</param>
         ///<param name="maMethod">Smoothing type. Can be one of the averaging constants of ENUM_MA_METHOD.</param>
         ///<param name="appliedVolume">The volume used. Can be one of the constants of ENUM_APPLIED_VOLUME.</param>
-        public int iChaikin(string symbol, ENUM_TIMEFRAMES period, int fastMaPeriod, int slowMaPeriod, ENUM_MA_METHOD maMethod, ENUM_APPLIED_VOLUME appliedVolume)
+        public int IChaikin(string symbol, ENUM_TIMEFRAMES period, int fastMaPeriod, int slowMaPeriod, ENUM_MA_METHOD maMethod, ENUM_APPLIED_VOLUME appliedVolume)
         {
             var commandParameters = new ArrayList { symbol, (int)period, fastMaPeriod, slowMaPeriod, (int)maMethod, (int)appliedVolume };
             return SendCommand<int>(Mt5CommandType.iChaikin, commandParameters);
@@ -2643,7 +2643,7 @@ namespace MtApi5
         ///<param name="maPeriod">Averaging period (bars count) for calculations.</param>
         ///<param name="maShift">Shift of the indicator relative to the price chart.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iDEMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
+        public int IDEMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iDEMA, commandParameters);
@@ -2655,7 +2655,7 @@ namespace MtApi5
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="maPeriod">Averaging period (bars count) for calculations.</param>
-        public int iDeMarker(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
+        public int IDeMarker(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
             return SendCommand<int>(Mt5CommandType.iDeMarker, commandParameters);
@@ -2671,7 +2671,7 @@ namespace MtApi5
         ///<param name="maMethod">Smoothing type. Can be one of the values of ENUM_MA_METHOD.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         ///<param name="deviation">The deviation from the main line (in percents).</param>
-        public int iEnvelopes(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice, double deviation)
+        public int IEnvelopes(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice, double deviation)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)maMethod, (int)appliedPrice, deviation };
             return SendCommand<int>(Mt5CommandType.iEnvelopes, commandParameters);
@@ -2685,7 +2685,7 @@ namespace MtApi5
         ///<param name="maPeriod">Averaging period for the indicator calculations.</param>
         ///<param name="maMethod">Smoothing type. Can be one of the values of ENUM_MA_METHOD.</param>
         ///<param name="appliedVolume">The volume used. Can be one of the values of ENUM_APPLIED_VOLUME.</param>
-        public int iForce(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_MA_METHOD maMethod, ENUM_APPLIED_VOLUME appliedVolume)
+        public int IForce(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_MA_METHOD maMethod, ENUM_APPLIED_VOLUME appliedVolume)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)maMethod, (int)appliedVolume };
             return SendCommand<int>(Mt5CommandType.iForce, commandParameters);
@@ -2696,7 +2696,7 @@ namespace MtApi5
         ///</summary>
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
-        public int iForce(string symbol, ENUM_TIMEFRAMES period)
+        public int IForce(string symbol, ENUM_TIMEFRAMES period)
         {
             var commandParameters = new ArrayList { symbol, (int)period };
             return SendCommand<int>(Mt5CommandType.iForce, commandParameters);
@@ -2710,7 +2710,7 @@ namespace MtApi5
         ///<param name="maPeriod">Period (bars count) for the indicator calculations.</param>
         ///<param name="maShift">Shift of the indicator in the price chart.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iFrAMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
+        public int IFrAMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iFrAMA, commandParameters);
@@ -2729,7 +2729,7 @@ namespace MtApi5
         ///<param name="lipsShift">The shift of the green line relative to the price charts. It isn't directly connected with the visual shift of the indicator histogram.</param>
         ///<param name="maMethod">Smoothing type. Can be one of the values of ENUM_MA_METHOD.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iGator(string symbol, ENUM_TIMEFRAMES period, int jawPeriod, int jawShift, int teethPeriod, 
+        public int IGator(string symbol, ENUM_TIMEFRAMES period, int jawPeriod, int jawShift, int teethPeriod, 
             int teethShift, int lipsPeriod, int lipsShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, jawPeriod, jawShift, teethPeriod, teethShift, lipsPeriod, lipsShift, (int)maMethod, (int)appliedPrice };
@@ -2744,7 +2744,7 @@ namespace MtApi5
         ///<param name="tenkanSen">Averaging period for Tenkan Sen.</param>
         ///<param name="kijunSen">Averaging period for Kijun Sen.</param>
         ///<param name="senkouSpanB">Averaging period for Senkou Span B.</param>
-        public int iIchimoku(string symbol, ENUM_TIMEFRAMES period, int tenkanSen, int kijunSen, int senkouSpanB)
+        public int IIchimoku(string symbol, ENUM_TIMEFRAMES period, int tenkanSen, int kijunSen, int senkouSpanB)
         {
             var commandParameters = new ArrayList { symbol, (int)period, tenkanSen, kijunSen, senkouSpanB };
             return SendCommand<int>(Mt5CommandType.iIchimoku, commandParameters);
@@ -2756,7 +2756,7 @@ namespace MtApi5
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="appliedVolume">The volume used. Can be one of the constants of ENUM_APPLIED_VOLUME.</param>
-        public int iBWMFI(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
+        public int IBWMFI(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
         {
             var commandParameters = new ArrayList { symbol, (int)period, (int)appliedVolume };
             return SendCommand<int>(Mt5CommandType.iBWMFI, commandParameters);
@@ -2769,7 +2769,7 @@ namespace MtApi5
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="momPeriod">Averaging period (bars count) for the calculation of the price change.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iMomentum(string symbol, ENUM_TIMEFRAMES period, int momPeriod, ENUM_APPLIED_PRICE appliedPrice)
+        public int IMomentum(string symbol, ENUM_TIMEFRAMES period, int momPeriod, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, momPeriod, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iMomentum, commandParameters);
@@ -2782,7 +2782,7 @@ namespace MtApi5
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="maPeriod">Averaging period (bars count) for the calculation.</param>
         ///<param name="appliedVolume">The volume used. Can be any of the ENUM_APPLIED_VOLUME values.</param>
-        public int iMFI(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_VOLUME appliedVolume)
+        public int IMFI(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_VOLUME appliedVolume)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)appliedVolume };
             return SendCommand<int>(Mt5CommandType.iMFI, commandParameters);
@@ -2797,7 +2797,7 @@ namespace MtApi5
         ///<param name="maShift">Shift of the indicator relative to the price chart.</param>
         ///<param name="maMethod">Smoothing type. Can be one of the ENUM_MA_METHOD values.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
+        public int IMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)maMethod, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iMA, commandParameters);
@@ -2812,7 +2812,7 @@ namespace MtApi5
         ///<param name="slowEmaPeriod">Period for Slow Moving Average calculation.</param>
         ///<param name="signalPeriod">Averaging period for signal line calculation.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iOsMA(string symbol, ENUM_TIMEFRAMES period, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, ENUM_APPLIED_PRICE appliedPrice)
+        public int IOsMA(string symbol, ENUM_TIMEFRAMES period, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, fastEmaPeriod, slowEmaPeriod, signalPeriod, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iOsMA, commandParameters);
@@ -2827,7 +2827,7 @@ namespace MtApi5
         ///<param name="slowEmaPeriod">Period for Slow Moving Average calculation.</param>
         ///<param name="signalPeriod">Averaging period for signal line calculation.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iMACD(string symbol, ENUM_TIMEFRAMES period, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, ENUM_APPLIED_PRICE appliedPrice)
+        public int IMACD(string symbol, ENUM_TIMEFRAMES period, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, fastEmaPeriod, slowEmaPeriod, signalPeriod, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iMACD, commandParameters);
@@ -2839,7 +2839,7 @@ namespace MtApi5
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="appliedVolume">The volume used. Can be any of the ENUM_APPLIED_VOLUME values.</param>
-        public int iOBV(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
+        public int IOBV(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
         {
             var commandParameters = new ArrayList { symbol, (int)period, (int)appliedVolume };
             return SendCommand<int>(Mt5CommandType.iOBV, commandParameters);
@@ -2852,7 +2852,7 @@ namespace MtApi5
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="step">The step of price increment, usually  0.02.</param>
         ///<param name="maximum">The maximum step, usually 0.2.</param>
-        public int iSAR(string symbol, ENUM_TIMEFRAMES period, double step, double maximum)
+        public int ISAR(string symbol, ENUM_TIMEFRAMES period, double step, double maximum)
         {
             var commandParameters = new ArrayList { symbol, (int)period, step, maximum };
             return SendCommand<int>(Mt5CommandType.iSAR, commandParameters);
@@ -2865,7 +2865,7 @@ namespace MtApi5
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="maPeriod">Averaging period for the RSI calculation.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iRSI(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_PRICE appliedPrice)
+        public int IRSI(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iRSI, commandParameters);
@@ -2877,7 +2877,7 @@ namespace MtApi5
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="maPeriod">Averaging period for the RVI calculation.</param>
-        public int iRVI(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
+        public int IRVI(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
             return SendCommand<int>(Mt5CommandType.iRVI, commandParameters);
@@ -2892,7 +2892,7 @@ namespace MtApi5
         ///<param name="maShift">Shift of the indicator relative to the price chart.</param>
         ///<param name="maMethod">Type of averaging. Can be any of the ENUM_MA_METHOD values.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iStdDev(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
+        public int IStdDev(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)maMethod, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iStdDev, commandParameters);
@@ -2908,7 +2908,7 @@ namespace MtApi5
         ///<param name="slowing">Slowing value.</param>
         ///<param name="maMethod">Type of averaging. Can be any of the ENUM_MA_METHOD values.</param>
         ///<param name="priceField">Parameter of price selection for calculations. Can be one of the ENUM_STO_PRICE values.</param>
-        public int iStochastic(string symbol, ENUM_TIMEFRAMES period, int Kperiod, int Dperiod, int slowing, ENUM_MA_METHOD maMethod, ENUM_STO_PRICE priceField)
+        public int IStochastic(string symbol, ENUM_TIMEFRAMES period, int Kperiod, int Dperiod, int slowing, ENUM_MA_METHOD maMethod, ENUM_STO_PRICE priceField)
         {
             var commandParameters = new ArrayList { symbol, (int)period, Kperiod, Dperiod, slowing, (int)maMethod, (int)priceField };
             return SendCommand<int>(Mt5CommandType.iStochastic, commandParameters);
@@ -2922,7 +2922,7 @@ namespace MtApi5
         ///<param name="maPeriod">Averaging period (bars count) for calculation.</param>
         ///<param name="maShift">Shift of indicator relative to the price chart.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iTEMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
+        public int ITEMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iTEMA, commandParameters);
@@ -2935,7 +2935,7 @@ namespace MtApi5
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="maPeriod">Averaging period (bars count) for calculation.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iTriX(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_PRICE appliedPrice)
+        public int ITriX(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iTriX, commandParameters);
@@ -2947,7 +2947,7 @@ namespace MtApi5
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="calcPeriod">Period (bars count) for the indicator calculation.</param>
-        public int iWPR(string symbol, ENUM_TIMEFRAMES period, int calcPeriod)
+        public int IWPR(string symbol, ENUM_TIMEFRAMES period, int calcPeriod)
         {
             var commandParameters = new ArrayList { symbol, (int)period, calcPeriod };
             return SendCommand<int>(Mt5CommandType.iWPR, commandParameters);
@@ -2962,7 +2962,7 @@ namespace MtApi5
         ///<param name="emaPeriod">EMA period (bars count) for smoothing factor calculation.</param>
         ///<param name="maShift">Shift of the indicator relative to the price chart.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iVIDyA(string symbol, ENUM_TIMEFRAMES period, int cmoPeriod, int emaPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
+        public int IVIDyA(string symbol, ENUM_TIMEFRAMES period, int cmoPeriod, int emaPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, cmoPeriod, emaPeriod, maShift, (int)appliedPrice };
             return SendCommand<int>(Mt5CommandType.iVIDyA, commandParameters);
@@ -2974,7 +2974,7 @@ namespace MtApi5
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="appliedVolume">The volume used. Can be any of the ENUM_APPLIED_VOLUME values.</param>
-        public int iVolumes(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
+        public int IVolumes(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
         {
             var commandParameters = new ArrayList { symbol, (int)period, (int)appliedVolume };
             return SendCommand<int>(Mt5CommandType.iVolumes, commandParameters);
@@ -2987,7 +2987,7 @@ namespace MtApi5
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="name">The name of the custom indicator, with path relative to the root directory of indicators (MQL5/Indicators/). If an indicator is located in a subdirectory, for example, in MQL5/Indicators/Examples, its name must be specified like: "Examples\\indicator_name" (it is necessary to use a double slash instead of the single slash as a separator).</param>
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
-        public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, double[] parameters)
+        public int ICustom(string symbol, ENUM_TIMEFRAMES period, string name, double[] parameters)
         {
             Log.Debug("iCustom: called.");
             var response = SendRequest<int>(new ICustomRequest
@@ -3009,7 +3009,7 @@ namespace MtApi5
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="name">The name of the custom indicator, with path relative to the root directory of indicators (MQL5/Indicators/). If an indicator is located in a subdirectory, for example, in MQL5/Indicators/Examples, its name must be specified like: "Examples\\indicator_name" (it is necessary to use a double slash instead of the single slash as a separator).</param>
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
-        public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, int[] parameters)
+        public int ICustom(string symbol, ENUM_TIMEFRAMES period, string name, int[] parameters)
         {
             Log.Debug("iCustom: called.");
             var response = SendRequest<int>(new ICustomRequest
@@ -3031,7 +3031,7 @@ namespace MtApi5
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="name">The name of the custom indicator, with path relative to the root directory of indicators (MQL5/Indicators/). If an indicator is located in a subdirectory, for example, in MQL5/Indicators/Examples, its name must be specified like: "Examples\\indicator_name" (it is necessary to use a double slash instead of the single slash as a separator).</param>
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
-        public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, string[] parameters)
+        public int ICustom(string symbol, ENUM_TIMEFRAMES period, string name, string[] parameters)
         {
             Log.Debug("iCustom: called.");
             var response = SendRequest<int>(new ICustomRequest
@@ -3053,7 +3053,7 @@ namespace MtApi5
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         ///<param name="name">The name of the custom indicator, with path relative to the root directory of indicators (MQL5/Indicators/). If an indicator is located in a subdirectory, for example, in MQL5/Indicators/Examples, its name must be specified like: "Examples\\indicator_name" (it is necessary to use a double slash instead of the single slash as a separator).</param>
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
-        public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, bool[] parameters)
+        public int ICustom(string symbol, ENUM_TIMEFRAMES period, string name, bool[] parameters)
         {
             Log.Debug("iCustom: called.");
             var response = SendRequest<int>(new ICustomRequest
@@ -3366,12 +3366,12 @@ namespace MtApi5
                 if (state == Mt5ConnectionState.Connected)
                 {
                     _client = client;
-                    _client.QuoteAdded += _client_QuoteAdded;
-                    _client.QuoteRemoved += _client_QuoteRemoved;
-                    _client.QuoteUpdated += _client_QuoteUpdated;
-                    _client.ServerDisconnected += _client_ServerDisconnected;
-                    _client.ServerFailed += _client_ServerFailed;
-                    _client.MtEventReceived += _client_MtEventReceived;
+                    _client.QuoteAdded += Client_QuoteAdded;
+                    _client.QuoteRemoved += Client_QuoteRemoved;
+                    _client.QuoteUpdated += Client_QuoteUpdated;
+                    _client.ServerDisconnected += Client_ServerDisconnected;
+                    _client.ServerFailed += Client_ServerFailed;
+                    _client.MtEventReceived += Client_MtEventReceived;
                     message = string.IsNullOrEmpty(client.Host) ? $"Connected to localhost:{client.Port}" : $"Connected to  { client.Host}:{client.Port}";
 
                     Log.Info(message);
@@ -3389,7 +3389,7 @@ namespace MtApi5
         }
 
 
-        private void _client_MtEventReceived(MtEvent e)
+        private void Client_MtEventReceived(MtEvent e)
         {
             var eventType = (Mt5EventTypes)e.EventType;
             _mtEventHandlers[eventType](e.ExpertHandle, e.Payload);
@@ -3420,12 +3420,12 @@ namespace MtApi5
         private void ReceivedOnTickEvent(int expertHandler, string payload)
         {
             var e = JsonConvert.DeserializeObject<OnTickEvent>(payload);
-            var quote = new Mt5Quote(e.Instrument, e.Tick.bid, e.Tick.ask)
+            var quote = new Mt5Quote(e.Instrument, e.Tick.Bid, e.Tick.Ask)
             {
                 ExpertHandle = expertHandler,
-                Volume = e.Tick.volume,
-                Time = e.Tick.time,
-                Last = e.Tick.last
+                Volume = e.Tick.Volume,
+                Time = e.Tick.Time,
+                Last = e.Tick.Last
             };
 
             QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
@@ -3469,12 +3469,12 @@ namespace MtApi5
 
                 if (_client != null)
                 {
-                    _client.QuoteAdded -= _client_QuoteAdded;
-                    _client.QuoteRemoved -= _client_QuoteRemoved;
-                    _client.QuoteUpdated -= _client_QuoteUpdated;
-                    _client.ServerDisconnected -= _client_ServerDisconnected;
-                    _client.ServerFailed -= _client_ServerFailed;
-                    _client.MtEventReceived -= _client_MtEventReceived;
+                    _client.QuoteAdded -= Client_QuoteAdded;
+                    _client.QuoteRemoved -= Client_QuoteRemoved;
+                    _client.QuoteUpdated -= Client_QuoteUpdated;
+                    _client.ServerDisconnected -= Client_ServerDisconnected;
+                    _client.ServerFailed -= Client_ServerFailed;
+                    _client.MtEventReceived -= Client_MtEventReceived;
 
                     if (!failed)
                     {
@@ -3534,7 +3534,7 @@ namespace MtApi5
         private T SendRequest<T>(RequestBase request)
         {
             if (request == null)
-                return default(T);
+                return default;
 
             var serializer = JsonConvert.SerializeObject(request, Formatting.None,
                             new JsonSerializerSettings
@@ -3562,24 +3562,24 @@ namespace MtApi5
         }
 
 
-        private void _client_QuoteUpdated(MtQuote quote)
+        private void Client_QuoteUpdated(MtQuote quote)
         {
             if (quote == null) return;
             QuoteUpdate?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote(quote)));
             QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
         }
 
-        private void _client_ServerDisconnected(object sender, EventArgs e)
+        private void Client_ServerDisconnected(object sender, EventArgs e)
         {
             Disconnect(false);
         }
 
-        private void _client_ServerFailed(object sender, EventArgs e)
+        private void Client_ServerFailed(object sender, EventArgs e)
         {
             Disconnect(true);
         }
 
-        private void _client_QuoteRemoved(MtQuote quote)
+        private void Client_QuoteRemoved(MtQuote quote)
         {
             if (quote != null)
             {
@@ -3587,7 +3587,7 @@ namespace MtApi5
             }
         }
 
-        private void _client_QuoteAdded(MtQuote quote)
+        private void Client_QuoteAdded(MtQuote quote)
         {
             if (quote != null)
             {

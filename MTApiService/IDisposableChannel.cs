@@ -46,8 +46,8 @@ namespace MTApiService
                 {
                     ICommunicationObject ico = null;
 
-                    if (proxy is ICommunicationObject)
-                        ico = (ICommunicationObject)proxy;
+                    if (proxy is ICommunicationObject @object)
+                        ico = @object;
 
                     // This state may change after the test and there's no known way to synchronize
                     // so that's why we just give it our best shot
@@ -63,7 +63,7 @@ namespace MTApiService
                             ico.Abort(); // Sometimes being nice isn't an option
                         }
 
-                    proxy = default(T);
+                    proxy = default;
                 }
             }
 

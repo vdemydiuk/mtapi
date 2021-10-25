@@ -30,7 +30,7 @@ namespace MtApi.Monitors.Triggers
         public NewBarTrigger(MtApiClient apiClient)
         {
             _apiClient = apiClient;
-            _apiClient.OnLastTimeBar += _apiClient_OnLastTimeBar;
+            _apiClient.OnLastTimeBar += ApiClient_OnLastTimeBar;
         }
         #endregion
 
@@ -46,7 +46,7 @@ namespace MtApi.Monitors.Triggers
         #endregion
 
         #region Private methods
-        private void _apiClient_OnLastTimeBar(object sender, TimeBarArgs e)
+        private void ApiClient_OnLastTimeBar(object sender, TimeBarArgs e)
         {
             if (_isStarted)
                 Raised?.Invoke(this, EventArgs.Empty);
@@ -58,9 +58,9 @@ namespace MtApi.Monitors.Triggers
             {
                 _isStarted = value;
                 if (value)
-                    _apiClient.OnLastTimeBar += _apiClient_OnLastTimeBar;
+                    _apiClient.OnLastTimeBar += ApiClient_OnLastTimeBar;
                 else
-                    _apiClient.OnLastTimeBar -= _apiClient_OnLastTimeBar;
+                    _apiClient.OnLastTimeBar -= ApiClient_OnLastTimeBar;
             }
         }
         #endregion

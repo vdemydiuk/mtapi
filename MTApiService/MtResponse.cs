@@ -10,6 +10,7 @@ namespace MTApiService
     [KnownType("GetKnownTypes")]
     public abstract class MtResponse
     {
+#if FIXME // someone needs to figure out why this is unused
         static IEnumerable<Type> GetKnownTypes()
         {
             return new Type[] { typeof(MtResponseObject),
@@ -20,7 +21,7 @@ namespace MTApiService
                                 typeof(MtResponseLongArray),
                                 typeof(MtResponseArrayList), typeof(MtResponseMqlRatesArray)};
         }
-
+#endif
         public abstract object GetValue();
 
         [DataMember]

@@ -5,22 +5,22 @@ namespace MtApi5
     {
         public MqlBookInfo(ENUM_BOOK_TYPE type, double price, long volume)
         {
-            this.type = type;
-            this.price = price;
-            this.volume = volume;
+            this.Type = type;
+            this.Price = price;
+            this.Volume = volume;
         }
 
         public MqlBookInfo()
         { }
 
-        public ENUM_BOOK_TYPE type { get; set; }    // Order type from ENUM_BOOK_TYPE enumeration
-        public double price { get; set; }           // Price
-        public long volume { get; set; }            // Volume
-        public double volume_real { get; set; }   // Volume for the current Last price with greater accuracy 
+        public ENUM_BOOK_TYPE Type { get; set; }    // Order type from ENUM_BOOK_TYPE enumeration
+        public double Price { get; set; }           // Price
+        public long Volume { get; set; }            // Volume
+        public double Volume_real { get; set; }   // Volume for the current Last price with greater accuracy 
 
         public override string ToString()
         {
-            return $"type = {type}; price = {price}; volume = {volume}";
+            return $"type = {Type}; price = {Price}; volume = {Volume}";
         }
     }
 }

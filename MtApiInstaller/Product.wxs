@@ -71,19 +71,20 @@
 
                 <RegistryKey Root="HKLM"
                     Key="Software\Microsoft\.NetFramework\v4.0.30319\AssemblyFoldersEx\$(var.ProductName)"
-                    Action="createAndRemoveOnUninstall">
+                    ForceCreateOnInstall="yes"
+                    ForceDeleteOnUninstall="yes">
                   <RegistryValue Type="string" Value="[INSTALLFOLDER]"/>
                 </RegistryKey>
             </Component>
 
             <!--<Component Id="MTApiServiceDll" Directory="INSTALLFOLDER">
                 <File Id="GAC_MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
-                    src="$(var.ProductPath)MTApiService.dll"/>
+                    Source="$(var.ProductPath)MTApiService.dll"/>
             </Component>-->
 
             <Component Id="NewtonsoftJsondll" Directory="INSTALLFOLDER">
                 <File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" KeyPath="yes"
-                    src="$(var.ProductPath)Newtonsoft.Json.dll"/>
+                    Source="$(var.ProductPath)Newtonsoft.Json.dll"/>
             </Component>
           
             <Component Id="MtApiExpert" Directory="ExpertFolder">
@@ -103,15 +104,16 @@
           <Component Id="ConnectionProfileRegistryKey" Guid="*" Directory="INSTALLFOLDER">
             <RegistryKey Root="HKCU"
                          Key="Software\MtApi\ConnectionProfiles\Local"
-                  Action="createAndRemoveOnUninstall">
-              <RegistryValue Type="string" Name="Host" Value=""/>
-              <RegistryValue Type="integer" Name="Port" Value="8222" KeyPath="yes"/>
+                         ForceCreateOnInstall="yes"
+                         ForceDeleteOnUninstall="yes">
+            <RegistryValue Type="string" Name="Host" Value=""/>
+            <RegistryValue Type="integer" Name="Port" Value="8222" KeyPath="yes"/>
             </RegistryKey>
           </Component>
 
           <Component Id="MTApiServiceDllGAC" Guid="7285AE3C-D4A9-482A-BC7E-8F5B2A0FE97E" Directory="GAC">
             <File Id="MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
-                src="$(var.ProductPath)MTApiService.dll" Checksum="yes"
+                Source="$(var.ProductPath)MTApiService.dll" Checksum="yes"
                 Assembly=".net" AssemblyManifest="MTApiService.dll" Vital="yes" />
           </Component>
 

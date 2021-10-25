@@ -8,10 +8,7 @@ namespace MtApi5TestClient
     {
         public MqlTradeRequestViewModel(MqlTradeRequest reqest)
         {
-            if (reqest == null)
-                throw new ArgumentNullException();
-
-            TradeRequest = reqest;
+            TradeRequest = reqest ?? throw new ArgumentNullException();
         }
 
         private MqlTradeRequest TradeRequest { get; set; }
@@ -176,8 +173,7 @@ namespace MtApi5TestClient
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
     }

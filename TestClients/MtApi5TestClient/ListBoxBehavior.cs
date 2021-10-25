@@ -33,8 +33,7 @@ namespace MtApi5TestClient
             DependencyObject d,
             DependencyPropertyChangedEventArgs e)
         {
-            var listBox = d as ListBox;
-            if (listBox == null) return;
+            if (!(d is ListBox listBox)) return;
             bool oldValue = (bool)e.OldValue, newValue = (bool)e.NewValue;
             if (newValue == oldValue) return;
             if (newValue)
@@ -74,8 +73,7 @@ namespace MtApi5TestClient
         static void ListBox_Loaded(object sender, RoutedEventArgs e)
         {
             var listBox = (ListBox)sender;
-            var incc = listBox.Items as INotifyCollectionChanged;
-            if (incc == null) return;
+            if (!(listBox.Items is INotifyCollectionChanged incc)) return;
             listBox.Loaded -= ListBox_Loaded;
             Associations[listBox] = new Capture(listBox);
         }
@@ -91,11 +89,11 @@ namespace MtApi5TestClient
                 incc = listBox.ItemsSource as INotifyCollectionChanged;
                 if (incc != null)
                 {
-                    incc.CollectionChanged += incc_CollectionChanged;
+                    incc.CollectionChanged += Incc_CollectionChanged;
                 }
             }
 
-            void incc_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+            void Incc_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
             {
                 if (e.Action == NotifyCollectionChangedAction.Add)
                 {
@@ -107,7 +105,7 @@ namespace MtApi5TestClient
             public void Dispose()
             {
                 if (incc != null)
-                    incc.CollectionChanged -= incc_CollectionChanged;
+                    incc.CollectionChanged -= Incc_CollectionChanged;
             }
         }
     }

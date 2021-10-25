@@ -53,7 +53,7 @@ namespace MTApiService
                 else
                 {
                     server = new MtServer(port);
-                    server.Stopped += server_Stopped;
+                    server.Stopped += Server_Stopped;
                     _servers[port] = server;
 
                     server.Start();
@@ -244,7 +244,7 @@ namespace MTApiService
                 Log.WarnFormat("ContainsNamedParameter: expert with id {0} has not been found.", expertHandle);
             }
 
-            bool retval = expert != null ? expert.ContainsNamedParameter(name) : false;
+            bool retval = expert != null && expert.ContainsNamedParameter(name);
 
             Log.DebugFormat("ContainsNamedParameter: end. retval = {0}", retval);
 
@@ -258,10 +258,10 @@ namespace MTApiService
         #endregion
 
         #region Private Methods
-        private void server_Stopped(object sender, EventArgs e)
+        private void Server_Stopped(object sender, EventArgs e)
         {
             var server = (MtServer)sender;
-            server.Stopped -= server_Stopped;
+            server.Stopped -= Server_Stopped;
 
             var port = server.Port;
 
@@ -281,8 +281,7 @@ namespace MTApiService
         {
             Log.Debug("ExpertOnDeinited: begin.");
 
-            var expert = sender as MtExpert;
-            if (expert == null)
+            if (!(sender is MtExpert expert))
             {
                 Log.Warn("expert_Deinited: end. Expert is not defined.");
                 return;
