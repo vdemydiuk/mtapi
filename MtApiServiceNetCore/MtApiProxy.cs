@@ -1,48 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 
 namespace MTApiService
 {
-    internal class MtApiProxy : IMtApi, IDisposable
+    internal class MtApiProxy : DuplexClientBase<IMtApi>, IMtApi, IDisposable
     {
-        private IMtApi InnerChannel;
-
-        public CommunicationState State => ((ICommunicationObject)InnerChannel).State;
-
         public MtApiProxy(InstanceContext callbackContext, Binding binding, EndpointAddress remoteAddress)
+            : base(callbackContext, binding, remoteAddress)
         {
-            var channel = new DuplexChannelFactory<IMtApi>(callbackContext, binding, remoteAddress);
-            channel.Faulted += InnerDuplexChannel_Faulted;
-
-            // configure endpoint programmatically instead via an attribute which will lead to a PlatformNotSupportedException
-            (channel.Endpoint.EndpointBehaviors.Single(b => b is CallbackBehaviorAttribute) as CallbackBehaviorAttribute).UseSynchronizationContext = false;
-
-            InnerChannel = channel.CreateChannel();
+            InnerChannel.Faulted += InnerDuplexChannel_Faulted;
         }
 
         #region IMtApi Members
 
         public bool Connect()
         {
-            return InnerChannel.Connect();
+            InnerChannel.Open();
+            return Channel.Connect();
         }
 
         public void Disconnect()
         {
-            InnerChannel.Disconnect();
+            Channel.Disconnect();
         }
 
         public MtResponse SendCommand(MtCommand command)
         {
-            return InnerChannel.SendCommand(command);
+            return Channel.SendCommand(command);
         }
 
         public List<MtQuote> GetQuotes()
         {
-            return InnerChannel.GetQuotes();
+            return Channel.GetQuotes();
         }
 
         #endregion
@@ -53,11 +44,19 @@ namespace MTApiService
         {
             try
             {
-                Disconnect();
+                Close();
+            }
+            catch (CommunicationException)
+            {
+                Abort();
+            }
+            catch (TimeoutException)
+            {
+                Abort();
             }
             catch (Exception)
             {
-
+                Abort();
             }
         }
 
