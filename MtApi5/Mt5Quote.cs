@@ -3,7 +3,7 @@ using MTApiService;
 
 namespace MtApi5
 {
-    public class Mt5Quote
+    public class Mt5Quote : IMt5Quote
     {
         public string Instrument { get; }
         public double Bid { get; }
@@ -12,8 +12,8 @@ namespace MtApi5
         public DateTime Time { get; set; }
         public double Last { get; set; }
         public ulong Volume { get; set; }
-//        public long TimeMsc { get; set; }
-//        public uint Flags { get; set; }
+        //        public long TimeMsc { get; set; }
+        //        public uint Flags { get; set; }
 
         internal Mt5Quote(string instrument, double bid, double ask)
         {
@@ -23,7 +23,7 @@ namespace MtApi5
         }
 
         internal Mt5Quote(MtQuote quote)
-            :this(quote.Instrument, quote.Bid, quote.Ask)
+            : this(quote.Instrument, quote.Bid, quote.Ask)
         {
             ExpertHandle = quote.ExpertHandle;
         }

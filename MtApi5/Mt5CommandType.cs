@@ -255,6 +255,8 @@ namespace MtApi5
 
         UnlockTicks                         = 159,
         PositionCloseAll                    = 160,
-        TesterStop                          = 161
+        TesterStop                          = 161,
+        TesterDeposit                       = 162,
+        TesterWithdrawal                    = 163
     }
 }

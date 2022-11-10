@@ -196,6 +196,7 @@ namespace MTApiService
             {
                 lastQuoteTask = lastQuoteTask.ContinueWith((t) => QuoteUpdated.Invoke(quote));
             }
+
             Log.Debug("OnQuoteUpdate: end.");
         }
 
@@ -207,6 +208,7 @@ namespace MTApiService
             {
                 lastQuoteTask = lastQuoteTask.ContinueWith((t) => QuoteAdded.Invoke(quote));
             }
+
             Log.Debug("OnQuoteAdded: end.");
         }
 
@@ -218,6 +220,7 @@ namespace MTApiService
             {
                 lastQuoteTask = lastQuoteTask.ContinueWith((t) => QuoteRemoved.Invoke(quote));
             }
+
             Log.Debug("OnQuoteRemoved: end.");
         }
 
@@ -239,6 +242,7 @@ namespace MTApiService
             {
                 lastEventTask = lastEventTask.ContinueWith((t) => MtEventReceived.Invoke(e));
             }
+
             Log.Debug("OnMtEvent: end.");
         }
 
