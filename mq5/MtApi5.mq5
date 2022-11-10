@@ -820,7 +820,13 @@ int executeCommand()
    break;
    case 161: //TesterStop
       Execute_TesterStop();
-   break;   
+   break;
+   case 162: //TesterDeposit
+      Execute_TesterDeposit();
+   break;
+   case 163: //TesterWithdrawal
+      Execute_TesterWithdrawal();
+   break;
    case 204: //TerminalInfoInteger
       Execute_TerminalInfoInteger();
    break;
@@ -991,7 +997,7 @@ void Execute_Request()
 
 void Execute_OrderSend()
 {
-   MqlTradeRequest request={0};      
+   MqlTradeRequest request={};      
    ReadMqlTradeRequestFromCommand(request);
    
    MqlTradeResult result={0};
@@ -6699,6 +6705,64 @@ void Execute_TesterStop()
    }   
 }
 
+void Execute_TesterWithdrawal()
+{
+   bool retVal = false;
+
+   if (!IsTesting())
+   {
+      Print("WARNING: function TesterWithdrawal can be used only for backtesting");
+   }
+   else
+   {
+      Print("TesterWithdrawal called.");
+      double money;
+      
+      if (!getDoubleValue(ExpertHandle, 0, money, _error))
+      {
+         PrintParamError("TesterWithdrawal", "money", _error);
+         sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+         return;
+      }
+   
+      retVal = TesterWithdrawal(money);
+   } 
+   
+   if (!sendBooleanResponse(ExpertHandle, retVal, _response_error))
+   {
+      PrintResponseError("TesterWithdrawal", _response_error);
+   }
+}
+
+void Execute_TesterDeposit()
+{
+   bool retVal = false;
+
+   if (!IsTesting())
+   {
+      Print("WARNING: function TesterDeposit can be used only for backtesting");
+   }
+   else
+   {
+      Print("TesterDeposit called.");
+      double money;
+      
+      if (!getDoubleValue(ExpertHandle, 0, money, _error))
+      {
+         PrintParamError("TesterDeposit", "money", _error);
+         sendErrorResponse(ExpertHandle, -1, _error, _response_error);
+         return;
+      }
+   
+      retVal = TesterDeposit(money);
+   } 
+   
+   if (!sendBooleanResponse(ExpertHandle, retVal, _response_error))
+   {
+      PrintResponseError("TesterDeposit", _response_error);
+   }
+}
+
 void Execute_TerminalInfoInteger()
 {
    int propertyId;
@@ -7155,7 +7219,7 @@ string ExecuteRequest_OrderSend(JSONObject *jo)
    CHECK_JSON_VALUE(jo, "TradeRequest", CreateErrorResponse(-1, "Undefinded mandatory parameter TradeRequest"));
    JSONObject* trade_request_jo = jo.getObject("TradeRequest");
       
-   MqlTradeRequest trade_request = {0};
+   MqlTradeRequest trade_request = {};
    bool converted = JsonToMqlTradeRequest(trade_request_jo, trade_request);
    if (converted == false)
       return CreateErrorResponse(-1, "Failed to parse parameter TradeRequest");
@@ -7179,7 +7243,7 @@ string ExecuteRequest_OrderSendAsync(JSONObject *jo)
    CHECK_JSON_VALUE(jo, "TradeRequest", CreateErrorResponse(-1, "Undefinded mandatory parameter TradeRequest"));
    JSONObject* trade_request_jo = jo.getObject("TradeRequest");
       
-   MqlTradeRequest trade_request = {0};
+   MqlTradeRequest trade_request = {};
    bool converted = JsonToMqlTradeRequest(trade_request_jo, trade_request);
    if (converted == false)
       return CreateErrorResponse(-1, "Failed to parse parameter TradeRequest");
@@ -7254,7 +7318,7 @@ string ExecuteRequest_OrderCheck(JSONObject *jo)
    CHECK_JSON_VALUE(jo, "TradeRequest", CreateErrorResponse(-1, "Undefinded mandatory parameter TradeRequest"));
    JSONObject* trade_request_jo = jo.getObject("TradeRequest");
       
-   MqlTradeRequest trade_request = {0};
+   MqlTradeRequest trade_request = {};
    JsonToMqlTradeRequest(trade_request_jo, trade_request);
    
    MqlTradeCheckResult trade_check_result = {0};   
