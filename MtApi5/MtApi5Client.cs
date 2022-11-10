@@ -12,13 +12,13 @@ using MtApi5.Events;
 
 namespace MtApi5
 {
-    public class MtApi5Client
+    public class MtApi5Client : IMtApi5Client
     {
         #region MT Constants
-        public const int SYMBOL_EXPIRATION_GTC              = 1;
-        public const int SYMBOL_EXPIRATION_DAY              = 2;
-        public const int SYMBOL_EXPIRATION_SPECIFIED        = 4;
-        public const int SYMBOL_EXPIRATION_SPECIFIED_DAY    = 8;
+        public const int SYMBOL_EXPIRATION_GTC = 1;
+        public const int SYMBOL_EXPIRATION_DAY = 2;
+        public const int SYMBOL_EXPIRATION_SPECIFIED = 4;
+        public const int SYMBOL_EXPIRATION_SPECIFIED_DAY = 8;
 
         public const int SYMBOL_FILLING_ALL_OR_NONE = 1;
         public const int SYMBOL_CANCEL_REMAIND = 1;
@@ -42,7 +42,7 @@ namespace MtApi5
         private int _executorHandle;
         private readonly Dictionary<Mt5EventTypes, Action<int, string>> _mtEventHandlers =
             new Dictionary<Mt5EventTypes, Action<int, string>>();
-        
+
         #endregion
 
         #region Public Methods
@@ -596,7 +596,7 @@ namespace MtApi5
         /// <returns></returns>
         public bool PositionModify(ulong ticket, double sl, double tp)
         {
-            var commandParameters = new ArrayList { ticket, sl,tp };
+            var commandParameters = new ArrayList { ticket, sl, tp };
 
             return SendCommand<bool>(Mt5CommandType.PositionModify, commandParameters);
         }
@@ -644,7 +644,7 @@ namespace MtApi5
         /// <returns>true - successful check of the basic structures, otherwise - false.</returns>
         public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, string comment = "")
         {
-            var commandParameters = new ArrayList { symbol, (int) orderType, volume, price, sl, tp, comment };
+            var commandParameters = new ArrayList { symbol, (int)orderType, volume, price, sl, tp, comment };
 
             return SendCommand<bool>(Mt5CommandType.PositionOpen, commandParameters);
         }
@@ -936,7 +936,7 @@ namespace MtApi5
             if (retVal != null)
             {
                 ratesArray = new MqlRates[retVal.Length];
-                for(var i = 0; i < retVal.Length; i++)
+                for (var i = 0; i < retVal.Length; i++)
                 {
                     ratesArray[i] = new MqlRates(retVal[i].time
                         , retVal[i].open
@@ -951,7 +951,7 @@ namespace MtApi5
 
             return ratesArray?.Length ?? 0;
         }
-            
+
         ///<summary>
         ///Gets history data of MqlRates structure of a specified symbol-period in specified quantity into the ratesArray array. The elements ordering of the copied data is from present to the past, i.e., starting position of 0 means the current bar.
         ///</summary>
@@ -1614,7 +1614,7 @@ namespace MtApi5
         ///</summary>
         ///<param name="symbol">Symbol name.</param>
         ///<param name="tick"> Link to the structure of the MqlTick type, to which the current prices and time of the last price update will be placed.</param>
-        public bool SymbolInfoTick(string symbol, out MqlTick  tick)
+        public bool SymbolInfoTick(string symbol, out MqlTick tick)
         {
             tick = SendRequest<MqlTick>(new SymbolInfoTickRequest
             {
@@ -1652,7 +1652,7 @@ namespace MtApi5
 
             string strResult = SendCommand<string>(Mt5CommandType.SymbolInfoSessionQuote, commandParameters);
 
-            return strResult.ParseResult(ParamSeparator, out from, out to); 
+            return strResult.ParseResult(ParamSeparator, out from, out to);
         }
 
         ///<summary>
@@ -1804,12 +1804,12 @@ namespace MtApi5
         public bool ChartTimePriceToXY(long chartId, int subWindow, DateTime? time, double price, out int x, out int y)
         {
             var result = SendRequest<ChartTimePriceToXyResult>(new ChartTimePriceToXyRequest
-                {
-                    ChartId = chartId,
-                    SubWindow = subWindow,
-                    Time = time,
-                    Price = price
-                });
+            {
+                ChartId = chartId,
+                SubWindow = subWindow,
+                Time = time,
+                Price = price
+            });
 
             x = result?.X ?? 0;
             y = result?.Y ?? 0;
@@ -2281,7 +2281,7 @@ namespace MtApi5
         {
             //Count the additional coordinates
             int iAdditionalCoordinates = (listOfCoordinates != null) ? listOfCoordinates.Count() : 0;
-            if(iAdditionalCoordinates > 29)
+            if (iAdditionalCoordinates > 29)
             {
                 throw new ArgumentOutOfRangeException("listOfCoordinates", "The maximum amount of coordinates in 30.");
             }
@@ -2544,7 +2544,7 @@ namespace MtApi5
         ///<param name="lipsShift">The shift of the green line relative to the price chart.</param>
         ///<param name="maMethod">The method of averaging. Can be any of the ENUM_MA_METHOD values.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iAlligator(string symbol, ENUM_TIMEFRAMES period, int jawPeriod, int jawShift, int teethPeriod, 
+        public int iAlligator(string symbol, ENUM_TIMEFRAMES period, int jawPeriod, int jawShift, int teethPeriod,
             int teethShift, int lipsPeriod, int lipsShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, jawPeriod, jawShift, teethPeriod, teethShift, lipsPeriod, lipsShift, (int)maMethod, (int)appliedPrice };
@@ -2751,7 +2751,7 @@ namespace MtApi5
         ///<param name="lipsShift">The shift of the green line relative to the price charts. It isn't directly connected with the visual shift of the indicator histogram.</param>
         ///<param name="maMethod">Smoothing type. Can be one of the values of ENUM_MA_METHOD.</param>
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
-        public int iGator(string symbol, ENUM_TIMEFRAMES period, int jawPeriod, int jawShift, int teethPeriod, 
+        public int iGator(string symbol, ENUM_TIMEFRAMES period, int jawPeriod, int jawShift, int teethPeriod,
             int teethShift, int lipsPeriod, int lipsShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
         {
             var commandParameters = new ArrayList { symbol, (int)period, jawPeriod, jawShift, teethPeriod, teethShift, lipsPeriod, lipsShift, (int)maMethod, (int)appliedPrice };
@@ -3394,7 +3394,7 @@ namespace MtApi5
                     _client.ServerDisconnected += _client_ServerDisconnected;
                     _client.ServerFailed += _client_ServerFailed;
                     _client.MtEventReceived += _client_MtEventReceived;
-                    message = string.IsNullOrEmpty(client.Host) ? $"Connected to localhost:{client.Port}" : $"Connected to  { client.Host}:{client.Port}";
+                    message = string.IsNullOrEmpty(client.Host) ? $"Connected to localhost:{client.Port}" : $"Connected to  {client.Host}:{client.Port}";
 
                     Log.Info(message);
                 }
@@ -3550,7 +3550,7 @@ namespace MtApi5
             }
 
             var responseValue = response.GetValue();
-            return (T) responseValue;
+            return (T)responseValue;
         }
 
         private T SendRequest<T>(RequestBase request)

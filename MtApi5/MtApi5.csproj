@@ -7,9 +7,11 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>..\build\products\Debug\</OutputPath>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>..\build\products\Release\</OutputPath>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\MtApiServiceNetCore\MtApiServiceNetCore.csproj" />

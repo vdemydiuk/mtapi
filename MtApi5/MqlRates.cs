@@ -3,7 +3,7 @@ using System;
 
 namespace MtApi5
 {
-    public class MqlRates
+    public class MqlRates : IMqlRates
     {
         public MqlRates(DateTime time, double open, double high, double low, double close, long tick_volume, int spread, long real_volume)
         {
