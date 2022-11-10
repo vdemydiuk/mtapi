@@ -1,3 +1,0 @@
-// MTInterface.h
-
-#pragma once
