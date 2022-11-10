@@ -2241,6 +2241,28 @@ namespace MtApi5
             SendCommand<object>(Mt5CommandType.TesterStop, null);
         }
 
+        ///<summary>
+        ///The special function that emulates depositing funds during a test. It can be used in some money management systems.
+        ///</summary>
+        ///<param name="money">Money to be deposited to an account in the deposit currency.</param>
+        ///<returns>If successful, returns true, otherwise - false.</returns>
+        public bool TesterDeposit(double money)
+        {
+            var commandParameters = new ArrayList { money };
+            return SendCommand<bool>(Mt5CommandType.TesterDeposit, commandParameters);
+        }
+
+        ///<summary>
+        ///The special function to emulate the operation of money withdrawal in the process of testing. Can be used in some asset management systems.
+        ///</summary>
+        ///<param name="money"> The sum of money that we need to withdraw (in the deposit currency).</param>
+        ///<returns>If successful, returns true, otherwise - false.</returns>
+        public bool TesterWithdrawal(double money)
+        {
+            var commandParameters = new ArrayList { money };
+            return SendCommand<bool>(Mt5CommandType.TesterWithdrawal, commandParameters);
+        }
+
         #endregion // Common Functions
 
         #region Object Functions
