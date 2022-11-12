@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace MtApi5
 {
-    public class MqlTradeRequest
+    public class MqlTradeRequest : IMqlTradeRequest
     {
         public ENUM_TRADE_REQUEST_ACTIONS Action { get; set; }           // Trade operation type
         public ulong Magic { get; set; }                                 // Expert Advisor ID (magic number)
@@ -24,7 +24,7 @@ namespace MtApi5
         public DateTime Expiration                                       // Order expiration time (for the orders of ORDER_TIME_SPECIFIED type)
         {
             get { return Mt5TimeConverter.ConvertFromMtTime(MtExpiration); }
-            set { MtExpiration =  Mt5TimeConverter.ConvertToMtTime(value); } 
+            set { MtExpiration = Mt5TimeConverter.ConvertToMtTime(value); }
         }
 
         public string Comment { get; set; }                              // Order comment

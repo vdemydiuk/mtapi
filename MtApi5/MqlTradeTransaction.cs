@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace MtApi5
 {
-    public class MqlTradeTransaction
+    public class MqlTradeTransaction : IMqlTradeTransaction
     {
         public ulong Deal { get; set; }                         // Deal ticket 
         public ulong Order { get; set; }                        // Order ticket 

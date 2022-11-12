@@ -2,7 +2,7 @@
 
 namespace MtApi5
 {
-    public class MqlTradeResult
+    public class MqlTradeResult : IMqlTradeResult
     {
         public MqlTradeResult(uint retcode, ulong deal, ulong order, double volume, double price, double bid, double ask, string comment, uint request_id)
         {

@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>..\build\products\Debug\</OutputPath>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>..\build\products\Release\</OutputPath>
+    <DefineConstants></DefineConstants>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\MTApiService\IMetaTraderHandler.cs" Link="IMetaTraderHandler.cs" />
+    <Compile Include="..\MTApiService\ITaskExecutor.cs" Link="ITaskExecutor.cs" />
+    <Compile Include="..\MTApiService\LogConfigurator.cs" Link="LogConfigurator.cs" />
+    <Compile Include="..\MTApiService\Mt5Expert.cs" Link="Mt5Expert.cs" />
+    <Compile Include="..\MTApiService\MtCommand.cs" Link="MtCommand.cs" />
+    <Compile Include="..\MTApiService\MtCommandEventArgs.cs" Link="MtCommandEventArgs.cs" />
+    <Compile Include="..\MTApiService\MtCommandTask.cs" Link="MtCommandTask.cs" />
+    <Compile Include="..\MTApiService\MtEvent.cs" Link="MtEvent.cs" />
+    <Compile Include="..\MTApiService\MtExpert.cs" Link="MtExpert.cs" />
+    <Compile Include="..\MTApiService\MtMqlRates.cs" Link="MtMqlRates.cs" />
+    <Compile Include="..\MTApiService\MtMqlTradeRequest.cs" Link="MtMqlTradeRequest.cs" />
+    <Compile Include="..\MTApiService\MtQuote.cs" Link="MtQuote.cs" />
+    <Compile Include="..\MTApiService\MtResponse.cs" Link="MtResponse.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.12" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="System.ServiceModel.Duplex" Version="4.10.0" />
+    <PackageReference Include="System.ServiceModel.NetTcp" Version="4.10.0" />
+  </ItemGroup>
+  <PropertyGroup />
+</Project>
