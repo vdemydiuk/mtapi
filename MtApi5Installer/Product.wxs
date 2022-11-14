@@ -76,19 +76,19 @@
                 <RegistryKey Root="HKLM"
                     Key="Software\Microsoft\.NetFramework\v4.0.30319\AssemblyFoldersEx\$(var.ProductName)"
                     Action="createAndRemoveOnUninstall">
-                    <RegistryValue Type="string" Value="[INSTALLFOLDER]"/>
+					<RegistryValue Type="string" Value="[INSTALLFOLDER]"/>
                 </RegistryKey>
 
             </Component>
-          
-            <Component Id="NewtonsoftJsondll" Directory="INSTALLFOLDER">
-                <File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" KeyPath="yes"
+			
+			<Component Id="NewtonsoftJsondll" Directory="INSTALLFOLDER">
+				<File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" KeyPath="yes"
                     src="$(var.ProductPath)Newtonsoft.Json.dll"/>
-            </Component>
+			</Component>
 
-            <Component Id="MTApiServiceDll" Directory="INSTALLFOLDER">
-                <File Id="GAC_MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
-                    src="$(var.ProductPath)MTApiService.dll"/>
+            <Component Id="MtApiServiceNetCoreDll" Directory="INSTALLFOLDER">
+                <File Id="GAC_MtApiServiceNetCore.dll" Name="MtApiServiceNetCore.dll" KeyPath="yes"
+                    src="$(var.ProductPath)MtApiServiceNetCore.dll"/>
             </Component>
 
             <Component Id="MtApi5Expert" Directory="ExpertFolder">
