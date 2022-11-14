@@ -32,7 +32,7 @@ All binaries are placed in the project root folder, in the *build* directory:   
 The installers (**`*.msi, *.exe`**) will be found under:  **`../build/installers/`**.   
 All the DLL library binaries (**`*.dll`**) in:  **`../bin/`**.
 
-MQL files have been pre-compiled to **`*.ex4`** and can be found in the repository here:  
+MQL files have been pre-compiled to **`*.ex5`** and can be found in the repository here:  
 - **`..\mql5\`**
 
 Changing the source code of the MQL *Expert Advisor* (EA), requires recompilation with *`MetaEditor`*.  
@@ -217,10 +217,3 @@ namespace MtApi5Console
     }
 }
 
-```
-
-
-# Telegram Channel
-https://t.me/mtapi4
-
-https://t.me/joinchat/GfnfUxvelQCLvvIvLO16-w
