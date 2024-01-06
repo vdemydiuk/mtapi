@@ -3,22 +3,25 @@
 #pragma once
 
 #include <Windows.h>
+#include <MetaTraderHandler.h>
 
-using namespace MTApiService;
-
-ref class MT5Handler: IMetaTraderHandler
+class MT5Handler: public MetaTraderHandler
 {
 public:
-    MT5Handler()
+    MT5Handler(int handle)
+        : handle_(handle)
     {
         msgId = WM_TIMER;
     }
 
-    virtual void SendTickToMetaTrader(int handle)
-    {
-        PostMessage((HWND)handle, msgId, 0, 0);
-    }
+    ~MT5Handler() override = default;
 
 private:
+    void SendTickToMetaTrader() override
+    {
+        PostMessage((HWND)handle_, msgId, 0, 0);
+    }
+
+    int handle_;
     unsigned int msgId;
 };
