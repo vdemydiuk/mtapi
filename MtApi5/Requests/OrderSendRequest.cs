@@ -4,6 +4,6 @@
     {
         public override RequestType RequestType => RequestType.OrderSend;
 
-        public MqlTradeRequest TradeRequest { get; set; }
+        public MqlTradeRequest? TradeRequest { get; set; }
     }
 }

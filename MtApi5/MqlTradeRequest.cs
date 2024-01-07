@@ -1,6 +1,4 @@
-﻿// ReSharper disable InconsistentNaming
-using System;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace MtApi5
 {
@@ -9,7 +7,7 @@ namespace MtApi5
         public ENUM_TRADE_REQUEST_ACTIONS Action { get; set; }           // Trade operation type
         public ulong Magic { get; set; }                                 // Expert Advisor ID (magic number)
         public ulong Order { get; set; }                                 // Order ticket
-        public string Symbol { get; set; }                               // Trade symbol
+        public string? Symbol { get; set; }                               // Trade symbol
         public double Volume { get; set; }                               // Requested volume for a deal in lots
         public double Price { get; set; }                                // Price
         public double Stoplimit { get; set; }                            // StopLimit level of the order
@@ -27,7 +25,7 @@ namespace MtApi5
             set { MtExpiration =  Mt5TimeConverter.ConvertToMtTime(value); } 
         }
 
-        public string Comment { get; set; }                              // Order comment
+        public string? Comment { get; set; }                              // Order comment
         public ulong Position { get; set; }                              // Position ticket
         public ulong PositionBy { get; set; }                            // The ticket of an opposite position
 

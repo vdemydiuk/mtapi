@@ -7,7 +7,7 @@ namespace MtApi5
     {
         public ulong Deal { get; set; }                         // Deal ticket 
         public ulong Order { get; set; }                        // Order ticket 
-        public string Symbol { get; set; }                      // Trade symbol name
+        public string? Symbol { get; set; }                      // Trade symbol name
         public ENUM_TRADE_TRANSACTION_TYPE Type { get; set; }   // Trade transaction type
         public ENUM_ORDER_TYPE OrderType { get; set; }          // Order type
         public ENUM_ORDER_STATE OrderState { get; set; }        // Order state

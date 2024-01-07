@@ -4,7 +4,7 @@
     {
         public override RequestType RequestType => RequestType.OrderCheck;
 
-        public MqlTradeRequest TradeRequest { get; set; }
+        public MqlTradeRequest? TradeRequest { get; set; }
 
     }
 }

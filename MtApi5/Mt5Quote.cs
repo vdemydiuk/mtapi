@@ -1,5 +1,4 @@
 ﻿using System;
-using MTApiService;
 
 namespace MtApi5
 {
@@ -22,10 +21,10 @@ namespace MtApi5
             Ask = ask;
         }
 
-        internal Mt5Quote(MtQuote quote)
-            :this(quote.Instrument, quote.Bid, quote.Ask)
-        {
-            ExpertHandle = quote.ExpertHandle;
-        }
+        //internal Mt5Quote(MtQuote quote)
+        //    :this(quote.Instrument, quote.Bid, quote.Ask)
+        //{
+        //    ExpertHandle = quote.ExpertHandle;
+        //}
     }
 }

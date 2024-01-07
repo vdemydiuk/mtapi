@@ -3,6 +3,6 @@
     internal class SymbolInfoStringResult
     {
         public bool RetVal { get; set; }
-        public string StringVar { get; set; }
+        public string? StringVar { get; set; }
     }
 }

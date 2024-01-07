@@ -2,6 +2,6 @@
 {
     internal class OnBookEvent
     {
-        public string Symbol { get; set; }
+        public string? Symbol { get; set; }
     }
 }

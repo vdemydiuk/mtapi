@@ -3,6 +3,6 @@
     internal class OrderSendResult
     {
         public bool RetVal { get; set; }
-        public MqlTradeResult TradeResult { get; set; }
+        public MqlTradeResult? TradeResult { get; set; }
     }
 }

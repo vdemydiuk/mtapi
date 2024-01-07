@@ -4,7 +4,7 @@
     {
         public override RequestType RequestType => RequestType.CopyTicks;
 
-        public string SymbolName { get; set; }
+        public string? SymbolName { get; set; }
         public int Flags { get; set; }
         public ulong From { get; set; }
         public uint Count { get; set; }

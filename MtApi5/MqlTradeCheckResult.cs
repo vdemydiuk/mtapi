@@ -1,6 +1,4 @@
-﻿// ReSharper disable InconsistentNaming
-
-namespace MtApi5
+﻿namespace MtApi5
 {
     public class MqlTradeCheckResult
     {
@@ -11,7 +9,7 @@ namespace MtApi5
         public double Margin { get; set; }              // Margin requirements
         public double Margin_free { get; set; }         // Free margin
         public double Margin_level { get; set; }        // Margin level
-        public string Comment { get; set; }             // Comment to the reply code (description of the error)
+        public string? Comment { get; set; }             // Comment to the reply code (description of the error)
 
         public MqlTradeCheckResult(uint retcode
             , double balance

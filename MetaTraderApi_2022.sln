@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MtService", "MtService\MtSe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MT5Connector", "MT5Connector\MT5Connector.vcxproj", "{CB6D4A3E-2F2E-4C67-929D-3C2A8FD1C556}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtApi5", "MtApi5\MtApi5.csproj", "{AC8B5010-DA75-477E-9CA5-547C649E12D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{CB6D4A3E-2F2E-4C67-929D-3C2A8FD1C556}.Release|x64.Build.0 = Release|x64
 		{CB6D4A3E-2F2E-4C67-929D-3C2A8FD1C556}.Release|x86.ActiveCfg = Release|Win32
 		{CB6D4A3E-2F2E-4C67-929D-3C2A8FD1C556}.Release|x86.Build.0 = Release|Win32
+		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Debug|x64.Build.0 = Debug|Any CPU
+		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Debug|x86.Build.0 = Debug|Any CPU
+		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Release|x64.ActiveCfg = Release|Any CPU
+		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Release|x64.Build.0 = Release|Any CPU
+		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Release|x86.ActiveCfg = Release|Any CPU
+		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
