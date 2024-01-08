@@ -40,7 +40,7 @@ template <typename T> T Execute(std::function<T()> func, wchar_t* err, T default
     return result;
 }
 
-int initExpert(int expertHandle, int port, int isTestMode, wchar_t* err)
+_DLLAPI int _stdcall initExpert(int expertHandle, int port, int isTestMode, wchar_t* err)
 {
     return Execute<int>([&expertHandle, &port, &isTestMode]() {
         bool isTesting = (isTestMode != 0) ? true : false;
@@ -50,7 +50,7 @@ int initExpert(int expertHandle, int port, int isTestMode, wchar_t* err)
         }, err, 0);
 }
 
-int deinitExpert(int expertHandle, wchar_t* err)
+_DLLAPI int _stdcall deinitExpert(int expertHandle, wchar_t* err)
 {
     return Execute<int>([&expertHandle]() {
         MtService::GetInstance().DeinitExpert(expertHandle);
@@ -58,7 +58,7 @@ int deinitExpert(int expertHandle, wchar_t* err)
         }, err, 0);
 }
 
-bool sendEvent(int expertHandle, int event_type, const wchar_t* payload, wchar_t* err)
+_DLLAPI bool _stdcall sendEvent(int expertHandle, int event_type, const wchar_t* payload, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &event_type, payload]() {
         MtService::GetInstance().SendEvent(expertHandle, event_type, convertWString(payload));
@@ -66,7 +66,7 @@ bool sendEvent(int expertHandle, int event_type, const wchar_t* payload, wchar_t
         }, err, false);
 }
 
-int sendResponse(int expertHandle, const wchar_t* response, wchar_t* err)
+_DLLAPI int _stdcall sendResponse(int expertHandle, const wchar_t* response, wchar_t* err)
 {
     return Execute<int>([&expertHandle, response]() {
         MtService::GetInstance().SendResponse(expertHandle, convertWString(response));
@@ -74,7 +74,7 @@ int sendResponse(int expertHandle, const wchar_t* response, wchar_t* err)
         }, err, 0);
 }
 
-int getCommandType(int expertHandle, int& res, wchar_t* err)
+_DLLAPI int _stdcall getCommandType(int expertHandle, int& res, wchar_t* err)
 {
     return Execute<int>([&expertHandle, &res]() {
         res = MtService::GetInstance().GetCommandType(expertHandle);
@@ -82,7 +82,7 @@ int getCommandType(int expertHandle, int& res, wchar_t* err)
         }, err, 0);
 }
 
-int getPayload(int expertHandle, wchar_t* res, wchar_t* err)
+_DLLAPI int _stdcall getPayload(int expertHandle, wchar_t* res, wchar_t* err)
 {
     return Execute<int>([&expertHandle, res]() {
         convertSystemString(res, MtService::GetInstance().GetCommandPayload(expertHandle));
