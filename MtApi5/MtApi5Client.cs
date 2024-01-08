@@ -3,6 +3,7 @@ using System.Collections;
 using MtApi5.Requests;
 using Newtonsoft.Json;
 using MtApi5.Events;
+using MtClient;
 
 namespace MtApi5
 {
@@ -29,7 +30,7 @@ namespace MtApi5
         #region Private Fields
         private static readonly MtLog Log = LogConfigurator.GetLogger(typeof(MtApi5Client));
 
-        //private MtClient _client;
+        private MtRpcClient? _client;
         private readonly object _locker = new object();
         private volatile bool _isBacktestingMode;
         private Mt5ConnectionState _connectionState = Mt5ConnectionState.Disconnected;
@@ -73,8 +74,8 @@ namespace MtApi5
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(int port)
         {
-            Log.Info($"BeginConnect: port = {port}");
-            Task.Factory.StartNew(() => Connect(port));
+            Log.Info($"BeginConnect: port = localhost:{port}");
+            Task.Factory.StartNew(() => Connect("localhost", port));
         }
 
         ///<summary>
@@ -3317,75 +3318,99 @@ namespace MtApi5
         #endregion
 
         #region Private Methods
-        //private MtClient Client
-        //{
-        //    get
-        //    {
-        //        lock (_locker)
-        //        {
-        //            return _client;
-        //        }
-        //    }
-        //}
+        private MtRpcClient? Client
+        {
+            get
+            {
+                lock (_locker)
+                {
+                    return _client;
+                }
+            }
+        }
 
-        //private void Connect(MtClient client)
-        //{
-        //    lock (_locker)
-        //    {
-        //        if (_connectionState == Mt5ConnectionState.Connected
-        //            || _connectionState == Mt5ConnectionState.Connecting)
-        //        {
-        //            return;
-        //        }
+        public async void Connect(string host, int port)
+        {
+            lock (_locker)
+            {
+                if (_connectionState == Mt5ConnectionState.Connected
+                    || _connectionState == Mt5ConnectionState.Connecting)
+                {
+                    return;
+                }
 
-        //        _connectionState = Mt5ConnectionState.Connecting;
-        //    }
+                _connectionState = Mt5ConnectionState.Connecting;
+            }
 
-        //    string message = string.IsNullOrEmpty(client.Host) ? $"Connecting to localhost:{client.Port}" : $"Connecting to {client.Host}:{client.Port}";
-        //    ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Connecting, message));
+            string message = $"Connecting to {host}:{port}";
+            ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Connecting, message));
 
-        //    var state = Mt5ConnectionState.Failed;
+            var client = new MtRpcClient(host, port);
+            var state = Mt5ConnectionState.Failed;
+            try
+            {
+                await client.Connect();
+                client.MessageReceived += _client_OnMessageReceived;
+                client.ConnectionFailed += _client_OnConnectionFailed;
 
-        //    lock (_locker)
-        //    {
-        //        try
-        //        {
-        //            client.Connect();
-        //            state = Mt5ConnectionState.Connected;
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            client.Dispose();
-        //            message = string.IsNullOrEmpty(client.Host) ? $"Failed connection to localhost:{client.Port}. {e.Message}" : $"Failed connection to {client.Host}:{client.Port}. {e.Message}";
+                state = Mt5ConnectionState.Connected;
+            }
+            catch (Exception e)
+            {
+                Log.Warn($"Failed connection to {host}:{port}. {e.Message}");
+            }
 
-        //            Log.Warn(message);
-        //        }
+            lock (_locker)
+            {
+                if (state == Mt5ConnectionState.Connected)
+                {
+                    _client = client;
+                    Log.Info($"Connected to  {host}:{port}");
+                }
 
-        //        if (state == Mt5ConnectionState.Connected)
-        //        {
-        //            _client = client;
-        //            _client.QuoteAdded += _client_QuoteAdded;
-        //            _client.QuoteRemoved += _client_QuoteRemoved;
-        //            _client.QuoteUpdated += _client_QuoteUpdated;
-        //            _client.ServerDisconnected += _client_ServerDisconnected;
-        //            _client.ServerFailed += _client_ServerFailed;
-        //            _client.MtEventReceived += _client_MtEventReceived;
-        //            message = string.IsNullOrEmpty(client.Host) ? $"Connected to localhost:{client.Port}" : $"Connected to  { client.Host}:{client.Port}";
+                _connectionState = state;
+            }
 
-        //            Log.Info(message);
-        //        }
+            ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
 
-        //        _connectionState = state;
-        //    }
+            if (state == Mt5ConnectionState.Connected)
+            {
+                OnConnected();
+            }
+        }
 
-        //    ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
+        private void _client_OnMessageReceived(object? o, MtMessage msg)
+        {
+            Task.Run(() =>
+            {
+                switch (msg.MsgType)
+                {
+                    case MessageType.ExpertList:
+                        //ProcessExpertList(msg as MtExpertListMsg);
+                        break;
+                    case MessageType.ExpertAdded:
+                        //ProcessExpertAdded(msg as MtExpertAddedMsg);
+                        break;
+                    case MessageType.ExpertRemoved:
+                        //ProcessExpertRemoved(msg as MtExpertRemovedMsg);
+                        break;
+                    case MessageType.Event:
+                        //ProcessEvent(msg as MtEvent);
+                        break;
+                    case MessageType.Response:
+                        //ProcessResponse(msg as MtResponse);
+                        break;
+                }
+            });
+        }
 
-        //    if (state == Mt5ConnectionState.Connected)
-        //    {
-        //        OnConnected();
-        //    }
-        //}
-
+        private void _client_OnConnectionFailed(object? sender, EventArgs e)
+        {
+            lock (_locker)
+            {
+                Disconnect(true);
+            }
+        }
 
         //private void _client_MtEventReceived(MtEvent e)
         //{
@@ -3452,54 +3477,29 @@ namespace MtApi5
             OnLockTicks?.Invoke(this, new Mt5LockTicksEventArgs(e.Instrument));
         }
 
-        private void Connect(string host, int port)
-        {
-            //var client = new MtClient(host, port);
-            //Connect(client);
-        }
-
-        private void Connect(int port)
-        {
-            //var client = new MtClient(port);
-            //Connect(client);
-        }
-
         private void Disconnect(bool failed)
         {
-            //var state = failed ? Mt5ConnectionState.Failed : Mt5ConnectionState.Disconnected;
-            //var message = failed ? "Connection Failed" : "Disconnected";
+            var state = failed ? Mt5ConnectionState.Failed : Mt5ConnectionState.Disconnected;
+            var message = failed ? "Connection Failed" : "Disconnected";
 
-            //lock (_locker)
-            //{
-            //    if (_connectionState == Mt5ConnectionState.Disconnected
-            //        || _connectionState == Mt5ConnectionState.Failed)
-            //        return;
+            MtRpcClient? client;
 
-            //    if (_client != null)
-            //    {
-            //        _client.QuoteAdded -= _client_QuoteAdded;
-            //        _client.QuoteRemoved -= _client_QuoteRemoved;
-            //        _client.QuoteUpdated -= _client_QuoteUpdated;
-            //        _client.ServerDisconnected -= _client_ServerDisconnected;
-            //        _client.ServerFailed -= _client_ServerFailed;
-            //        _client.MtEventReceived -= _client_MtEventReceived;
+            lock (_locker)
+            {
+                if (_connectionState == Mt5ConnectionState.Disconnected
+                    || _connectionState == Mt5ConnectionState.Failed)
+                    return;
 
-            //        if (!failed)
-            //        {
-            //            _client.Disconnect();
-            //        }
+                _connectionState = state;
+                client = _client;
+                _client = null;
+            }
 
-            //        _client.Dispose();
+            client?.Disconnect(); //TODO: use dispose
 
-            //        _client = null;
-            //    }
+            Log.Info(message);
 
-            //    _connectionState = state;
-            //}
-
-            //Log.Info(message);
-
-            //ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
+            ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
         }
 
         private T SendCommand<T>(Mt5CommandType commandType, ArrayList? commandParameters, Dictionary<string, object>? namedParams = null, int? executor = null)
@@ -3579,15 +3579,15 @@ namespace MtApi5
         //    QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
         //}
 
-        private void _client_ServerDisconnected(object sender, EventArgs e)
-        {
-            Disconnect(false);
-        }
+        //private void _client_ServerDisconnected(object sender, EventArgs e)
+        //{
+        //    Disconnect(false);
+        //}
 
-        private void _client_ServerFailed(object sender, EventArgs e)
-        {
-            Disconnect(true);
-        }
+        //private void _client_ServerFailed(object sender, EventArgs e)
+        //{
+        //    Disconnect(true);
+        //}
 
         //private void _client_QuoteRemoved(MtQuote quote)
         //{
