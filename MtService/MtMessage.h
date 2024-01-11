@@ -12,7 +12,8 @@ enum MessageType
     EVENT = 2,
     EXPERT_LIST = 3,
     EXPERT_ADDED = 4,
-    EXPERT_REMOVED = 5
+    EXPERT_REMOVED = 5,
+    CLIENT_READY = 6
 };
 
 class MtMessage
@@ -23,8 +24,9 @@ public:
         return std::to_string(GetType()) + MT_MESSAGE_DELIMETER + GetBody();
     }
 
-protected:
     virtual MessageType GetType() const = 0;
+
+protected:
     virtual std::string GetBody() const = 0;
 };
 
@@ -99,6 +101,25 @@ private:
     int command_id_;
     int command_type_;
     std::string payload_;
+};
+
+class MtClientReady : public MtMessage
+{
+public:
+    MtClientReady()
+    {
+    }
+
+private:
+    MessageType GetType() const override
+    {
+        return MessageType::CLIENT_READY;
+    }
+
+    std::string GetBody() const override
+    {
+        return "";
+    }
 };
 
 class MtEvent : public MtMessage 

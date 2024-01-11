@@ -2,6 +2,7 @@
 #include "MtServer.h"
 
 #include <iostream>
+#include <cstdlib>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/phoenix/core.hpp>
 #include <boost/phoenix/operator.hpp>
@@ -123,13 +124,6 @@ void MtServer::OnAccept(boost::beast::error_code ec,
                     pending_connections_.erase(it);
                     connections_.push_back(connection);
                     log_.Trace("%s: Pushed connection %p to collection", __FUNCTION__, connection.get());
-
-                    std::vector<int> expert_list;
-                    for (const auto& e : experts_)
-                        expert_list.push_back(e.first);
-
-                    MtExpertListMsg msg(std::move(expert_list));
-                    connection->Send(msg.Serialize());
                 }
             }
         });
@@ -172,27 +166,56 @@ void MtServer::OnAccept(boost::beast::error_code ec,
         });
         connection->OnMessageReceived.connect([con = connection->weak_from_this(), this](const std::string& msg) {
             log_.Trace("MtServer::OnMessageReceived: %s", msg.c_str());
-            auto command = ParseMessage(msg);
-            if (command)
+
+            std::string::size_type pos = msg.find(';');
+            if (pos == std::string::npos)
             {
-                if (experts_.count(command->getExpertHandle()) > 0)
+                log_.Warning("MtServer::OnMessageReceived: invalid message type.");
+                return;
+            }
+
+            std::string msg_type_str = msg.substr(0, pos);;
+            auto msg_type = std::atoi(msg_type_str.c_str());
+            if (msg_type == MessageType::COMMAND)
+            {
+                auto command = ParseCommand(msg);
+                if (command)
                 {
-                    experts_[command->getExpertHandle()]->expert->Process(std::move(command), [&](const MtResponse& response) {
-                        auto connection = con.lock();
-                        if (connection)
-                            connection->Send(response.Serialize());        
-                        else
-                            log_.Warning("MtServer::OnMessageReceived: connection is not valid (null)");
-                    });
+                    if (experts_.count(command->getExpertHandle()) > 0)
+                    {
+                        experts_[command->getExpertHandle()]->expert->Process(std::move(command), [&](const MtResponse& response) {
+                            auto connection = con.lock();
+                            if (connection)
+                                connection->Send(response.Serialize());
+                            else
+                                log_.Warning("MtServer::OnMessageReceived: connection is not valid (null)");
+                            });
+                    }
+                    else
+                    {
+                        log_.Warning("MtServer::OnMessageReceived: Expert is not found with handle %d", command->getExpertHandle());
+                    }
                 }
                 else
                 {
-                    log_.Warning("MtServer::OnMessageReceived: Expert is not found with handle %d", command->getExpertHandle());
+                    log_.Warning("MtServer::OnMessageReceived: Failed to parse command from message: %s", msg.c_str());
                 }
+            }
+            else if (msg_type == MessageType::CLIENT_READY)
+            {
+                std::vector<int> expert_list;
+                for (const auto& e : experts_)
+                    expert_list.push_back(e.first);
+
+                MtExpertListMsg msg(std::move(expert_list));
+                auto connection = con.lock();
+                if (connection)
+                    connection->Send(msg.Serialize());
             }
             else
             {
-                log_.Warning("MtServer::OnMessageReceived: Failed to parse command from message: %s", msg.c_str());
+                log_.Warning("MtServer::OnMessageReceived: unsupported message type %d", msg_type);
+                return;
             }
         });
         pending_connections_.push_back(connection);
@@ -203,9 +226,9 @@ void MtServer::OnAccept(boost::beast::error_code ec,
     }
 }
 
-std::unique_ptr<MtCommand> MtServer::ParseMessage(const std::string& msg)
+std::unique_ptr<MtCommand> MtServer::ParseCommand(const std::string& msg)
 {
-    std::unique_ptr<MtCommand> command;
+    std::string::size_type pos = msg.find(';');
 
     using namespace boost::spirit;
     using rule_s = qi::rule<std::string::const_iterator, std::string()>;
@@ -223,6 +246,8 @@ std::unique_ptr<MtCommand> MtServer::ParseMessage(const std::string& msg)
     rule command_id_p = +qi::char_(';') >> word_p[boost::phoenix::ref(command_id) = qi::_1];
     rule command_type_p = +qi::char_(';') >> word_p[boost::phoenix::ref(command_type) = qi::_1];
     rule payload_p = +qi::char_(';') >> word_p[boost::phoenix::ref(payload) = qi::_1];
+
+    std::unique_ptr<MtCommand> command;
 
     bool ok = qi::parse(msg.begin(), msg.end(), message_type_p >> -expert_handle_p >> -command_id_p >> -command_type_p >> -payload_p);
     if (ok)

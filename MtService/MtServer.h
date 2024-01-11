@@ -48,7 +48,7 @@ private:
     void OnAccept(boost::beast::error_code ec, 
             boost::asio::ip::tcp::socket socket);
 
-    std::unique_ptr<MtCommand> ParseMessage(const std::string& msg);
+    std::unique_ptr<MtCommand> ParseCommand(const std::string& msg);
 
     void OnEvent(const MtEvent& event);
     void OnDeinitExpert(int handle);
