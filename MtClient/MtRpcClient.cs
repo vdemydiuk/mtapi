@@ -40,7 +40,8 @@ namespace MtClient
 
             try
             {
-                await ws_.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                if (ws_.State == WebSocketState.Open)
+                    await ws_.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
                 ws_.Dispose();
             }
             catch (Exception ex)
@@ -103,6 +104,7 @@ namespace MtClient
                     {
                         Log($"DoReceive: close signal {result.CloseStatusDescription}");
                         await ws_.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                        Disconnected?.Invoke(this, EventArgs.Empty);
                         break;
                     }
                     else
@@ -169,6 +171,7 @@ namespace MtClient
 
         public event EventHandler<MtMessage>? MessageReceived;
         public event EventHandler<EventArgs>? ConnectionFailed;
+        public event EventHandler<EventArgs>? Disconnected;
 
         private readonly ClientWebSocket ws_ = new();
         private readonly string host_;

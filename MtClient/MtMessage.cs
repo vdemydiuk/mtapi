@@ -1,4 +1,7 @@
-﻿namespace MtClient
+﻿using System.ComponentModel.Design;
+using System.Data;
+
+namespace MtClient
 {
     public enum MessageType
     {
@@ -8,6 +11,7 @@
         ExpertList = 3,
         ExpertAdded = 4,
         ExpertRemoved = 5,
+        ClientReady = 6
     }
 
     public abstract class MtMessage
@@ -34,6 +38,16 @@
         protected override string GetMessageBody()
         {
             return $"{ExpertHandle};{CommandId};{CommandType};{Payload}";
+        }
+    }
+
+    public class MtClientReady : MtMessage
+    {
+        public override MessageType MsgType => MessageType.ClientReady;
+
+        protected override string GetMessageBody()
+        {
+            return string.Empty;
         }
     }
 
@@ -101,11 +115,11 @@
         }
     }
 
-    public class MtExpertListMsg(List<int> experts) : MtMessage
+    public class MtExpertListMsg(HashSet<int> experts) : MtMessage
     {
         public override MessageType MsgType => MessageType.ExpertList;
 
-        public List<int> Experts { private set; get; } = experts;
+        public HashSet<int> Experts { private set; get; } = experts;
 
         protected override string GetMessageBody()
         {
@@ -115,7 +129,7 @@
         public static MtMessage? Parse(string payload)
         {
             var pieces = payload.Split(",");
-            List<int> handles = [];
+            HashSet<int> handles = [];
             foreach (var p in pieces)
             {
                 if (int.TryParse(p, out int expertHandle) == false)
