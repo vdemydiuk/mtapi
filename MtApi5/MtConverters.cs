@@ -4,14 +4,10 @@ namespace MtApi5
 {
     internal static class MtConverters
     {
-        private static readonly MtLog Log = LogConfigurator.GetLogger(typeof(MtConverters));
-
         #region Values Converters
 
         public static bool ParseResult(this string inputString, char separator, out double result)
         {
-            Log.Debug($"ParseResult: inputString = {inputString}, separator = {separator}");
-
             var retVal = false;
             result = 0;
 
@@ -26,16 +22,11 @@ namespace MtApi5
 
                         result = double.Parse(values[1]);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         retVal = false;
-                        Log.Error($"ParseResult: {ex.Message}");
                     }
                 }
-            }
-            else
-            {
-                Log.Warn("ParseResult: input srting is null or empty!");
             }
 
             return retVal;
@@ -43,8 +34,6 @@ namespace MtApi5
 
         public static bool ParseResult(this string inputString, char separator, out DateTime from, out DateTime to)
         {
-            Log.Debug($"ParseResult: inputString = {inputString}, separator = {separator}");
-
             var retVal = false;
 
             from = new DateTime();
@@ -65,16 +54,11 @@ namespace MtApi5
                         var iTo= int.Parse(values[2]);
                         to = Mt5TimeConverter.ConvertFromMtTime(iTo);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         retVal = false;
-                        Log.Error($"ParseResult: {ex.Message}");
                     }
                 }
-            }
-            else
-            {
-                Log.Warn("ParseResult: input srting is null or empty!");
             }
 
             return retVal;

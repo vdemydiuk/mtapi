@@ -5,6 +5,6 @@
         public int ErrorCode { get; set; }
         public string? ErrorMessage { get; set; }
 
-        public required T Value { get; set; }
+        public T? Value { get; set; }
     }
 }

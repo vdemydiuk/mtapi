@@ -11,6 +11,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MT5Connector", "MT5Connecto
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtApi5", "MtApi5\MtApi5.csproj", "{AC8B5010-DA75-477E-9CA5-547C649E12D8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestClients", "TestClients", "{0C166554-D20F-4996-AA33-436997058FA1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtApi5TestClient", "TestClients\MtApi5TestClient\MtApi5TestClient.csproj", "{38B9C657-BC2F-44F0-8824-54B31F2A64F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,9 +73,24 @@ Global
 		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Release|x64.Build.0 = Release|Any CPU
 		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Release|x86.ActiveCfg = Release|Any CPU
 		{AC8B5010-DA75-477E-9CA5-547C649E12D8}.Release|x86.Build.0 = Release|Any CPU
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Debug|x64.Build.0 = Debug|Any CPU
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Debug|x86.ActiveCfg = Debug|x86
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Debug|x86.Build.0 = Debug|x86
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Release|x64.ActiveCfg = Release|Any CPU
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Release|x64.Build.0 = Release|Any CPU
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Release|x86.ActiveCfg = Release|x86
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{38B9C657-BC2F-44F0-8824-54B31F2A64F5} = {0C166554-D20F-4996-AA33-436997058FA1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7F3C954E-FEF0-4161-B557-9F8D62D7A39F}

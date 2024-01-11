@@ -1,5 +1,4 @@
-﻿// ReSharper disable InconsistentNaming
-namespace MtApi5
+﻿namespace MtApi5
 {
     public class MqlBookInfo
     {

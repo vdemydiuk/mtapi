@@ -7,6 +7,7 @@ namespace MtApi5
 
         //trade operations
         //OrderSend                           = 1,
+        GetQuote                            = 1,
         OrderCalcMargin                     = 2,
         OrderCalcProfit                     = 3,
         //OrderSendAsync                      = 5,
