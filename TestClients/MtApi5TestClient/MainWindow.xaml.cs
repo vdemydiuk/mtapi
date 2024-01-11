@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Windows.Input;
 
 namespace MtApi5TestClient
@@ -13,6 +14,7 @@ namespace MtApi5TestClient
         public MainWindow()
         {
             InitializeComponent();
+            AllocConsole();
 
             Vm = new ViewModel();
             _MainLayout.DataContext = Vm;
@@ -28,5 +30,9 @@ namespace MtApi5TestClient
             var regex = new Regex("[^0-9]+");
             e.Handled = regex.IsMatch(e.Text);
         }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool AllocConsole();
     }
 }

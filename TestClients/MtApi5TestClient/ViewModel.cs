@@ -1,17 +1,46 @@
 ﻿// ReSharper disable InconsistentNaming
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
 using MtApi5;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Threading.Tasks;
 using System.IO;
 using Microsoft.Win32;
 
 namespace MtApi5TestClient
 {
+    class MtLogger : IMtLogger
+    {
+        public void Debug(object message)
+        {
+            Write("DEBUG", message);
+        }
+
+        public void Error(object message)
+        {
+            Write("ERROR", message);
+        }
+
+        public void Fatal(object message)
+        {
+            Write("FATAL", message);
+        }
+
+        public void Info(object message)
+        {
+            Write("INFO", message);
+        }
+
+        public void Warn(object message)
+        {
+            Write("WARN", message);
+        }
+        private void Write(string level, object message)
+        {
+            Console.WriteLine($"[{Environment.CurrentManagedThreadId}] [{level}] {message}");
+        }
+    }
+
     public class ViewModel : INotifyPropertyChanged
     {
         #region Commands
@@ -291,7 +320,7 @@ namespace MtApi5TestClient
         public ViewModel()
         {
             // Init MtApi client
-            _mtApiClient = new MtApi5Client();
+            _mtApiClient = new MtApi5Client(new MtLogger());
 
             _mtApiClient.ConnectionStateChanged += mMtApiClient_ConnectionStateChanged;
             _mtApiClient.QuoteAdded += mMtApiClient_QuoteAdded;
