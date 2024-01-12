@@ -126,26 +126,30 @@ void MtServiceImpl::SendResponse(int handle, const std::string& payload)
 
 int MtServiceImpl::GetCommandType(int handle)
 {
-    log_.Trace("%s: handle = %d", __FUNCTION__, handle);
-
     std::packaged_task<int()> task([handle, this]() {
         return (experts_.count(handle) > 0) ? experts_[handle]->GetCommandType() : 0;
     });
     auto f = task.get_future();
     boost::asio::post(context_, std::bind(std::move(task)));
-    return f.get();
+
+    auto command_type = f.get();
+    log_.Trace("%s: handle = %d, command_type = %d", __FUNCTION__, handle, command_type);
+    
+    return command_type;
 }
 
 std::string MtServiceImpl::GetCommandPayload(int handle)
 {
-    log_.Trace("%s: handle = %d", __FUNCTION__, handle);
-
     std::packaged_task<std::string()> task([handle, this]() {
-        return (experts_.count(handle) > 0) ? experts_[handle]->GetCommandPayload() : 0;
+        return (experts_.count(handle) > 0) ? experts_[handle]->GetCommandPayload() : "";
     });
     auto f = task.get_future();
     boost::asio::post(context_, std::bind(std::move(task)));
-    return f.get();
+
+    auto payload = f.get();
+    log_.Trace("%s: handle = %d, payload = %s", __FUNCTION__, handle, payload.c_str());
+
+    return payload;
 }
 
 void MtServiceImpl::LogError(const std::string& error)
@@ -163,9 +167,13 @@ void MtServiceImpl::OnServerStopped(unsigned short port)
 
 void MtServiceImpl::ThreadProc()
 {
-    log_.Debug("%s: started", __FUNCTION__);
+    std::thread::id this_id = std::this_thread::get_id();
+    std::stringstream ss;
+    ss << this_id;
+
+    log_.Debug("%s: thread %s started", __FUNCTION__, ss.str().c_str());
     context_.run();
-    log_.Debug("%s: stopped", __FUNCTION__);
+    log_.Debug("%s: thread %s stopped", __FUNCTION__, ss.str().c_str());
 }
 
 //--------------------------------------------------------------------------------

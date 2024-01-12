@@ -2,6 +2,7 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
 
 const std::string MT_MESSAGE_DELIMETER{ ";" };
 
@@ -13,7 +14,12 @@ enum MessageType
     EXPERT_LIST = 3,
     EXPERT_ADDED = 4,
     EXPERT_REMOVED = 5,
-    CLIENT_READY = 6
+    NOTIFICATION = 6
+};
+
+enum NotificationType
+{
+    CLIENT_READY = 0
 };
 
 class MtMessage
@@ -83,6 +89,8 @@ public:
 
     std::string getPayload() const { return payload_; }
 
+    static std::unique_ptr<MtCommand> Parse(const std::string& msg);
+
 private:
     MessageType GetType() const override
     {
@@ -103,23 +111,33 @@ private:
     std::string payload_;
 };
 
-class MtClientReady : public MtMessage
+class MtNotification : public MtMessage
 {
 public:
-    MtClientReady()
+    MtNotification(NotificationType type)
+        : notification_type_(type)
     {
     }
+
+    NotificationType GetNotificationType() const
+    {
+        return notification_type_;
+    }
+
+    static std::unique_ptr<MtNotification> Parse(const std::string& msg);
 
 private:
     MessageType GetType() const override
     {
-        return MessageType::CLIENT_READY;
+        return MessageType::NOTIFICATION;
     }
 
     std::string GetBody() const override
     {
         return "";
     }
+
+    NotificationType notification_type_;
 };
 
 class MtEvent : public MtMessage 
@@ -176,7 +194,6 @@ private:
         return ss.str();
     }
 
-    int expert_handle_;
     std::vector<int> experts_;
 };
 

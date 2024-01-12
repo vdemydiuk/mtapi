@@ -159,6 +159,7 @@
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="MtConnection.cpp" />
     <ClCompile Include="MtExpert.cpp" />
+    <ClCompile Include="MtMessage.cpp" />
     <ClCompile Include="MtServer.cpp" />
     <ClCompile Include="MtService.cpp" />
     <ClCompile Include="pch.cpp">

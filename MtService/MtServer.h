@@ -48,12 +48,12 @@ private:
     void OnAccept(boost::beast::error_code ec, 
             boost::asio::ip::tcp::socket socket);
 
-    std::unique_ptr<MtCommand> ParseCommand(const std::string& msg);
-
     void OnEvent(const MtEvent& event);
     void OnDeinitExpert(int handle);
 
     void Send(const MtMessage& message);
+
+    void ProcessMessage(const std::string& msg, std::weak_ptr<MtConnection> con);
 
     Logger log_{ "MtServer" };
     boost::asio::io_context& context_;

@@ -3,9 +3,6 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <boost/spirit/include/qi.hpp>
-#include <boost/phoenix/core.hpp>
-#include <boost/phoenix/operator.hpp>
 
 #include "MtConnection.h"
 #include "MtExpert.h"
@@ -165,59 +162,15 @@ void MtServer::OnAccept(boost::beast::error_code ec,
             }
         });
         connection->OnMessageReceived.connect([con = connection->weak_from_this(), this](const std::string& msg) {
-            log_.Trace("MtServer::OnMessageReceived: %s", msg.c_str());
-
-            std::string::size_type pos = msg.find(';');
-            if (pos == std::string::npos)
+            try
             {
-                log_.Warning("MtServer::OnMessageReceived: invalid message type.");
-                return;
+                ProcessMessage(msg, con);
+            }
+            catch (std::exception e)
+            {
+                log_.Error("MtServer::OnMessageReceived: Failed to process message: %s", msg.c_str());
             }
 
-            std::string msg_type_str = msg.substr(0, pos);;
-            auto msg_type = std::atoi(msg_type_str.c_str());
-            if (msg_type == MessageType::COMMAND)
-            {
-                auto command = ParseCommand(msg);
-                if (command)
-                {
-                    auto expert_handle = command->getExpertHandle();
-                    if (experts_.count(expert_handle) > 0)
-                    {
-                        experts_[expert_handle]->expert->Process(std::move(command), [&](const MtResponse& response) {
-                            auto connection = con.lock();
-                            if (connection)
-                                connection->Send(response.Serialize());
-                            else
-                                log_.Warning("MtServer::OnMessageReceived: connection is not valid (null)");
-                            });
-                    }
-                    else
-                    {
-                        log_.Warning("MtServer::OnMessageReceived: Expert is not found with handle %d", command->getExpertHandle());
-                    }
-                }
-                else
-                {
-                    log_.Warning("MtServer::OnMessageReceived: Failed to parse command from message: %s", msg.c_str());
-                }
-            }
-            else if (msg_type == MessageType::CLIENT_READY)
-            {
-                std::vector<int> expert_list;
-                for (const auto& e : experts_)
-                    expert_list.push_back(e.first);
-
-                MtExpertListMsg msg(std::move(expert_list));
-                auto connection = con.lock();
-                if (connection)
-                    connection->Send(msg.Serialize());
-            }
-            else
-            {
-                log_.Warning("MtServer::OnMessageReceived: unsupported message type %d", msg_type);
-                return;
-            }
         });
         pending_connections_.push_back(connection);
         connection->Accept();
@@ -225,39 +178,6 @@ void MtServer::OnAccept(boost::beast::error_code ec,
         // Accept another connection
         DoAccept();
     }
-}
-
-std::unique_ptr<MtCommand> MtServer::ParseCommand(const std::string& msg)
-{
-    std::string::size_type pos = msg.find(';');
-
-    using namespace boost::spirit;
-    using rule_s = qi::rule<std::string::const_iterator, std::string()>;
-    using rule = qi::rule<std::string::const_iterator>;
-
-    std::string message_type;
-    std::string expert_handle;
-    std::string command_id;
-    std::string command_type;
-    std::string payload;
-
-    rule_s word_p = qi::as_string[+(qi::char_ - qi::char_(';'))];
-    rule message_type_p = word_p[boost::phoenix::ref(message_type) = qi::_1];
-    rule expert_handle_p = +qi::char_(';') >> word_p[boost::phoenix::ref(expert_handle) = qi::_1];
-    rule command_id_p = +qi::char_(';') >> word_p[boost::phoenix::ref(command_id) = qi::_1];
-    rule command_type_p = +qi::char_(';') >> word_p[boost::phoenix::ref(command_type) = qi::_1];
-    rule payload_p = +qi::char_(';') >> word_p[boost::phoenix::ref(payload) = qi::_1];
-
-    std::unique_ptr<MtCommand> command;
-
-    bool ok = qi::parse(msg.begin(), msg.end(), message_type_p >> -expert_handle_p >> -command_id_p >> -command_type_p >> -payload_p);
-    if (ok)
-    {
-        command = std::make_unique<MtCommand>(std::stoi(expert_handle),
-                std::stoi(command_id), std::stoi(command_type), std::move(payload));
-    }
-
-    return command;
 }
 
 // Start accepting incoming connections
@@ -318,4 +238,64 @@ void MtServer::Send(const MtMessage& message)
     log_.Trace("%s: %s", __FUNCTION__, msg.c_str());
     for (auto& c : connections_)
         c->Send(msg);
+}
+
+void MtServer::ProcessMessage(const std::string& msg, std::weak_ptr<MtConnection> con)
+{
+    log_.Trace("%s: %s", __FUNCTION__, msg.c_str());
+
+    std::string::size_type pos = msg.find(';');
+    if (pos == std::string::npos)
+    {
+        log_.Warning("%s: : invalid message type.", __FUNCTION__);
+        return;
+    }
+
+    std::string msg_type_str = msg.substr(0, pos);;
+    auto msg_type = std::atoi(msg_type_str.c_str());
+    if (msg_type == MessageType::COMMAND)
+    {
+        auto command = MtCommand::Parse(msg);
+        if (command)
+        {
+            auto expert_handle = command->getExpertHandle();
+            if (experts_.count(expert_handle) > 0)
+            {
+                experts_[expert_handle]->expert->Process(std::move(command), [con = con, this](const MtResponse& response) {
+                    auto connection = con.lock();
+                    if (connection)
+                        connection->Send(response.Serialize());
+                });
+            }
+            else
+                log_.Warning("%s: Expert is not found with handle %d", __FUNCTION__, command->getExpertHandle());
+        }
+        else
+            log_.Warning("%s: Failed to parse command from message: %s", __FUNCTION__, msg.c_str());
+    }
+    else if (msg_type == MessageType::NOTIFICATION)
+    {
+        auto notification = MtNotification::Parse(msg);
+        if (notification)
+        {
+            if (notification->GetNotificationType() == NotificationType::CLIENT_READY)
+            {
+                std::vector<int> expert_list;
+                for (const auto& e : experts_)
+                    expert_list.push_back(e.first);
+
+                MtExpertListMsg msg(std::move(expert_list));
+                auto connection = con.lock();
+                if (connection)
+                    connection->Send(msg.Serialize());
+            }
+        }
+        else
+            log_.Warning("%s: Failed to parse notification from message: %s", __FUNCTION__, msg.c_str());
+    }
+    else
+    {
+        log_.Warning("%s: unsupported message type %d", __FUNCTION__, msg_type);
+        return;
+    }
 }
