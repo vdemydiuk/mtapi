@@ -3792,7 +3792,7 @@ namespace MtApi5
         {
             Log?.Debug("OnConnected: begin");
 
-            Client?.Send(new MtClientReady());
+            Client?.Send(new MtNotification(MtNotificationType.ClientReady));
 
             _isBacktestingMode = IsTesting();
 

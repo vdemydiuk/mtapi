@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.Design;
-using System.Data;
-
-namespace MtClient
+﻿namespace MtClient
 {
     public enum MessageType
     {
@@ -11,7 +8,12 @@ namespace MtClient
         ExpertList = 3,
         ExpertAdded = 4,
         ExpertRemoved = 5,
-        ClientReady = 6
+        Notification = 6
+    }
+
+    public enum MtNotificationType
+    {
+        ClientReady = 0
     }
 
     public abstract class MtMessage
@@ -41,14 +43,16 @@ namespace MtClient
         }
     }
 
-    public class MtClientReady : MtMessage
+    public class MtNotification(MtNotificationType notificationType) : MtMessage
     {
-        public override MessageType MsgType => MessageType.ClientReady;
+        public override MessageType MsgType => MessageType.Notification;
 
         protected override string GetMessageBody()
         {
-            return string.Empty;
+            return $"{(int)NotificationType}";
         }
+
+        public MtNotificationType NotificationType { private set; get; } = notificationType;
     }
 
     public class MtEvent(int expertHandle, int eventType, string payload) : MtMessage

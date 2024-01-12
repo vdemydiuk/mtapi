@@ -58,7 +58,10 @@ namespace MtClient
 
         public void Send(MtMessage message)
         {
-            pendingMessages_.Enqueue(message.Serialize());
+            lock (pendingMessages_)
+            {
+                pendingMessages_.Enqueue(message);
+            }
             sendWaiter_.Set();
         }
 
@@ -66,7 +69,7 @@ namespace MtClient
         {
             while(ws_.State == WebSocketState.Open)
             {
-                string? message = null;
+                MtMessage? message = null;
                 lock(pendingMessages_)
                 {
                     if (pendingMessages_.Count > 0)
@@ -81,8 +84,9 @@ namespace MtClient
 
                 try
                 {
-                    Log($"DoWrite: sending message: {message}");
-                    byte[] bytes = Encoding.ASCII.GetBytes(message);
+                    string msgStr = message.Serialize();
+                    Log($"DoWrite: sending message: {msgStr}");
+                    byte[] bytes = Encoding.ASCII.GetBytes(msgStr);
                     await ws_.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
                 }
                 catch (Exception e)
@@ -177,8 +181,7 @@ namespace MtClient
         private readonly string host_;
         private readonly int port_;
         private readonly byte[] buf_ = new byte[10000];
-        private readonly Dictionary<MessageType, Func<string, MtMessage?>> msgHandlers_ = new();
-        private readonly Queue<string> pendingMessages_ = [];
+        private readonly Queue<MtMessage> pendingMessages_ = [];
 
         private readonly Thread receiveThread_;
         private readonly Thread sendThread_;
