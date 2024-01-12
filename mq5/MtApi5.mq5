@@ -1,7 +1,7 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      ""
 
-#property version   "1.9"
+#property version   "2.0"
 #property description "MtApi (MT5) connection expert"
 
 #include <json.mqh>
@@ -9,11 +9,9 @@
 #include <trade/trade.mqh>
 
 #import "MT5Connector.dll"
-   bool initExpert(int expertHandle, int port, string symbol, double bid, double ask, int isTestMode, string& err);
+   bool initExpert(int expertHandle, int port, string& err);
    bool deinitExpert(int expertHandle, string& err);
-   
-   bool updateQuote(int expertHandle, string symbol, double bid, double ask, string& err);
-      
+/*   
    bool sendIntResponse(int expertHandle, int response, string& err);
    bool sendBooleanResponse(int expertHandle, int response, string& err);
    bool sendDoubleResponse(int expertHandle, double response, string& err);
@@ -26,10 +24,12 @@
    bool sendLongArrayResponse(int expertHandle, long& values[], int size, string& err);
    bool sendMqlRatesArrayResponse(int expertHandle, MqlRates& values[], int size, string& err);   
    bool sendErrorResponse(int expertHandle, int code, string message, string& err);
-   
-   bool sendEvent(int expertHandle, int eventType, string payload, string& err);  
-   
+*/   
+   bool sendEvent(int expertHandle, int eventType, string payload, string& err);
+   bool sendResponse(int expertHandle, string response, string& err);
+
    bool getCommandType(int expertHandle, int& res, string& err);
+/*
    bool getIntValue(int expertHandle, int paramIndex, int& res, string& err);
    bool getUIntValue(int expertHandle, int paramIndex, uint& res, string& err);   
    bool getULongValue(int expertHandle, int paramIndex, ulong& res, string& err);
@@ -37,7 +37,106 @@
    bool getDoubleValue(int expertHandle, int paramIndex, double& res, string& err);
    bool getStringValue(int expertHandle, int paramIndex, string& res, string& err);
    bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
+*/   
 #import
+
+///--------------------------------------------------------------------------------------
+   bool sendIntResponse(int expertHandle, int response, string& err)
+   {
+      return true;
+   }
+
+   bool sendBooleanResponse(int expertHandle, int response, string& err)
+   {
+      return true;
+   }
+
+   bool sendDoubleResponse(int expertHandle, double response, string& err)
+   {
+      return true;
+   }
+   
+   bool sendStringResponse(int expertHandle, string response, string& err)
+   {
+      return true;
+   }
+   
+   bool sendVoidResponse(int expertHandle, string& err)
+   {
+      return true;
+   }
+   
+   bool sendDoubleArrayResponse(int expertHandle, double& values[], int size, string& err)
+   {
+      return true;
+   }
+   
+   bool sendIntArrayResponse(int expertHandle, int& values[], int size, string& err)
+   {
+      return true;
+   }
+   
+   bool sendLongResponse(int expertHandle, long response, string& err)
+   {
+      return true;
+   }
+   
+   bool sendULongResponse(int expertHandle, ulong response, string& err)
+   {
+      return true;
+   }
+   
+   bool sendLongArrayResponse(int expertHandle, long& values[], int size, string& err)
+   {
+      return true;
+   }
+   
+   bool sendMqlRatesArrayResponse(int expertHandle, MqlRates& values[], int size, string& err)
+   {
+      return true;
+   }
+   
+   bool sendErrorResponse(int expertHandle, int code, string message, string& err)
+   {
+      return true;
+   }
+   
+   bool getIntValue(int expertHandle, int paramIndex, int& res, string& err)
+   {
+      return true;
+   }
+   
+   bool getUIntValue(int expertHandle, int paramIndex, uint& res, string& err)
+   {
+      return true;
+   }
+   
+   bool getULongValue(int expertHandle, int paramIndex, ulong& res, string& err)
+   {
+      return true;
+   }
+   
+   bool getLongValue(int expertHandle, int paramIndex, long& res, string& err)
+   {
+      return true;
+   }
+   
+   bool getDoubleValue(int expertHandle, int paramIndex, double& res, string& err)
+   {
+      return true;
+   }
+   
+   bool getStringValue(int expertHandle, int paramIndex, string& res, string& err)
+   {
+      return true;
+   }
+   
+   bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err)
+   {
+      return true;
+   }   
+//---------------------------------------------------------------------------------------
+
 
 //#define __DEBUG_LOG__
 
@@ -52,7 +151,7 @@ input int Port = 8228;
 input LockTickType BacktestingLockTicks = NO_LOCK;
 input group           "Disable Events "
 input bool Enable_OnBookEvent = true;                 
-input bool Enable_OnTickEvent = true;                 
+input bool Enable_OnTickEvent = false;                 
 input bool Enable_OnTradeTransactionEvent = true;     
 input bool Enable_OnLastBarEvent = true;    
 
@@ -224,7 +323,7 @@ int init()
    double Bid = last_tick.bid;
    double Ask = last_tick.ask;
    
-   if (!initExpert(ExpertHandle, Port, Symbol(), Bid, Ask, IsTesting(), _error))
+   if (!initExpert(ExpertHandle, Port, _error))
    {
        MessageBox(_error, "MtApi", 0);
        isCrashed = true;
@@ -305,6 +404,8 @@ int executeCommand()
       return (0);
    }
    
+//   if (!getPa)
+   
 #ifdef __DEBUG_LOG__
    if (commandType > 0)
    {
@@ -320,8 +421,8 @@ int executeCommand()
    case 155: //Request
       Execute_Request();
    break;
-   case 1: // OrderSend
-      Execute_OrderSend();
+   //case 1: // OrderSend
+      //Execute_OrderSend();
    break;
    case 63: //OrderCloseAll
       Execute_OrderCloseAll();
@@ -921,8 +1022,12 @@ int executeCommand()
       Execute_ChartIndicatorGet();
    break;
    default:
-      Print("Unknown command type = ", commandType);
-      sendVoidResponse(ExpertHandle, _response_error);
+      {
+         Print("Unknown command type = ", commandType);
+         //sendVoidResponse(ExpertHandle, _response_error);
+         string resp = CreateErrorResponse(-1, "Unknown command type");
+         sendResponse(ExpertHandle, resp, _response_error);
+      }
       break;
    } 
    
@@ -991,10 +1096,10 @@ void Execute_Request()
 
 void Execute_OrderSend()
 {
-   MqlTradeRequest request={0};      
+   MqlTradeRequest request;
    ReadMqlTradeRequestFromCommand(request);
    
-   MqlTradeResult result={0};
+   MqlTradeResult result;
    
    bool retVal = OrderSend(request, result);
          
@@ -7155,12 +7260,12 @@ string ExecuteRequest_OrderSend(JSONObject *jo)
    CHECK_JSON_VALUE(jo, "TradeRequest", CreateErrorResponse(-1, "Undefinded mandatory parameter TradeRequest"));
    JSONObject* trade_request_jo = jo.getObject("TradeRequest");
       
-   MqlTradeRequest trade_request = {0};
+   MqlTradeRequest trade_request;
    bool converted = JsonToMqlTradeRequest(trade_request_jo, trade_request);
    if (converted == false)
       return CreateErrorResponse(-1, "Failed to parse parameter TradeRequest");
    
-   MqlTradeResult trade_result = {0};   
+   MqlTradeResult trade_result;
    bool ok = OrderSend(trade_request, trade_result);
    
    JSONObject* result_value_jo = new JSONObject();
@@ -7179,12 +7284,12 @@ string ExecuteRequest_OrderSendAsync(JSONObject *jo)
    CHECK_JSON_VALUE(jo, "TradeRequest", CreateErrorResponse(-1, "Undefinded mandatory parameter TradeRequest"));
    JSONObject* trade_request_jo = jo.getObject("TradeRequest");
       
-   MqlTradeRequest trade_request = {0};
+   MqlTradeRequest trade_request;
    bool converted = JsonToMqlTradeRequest(trade_request_jo, trade_request);
    if (converted == false)
       return CreateErrorResponse(-1, "Failed to parse parameter TradeRequest");
    
-   MqlTradeResult trade_result = {0};   
+   MqlTradeResult trade_result;
    bool ok = OrderSendAsync(trade_request, trade_result);
    
    JSONObject* result_value_jo = new JSONObject();
@@ -7254,10 +7359,10 @@ string ExecuteRequest_OrderCheck(JSONObject *jo)
    CHECK_JSON_VALUE(jo, "TradeRequest", CreateErrorResponse(-1, "Undefinded mandatory parameter TradeRequest"));
    JSONObject* trade_request_jo = jo.getObject("TradeRequest");
       
-   MqlTradeRequest trade_request = {0};
+   MqlTradeRequest trade_request;
    JsonToMqlTradeRequest(trade_request_jo, trade_request);
    
-   MqlTradeCheckResult trade_check_result = {0};   
+   MqlTradeCheckResult trade_check_result;
    bool ok = OrderCheck(trade_request, trade_check_result);
    
 #ifdef __DEBUG_LOG__   
