@@ -181,9 +181,10 @@ void MtServer::OnAccept(boost::beast::error_code ec,
                 auto command = ParseCommand(msg);
                 if (command)
                 {
-                    if (experts_.count(command->getExpertHandle()) > 0)
+                    auto expert_handle = command->getExpertHandle();
+                    if (experts_.count(expert_handle) > 0)
                     {
-                        experts_[command->getExpertHandle()]->expert->Process(std::move(command), [&](const MtResponse& response) {
+                        experts_[expert_handle]->expert->Process(std::move(command), [&](const MtResponse& response) {
                             auto connection = con.lock();
                             if (connection)
                                 connection->Send(response.Serialize());
