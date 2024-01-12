@@ -70,7 +70,7 @@ namespace MtClient
             if (pieces.Length == 3
                 && int.TryParse(pieces[0], out int expertHandle)
                 && int.TryParse(pieces[1], out int eventType))
-                    return new MtEvent(expertHandle, eventType, payload);
+                    return new MtEvent(expertHandle, eventType, pieces[2]);
             return null;
         }
     }
