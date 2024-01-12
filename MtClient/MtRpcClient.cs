@@ -56,7 +56,35 @@ namespace MtClient
             Log($"Disconnect: success");
         }
 
-        public void Send(MtMessage message)
+        public string? SendCommand(int expertHandle, int commandType, string payload)
+        {
+            CommandTask commandTask = new();
+            int commandId;
+            lock (_tasks)
+            {
+                commandId = nextCommandId++;
+                _tasks[commandId] = commandTask;
+            }
+
+            MtCommand command = new(expertHandle, commandType, commandId, payload);
+            Send(command);
+
+            var response = commandTask.WaitResponse(10000); // 10 sec
+            lock (_tasks)
+            {
+                _tasks.Remove(commandId);
+            }
+
+            return response;
+        }
+
+        public void NotifyClientReady()
+        {
+            MtNotification notification = new(MtNotificationType.ClientReady);
+            Send(notification);
+        }
+
+        private void Send(MtMessage message)
         {
             lock (pendingMessages_)
             {
@@ -164,8 +192,45 @@ namespace MtClient
                 Log("OnReceive: Failed parse message payload");
                 return;
             }
-            
-            MessageReceived?.Invoke(this, message);
+
+            switch (message.MsgType)
+            {
+                case MessageType.Event:
+                    if (message is MtEvent e)
+                        MtEventReceived?.Invoke(this, new(e.ExpertHandle, e.EventType, e.Payload));
+                    break;
+                case MessageType.Response:
+                    if (message is MtResponse response)
+                        ProcessResponse(response);
+                    break;
+                case MessageType.ExpertList:
+                    if (message is MtExpertListMsg expertListMsg)
+                        ExpertList?.Invoke(this, new(expertListMsg.Experts));
+                    break;
+                case MessageType.ExpertAdded:
+                    if (message is MtExpertAddedMsg expertAddedMsg)
+                        ExpertAdded?.Invoke(this, new(expertAddedMsg.ExpertHandle));
+                    break;
+                case MessageType.ExpertRemoved:
+                    if (message is MtExpertRemovedMsg expertRemovedMsg)
+                        ExpertRemoved?.Invoke(this, new(expertRemovedMsg.ExpertHandle));
+                    break;
+            }
+        }
+
+        private void ProcessResponse(MtResponse msg)
+        {
+            var handle = msg.ExpertHandle;
+            var commandId = msg.CommandId;
+            var payload = msg.Payload;
+
+            Log($"ProcessResponse: {handle}, {commandId}, [{payload}]");
+
+            lock (_tasks)
+            {
+                if (_tasks.TryGetValue(commandId, out CommandTask? value))
+                    value.SetResponse(payload);
+            }
         }
 
         private void Log(string msg)
@@ -173,9 +238,12 @@ namespace MtClient
             Console.WriteLine($"[{Environment.CurrentManagedThreadId}] {msg}");
         }
 
-        public event EventHandler<MtMessage>? MessageReceived;
         public event EventHandler<EventArgs>? ConnectionFailed;
         public event EventHandler<EventArgs>? Disconnected;
+        public event EventHandler<MtExpertListEventArgs>? ExpertList;
+        public event EventHandler<MtExpertEventArgs>? ExpertAdded;
+        public event EventHandler<MtExpertEventArgs>? ExpertRemoved;
+        public event EventHandler<MtEventArgs>? MtEventReceived;
 
         private readonly ClientWebSocket ws_ = new();
         private readonly string host_;
@@ -186,5 +254,50 @@ namespace MtClient
         private readonly Thread receiveThread_;
         private readonly Thread sendThread_;
         private readonly EventWaitHandle sendWaiter_ = new AutoResetEvent(false);
+
+        private int nextCommandId = 0;
+        private readonly Dictionary<int, CommandTask> _tasks = [];
+    }
+
+    internal class CommandTask
+    {
+        private readonly EventWaitHandle responseWaiter_ = new AutoResetEvent(false);
+        private string? response_;
+        private readonly object locker_ = new();
+
+        public string? WaitResponse(int time)
+        {
+            responseWaiter_.WaitOne(time);
+            lock (locker_)
+            {
+                return response_;
+            }
+        }
+
+        public void SetResponse(string result)
+        {
+            lock (locker_)
+            {
+                response_ = result;
+            }
+            responseWaiter_.Set();
+        }
+    }
+
+    public class MtEventArgs(int expertHandle, int eventType, string payload) : EventArgs
+    {
+        public int ExpertHandle { get; } = expertHandle;
+        public int EventType { get; } = eventType;
+        public string Payload { get; } = payload;
+    }
+
+    public class MtExpertListEventArgs(HashSet<int> experts) : EventArgs
+    {
+        public HashSet<int> Experts { get; } = experts;
+    }
+
+    public class MtExpertEventArgs(int expert) : EventArgs
+    {
+        public int Expert { get;  }= expert;
     }
 }

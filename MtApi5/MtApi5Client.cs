@@ -3,9 +3,7 @@ using MtApi5.Requests;
 using Newtonsoft.Json;
 using MtApi5.Events;
 using MtClient;
-using System.ComponentModel.Design;
 using System.Reflection.Metadata;
-using System.Collections.Generic;
 
 namespace MtApi5
 {
@@ -40,8 +38,6 @@ namespace MtApi5
         private HashSet<int> _experts = [];
         private Dictionary<int, Mt5Quote> _quotes = [];
         private readonly EventWaitHandle _quotesWaiter = new AutoResetEvent(false);
-        private int _commandId = 0;
-        private readonly Dictionary<int, CommandTask> _tasks = [];
         #endregion
 
         #region Public Methods
@@ -3319,7 +3315,7 @@ namespace MtApi5
         public event EventHandler<Mt5BookEventArgs>? OnBookEvent;
         public event EventHandler<Mt5TimeBarArgs>? OnLastTimeBar;
         public event EventHandler<Mt5LockTicksEventArgs>? OnLockTicks;
-        public event EventHandler<IEnumerable<Mt5Quote>>? QuoteList;
+        public event EventHandler<Mt5QuotesEventArgs>? QuoteList;
         #endregion
 
         #region Private Methods
@@ -3351,7 +3347,10 @@ namespace MtApi5
             ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Connecting, message));
 
             var client = new MtRpcClient(host, port);
-            client.MessageReceived += Client_OnMessageReceived;
+            client.ExpertList += Client_ExpertList;
+            client.ExpertAdded += Client_ExpertAdded;
+            client.ExpertRemoved += Client_ExpertRemoved;
+            client.MtEventReceived += Client_MtEventReceived;
             client.ConnectionFailed += Client_OnConnectionFailed;
             client.Disconnected += Client_Disconnected;
 
@@ -3384,36 +3383,28 @@ namespace MtApi5
             ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
         }
 
-        private void Client_OnMessageReceived(object? o, MtMessage msg)
+        private void Client_MtEventReceived(object? sender, MtEventArgs e)
         {
-            Log?.Debug($"Message received: type = {msg}");
-
-            switch (msg.MsgType)
-            {
-                case MessageType.ExpertList:
-                    Task.Run(() => ProcessExpertList(msg as MtExpertListMsg)); //must be runned on another thread to avoid blocking
-                    break;
-                case MessageType.ExpertAdded:
-                    Task.Run(() => ProcessExpertAdded(msg as MtExpertAddedMsg)); //must be runned on another thread to avoid blocking
-                    break;
-                case MessageType.ExpertRemoved:
-                    ProcessExpertRemoved(msg as MtExpertRemovedMsg);
-                    break;
-                case MessageType.Event:
-                    ProcessEvent(msg as MtEvent);
-                    break;
-                case MessageType.Response:
-                    ProcessResponse(msg as MtResponse);
-                    break;
-            }
+            Task.Run(() => _mtEventHandlers[(Mt5EventTypes)e.EventType](e.ExpertHandle, e.Payload));
         }
 
-        private void ProcessExpertList(MtExpertListMsg? msg)
+        private void Client_ExpertList(object? sender, MtExpertListEventArgs e)
         {
-            if (msg == null)
-                return;
+            Task.Run(()=>ProcessExpertList(e.Experts));
+        }
 
-            HashSet<int> experts = msg.Experts;
+        private void Client_ExpertAdded(object? sender, MtExpertEventArgs e)
+        {
+            Task.Run(() => ProcessExpertAdded(e.Expert));
+        }
+
+        private void Client_ExpertRemoved(object? sender, MtExpertEventArgs e)
+        {
+            Task.Run(() => ProcessExpertRemoved(e.Expert));
+        }
+
+        private void ProcessExpertList(HashSet<int> experts)
+        {
             if (experts == null || experts.Count == 0)
             {
                 Log?.Warn("ProcessExpertList: expert list invalid or empty");
@@ -3435,16 +3426,11 @@ namespace MtApi5
             }
             _quotesWaiter.Set();
 
-            QuoteList?.Invoke(this, quotes.Values.ToList());
+            QuoteList?.Invoke(this, new(quotes.Values.ToList()));
         }
 
-        private void ProcessExpertAdded(MtExpertAddedMsg? msg)
+        private void ProcessExpertAdded(int handle)
         {
-            if (msg == null)
-                return;
-
-            int handle = msg.ExpertHandle;
-
             Log?.Debug($"ProcessExpertAdded: {handle}");
 
             bool added;
@@ -3473,13 +3459,8 @@ namespace MtApi5
                 Log?.Warn($"ProcessExpertAdded: expert handle {handle} is already exist");
         }
 
-        private void ProcessExpertRemoved(MtExpertRemovedMsg? msg)
+        private void ProcessExpertRemoved(int handle)
         {
-            if (msg == null)
-                return;
-
-            int handle = msg.ExpertHandle;
-
             Log?.Debug($"ProcessExpertRemoved: {handle}");
 
             Mt5Quote? quote = null;
@@ -3494,37 +3475,6 @@ namespace MtApi5
                 QuoteRemoved?.Invoke(this, new Mt5QuoteEventArgs(quote));
         }
 
-        private void ProcessEvent(MtEvent? msg)
-        {
-            if (msg == null)
-                return;
-
-            var handle = msg.ExpertHandle;
-            var eventType = (Mt5EventTypes)msg.EventType;
-            var payload = msg.Payload;
-
-            Log?.Debug($"ProcessEvent: {handle}, {eventType}, {payload}");
-
-            _mtEventHandlers[eventType](handle, payload);
-        }
-
-        private void ProcessResponse(MtResponse? msg)
-        {
-            if (msg == null)
-                return;
-
-            var handle = msg.ExpertHandle;
-            var commandId = msg.CommandId;
-            var payload = msg.Payload;
-
-            Log?.Debug($"ProcessResponse: {handle}, {commandId}, [{payload}]");
-
-            lock (_locker)
-            {
-                if (_tasks.TryGetValue(commandId, out CommandTask? value))
-                    value.SetResponse(payload);
-            }
-        }
         private Mt5Quote? GetQuote(int expertHandle)
         {
             Log?.Debug($"GetQuote: expertHandle = {expertHandle}");
@@ -3625,7 +3575,6 @@ namespace MtApi5
 
                 _quotes.Clear();
                 _experts.Clear();
-                _tasks.Clear();
             }
 
             client?.Disconnect();
@@ -3633,31 +3582,6 @@ namespace MtApi5
             Log?.Info(message);
 
             ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
-        }
-
-        internal class CommandTask
-        {
-            private readonly EventWaitHandle responseWaiter_ = new AutoResetEvent(false);
-            private string? response_;
-            private readonly object locker_ = new();
-
-            public string? WaitResponse(int time)
-            {
-                responseWaiter_.WaitOne(time);
-                lock (locker_)
-                {
-                    return response_;
-                }
-            }
-
-            public void SetResponse(string result)
-            {
-                lock (locker_)
-                {
-                    response_ = result;
-                }
-                responseWaiter_.Set();
-            }
         }
 
         private T? SendCommand<T>(int expertHandle, Mt5CommandType commandType, object? payload = null)
@@ -3670,22 +3594,9 @@ namespace MtApi5
             }
 
             var payloadJson = JsonConvert.SerializeObject(payload);
+            Log?.Debug($"SendCommand: sending '{payloadJson}' ...");
 
-            MtCommand command = new(expertHandle, (int)commandType, _commandId++, payloadJson);
-            CommandTask commandTask = new();
-            lock (_locker)
-            {
-                _tasks[command.CommandId] = commandTask;
-            }
-
-            Log?.Debug($"SendCommand: sending {command.CommandId} ...");
-            client.Send(command);
-            var responseJson = commandTask.WaitResponse(10000); // 10 sec
-
-            lock(_locker)
-            {
-                _tasks.Remove(command.CommandId);
-            }
+            var responseJson = client.SendCommand(expertHandle, (int)commandType, payloadJson);
 
             Log?.Debug($"SendCommand: received response JSON [{responseJson}]");
 
@@ -3780,19 +3691,11 @@ namespace MtApi5
             return response.Value;
         }
 
-
-        //private void _client_QuoteUpdated(MtQuote quote)
-        //{
-        //    if (quote == null) return;
-        //    QuoteUpdate?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote(quote)));
-        //    QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
-        //}
-
         private void OnConnected()
         {
             Log?.Debug("OnConnected: begin");
 
-            Client?.Send(new MtNotification(MtNotificationType.ClientReady));
+            Client?.NotifyClientReady();
 
             _isBacktestingMode = IsTesting();
 

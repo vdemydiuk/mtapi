@@ -1,6 +1,6 @@
 ﻿namespace MtClient
 {
-    public enum MessageType
+    internal enum MessageType
     {
         Command = 0,
         Response = 1,
@@ -11,12 +11,12 @@
         Notification = 6
     }
 
-    public enum MtNotificationType
+    internal enum MtNotificationType
     {
         ClientReady = 0
     }
 
-    public abstract class MtMessage
+    internal abstract class MtMessage
     {
         public abstract MessageType MsgType { get; }
 
@@ -28,7 +28,7 @@
         protected abstract string GetMessageBody();
     }
 
-    public class MtCommand(int expertHandle, int commandType, int commandId, string payload) : MtMessage
+    internal class MtCommand(int expertHandle, int commandType, int commandId, string payload) : MtMessage
     {
         public override MessageType MsgType => MessageType.Command;
 
@@ -43,7 +43,7 @@
         }
     }
 
-    public class MtNotification(MtNotificationType notificationType) : MtMessage
+    internal class MtNotification(MtNotificationType notificationType) : MtMessage
     {
         public override MessageType MsgType => MessageType.Notification;
 
@@ -55,7 +55,7 @@
         public MtNotificationType NotificationType { private set; get; } = notificationType;
     }
 
-    public class MtEvent(int expertHandle, int eventType, string payload) : MtMessage
+    internal class MtEvent(int expertHandle, int eventType, string payload) : MtMessage
     {
         public override MessageType MsgType => MessageType.Event;
 
@@ -79,7 +79,7 @@
         }
     }
 
-    public class MtExpertAddedMsg(int expertHandle) : MtMessage
+    internal class MtExpertAddedMsg(int expertHandle) : MtMessage
     {
         public override MessageType MsgType => MessageType.ExpertAdded;
 
@@ -99,7 +99,7 @@
         }
     }
 
-    public class MtExpertRemovedMsg(int expertHandle) : MtMessage
+    internal class MtExpertRemovedMsg(int expertHandle) : MtMessage
     {
         public override MessageType MsgType => MessageType.ExpertRemoved;
 
@@ -119,7 +119,7 @@
         }
     }
 
-    public class MtExpertListMsg(HashSet<int> experts) : MtMessage
+    internal class MtExpertListMsg(HashSet<int> experts) : MtMessage
     {
         public override MessageType MsgType => MessageType.ExpertList;
 
@@ -145,7 +145,7 @@
         }
     }
 
-    public class MtResponse(int expertHandle, int commandId, string payload) : MtMessage
+    internal class MtResponse(int expertHandle, int commandId, string payload) : MtMessage
     {
         public override MessageType MsgType => MessageType.Response;
 
@@ -177,7 +177,7 @@
         }
     }
 
-    public static class MtMessageParser
+    internal static class MtMessageParser
     {
         static MtMessageParser()
         {
