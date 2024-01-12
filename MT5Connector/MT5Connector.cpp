@@ -40,10 +40,9 @@ template <typename T> T Execute(std::function<T()> func, wchar_t* err, T default
     return result;
 }
 
-_DLLAPI int _stdcall initExpert(int expertHandle, int port, int isTestMode, wchar_t* err)
+_DLLAPI int _stdcall initExpert(int expertHandle, int port, wchar_t* err)
 {
-    return Execute<int>([&expertHandle, &port, &isTestMode]() {
-        bool isTesting = (isTestMode != 0) ? true : false;
+    return Execute<int>([&expertHandle, &port]() {
         auto mt_handler = std::make_unique<MT5Handler>(expertHandle);
         MtService::GetInstance().InitExpert(port, expertHandle, std::move(mt_handler));
         return 1;
