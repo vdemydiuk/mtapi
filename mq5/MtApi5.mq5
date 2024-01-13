@@ -11,33 +11,12 @@
 #import "MT5Connector.dll"
    bool initExpert(int expertHandle, int port, string& err);
    bool deinitExpert(int expertHandle, string& err);
-/*   
-   bool sendIntResponse(int expertHandle, int response, string& err);
-   bool sendBooleanResponse(int expertHandle, int response, string& err);
-   bool sendDoubleResponse(int expertHandle, double response, string& err);
-   bool sendStringResponse(int expertHandle, string response, string& err);
-   bool sendVoidResponse(int expertHandle, string& err);
-   bool sendDoubleArrayResponse(int expertHandle, double& values[], int size, string& err);
-   bool sendIntArrayResponse(int expertHandle, int& values[], int size, string& err);   
-   bool sendLongResponse(int expertHandle, long response, string& err);
-   bool sendULongResponse(int expertHandle, ulong response, string& err);
-   bool sendLongArrayResponse(int expertHandle, long& values[], int size, string& err);
-   bool sendMqlRatesArrayResponse(int expertHandle, MqlRates& values[], int size, string& err);   
-   bool sendErrorResponse(int expertHandle, int code, string message, string& err);
-*/   
+ 
    bool sendEvent(int expertHandle, int eventType, string payload, string& err);
    bool sendResponse(int expertHandle, string response, string& err);
 
    bool getCommandType(int expertHandle, int& res, string& err);
-/*
-   bool getIntValue(int expertHandle, int paramIndex, int& res, string& err);
-   bool getUIntValue(int expertHandle, int paramIndex, uint& res, string& err);   
-   bool getULongValue(int expertHandle, int paramIndex, ulong& res, string& err);
-   bool getLongValue(int expertHandle, int paramIndex, long& res, string& err);
-   bool getDoubleValue(int expertHandle, int paramIndex, double& res, string& err);
-   bool getStringValue(int expertHandle, int paramIndex, string& res, string& err);
-   bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err);
-*/   
+   bool getPayload(int expertHandle, string& res, string& err);
 #import
 
 ///--------------------------------------------------------------------------------------
@@ -201,24 +180,23 @@ void OnTick()
            MqlRates rates_array[];
            CopyRates(symbol, Period(), 1, 1, rates_array);
       
-           MtTimeBarEvent* time_bar = new MtTimeBarEvent(symbol, rates_array[0]);
+           MtTimeBarEvent time_bar(symbol, rates_array[0]);
            SendMtEvent(ON_LAST_TIME_BAR_EVENT, time_bar);
-           delete time_bar;
          }
         lastbar_time_changed = true;
       }
       
       _last_bar_open_time = lastbar_time;
    }
+   
    if (Enable_OnTickEvent)
-     {
+   {
        MqlTick last_tick;
        SymbolInfoTick(Symbol(),last_tick);
    
-       MtOnTickEvent * tick_event = new MtOnTickEvent(symbol, last_tick);
-       SendMtEvent(ON_TICK_EVENT, tick_event);
-       delete tick_event; 
-     }
+       MtQuote quote(symbol, last_tick);
+       SendMtEvent(ON_TICK_EVENT, quote);
+   }
    
    if (IsTesting())
    {
@@ -227,9 +205,8 @@ void OnTick()
       {
          _is_ticks_locked = true;
          
-         MtLockTickEvent * lock_tick_event = new MtLockTickEvent(symbol);
+         MtLockTickEvent lock_tick_event(symbol);
          SendMtEvent(ON_LOCK_TICKS_EVENT, lock_tick_event);
-         delete lock_tick_event;
       }
       
       OnTimer();
@@ -241,33 +218,29 @@ void  OnTradeTransaction(
    const MqlTradeRequest&        request,      // request structure 
    const MqlTradeResult&         result        // result structure 
    )
-   {
-      if(!Enable_OnTradeTransactionEvent) return;
+{
+      if (!Enable_OnTradeTransactionEvent) return;
       
       #ifdef __DEBUG_LOG__
        PrintFormat("%s:", __FUNCTION__);
       #endif 
       
        
-      MtOnTradeTransactionEvent* trans_event = new MtOnTradeTransactionEvent(trans, request, result);
+      MtOnTradeTransactionEvent trans_event(trans, request, result);
       SendMtEvent(ON_TRADE_TRANSACTION_EVENT, trans_event);
-      delete trans_event;
-       
-   }
+}
+
 void OnBookEvent(const string& symbol)
-   {
-   
+{
     if(!Enable_OnBookEvent) return;
     
     #ifdef __DEBUG_LOG__
       PrintFormat("%s: %s", __FUNCTION__, symbol);
     #endif 
 
-    MtOnBookEvent * book_event = new MtOnBookEvent(symbol);
+    MtOnBookEvent book_event(symbol);
     SendMtEvent(ON_BOOK_EVENT, book_event);
-    delete book_event;
-      
-   }
+}
 
 int preinit()
 {
@@ -317,11 +290,6 @@ int init()
 
    long chartID = ChartID();
    ExpertHandle = (int) ChartGetInteger(chartID, CHART_WINDOW_HANDLE);
-   
-   MqlTick last_tick;
-   SymbolInfoTick(Symbol(),last_tick);
-   double Bid = last_tick.bid;
-   double Ask = last_tick.ask;
    
    if (!initExpert(ExpertHandle, Port, _error))
    {
@@ -412,6 +380,8 @@ int executeCommand()
       Print("executeCommand: commnad type = ", commandType);
    }
 #endif 
+
+   string response = CreateSuccessResponse();
   
    switch (commandType) 
    {
@@ -421,8 +391,8 @@ int executeCommand()
    case 155: //Request
       Execute_Request();
    break;
-   //case 1: // OrderSend
-      //Execute_OrderSend();
+   case 1: // GetQuote
+      response = Execute_GetQuote();
    break;
    case 63: //OrderCloseAll
       Execute_OrderCloseAll();
@@ -1024,12 +994,15 @@ int executeCommand()
    default:
       {
          Print("Unknown command type = ", commandType);
-         //sendVoidResponse(ExpertHandle, _response_error);
-         string resp = CreateErrorResponse(-1, "Unknown command type");
-         sendResponse(ExpertHandle, resp, _response_error);
+         response = CreateErrorResponse(-1, "Unknown command type");
       }
       break;
-   } 
+   }
+   
+   if (!sendResponse(ExpertHandle, response, _response_error))
+   {
+      PrintResponseError("sendResponse", _response_error);                                                                         \
+   }
    
    return (commandType);
 }
@@ -1066,6 +1039,14 @@ int executeCommand()
 #define SEND_STRING_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendStringResponse, response, __FUNCTION__)
 
 //-------------------------------------------------------------
+string Execute_GetQuote()
+{
+   MqlTick tick;
+   SymbolInfoTick(Symbol(), tick);
+   
+   MtQuote quote(Symbol(), tick);
+   return CreateSuccessResponse(quote.CreateJson());
+}
 
 void Execute_Request()
 {
@@ -7102,19 +7083,26 @@ string CreateErrorResponse(int code, string message_er)
    return result;
 }
 
-string CreateSuccessResponse(string responseName, JSONValue* responseBody)
+string CreateSuccessResponse(JSONValue* responseBody = NULL)
 {
-   JSONObject *joResponse = new JSONObject();
+   JSONObject joResponse;
    joResponse.put("ErrorCode", new JSONString("0"));
       
    if (responseBody != NULL)
-   {
-      joResponse.put(responseName, responseBody);   
-   }
+      joResponse.put("Value", responseBody);   
    
-   string result = joResponse.toString();   
-   delete joResponse;   
-   return result;
+   return joResponse.toString();
+}
+
+string CreateSuccessResponse(string responseName, JSONValue* responseBody)
+{
+   JSONObject joResponse;
+   joResponse.put("ErrorCode", new JSONString("0"));
+      
+   if (responseBody != NULL)
+      joResponse.put(responseName, responseBody);   
+   
+   return joResponse.toString();  
 }
 
 string ExecuteRequest_CopyTicks(JSONObject *jo)
@@ -7717,7 +7705,7 @@ string ExecuteRequest_Sell(JSONObject *jo)
    return CreateSuccessResponse("Value", result_value_jo); 
 }
 
-//------------ Events -------------------------------------------------------
+//------------ MtProtocol -------------------------------------------------------
 
 enum MtEventTypes
 {
@@ -7728,13 +7716,13 @@ enum MtEventTypes
    ON_LOCK_TICKS_EVENT        = 5
 };
 
-class MtEvent
+class MtObject
 {
 public:
-   virtual JSONObject* CreateJson() = 0;
+   virtual JSONObject* CreateJson() const = 0;
 };
 
-class MtOnTradeTransactionEvent : public MtEvent
+class MtOnTradeTransactionEvent : public MtObject
 {
 public:
    MtOnTradeTransactionEvent(const MqlTradeTransaction& trans, const MqlTradeRequest& request, const MqlTradeResult& result)
@@ -7744,7 +7732,7 @@ public:
       _result = result;
    }
    
-   virtual JSONObject* CreateJson()
+   virtual JSONObject* CreateJson() const
    {
       JSONObject *jo = new JSONObject();
       jo.put("Trans", MqlTradeTransactionToJson(_trans));
@@ -7759,7 +7747,7 @@ private:
    MqlTradeResult _result;
 };
 
-class MtOnBookEvent : public MtEvent
+class MtOnBookEvent : public MtObject
 {
 public:
    MtOnBookEvent(const string& symbol)
@@ -7767,7 +7755,7 @@ public:
       _symbol = symbol;
    }
    
-   virtual JSONObject* CreateJson()
+   virtual JSONObject* CreateJson() const
    {
       JSONObject *jo = new JSONObject();
       jo.put("Symbol", new JSONString(_symbol));
@@ -7778,16 +7766,16 @@ private:
    string _symbol;
 };
 
-class MtOnTickEvent : public MtEvent
+class MtQuote : public MtObject
 {
 public:
-   MtOnTickEvent(string symbol, const MqlTick& tick)
+   MtQuote(string symbol, const MqlTick& tick)
    {
       _symbol = symbol;
       _tick = tick;
    }
    
-   virtual JSONObject* CreateJson()
+   virtual JSONObject* CreateJson() const
    {
       JSONObject *jo = new JSONObject();
       jo.put("Tick", MqlTickToJson(_tick));
@@ -7801,7 +7789,7 @@ private:
    MqlTick  _tick;
 };
 
-class MtTimeBarEvent: public MtEvent
+class MtTimeBarEvent: public MtObject
 {
 public:
    MtTimeBarEvent(string symbol, const MqlRates& rates)
@@ -7810,7 +7798,7 @@ public:
       _rates = rates;
    }
    
-   virtual JSONObject* CreateJson()
+   virtual JSONObject* CreateJson() const
    {
       JSONObject *jo = new JSONObject();
       jo.put("Rates", MqlRatesToJson(_rates));
@@ -7824,7 +7812,7 @@ private:
    MqlRates _rates;
 };
 
-class MtLockTickEvent: public MtEvent
+class MtLockTickEvent: public MtObject
 {
 public:
    MtLockTickEvent(string symbol)
@@ -7832,7 +7820,7 @@ public:
       _symbol = symbol;
    }
    
-   virtual JSONObject* CreateJson()
+   virtual JSONObject* CreateJson() const
    {
       JSONObject *jo = new JSONObject();
       jo.put("Instrument", new JSONString(_symbol));
@@ -7843,9 +7831,9 @@ private:
    string _symbol;
 };
 
-void SendMtEvent(MtEventTypes eventType, MtEvent* mtEvent)
+void SendMtEvent(MtEventTypes eventType, const MtObject& mtObj)
 {
-   JSONObject* json = mtEvent.CreateJson();
+   JSONObject* json = mtObj.CreateJson();
    if (sendEvent(ExpertHandle, (int)eventType, json.toString(), _error))
    {
 #ifdef __DEBUG_LOG__
@@ -7941,7 +7929,7 @@ bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
    return true;
 }
 
-JSONObject* MqlTickToJson(MqlTick& tick)
+JSONObject* MqlTickToJson(const MqlTick& tick)
 {
     JSONObject *jo = new JSONObject();
     jo.put("MtTime", new JSONNumber(tick.time));
@@ -7953,7 +7941,7 @@ JSONObject* MqlTickToJson(MqlTick& tick)
     return jo;
 }
 
-JSONObject* MqlTradeResultToJson(MqlTradeResult& result)
+JSONObject* MqlTradeResultToJson(const MqlTradeResult& result)
 {
    JSONObject* jo = new JSONObject();
    jo.put("Retcode", new JSONNumber(result.retcode));
@@ -7968,7 +7956,7 @@ JSONObject* MqlTradeResultToJson(MqlTradeResult& result)
    return jo;
 }
 
-JSONObject* MqlTradeCheckResultToJson(MqlTradeCheckResult& result)
+JSONObject* MqlTradeCheckResultToJson(const MqlTradeCheckResult& result)
 {
    JSONObject* jo = new JSONObject();
    jo.put("Retcode", new JSONNumber(result.retcode));
@@ -7982,7 +7970,7 @@ JSONObject* MqlTradeCheckResultToJson(MqlTradeCheckResult& result)
    return jo;
 }
 
-JSONObject* MqlTradeTransactionToJson(MqlTradeTransaction& trans)
+JSONObject* MqlTradeTransactionToJson(const MqlTradeTransaction& trans)
 {
    JSONObject *jo = new JSONObject();
    jo.put("Deal", new JSONNumber(trans.deal));
@@ -8004,7 +7992,7 @@ JSONObject* MqlTradeTransactionToJson(MqlTradeTransaction& trans)
    return jo;
 }
 
-JSONObject* MqlTradeRequestToJson(MqlTradeRequest& request)
+JSONObject* MqlTradeRequestToJson(const MqlTradeRequest& request)
 {
    JSONObject *jo = new JSONObject();
    jo.put("Action", new JSONNumber((int)request.action));
@@ -8025,7 +8013,7 @@ JSONObject* MqlTradeRequestToJson(MqlTradeRequest& request)
    return jo;
 }
 
-JSONObject* MqlRatesToJson(MqlRates& rates)
+JSONObject* MqlRatesToJson(const MqlRates& rates)
 {
    JSONObject *jo = new JSONObject();
    jo.put("mt_time", new JSONNumber((int)rates.time));
