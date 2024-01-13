@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using MtApi5.Events;
 using MtClient;
 using System.Reflection.Metadata;
+using System.Collections.Generic;
 
 namespace MtApi5
 {
@@ -3478,9 +3479,22 @@ namespace MtApi5
         private Mt5Quote? GetQuote(int expertHandle)
         {
             Log?.Debug($"GetQuote: expertHandle = {expertHandle}");
-            var quote = SendCommand<Mt5Quote>(expertHandle, Mt5CommandType.GetQuote);
-            if (quote != null)
-                quote.ExpertHandle = expertHandle;
+
+            var e = SendCommand<OnTickEvent>(expertHandle, Mt5CommandType.GetQuote);
+            if (e == null || string.IsNullOrEmpty(e.Instrument) || e.Tick == null)
+                return null;
+
+            Mt5Quote quote = new()
+            {
+                Instrument = e.Instrument,
+                Bid = e.Tick.bid,
+                Ask = e.Tick.ask,
+                ExpertHandle = expertHandle,
+                Volume = e.Tick.volume,
+                Time = e.Tick.time,
+                Last = e.Tick.last
+            };
+
             return quote;
         }
 
@@ -3530,8 +3544,11 @@ namespace MtApi5
 
             QuoteUpdated?.Invoke(this, e.Instrument, e.Tick.bid, e.Tick.ask);
 
-            var quote = new Mt5Quote(e.Instrument, e.Tick.bid, e.Tick.ask)
+            Mt5Quote quote = new()
             {
+                Instrument = e.Instrument,
+                Bid = e.Tick.bid,
+                Ask = e.Tick.ask,
                 ExpertHandle = expertHandler,
                 Volume = e.Tick.volume,
                 Time = e.Tick.time,

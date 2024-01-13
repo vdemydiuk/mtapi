@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MtApi5
+﻿namespace MtApi5
 {
     public class Mt5Quote
     {
@@ -13,22 +11,5 @@ namespace MtApi5
         public ulong Volume { get; set; }
         //        public long TimeMsc { get; set; }
         //        public uint Flags { get; set; }
-
-        internal Mt5Quote()
-        {
-        }
-
-        internal Mt5Quote(string instrument, double bid, double ask)
-        {
-            Instrument = instrument;
-            Bid = bid;
-            Ask = ask;
-        }
-
-        //internal Mt5Quote(MtQuote quote)
-        //    :this(quote.Instrument, quote.Bid, quote.Ask)
-        //{
-        //    ExpertHandle = quote.ExpertHandle;
-        //}
     }
 }

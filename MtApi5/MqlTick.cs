@@ -1,7 +1,4 @@
-﻿// ReSharper disable InconsistentNaming
-using System;
-
-namespace MtApi5
+﻿namespace MtApi5
 {
     public class MqlTick
     {
