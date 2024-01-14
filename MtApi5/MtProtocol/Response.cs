@@ -1,4 +1,4 @@
-﻿namespace MtApi5.Requests
+﻿namespace MtApi5.MtProtocol
 {
     internal class Response<T>
     {

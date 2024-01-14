@@ -1,13 +1,7 @@
 ﻿namespace MtApi5
 {
-    public class ExecutionException: Exception
+    public class ExecutionException(ErrorCode errorCode, string? message) : Exception(message)
     {
-        public ExecutionException(ErrorCode errorCode, string? message)
-            :base(message)
-        {
-            ErrorCode = errorCode;
-        }
-
-        public ErrorCode ErrorCode { get; private set; }
+        public ErrorCode ErrorCode { get; private set; } = errorCode;
     }
 }

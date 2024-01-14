@@ -1,10 +1,10 @@
 ﻿using System.Collections;
 using MtApi5.Requests;
 using Newtonsoft.Json;
-using MtApi5.Events;
 using MtClient;
-using System.Reflection.Metadata;
-using System.Collections.Generic;
+using MtApi5.MtProtocol;
+using System.Linq;
+using System.Net.Http.Headers;
 
 namespace MtApi5
 {
@@ -265,11 +265,12 @@ namespace MtApi5
         ///Returns the symbol corresponding to the open position and automatically selects the position for further working with it using functions PositionGetDouble, PositionGetInteger, PositionGetString.
         ///</summary>
         ///<param name="index">Number of the position in the list of open positions.</param>
-        public string PositionGetSymbol(int index)
+        public string? PositionGetSymbol(int index)
         {
-            var commandParameters = new ArrayList { index };
+            Dictionary<string, object> commandParameters = [];
+            commandParameters["Index"] = index;
 
-            return SendCommand<string>(Mt5CommandType.PositionGetSymbol, commandParameters);
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.PositionGetSymbol, commandParameters);
         }
 
         ///<summary>
@@ -789,9 +790,8 @@ namespace MtApi5
         ///<param name="propertyId">Identifier of the property.</param>
         public double AccountInfoDouble(ENUM_ACCOUNT_INFO_DOUBLE propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-
-            return SendCommand<double>(Mt5CommandType.AccountInfoDouble, commandParameters);
+            Dictionary<string, object> commandParameters = new() { { "PropertyId", propertyId } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.AccountInfoDouble, commandParameters);
         }
 
         ///<summary>
@@ -800,20 +800,18 @@ namespace MtApi5
         ///<param name="propertyId">Identifier of the property.</param>
         public long AccountInfoInteger(ENUM_ACCOUNT_INFO_INTEGER propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-
-            return SendCommand<long>(Mt5CommandType.AccountInfoInteger, commandParameters);
+            Dictionary<string, object> commandParameters = new() { { "PropertyId", propertyId } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.AccountInfoInteger, commandParameters);
         }
 
         ///<summary>
         ///Returns the value of the corresponding account property. 
         ///</summary>
         ///<param name="propertyId">Identifier of the property.</param>
-        public string AccountInfoString(ENUM_ACCOUNT_INFO_STRING propertyId)
+        public string? AccountInfoString(ENUM_ACCOUNT_INFO_STRING propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-
-            return SendCommand<string>(Mt5CommandType.AccountInfoString, commandParameters);
+            Dictionary<string, object> commandParameters = new() { { "PropertyId", propertyId } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.AccountInfoString, commandParameters);
         }
         #endregion
 
@@ -3424,6 +3422,8 @@ namespace MtApi5
             {
                 _experts = experts;
                 _quotes = quotes;
+                if (_executorHandle == 0)
+                    _executorHandle = (_experts.Count > 0) ? _experts.ElementAt(0) : 0;
             }
             _quotesWaiter.Set();
 
@@ -3470,6 +3470,9 @@ namespace MtApi5
                 _experts.Remove(handle);
                 if (_quotes.TryGetValue(handle, out quote))
                     _quotes.Remove(handle);
+                if (_executorHandle == handle)
+                    _executorHandle = (_experts.Count > 0) ? _experts.ElementAt(0) : 0;
+
             }
 
             if (quote != null)
@@ -3480,19 +3483,19 @@ namespace MtApi5
         {
             Log?.Debug($"GetQuote: expertHandle = {expertHandle}");
 
-            var e = SendCommand<OnTickEvent>(expertHandle, Mt5CommandType.GetQuote);
+            var e = SendCommand<MtQuote>(expertHandle, Mt5CommandType.GetQuote);
             if (e == null || string.IsNullOrEmpty(e.Instrument) || e.Tick == null)
                 return null;
 
             Mt5Quote quote = new()
             {
                 Instrument = e.Instrument,
-                Bid = e.Tick.bid,
-                Ask = e.Tick.ask,
+                Bid = e.Tick.Bid,
+                Ask = e.Tick.Ask,
                 ExpertHandle = expertHandle,
-                Volume = e.Tick.volume,
-                Time = e.Tick.time,
-                Last = e.Tick.last
+                Volume = e.Tick.Volume,
+                Time = Mt5TimeConverter.ConvertFromMtTime(e.Tick.Time),
+                Last = e.Tick.Last
             };
 
             return quote;
@@ -3510,62 +3513,62 @@ namespace MtApi5
             Disconnect(false);
         }
 
-        private void ReceivedOnTradeTransactionEvent(int expertHandler, string payload)
+        private void ReceivedOnTradeTransactionEvent(int expertHandle, string payload)
         {
             var e = JsonConvert.DeserializeObject<OnTradeTransactionEvent>(payload);
             if (e == null)
                 return;
             OnTradeTransaction?.Invoke(this, new Mt5TradeTransactionEventArgs
             {
-                ExpertHandle = expertHandler,
+                ExpertHandle = expertHandle,
                 Trans = e.Trans,
                 Request = e.Request,
                 Result = e.Result
             });
         }
 
-        private void ReceivedOnBookEvent(int expertHandler, string payload)
+        private void ReceivedOnBookEvent(int expertHandle, string payload)
         {
             var e = JsonConvert.DeserializeObject<OnBookEvent>(payload);
             if (e == null || string.IsNullOrEmpty(e.Symbol))
                 return;
             OnBookEvent?.Invoke(this, new Mt5BookEventArgs
             {
-                ExpertHandle = expertHandler,
+                ExpertHandle = expertHandle,
                 Symbol = e.Symbol
             });
         }
 
-        private void ReceivedOnTickEvent(int expertHandler, string payload)
+        private void ReceivedOnTickEvent(int expertHandle, string payload)
         {
-            var e = JsonConvert.DeserializeObject<OnTickEvent>(payload);
+            var e = JsonConvert.DeserializeObject<MtQuote>(payload);
             if (e == null || string.IsNullOrEmpty(e.Instrument) || e.Tick == null)
                 return;
 
-            QuoteUpdated?.Invoke(this, e.Instrument, e.Tick.bid, e.Tick.ask);
+            QuoteUpdated?.Invoke(this, e.Instrument, e.Tick.Bid, e.Tick.Ask);
 
             Mt5Quote quote = new()
             {
                 Instrument = e.Instrument,
-                Bid = e.Tick.bid,
-                Ask = e.Tick.ask,
-                ExpertHandle = expertHandler,
-                Volume = e.Tick.volume,
-                Time = e.Tick.time,
-                Last = e.Tick.last
+                Bid = e.Tick.Bid,
+                Ask = e.Tick.Ask,
+                ExpertHandle = expertHandle,
+                Volume = e.Tick.Volume,
+                Time = Mt5TimeConverter.ConvertFromMtTime(e.Tick.Time),
+                Last = e.Tick.Last
             };
             QuoteUpdate?.Invoke(this, new Mt5QuoteEventArgs(quote));
         }
 
-        private void ReceivedOnLastTimeBarEvent(int expertHandler, string payload)
+        private void ReceivedOnLastTimeBarEvent(int expertHandle, string payload)
         {
             var e = JsonConvert.DeserializeObject<OnLastTimeBarEvent>(payload);
             if (e == null || string.IsNullOrEmpty(e.Instrument) || e.Rates == null)
                 return;
-            OnLastTimeBar?.Invoke(this, new Mt5TimeBarArgs(expertHandler, e.Instrument, e.Rates));
+            OnLastTimeBar?.Invoke(this, new Mt5TimeBarArgs(expertHandle, e.Instrument, e.Rates));
         }
 
-        private void ReceivedOnLockTicksEvent(int expertHandler, string payload)
+        private void ReceivedOnLockTicksEvent(int expertHandle, string payload)
         {
             var e = JsonConvert.DeserializeObject<OnLockTicksEvent>(payload);
             if (e == null || string.IsNullOrEmpty(e.Instrument))
@@ -3592,6 +3595,7 @@ namespace MtApi5
 
                 _quotes.Clear();
                 _experts.Clear();
+                _executorHandle = 0;
             }
 
             client?.Disconnect();

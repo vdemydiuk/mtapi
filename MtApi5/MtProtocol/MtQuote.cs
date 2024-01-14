@@ -1,8 +1,8 @@
-﻿namespace MtApi5.Events
+﻿namespace MtApi5.MtProtocol
 {
-    public class OnLastTimeBarEvent
+    internal class MtQuote
     {
-        public MqlRates? Rates { get; set; }
+        public MtTick? Tick { get; set; }
         public string? Instrument { get; set; }
         public int ExpertHandle { get; set; }
     }

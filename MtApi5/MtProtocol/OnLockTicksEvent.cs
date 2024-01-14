@@ -1,4 +1,4 @@
-﻿namespace MtApi5.Events
+﻿namespace MtApi5.MtProtocol
 {
     internal class OnLockTicksEvent
     {
