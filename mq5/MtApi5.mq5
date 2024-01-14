@@ -361,7 +361,6 @@ void OnTimer()
    }
 }
 
-
 int executeCommand()
 {
    int commandType = 0;
@@ -381,12 +380,12 @@ int executeCommand()
    }
 #endif 
 
-   string response = CreateSuccessResponse();
-  
-   switch (commandType) 
+   string response = "";
+
+   switch (commandType)
    {
    case 0:
-      //NoCommand         
+      //NoCommand      
       break;
    case 155: //Request
       Execute_Request();
@@ -395,7 +394,7 @@ int executeCommand()
       response = Execute_GetQuote();
    break;
    case 63: //OrderCloseAll
-      Execute_OrderCloseAll();
+      response = Execute_OrderCloseAll();
    break;
    case 64: //PositionClose
       Execute_PositionClose();
@@ -488,13 +487,13 @@ int executeCommand()
       Execute_HistoryDealGetString();
    break;
    case 32: //AccountInfoDouble
-      Execute_AccountInfoDouble();
+      response = Execute_AccountInfoDouble();
    break;
    case 33: //AccountInfoInteger
-      Execute_AccountInfoInteger();
+      response = Execute_AccountInfoInteger();
    break;
    case 34: //AccountInfoString
-      Execute_AccountInfoString();
+      response = Execute_AccountInfoString();
    break;    
    case 35: //SeriesInfoInteger
       Execute_SeriesInfoInteger();
@@ -999,9 +998,12 @@ int executeCommand()
       break;
    }
    
-   if (!sendResponse(ExpertHandle, response, _response_error))
+   if (response != "")
    {
-      PrintResponseError("sendResponse", _response_error);                                                                         \
+      if (!sendResponse(ExpertHandle, response, _response_error))
+      {
+         PrintResponseError("sendResponse", _response_error);                                                                         \
+      }
    }
    
    return (commandType);
@@ -1038,6 +1040,8 @@ int executeCommand()
 #define SEND_DOUBLE_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendDoubleResponse, response, __FUNCTION__)
 #define SEND_STRING_RESPONSE(response) SEND_RESPONSE_OR_PRINT_ERROR(sendStringResponse, response, __FUNCTION__)
 
+#define PRINT_MSG_AND_RETURN_VALUE(msg,value) PrintFormat("%s: %s",__FUNCTION__,msg);return value
+#define CHECK_JSON_VALUE(jo, name_value, return_fail_result) if (jo.getValue(name_value) == NULL) { PRINT_MSG_AND_RETURN_VALUE(StringFormat("failed to get %s from JSON!", name_value), return_fail_result); }
 //-------------------------------------------------------------
 string Execute_GetQuote()
 {
@@ -1048,16 +1052,15 @@ string Execute_GetQuote()
    return CreateSuccessResponse(quote.CreateJson());
 }
 
-void Execute_Request()
+string Execute_Request()
 {
    string request;
    StringInit(request, 1000, 0);
    
-   if (!getStringValue(ExpertHandle, 0, request, _error))
+   if (!getPayload(ExpertHandle, request, _error))
    {
       PrintParamError("Request", "Request", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
+      return CreateErrorResponse(-1, "Failed to get request");
    }
       
    string response = "";
@@ -1067,157 +1070,150 @@ void Execute_Request()
       Print("Execute_Request: incoming request = ", request);
 #endif
       response = OnRequest(request);
-   }
+   }  
    
-   if (!sendStringResponse(ExpertHandle, response, _response_error))
-   {
-      PrintResponseError("Request", _response_error);
-   }
+   return response;
 }
 
-void Execute_OrderSend()
+string Execute_OrderCloseAll()
 {
-   MqlTradeRequest request;
-   ReadMqlTradeRequestFromCommand(request);
-   
-   MqlTradeResult result;
-   
-   bool retVal = OrderSend(request, result);
-         
-   if (!sendStringResponse(ExpertHandle, ResultToString(retVal, result), _response_error))
-   {
-      PrintResponseError("OrderSend", _response_error);
-   }
+   OrderCloseAll();
+   return CreateSuccessResponse();
 }
 
-void Execute_OrderCloseAll()
+JSONObject* GetPayload()
 {
-   if (!sendBooleanResponse(ExpertHandle, OrderCloseAll(), _response_error))
+   string payload;
+   StringInit(payload, 5000, 0);
+   
+   if (!getPayload(ExpertHandle, payload, _error))
    {
-      PrintResponseError("OrderCloseAll", _response_error);
+      PrintParamError("GetPayload", "GetPayload", _error);
+      return NULL;
    }
+
+   JSONParser payload_parser;
+   JSONValue *payload_json = payload_parser.parse(payload);
+   
+   if (payload_json == NULL) 
+   {   
+      PrintFormat("%s [ERROR]: %d - %s", __FUNCTION__, (string)payload_parser.getErrorCode(), payload_parser.getErrorMessage());
+      return NULL;
+   }
+   
+   return payload_json.isObject() ? payload_json : NULL;
 }
 
-void Execute_PositionClose()
+string Execute_PositionClose()
 {
-   ulong ticket;
-   ulong deviation;
+   JSONObject *jo = GetPayload();
+   if (jo == NULL)
+      return CreateErrorResponse(-1, "Failed to get payload");
+      
+   //Ticket
+   CHECK_JSON_VALUE(jo, "Ticket", CreateErrorResponse(-1, "Undefinded mandatory parameter Ticket"));
+   ulong ticket = jo.getLong("Ticket");
+   
+   //Deviation
+   CHECK_JSON_VALUE(jo, "Ticket", CreateErrorResponse(-1, "Undefinded mandatory parameter Deviation"));
+   ulong deviation = jo.getLong("Deviation");
+   
+   delete jo;
+   
    CTrade trade;
-      
-   if (!getULongValue(ExpertHandle, 0, ticket, _error))
-   {
-      PrintParamError("PositionClose", "ticket", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
-   if (!getULongValue(ExpertHandle, 1, deviation, _error))
-   {
-      PrintParamError("PositionClose", "deviation", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
-      
-   if (!sendBooleanResponse(ExpertHandle, trade.PositionClose(ticket, deviation), _response_error))
-   {
-      PrintResponseError("PositionClose", _response_error);
-   }
+   bool result = trade.PositionClose(ticket, deviation);
+   return CreateSuccessResponse(new JSONBool(result));
 }
 
-void Execute_OrderCalcMargin()
+string Execute_OrderCalcMargin()
 {
-   int action;
-   string symbol;
-   double volume;
-   double price;
-   StringInit(symbol, 100, 0);
+   JSONObject *jo = GetPayload();
+   if (jo == NULL)
+      return CreateErrorResponse(-1, "Failed to get payload");
+      
+   //Action
+   CHECK_JSON_VALUE(jo, "Action", CreateErrorResponse(-1, "Undefinded mandatory parameter Action"));
+   int action = jo.getInt("Action");
    
-   if (!getIntValue(ExpertHandle, 0, action, _error))
-   {
-      PrintParamError("OrderCalcMargin", "action", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
-   if (!getStringValue(ExpertHandle, 1, symbol, _error))
-   {
-      PrintParamError("OrderCalcMargin", "symbol", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
-   if (!getDoubleValue(ExpertHandle, 2, volume, _error))
-   {
-      PrintParamError("OrderCalcMargin", "volume", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
-   if (!getDoubleValue(ExpertHandle, 3, price, _error))
-   {
-      PrintParamError("OrderCalcMargin", "price", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
+   //Symbol
+   CHECK_JSON_VALUE(jo, "Symbol", CreateErrorResponse(-1, "Undefinded mandatory parameter Symbol"));
+   string symbol = jo.getString("Symbol");
+   
+   //Volume
+   CHECK_JSON_VALUE(jo, "Volume", CreateErrorResponse(-1, "Undefinded mandatory parameter Volume"));
+   double volume = jo.getDouble("Volume");
+   
+   //Price
+   CHECK_JSON_VALUE(jo, "Price", CreateErrorResponse(-1, "Undefinded mandatory parameter Price"));
+   double price = jo.getDouble("Price");   
+   
+   delete jo;
    
    double margin;
-   bool retVal = OrderCalcMargin((ENUM_ORDER_TYPE)action, symbol, volume, price, margin);
-               
-   if (!sendStringResponse(ExpertHandle, ResultToString(retVal, margin), _response_error))
-   {
-      PrintResponseError("OrderCalcMargin", _response_error);
-   }
+   bool ok = OrderCalcMargin((ENUM_ORDER_TYPE)action, symbol, volume, price, margin);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: return value = %s", __FUNCTION__, ok ? "true" : "false");
+#endif                  
+   
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", new JSONNumber(margin));
+
+   return CreateSuccessResponse(result_value_jo);
 }
 
-void Execute_OrderCalcProfit()
+string Execute_OrderCalcProfit()
 {
-   int action;
-   string symbol;
-   double volume;
-   double price_open;            
-   double price_close;
-   StringInit(symbol, 100, 0);
+   JSONObject *jo = GetPayload();
+   if (jo == NULL)
+      return CreateErrorResponse(-1, "Failed to get payload");
+      
+   //Action
+   CHECK_JSON_VALUE(jo, "Action", CreateErrorResponse(-1, "Undefinded mandatory parameter Action"));
+   int action = jo.getInt("Action");
    
-   if (!getIntValue(ExpertHandle, 0, action, _error))
-   {
-      PrintParamError("OrderCalcProfit", "action", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }            
-   if (!getStringValue(ExpertHandle, 1, symbol, _error))
-   {
-      PrintParamError("OrderCalcProfit", "symbol", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
-   if (!getDoubleValue(ExpertHandle, 2, volume, _error))
-   {
-      PrintParamError("OrderCalcProfit", "volume", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
-   if (!getDoubleValue(ExpertHandle, 3, price_open, _error))
-   {
-      PrintParamError("OrderCalcProfit", "price_open", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
-   if (!getDoubleValue(ExpertHandle, 4, price_close, _error))
-   {
-      PrintParamError("OrderCalcProfit", "price_close", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
+   //Symbol
+   CHECK_JSON_VALUE(jo, "Symbol", CreateErrorResponse(-1, "Undefinded mandatory parameter Symbol"));
+   string symbol = jo.getString("Symbol");
+   
+   //Volume
+   CHECK_JSON_VALUE(jo, "Volume", CreateErrorResponse(-1, "Undefinded mandatory parameter Volume"));
+   double volume = jo.getDouble("Volume");
+   
+   //PriceOpen
+   CHECK_JSON_VALUE(jo, "PriceOpen", CreateErrorResponse(-1, "Undefinded mandatory parameter PriceOpen"));
+   double price_open = jo.getDouble("PriceOpen");   
+   
+   //PriceClose
+   CHECK_JSON_VALUE(jo, "PriceClose", CreateErrorResponse(-1, "Undefinded mandatory parameter PriceClose"));
+   double price_close = jo.getDouble("PriceClose");      
+   
+   delete jo;
    
    double profit;
-   bool retVal = OrderCalcProfit((ENUM_ORDER_TYPE)action, symbol, volume, price_open, price_close, profit);
+   bool ok = OrderCalcProfit((ENUM_ORDER_TYPE)action, symbol, volume, price_open, price_close, profit);
             
-   if (!sendStringResponse(ExpertHandle, ResultToString(retVal, profit), _response_error))
-   {
-      PrintResponseError("OrderCalcProfit", _response_error);
-   }
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: return value = %s", __FUNCTION__, ok ? "true" : "false");
+#endif                  
+   
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", new JSONNumber(profit));
+
+   return CreateSuccessResponse(result_value_jo);   
 }
 
-void Execute_PositionGetTicket()
+string Execute_PositionGetTicket()
 {
-   int index;
-   GET_INT_VALUE(0, index, "index");
+   JSONObject *jo = GetPayload();
+   if (jo == NULL)
+      return CreateErrorResponse(-1, "Failed to get payload");
+      
+   //Index
+   CHECK_JSON_VALUE(jo, "Index", CreateErrorResponse(-1, "Undefinded mandatory parameter Index"));
+   int index = jo.getInt("Index");
 
 #ifdef __DEBUG_LOG__
    PrintFormat("%s: index = %d", __FUNCTION__, index);
@@ -1229,31 +1225,27 @@ void Execute_PositionGetTicket()
    PrintFormat("%s: result = %u", __FUNCTION__, result);
 #endif
 
-   SEND_ULONG_RESPONSE(result);
+   return CreateSuccessResponse(new JSONNumber(result));   
 }
 
-void Execute_PositionsTotal()
+string Execute_PositionsTotal()
 {
-   if (!sendIntResponse(ExpertHandle, PositionsTotal(), _response_error))
-   {
-      PrintResponseError("PositionsTotal", _response_error);
-   }
+   int result = PositionsTotal();  
+   return CreateSuccessResponse(new JSONNumber(result));
 }
 
-void Execute_PositionGetSymbol()
+string Execute_PositionGetSymbol()
 {
-   int index;
-   if (!getIntValue(ExpertHandle, 0, index, _error))
-   {
-      PrintParamError("PositionGetSymbol", "index", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
-
-   if (!sendStringResponse(ExpertHandle, PositionGetSymbol(index), _response_error))
-   {
-      PrintResponseError("PositionGetSymbol", _response_error);
-   }
+   JSONObject *jo = GetPayload();
+   if (jo == NULL)
+      return CreateErrorResponse(-1, "Failed to get payload");
+      
+   //Index
+   CHECK_JSON_VALUE(jo, "Index", CreateErrorResponse(-1, "Undefinded mandatory parameter Index"));
+   int index = jo.getInt("Index");
+   
+   string symbol = PositionGetSymbol(index);
+   return CreateSuccessResponse(new JSONString(symbol));
 }
 
 void Execute_PositionSelect()
@@ -1682,55 +1674,52 @@ void Execute_HistoryDealGetString()
    }
 }
 
-void Execute_AccountInfoDouble()
+string Execute_AccountInfoDouble()
 {
-   int property_id;
+   JSONObject *jo = GetPayload();
+   if (jo == NULL)
+      return CreateErrorResponse(-1, "Failed to get payload");
+      
+   //PropertyId
+   CHECK_JSON_VALUE(jo, "PropertyId", CreateErrorResponse(-1, "Undefinded mandatory parameter PropertyId"));
+   int property_id = jo.getLong("PropertyId");
    
-   if (!getIntValue(ExpertHandle, 0, property_id, _error))
-   {
-      PrintParamError("AccountInfoDouble", "property_id", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return; 
-   }
+   delete jo;
    
-   if (!sendDoubleResponse(ExpertHandle, AccountInfoDouble((ENUM_ACCOUNT_INFO_DOUBLE)property_id), _response_error))
-   {
-      PrintResponseError("AccountInfoDouble", _response_error);
-   }
+   double result = AccountInfoDouble((ENUM_ACCOUNT_INFO_DOUBLE)property_id);   
+   return CreateSuccessResponse(new JSONNumber(result));
 }
 
-void Execute_AccountInfoInteger()
+string Execute_AccountInfoInteger()
 {
-   int property_id;
+   JSONObject *jo = GetPayload();
+   if (jo == NULL)
+      return CreateErrorResponse(-1, "Failed to get payload");
+      
+   //PropertyId
+   CHECK_JSON_VALUE(jo, "PropertyId", CreateErrorResponse(-1, "Undefinded mandatory parameter PropertyId"));
+   int property_id = jo.getLong("PropertyId");
    
-   if (!getIntValue(ExpertHandle, 0, property_id, _error))
-   {
-      PrintParamError("AccountInfoInteger", "property_id", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
+   delete jo;
    
-   if (!sendLongResponse(ExpertHandle, AccountInfoInteger((ENUM_ACCOUNT_INFO_INTEGER)property_id), _response_error))
-   {
-      PrintResponseError("AccountInfoInteger", _response_error);
-   }
+   int result = AccountInfoInteger((ENUM_ACCOUNT_INFO_INTEGER)property_id);
+   return CreateSuccessResponse(new JSONNumber(result));
 }
 
-void Execute_AccountInfoString()
+string Execute_AccountInfoString()
 {
-   int property_id;
+   JSONObject *jo = GetPayload();
+   if (jo == NULL)
+      return CreateErrorResponse(-1, "Failed to get payload");
+      
+   //PropertyId
+   CHECK_JSON_VALUE(jo, "PropertyId", CreateErrorResponse(-1, "Undefinded mandatory parameter PropertyId"));
+   int property_id = jo.getLong("PropertyId");
    
-   if (!getIntValue(ExpertHandle, 0, property_id, _error))
-   {
-      PrintParamError("AccountInfoString", "property_id", _error);
-      sendErrorResponse(ExpertHandle, -1, _error, _response_error);
-      return;
-   }
+   delete jo;
    
-   if (!sendStringResponse(ExpertHandle, AccountInfoString((ENUM_ACCOUNT_INFO_STRING)property_id), _response_error))
-   {
-      PrintResponseError("AccountInfoString", _response_error);
-   }
+   string result = AccountInfoString((ENUM_ACCOUNT_INFO_STRING)property_id);
+   return CreateSuccessResponse(new JSONString(result));   
 }
 
 void Execute_SeriesInfoInteger()
@@ -7240,9 +7229,6 @@ int iCustomT(string symbol, ENUM_TIMEFRAMES timeframe, string name, T &p[], int 
    }
 }
 
-#define PRINT_MSG_AND_RETURN_VALUE(msg,value) PrintFormat("%s: %s",__FUNCTION__,msg);return value
-#define CHECK_JSON_VALUE(jo, name_value, return_fail_result) if (jo.getValue(name_value) == NULL) { PRINT_MSG_AND_RETURN_VALUE(StringFormat("failed to get %s from JSON!", name_value), return_fail_result); }
-
 string ExecuteRequest_OrderSend(JSONObject *jo)
 {
    CHECK_JSON_VALUE(jo, "TradeRequest", CreateErrorResponse(-1, "Undefinded mandatory parameter TradeRequest"));
@@ -7932,12 +7918,12 @@ bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
 JSONObject* MqlTickToJson(const MqlTick& tick)
 {
     JSONObject *jo = new JSONObject();
-    jo.put("MtTime", new JSONNumber(tick.time));
-    jo.put("bid", new JSONNumber(tick.bid));
-    jo.put("ask", new JSONNumber(tick.ask));
-    jo.put("last", new JSONNumber(tick.last));
-    jo.put("volume", new JSONNumber(tick.volume));
-    jo.put("volume_real", new JSONNumber(tick.volume_real));
+    jo.put("Time", new JSONNumber(tick.time));
+    jo.put("Bid", new JSONNumber(tick.bid));
+    jo.put("Ask", new JSONNumber(tick.ask));
+    jo.put("Last", new JSONNumber(tick.last));
+    jo.put("Volume", new JSONNumber(tick.volume));
+    jo.put("VolumeReal", new JSONNumber(tick.volume_real));
     return jo;
 }
 
