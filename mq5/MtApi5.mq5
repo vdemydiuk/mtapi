@@ -21,104 +21,6 @@
 #import
 
 ///--------------------------------------------------------------------------------------
-/*   bool sendIntResponse(int expertHandle, int response, string& err)
-   {
-      return true;
-   }
-
-   bool sendBooleanResponse(int expertHandle, int response, string& err)
-   {
-      return true;
-   }
-
-   bool sendDoubleResponse(int expertHandle, double response, string& err)
-   {
-      return true;
-   }
-   
-   bool sendStringResponse(int expertHandle, string response, string& err)
-   {
-      return true;
-   }
-   
-   bool sendVoidResponse(int expertHandle, string& err)
-   {
-      return true;
-   }
-   
-   bool sendDoubleArrayResponse(int expertHandle, double& values[], int size, string& err)
-   {
-      return true;
-   }
-   
-   bool sendIntArrayResponse(int expertHandle, int& values[], int size, string& err)
-   {
-      return true;
-   }
-   
-   bool sendLongResponse(int expertHandle, long response, string& err)
-   {
-      return true;
-   }
-   
-   bool sendULongResponse(int expertHandle, ulong response, string& err)
-   {
-      return true;
-   }
-   
-   bool sendLongArrayResponse(int expertHandle, long& values[], int size, string& err)
-   {
-      return true;
-   }
-   
-   bool sendMqlRatesArrayResponse(int expertHandle, MqlRates& values[], int size, string& err)
-   {
-      return true;
-   }
-   
-   bool sendErrorResponse(int expertHandle, int code, string message, string& err)
-   {
-      return true;
-   }
-   
-   bool getIntValue(int expertHandle, int paramIndex, int& res, string& err)
-   {
-      return true;
-   }
-   
-   bool getUIntValue(int expertHandle, int paramIndex, uint& res, string& err)
-   {
-      return true;
-   }
-   
-   bool getULongValue(int expertHandle, int paramIndex, ulong& res, string& err)
-   {
-      return true;
-   }
-   
-   bool getLongValue(int expertHandle, int paramIndex, long& res, string& err)
-   {
-      return true;
-   }
-   
-   bool getDoubleValue(int expertHandle, int paramIndex, double& res, string& err)
-   {
-      return true;
-   }
-   
-   bool getStringValue(int expertHandle, int paramIndex, string& res, string& err)
-   {
-      return true;
-   }
-   
-   bool getBooleanValue(int expertHandle, int paramIndex, bool& res, string& err)
-   {
-      return true;
-   }
-   
-*/   
-//---------------------------------------------------------------------------------------
-
 
 //#define __DEBUG_LOG__
 
@@ -141,18 +43,12 @@ input bool Enable_OnLastBarEvent = true;
 int ExpertHandle;
 
 string _error;
-string _response_error;
 bool isCrashed = false;
 
 bool IsRemoteReadyForTesting = false;
 
 long _last_bar_open_time = 0;
 bool _is_ticks_locked = false;
-
-string PARAM_SEPARATOR = ";";
-
-typedef string (*TExecutionFunc)();
-//CHashMap<int, TExecutionFunc> cmd_handlers;
 
 int OnInit()
 {
@@ -251,7 +147,6 @@ void OnBookEvent(const string& symbol)
 int preinit()
 {
    StringInit(_error,1000,0);
-   StringInit(_response_error,1000,0);
 
    return (0);
 }
@@ -1004,8 +899,8 @@ int executeCommand()
    
    if (response != "")
    {
-      if (!sendResponse(ExpertHandle, response, _response_error))
-         PrintFormat("[ERROR] response: %s", _response_error);
+      if (!sendResponse(ExpertHandle, response, _error))
+         PrintFormat("[ERROR] response: %s", _error);
    }
    
    return (commandType);
