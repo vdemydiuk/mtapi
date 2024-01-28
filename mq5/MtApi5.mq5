@@ -144,10 +144,229 @@ void OnBookEvent(const string& symbol)
     SendMtEvent(ON_BOOK_EVENT, book_event);
 }
 
+typedef string (*TExecutor)();
+
+class CExecutorWrapper
+{
+private:
+   TExecutor _executor;
+
+public:
+   CExecutorWrapper(TExecutor executor)
+      :_executor(executor)
+   {
+   }
+   
+   string Execute() { return  _executor(); }
+};
+
+CHashMap<int, CExecutorWrapper*> _executors;
+
+#define ADD_EXECUTOR(cmd_type, exec_name) _executors.Add(cmd_type, new CExecutorWrapper(Execute_##exec_name))
+
 int preinit()
 {
    StringInit(_error,1000,0);
 
+   ADD_EXECUTOR(1, GetQuote);
+   ADD_EXECUTOR(63, OrderCloseAll);
+   ADD_EXECUTOR(64, PositionClose);
+   ADD_EXECUTOR(2, OrderCalcMargin);
+   ADD_EXECUTOR(3, OrderCalcProfit);
+   ADD_EXECUTOR(4, PositionGetTicket);
+   ADD_EXECUTOR(6, PositionsTotal);
+   ADD_EXECUTOR(7, PositionGetSymbol);
+   ADD_EXECUTOR(8, PositionSelect);
+   ADD_EXECUTOR(9, PositionGetDouble);
+   ADD_EXECUTOR(10, PositionGetInteger);
+   ADD_EXECUTOR(11, PositionGetString);
+   ADD_EXECUTOR(12, OrdersTotal);
+   ADD_EXECUTOR(13, OrderGetTicket);
+   ADD_EXECUTOR(14, OrderSelect);
+   ADD_EXECUTOR(15, OrderGetDouble);
+   ADD_EXECUTOR(16, OrderGetInteger);
+   ADD_EXECUTOR(17, OrderGetString);
+   ADD_EXECUTOR(18, HistorySelect);
+   ADD_EXECUTOR(19, HistorySelectByPosition);
+   ADD_EXECUTOR(20, HistoryOrderSelect);
+   ADD_EXECUTOR(21, HistoryOrdersTotal);
+   ADD_EXECUTOR(22, HistoryOrderGetTicket);
+   ADD_EXECUTOR(23, HistoryOrderGetDouble);
+   ADD_EXECUTOR(24, HistoryOrderGetInteger);
+   ADD_EXECUTOR(25, HistoryOrderGetString);
+   ADD_EXECUTOR(26, HistoryDealSelect);
+   ADD_EXECUTOR(27, HistoryDealsTotal);
+   ADD_EXECUTOR(28, HistoryDealGetTicket);
+   ADD_EXECUTOR(29, HistoryDealGetDouble);
+   ADD_EXECUTOR(30, HistoryDealGetInteger);
+   ADD_EXECUTOR(31, HistoryDealGetString);
+   ADD_EXECUTOR(32, AccountInfoDouble);
+   ADD_EXECUTOR(33, AccountInfoInteger);
+   ADD_EXECUTOR(34, AccountInfoString);
+   ADD_EXECUTOR(35, SeriesInfoInteger);
+   ADD_EXECUTOR(36, Bars);
+   ADD_EXECUTOR(1036, Bars2);
+   ADD_EXECUTOR(37, BarsCalculated);
+   ADD_EXECUTOR(40, CopyBuffer);
+   ADD_EXECUTOR(1040, CopyBuffer1);
+   ADD_EXECUTOR(1140, CopyBuffer2);
+   ADD_EXECUTOR(41, CopyRates);
+   ADD_EXECUTOR(1041, CopyRates1);
+   ADD_EXECUTOR(1141, CopyRates2);
+   ADD_EXECUTOR(42, CopyTime);
+   ADD_EXECUTOR(1042, CopyTime1);
+   ADD_EXECUTOR(1142, CopyTime2);
+   ADD_EXECUTOR(43, CopyOpen);
+   ADD_EXECUTOR(1043, CopyOpen1);
+   ADD_EXECUTOR(1143, CopyOpen2);
+   ADD_EXECUTOR(44, CopyHigh);
+   ADD_EXECUTOR(1044, CopyHigh1);
+   ADD_EXECUTOR(1144, CopyHigh2);
+   ADD_EXECUTOR(45, CopyLow);
+   ADD_EXECUTOR(1045, CopyLow1);
+   ADD_EXECUTOR(1145, CopyLow2);
+   ADD_EXECUTOR(46, CopyClose);
+   ADD_EXECUTOR(1046, CopyClose1);
+   ADD_EXECUTOR(1146, CopyClose2);
+   ADD_EXECUTOR(47, CopyTickVolume);
+   ADD_EXECUTOR(1047, CopyTickVolume1);
+   ADD_EXECUTOR(1147, CopyTickVolume2);
+   ADD_EXECUTOR(48, CopyRealVolume);
+   ADD_EXECUTOR(1048, CopyRealVolume1);
+   ADD_EXECUTOR(1148, CopyRealVolume2);
+   ADD_EXECUTOR(49, CopySpread);
+   ADD_EXECUTOR(1049, CopySpread1);
+   ADD_EXECUTOR(1149, CopySpread2);
+   ADD_EXECUTOR(50, SymbolsTotal);
+   ADD_EXECUTOR(51, SymbolName);
+   ADD_EXECUTOR(52, SymbolSelect);
+   ADD_EXECUTOR(53, SymbolIsSynchronized);
+   ADD_EXECUTOR(54, SymbolInfoDouble);
+   ADD_EXECUTOR(55, SymbolInfoInteger);
+   ADD_EXECUTOR(56, SymbolInfoString);
+   ADD_EXECUTOR(58, SymbolInfoSessionQuote); 
+   ADD_EXECUTOR(59, SymbolInfoSessionTrade);
+   ADD_EXECUTOR(60, MarketBookAdd);
+   ADD_EXECUTOR(61, MarketBookRelease);
+   ADD_EXECUTOR(65, PositionOpen);
+   ADD_EXECUTOR(6066, PositionModify);
+   ADD_EXECUTOR(6067, PositionClosePartialBySymbol);
+   ADD_EXECUTOR(6068, PositionClosePartialByTicket);
+   ADD_EXECUTOR(66, BacktestingReady);
+   ADD_EXECUTOR(67, IsTesting);
+   ADD_EXECUTOR(68, Print);
+   ADD_EXECUTOR(69, PositionSelectByTicket);
+   ADD_EXECUTOR(70, ObjectCreate);
+   ADD_EXECUTOR(71, ObjectName);
+   ADD_EXECUTOR(72, ObjectDelete);
+   ADD_EXECUTOR(73, ObjectsDeleteAll);
+   ADD_EXECUTOR(74, ObjectFind);
+   ADD_EXECUTOR(75, ObjectGetTimeByValue);
+   ADD_EXECUTOR(76, ObjectGetValueByTime);
+   ADD_EXECUTOR(77, ObjectMove);
+   ADD_EXECUTOR(78, ObjectsTotal);
+   ADD_EXECUTOR(79, ObjectGetDouble);
+   ADD_EXECUTOR(80, ObjectGetInteger);
+   ADD_EXECUTOR(81, ObjectGetString);
+   ADD_EXECUTOR(82, ObjectSetDouble);
+   ADD_EXECUTOR(83, ObjectSetInteger);
+   ADD_EXECUTOR(84, ObjectSetString);
+   ADD_EXECUTOR(88, iAC);
+   ADD_EXECUTOR(89, iAD);
+   ADD_EXECUTOR(90, iADX);
+   ADD_EXECUTOR(91, iADXWilder);
+   ADD_EXECUTOR(92, iAlligator);
+   ADD_EXECUTOR(93, iAMA);
+   ADD_EXECUTOR(94, iAO);
+   ADD_EXECUTOR(95, iATR);
+   ADD_EXECUTOR(96, iBearsPower);
+   ADD_EXECUTOR(97, iBands);
+   ADD_EXECUTOR(98, iBullsPower);
+   ADD_EXECUTOR(99, iCCI);
+   ADD_EXECUTOR(100, iChaikin);
+   ADD_EXECUTOR(102, iDEMA);
+   ADD_EXECUTOR(103, iDeMarker);
+   ADD_EXECUTOR(104, iEnvelopes);
+   ADD_EXECUTOR(105, iForce);
+   ADD_EXECUTOR(106, iFractals);
+   ADD_EXECUTOR(107, iFrAMA);
+   ADD_EXECUTOR(108, iGator);
+   ADD_EXECUTOR(109, iIchimoku);
+   ADD_EXECUTOR(110, iBWMFI);
+   ADD_EXECUTOR(111, iMomentum);
+   ADD_EXECUTOR(112, iMFI);
+   ADD_EXECUTOR(113, iMA);
+   ADD_EXECUTOR(114, iOsMA);
+   ADD_EXECUTOR(115, iMACD);
+   ADD_EXECUTOR(116, iOBV);
+   ADD_EXECUTOR(117, iSAR);
+   ADD_EXECUTOR(118, iRSI);
+   ADD_EXECUTOR(119, iRVI);
+   ADD_EXECUTOR(120, iStdDev);
+   ADD_EXECUTOR(121, iStochastic);
+   ADD_EXECUTOR(122, iTEMA);
+   ADD_EXECUTOR(123, iTriX);
+   ADD_EXECUTOR(124, iWPR);
+   ADD_EXECUTOR(125, iVIDyA);
+   ADD_EXECUTOR(126, iVolumes);
+   ADD_EXECUTOR(127, TimeCurrent);
+   ADD_EXECUTOR(128, TimeTradeServer);
+   ADD_EXECUTOR(129, TimeLocal);
+   ADD_EXECUTOR(130, TimeGMT);
+   ADD_EXECUTOR(131, IndicatorRelease);
+   ADD_EXECUTOR(132, GetLastError);
+   ADD_EXECUTOR(136, Alert);
+   ADD_EXECUTOR(143, ResetLastError);
+   ADD_EXECUTOR(146, GlobalVariableCheck);
+   ADD_EXECUTOR(147, GlobalVariableTime);
+   ADD_EXECUTOR(148, GlobalVariableDel);
+   ADD_EXECUTOR(149, GlobalVariableGet);
+   ADD_EXECUTOR(150, GlobalVariableName);
+   ADD_EXECUTOR(151, GlobalVariableSet);
+   ADD_EXECUTOR(152, GlobalVariablesFlush);
+   ADD_EXECUTOR(153, TerminalInfoString);
+   ADD_EXECUTOR(154, GlobalVariableTemp);
+   ADD_EXECUTOR(156, GlobalVariableSetOnCondition);
+   ADD_EXECUTOR(157, GlobalVariablesDeleteAll);
+   ADD_EXECUTOR(158, GlobalVariablesTotal);
+   ADD_EXECUTOR(159, UnlockTicks);
+   ADD_EXECUTOR(160, PositionCloseAll);
+   ADD_EXECUTOR(161, TesterStop);
+   ADD_EXECUTOR(204, TerminalInfoInteger);
+   ADD_EXECUTOR(205, TerminalInfoDouble);
+   ADD_EXECUTOR(206, ChartId);
+   ADD_EXECUTOR(207, ChartRedraw);
+   ADD_EXECUTOR(236, ChartApplyTemplate);
+   ADD_EXECUTOR(237, ChartSaveTemplate);
+   ADD_EXECUTOR(238, ChartWindowFind);
+   ADD_EXECUTOR(241, ChartOpen);
+   ADD_EXECUTOR(242, ChartFirst);
+   ADD_EXECUTOR(243, ChartNext);
+   ADD_EXECUTOR(244, ChartClose);
+   ADD_EXECUTOR(245, ChartSymbol);
+   ADD_EXECUTOR(246, ChartPeriod);
+   ADD_EXECUTOR(247, ChartSetDouble);
+   ADD_EXECUTOR(248, ChartSetInteger);
+   ADD_EXECUTOR(249, ChartSetString);
+   ADD_EXECUTOR(250, ChartGetDouble);
+   ADD_EXECUTOR(251, ChartGetInteger);
+   ADD_EXECUTOR(252, ChartGetString);
+   ADD_EXECUTOR(253, ChartNavigate);
+   ADD_EXECUTOR(254, ChartIndicatorDelete);
+   ADD_EXECUTOR(255, ChartIndicatorName);
+   ADD_EXECUTOR(256, ChartIndicatorsTotal);
+   ADD_EXECUTOR(257, ChartWindowOnDropped);
+   ADD_EXECUTOR(258, ChartPriceOnDropped);
+   ADD_EXECUTOR(259, ChartTimeOnDropped);
+   ADD_EXECUTOR(260, ChartXOnDropped);
+   ADD_EXECUTOR(261, ChartYOnDropped);
+   ADD_EXECUTOR(262, ChartSetSymbolPeriod);
+   ADD_EXECUTOR(263, ChartScreenShot);
+   ADD_EXECUTOR(264, WindowBarsPerChart);
+   ADD_EXECUTOR(280, ChartIndicatorAdd);
+   ADD_EXECUTOR(281, ChartIndicatorGet);
+   ADD_EXECUTOR(155, Request);
+   
    return (0);
 }
 
@@ -245,6 +464,18 @@ int deinit()
       Print("Expert was deinitialized.");
    }
    
+   //--- clear and delete all values from map
+   int keys[];
+   CExecutorWrapper *values[];
+   int count = _executors.CopyTo(keys, values);
+   for(int i = 0; i < count; i++)
+   {
+      //--- release object pointers to avoid memory leaks
+      if(CheckPointer(values[i]) == POINTER_DYNAMIC)
+         delete values[i];
+   }
+   _executors.Clear();
+   
    return (0);
 }
 
@@ -271,637 +502,640 @@ int executeCommand()
       Print("[ERROR] ExecuteCommand: Failed to get command type! ", _error);
       return (0);
    }
+
+   if (commandType == 0)
+      return 0;
    
 #ifdef __DEBUG_LOG__
-   if (commandType > 0)
-   {
-      Print("executeCommand: commnad type = ", commandType);
-   }
+   Print("executeCommand: commnad type = ", commandType);
 #endif 
 
-   string response = "";
-
-   switch (commandType)
+   string response;
+   CExecutorWrapper *wrapper;
+   if (_executors.TryGetValue(commandType, wrapper))
    {
-   case 0:
-      //NoCommand      
-      break;
-   case 155: //Request
-      Execute_Request();
-   break;
-   case 1: // GetQuote
-      response = Execute_GetQuote();
-   break;
-   case 63: //OrderCloseAll
-      response = Execute_OrderCloseAll();
-   break;
-   case 64: //PositionClose
-      response = Execute_PositionClose();
-   break;
-   case 2: // OrderCalcMargin
-      response = Execute_OrderCalcMargin();
-   break;
-   case 3: //OrderCalcProfit
-      response = Execute_OrderCalcProfit();
-   break;
-   case 4: //OrderCheck
-      response = Execute_PositionGetTicket();
-   break;
-   case 6: //PositionsTotal
-      response = Execute_PositionsTotal();
-   break;
-   case 7: //PositionGetSymbol
-      response = Execute_PositionGetSymbol();
-   break;
-   case 8: //PositionSelect
-      response = Execute_PositionSelect();
-   break;
-   case 9: //PositionGetDouble
-      response = Execute_PositionGetDouble();
-   break;
-   case 10: //PositionGetInteger
-      response =Execute_PositionGetInteger();
-   break;
-   case 11: //PositionGetString
-      response = Execute_PositionGetString();
-   break;
-   case 12: //OrdersTotal
-      response = Execute_OrdersTotal();
-   break;
-   case 13: //OrderGetTicket
-      response = Execute_OrderGetTicket();
-   break;
-   case 14: //OrderSelect
-      response = Execute_OrderSelect();
-   break;
-   case 15: //OrderGetDouble
-      response = Execute_OrderGetDouble();
-   break;
-   case 16: //OrderGetInteger
-      response = Execute_OrderGetInteger();
-   break;
-   case 17: //OrderGetString
-      response = Execute_OrderGetString();
-   break;
-   case 18: //HistorySelect
-      response = Execute_HistorySelect();
-   break;
-   case 19: //HistorySelectByPosition
-      response = Execute_HistorySelectByPosition();
-   break;
-   case 20: //HistoryOrderSelect
-      response = Execute_HistoryOrderSelect();
-   break;
-   case 21: //HistoryOrdersTotal
-      response = Execute_HistoryOrdersTotal();
-   break;
-   case 22: //HistoryOrderGetTicket
-      response = Execute_HistoryOrderGetTicket();
-   break;
-   case 23: //HistoryOrderGetDouble
-      response = Execute_HistoryOrderGetDouble();
-   break;
-   case 24: //HistoryOrderGetInteger
-      response = Execute_HistoryOrderGetInteger();
-   break;
-   case 25: //HistoryOrderGetString
-      response = Execute_HistoryOrderGetString();
-   break;
-   case 26: //HistoryDealSelect
-      response = Execute_HistoryDealSelect();
-   break;
-   case 27: //HistoryDealsTotal
-      response = Execute_HistoryDealsTotal();
-   break;
-   case 28: //HistoryDealGetTicket
-      response = Execute_HistoryDealGetTicket();
-   break;
-   case 29: //HistoryDealGetDouble
-      response = Execute_HistoryDealGetDouble();
-   break;
-   case 30: //HistoryDealGetInteger
-      response = Execute_HistoryDealGetInteger();
-   break;      
-   case 31: //HistoryDealGetString
-      response = Execute_HistoryDealGetString();
-   break;
-   case 32: //AccountInfoDouble
-      response = Execute_AccountInfoDouble();
-   break;
-   case 33: //AccountInfoInteger
-      response = Execute_AccountInfoInteger();
-   break;
-   case 34: //AccountInfoString
-      response = Execute_AccountInfoString();
-   break;    
-   case 35: //SeriesInfoInteger
-      response = Execute_SeriesInfoInteger();
-   break;    
-   case 36: //Bars
-      response = Execute_Bars();
-   break;    
-   case 1036: //Bars2
-      response = Execute_Bars2();
-   break;       
-   case 37: //BarsCalculated
-      response = Execute_BarsCalculated();
-   break;    
-   case 40: //CopyBuffer
-      response = Execute_CopyBuffer();
-   break;    
-   case 1040: //CopyBuffer1
-      response = Execute_CopyBuffer1();
-   break;    
-   case 1140: //CopyBuffer2
-      response = Execute_CopyBuffer2();
-   break;   
-   case 41: //CopyRates
-      response = Execute_CopyRates();
-   break;    
-   case 1041: //CopyRates1
-      response = Execute_CopyRates1();
-   break;    
-   case 1141: //CopyRates2
-      response = Execute_CopyRates2();
-   break;   
-   case 42: //CopyTime
-      response = Execute_CopyTime();
-   break;   
-   case 1042: //CopyTime1
-      response = Execute_CopyTime1();
-   break;   
-   case 1142: //CopyTime2
-      response = Execute_CopyTime2();
-   break;   
-   case 43: //CopyOpen
-      response = Execute_CopyOpen();
-   break;      
-   case 1043: //CopyOpen1
-      response = Execute_CopyOpen1();
-   break;        
-   case 1143: //CopyOpen2
-      response = Execute_CopyOpen2();
-   break;      
-   case 44: //CopyHigh
-      response = Execute_CopyHigh();
-   break;     
-   case 1044: //CopyHigh1
-      response = Execute_CopyHigh1();
-   break;       
-   case 1144: //CopyHigh2
-      response = Execute_CopyHigh2();
-   break;      
-   case 45: //CopyLow
-      response = Execute_CopyLow();
-   break;        
-   case 1045: //CopyLow1
-      response = Execute_CopyLow1();
-   break;       
-   case 1145: //CopyLow2
-      response = Execute_CopyLow2();
-   break;    
-   case 46: //CopyClose
-      response = Execute_CopyClose();
-   break;     
-   case 1046: //CopyClose1
-      response = Execute_CopyClose1();
-   break;      
-   case 1146: //CopyClose2
-      response = Execute_CopyClose2();
-   break;    
-   case 47: //CopyTickVolume
-      response = Execute_CopyTickVolume();
-   break;    
-   case 1047: //CopyTickVolume1
-      response = Execute_CopyTickVolume1();
-   break;          
-   case 1147: //CopyTickVolume2
-      response = Execute_CopyTickVolume2();
-   break;   
-   case 48: //CopyRealVolume
-      response = Execute_CopyRealVolume();
-   break;    
-   case 1048: //CopyRealVolume1
-      response = Execute_CopyRealVolume1();
-   break;      
-   case 1148: //CopyRealVolume2
-      response = Execute_CopyRealVolume2();
-   break;             
-   case 49: //CopySpread
-      response = Execute_CopySpread();
-   break;    
-   case 1049: //CopySpread1
-      response = Execute_CopySpread1();
-   break;      
-   case 1149: //CopySpread2
-      response = Execute_CopySpread2();
-   break;       
-   case 50: //SymbolsTotal
-      response = Execute_SymbolsTotal();
-   break;     
-   case 51: //SymbolName
-      response = Execute_SymbolName();
-   break;        
-   case 52: //SymbolSelect
-      response = Execute_SymbolSelect();
-   break;     
-   case 53: //SymbolIsSynchronized
-      response = Execute_SymbolIsSynchronized();
-   break;      
-   case 54: //SymbolInfoDouble
-      response = Execute_SymbolInfoDouble();
-   break;   
-   case 55: //SymbolInfoInteger
-      response = Execute_SymbolInfoInteger();
-   break;   
-   case 56: //SymbolInfoString
-      response = Execute_SymbolInfoString();
-   break;    
+      response = wrapper.Execute();
+   }
+   else {
+   //switch (commandType)
+   //{
+   //case 0:
+   //   //NoCommand      
+   //   break;
+   //case 155: //Request
+   //   Execute_Request();
+   //break;
+   //case 1: // GetQuote
+   //   response = Execute_GetQuote();
+   //break;
+   //case 63: //OrderCloseAll
+   //   response = Execute_OrderCloseAll();
+   //break;
+   //case 64: //PositionClose
+   //   response = Execute_PositionClose();
+   //break;
+   //case 2: // OrderCalcMargin
+   //   response = Execute_OrderCalcMargin();
+   //break;
+   //case 3: //OrderCalcProfit
+   //   response = Execute_OrderCalcProfit();
+   //break;
+   //case 4: //OrderCheck
+   //   response = Execute_PositionGetTicket();
+   //break;
+   //case 6: //PositionsTotal
+   //   response = Execute_PositionsTotal();
+   //break;
+   //case 7: //PositionGetSymbol
+   //   response = Execute_PositionGetSymbol();
+   //break;
+   //case 8: //PositionSelect
+   //   response = Execute_PositionSelect();
+   //break;
+   //case 9: //PositionGetDouble
+   //   response = Execute_PositionGetDouble();
+   //break;
+   //case 10: //PositionGetInteger
+   //   response =Execute_PositionGetInteger();
+   //break;
+   //case 11: //PositionGetString
+   //   response = Execute_PositionGetString();
+   //break;
+   //case 12: //OrdersTotal
+   //   response = Execute_OrdersTotal();
+   //break;
+   //case 13: //OrderGetTicket
+   //   response = Execute_OrderGetTicket();
+   //break;
+   //case 14: //OrderSelect
+   //   response = Execute_OrderSelect();
+   //break;
+   //case 15: //OrderGetDouble
+   //   response = Execute_OrderGetDouble();
+   //break;
+   //case 16: //OrderGetInteger
+   //   response = Execute_OrderGetInteger();
+   //break;
+   //case 17: //OrderGetString
+   //   response = Execute_OrderGetString();
+   //break;
+   //case 18: //HistorySelect
+   //   response = Execute_HistorySelect();
+   //break;
+   //case 19: //HistorySelectByPosition
+   //   response = Execute_HistorySelectByPosition();
+   //break;
+   //case 20: //HistoryOrderSelect
+   //   response = Execute_HistoryOrderSelect();
+   //break;
+   //case 21: //HistoryOrdersTotal
+   //   response = Execute_HistoryOrdersTotal();
+   //break;
+   //case 22: //HistoryOrderGetTicket
+   //   response = Execute_HistoryOrderGetTicket();
+   //break;
+   //case 23: //HistoryOrderGetDouble
+   //   response = Execute_HistoryOrderGetDouble();
+   //break;
+   //case 24: //HistoryOrderGetInteger
+   //   response = Execute_HistoryOrderGetInteger();
+   //break;
+   //case 25: //HistoryOrderGetString
+   //   response = Execute_HistoryOrderGetString();
+   //break;
+   //case 26: //HistoryDealSelect
+   //   response = Execute_HistoryDealSelect();
+   //break;
+   //case 27: //HistoryDealsTotal
+   //   response = Execute_HistoryDealsTotal();
+   //break;
+   //case 28: //HistoryDealGetTicket
+   //   response = Execute_HistoryDealGetTicket();
+   //break;
+   //case 29: //HistoryDealGetDouble
+   //   response = Execute_HistoryDealGetDouble();
+   //break;
+   //case 30: //HistoryDealGetInteger
+   //   response = Execute_HistoryDealGetInteger();
+   //break;      
+   //case 31: //HistoryDealGetString
+   //   response = Execute_HistoryDealGetString();
+   //break;
+   //case 32: //AccountInfoDouble
+   //   response = Execute_AccountInfoDouble();
+   //break;
+   //case 33: //AccountInfoInteger
+   //   response = Execute_AccountInfoInteger();
+   //break;
+   //case 34: //AccountInfoString
+   //   response = Execute_AccountInfoString();
+   //break;    
+   //case 35: //SeriesInfoInteger
+   //   response = Execute_SeriesInfoInteger();
+   //break;    
+   //case 36: //Bars
+   //   response = Execute_Bars();
+   //break;    
+   //case 1036: //Bars2
+   //   response = Execute_Bars2();
+   //break;       
+   //case 37: //BarsCalculated
+   //   response = Execute_BarsCalculated();
+   //break;    
+   //case 40: //CopyBuffer
+   //   response = Execute_CopyBuffer();
+   //break;    
+   //case 1040: //CopyBuffer1
+   //   response = Execute_CopyBuffer1();
+   //break;    
+   //case 1140: //CopyBuffer2
+   //   response = Execute_CopyBuffer2();
+   //break;   
+   //case 41: //CopyRates
+   //   response = Execute_CopyRates();
+   //break;    
+   //case 1041: //CopyRates1
+   //   response = Execute_CopyRates1();
+   //break;    
+   //case 1141: //CopyRates2
+   //   response = Execute_CopyRates2();
+   //break;   
+   //case 42: //CopyTime
+   //   response = Execute_CopyTime();
+   //break;   
+   //case 1042: //CopyTime1
+   //   response = Execute_CopyTime1();
+   //break;   
+   //case 1142: //CopyTime2
+   //   response = Execute_CopyTime2();
+   //break;   
+   //case 43: //CopyOpen
+   //   response = Execute_CopyOpen();
+   //break;      
+   //case 1043: //CopyOpen1
+   //   response = Execute_CopyOpen1();
+   //break;        
+   //case 1143: //CopyOpen2
+   //   response = Execute_CopyOpen2();
+   //break;      
+   //case 44: //CopyHigh
+   //   response = Execute_CopyHigh();
+   //break;     
+   //case 1044: //CopyHigh1
+   //   response = Execute_CopyHigh1();
+   //break;       
+   //case 1144: //CopyHigh2
+   //   response = Execute_CopyHigh2();
+   //break;      
+   //case 45: //CopyLow
+   //   response = Execute_CopyLow();
+   //break;        
+   //case 1045: //CopyLow1
+   //   response = Execute_CopyLow1();
+   //break;       
+   //case 1145: //CopyLow2
+   //   response = Execute_CopyLow2();
+   //break;    
+   //case 46: //CopyClose
+   //   response = Execute_CopyClose();
+   //break;     
+   //case 1046: //CopyClose1
+   //   response = Execute_CopyClose1();
+   //break;      
+   //case 1146: //CopyClose2
+   //   response = Execute_CopyClose2();
+   //break;    
+   //case 47: //CopyTickVolume
+   //   response = Execute_CopyTickVolume();
+   //break;    
+   //case 1047: //CopyTickVolume1
+   //   response = Execute_CopyTickVolume1();
+   //break;          
+   //case 1147: //CopyTickVolume2
+   //   response = Execute_CopyTickVolume2();
+   //break;   
+   //case 48: //CopyRealVolume
+   //   response = Execute_CopyRealVolume();
+   //break;    
+   //case 1048: //CopyRealVolume1
+   //   response = Execute_CopyRealVolume1();
+   //break;      
+   //case 1148: //CopyRealVolume2
+   //   response = Execute_CopyRealVolume2();
+   //break;             
+   //case 49: //CopySpread
+   //   response = Execute_CopySpread();
+   //break;    
+   //case 1049: //CopySpread1
+   //   response = Execute_CopySpread1();
+   //break;      
+   //case 1149: //CopySpread2
+   //   response = Execute_CopySpread2();
+   //break;       
+   //case 50: //SymbolsTotal
+   //   response = Execute_SymbolsTotal();
+   //break;     
+   //case 51: //SymbolName
+   //   response = Execute_SymbolName();
+   //break;        
+   //case 52: //SymbolSelect
+   //   response = Execute_SymbolSelect();
+   //break;     
+   //case 53: //SymbolIsSynchronized
+   //   response = Execute_SymbolIsSynchronized();
+   //break;      
+   //case 54: //SymbolInfoDouble
+   //   response = Execute_SymbolInfoDouble();
+   //break;   
+   //case 55: //SymbolInfoInteger
+   //   response = Execute_SymbolInfoInteger();
+   //break;   
+   //case 56: //SymbolInfoString
+   //   response = Execute_SymbolInfoString();
+   //break;    
 //   case 57: //SymbolInfoTick
 //   break;
-   case 58: //SymbolInfoSessionQuote
-      response = Execute_SymbolInfoSessionQuote();
-   break;     
-   case 59: //SymbolInfoSessionTrade
-      response = Execute_SymbolInfoSessionTrade();
-   break;    
-   case 60: //MarketBookAdd
-      response = Execute_MarketBookAdd();
-   break;    
-   case 61: //MarketBookRelease
-      response = Execute_MarketBookRelease();
-   break;    
+   //case 58: //SymbolInfoSessionQuote
+   //   response = Execute_SymbolInfoSessionQuote();
+   //break;     
+   //case 59: //SymbolInfoSessionTrade
+   //   response = Execute_SymbolInfoSessionTrade();
+   //break;    
+   //case 60: //MarketBookAdd
+   //   response = Execute_MarketBookAdd();
+   //break;    
+   //case 61: //MarketBookRelease
+   //   response = Execute_MarketBookRelease();
+   //break;    
 //   case 62: //MarketBookGet
 //   break;
-   case 65: //PositionOpen
-      response = Execute_PositionOpen(false);
-   break;
+   //case 65: //PositionOpen
+   //   response = Execute_PositionOpen(false);
+   //break;
 //   case 1065: //PositionOpenWithResult
 //      Execute_PositionOpen(true);
 //   break;   
-   case 6066: //PositionModify
-      response = Execute_PositionModify();
-   break;
-   case 6067: //PositionClosePartial_bySymbol
-      response = Execute_PositionClosePartial_bySymbol();
-   break;
-   case 6068: //Execute_PositionClosePartial_byTicket
-      response = Execute_PositionClosePartial_byTicket();
-   break;
-   case 66: //BacktestingReady
-      response = Execute_BacktestingReady();
-   break;
-   case 67: //IsTesting
-      response = Execute_IsTesting();
-   break;   
-   case 68: //Print
-      response = Execute_Print();
-   break;   
-   case 69: //PositionSelectByTicket
-      response = Execute_PositionSelectByTicket();
-   break;
-   case 70: //ObjectCreate
-      response = Execute_ObjectCreate();
-   break;
-   case 71: //ObjectName
-      response = Execute_ObjectName();
-   break;
-   case 72: //ObjectDelete
-      response = Execute_ObjectDelete();
-   break;
-   case 73: //ObjectsDeleteAll
-      response = Execute_ObjectsDeleteAll();
-   break;
-   case 74: //ObjectFind
-      response = Execute_ObjectFind();
-   break;
-   case 75: //ObjectGetTimeByValue
-      response = Execute_ObjectGetTimeByValue();
-   break;
-   case 76: //ObjectGetValueByTime
-      response = Execute_ObjectGetValueByTime();
-   break;
-   case 77: //ObjectMove
-      response = Execute_ObjectMove();
-   break;
-   case 78: //ObjectsTotal
-      response = Execute_ObjectsTotal();
-   break;
-   case 79: //ObjectGetDouble
-      response = Execute_ObjectGetDouble();
-   break;
-   case 80: //ObjectGetInteger
-      response = Execute_ObjectGetInteger();
-   break;
-   case 81: //ObjectGetString
-      response = Execute_ObjectGetString();
-   break;
-   case 82: //ObjectSetDouble
-      response = Execute_ObjectSetDouble();
-   break;
-   case 83: //ObjectSetInteger
-      response = Execute_ObjectSetInteger();
-   break;
-   case 84: //ObjectSetString
-      response = Execute_ObjectSetString();
-   break;
-   case 88: //iAC
-      response = Execute_iAC();
-   break;
-   case 89: //iAD
-      response = Execute_iAD();
-   break;
-   case 90: //iADX
-      response = Execute_iADX();
-   break;
-   case 91: //iADXWilder
-      response = Execute_iADXWilder();
-   break;
-   case 92: //iAlligator
-      response = Execute_iAlligator();
-   break;
-   case 93: //iAMA
-      response = Execute_iAMA();
-   break;
-   case 94: //iAO
-      response = Execute_iAO();
-   break;
-   case 95: //iATR
-      response = Execute_iATR();
-   break;
-   case 96: //iBearsPower
-      response = Execute_iBearsPower();
-   break;
-   case 97: //iBands
-      response = Execute_iBands();
-   break;
-   case 98: //iBullsPower
-      response = Execute_iBullsPower();
-   break;
-   case 99: //iCCI
-      response = Execute_iCCI();
-   break;
-   case 100: //iChaikin
-      response = Execute_iChaikin();
-   break;
+   //case 6066: //PositionModify
+   //   response = Execute_PositionModify();
+   //break;
+   //case 6067: //PositionClosePartial_bySymbol
+   //   response = Execute_PositionClosePartial_bySymbol();
+   //break;
+   //case 6068: //Execute_PositionClosePartial_byTicket
+   //   response = Execute_PositionClosePartial_byTicket();
+   //break;
+   //case 66: //BacktestingReady
+   //   response = Execute_BacktestingReady();
+   //break;
+   //case 67: //IsTesting
+   //   response = Execute_IsTesting();
+   //break;   
+   //case 68: //Print
+   //   response = Execute_Print();
+   //break;   
+   //case 69: //PositionSelectByTicket
+   //   response = Execute_PositionSelectByTicket();
+   //break;
+   //case 70: //ObjectCreate
+   //   response = Execute_ObjectCreate();
+   //break;
+   //case 71: //ObjectName
+   //   response = Execute_ObjectName();
+   //break;
+   //case 72: //ObjectDelete
+   //   response = Execute_ObjectDelete();
+   //break;
+   //case 73: //ObjectsDeleteAll
+   //   response = Execute_ObjectsDeleteAll();
+   //break;
+   //case 74: //ObjectFind
+   //   response = Execute_ObjectFind();
+   //break;
+   //case 75: //ObjectGetTimeByValue
+   //   response = Execute_ObjectGetTimeByValue();
+   //break;
+   //case 76: //ObjectGetValueByTime
+   //   response = Execute_ObjectGetValueByTime();
+   //break;
+   //case 77: //ObjectMove
+   //   response = Execute_ObjectMove();
+   //break;
+   //case 78: //ObjectsTotal
+   //   response = Execute_ObjectsTotal();
+   //break;
+   //case 79: //ObjectGetDouble
+   //   response = Execute_ObjectGetDouble();
+   //break;
+   //case 80: //ObjectGetInteger
+   //   response = Execute_ObjectGetInteger();
+   //break;
+   //case 81: //ObjectGetString
+   //   response = Execute_ObjectGetString();
+   //break;
+   //case 82: //ObjectSetDouble
+   //   response = Execute_ObjectSetDouble();
+   //break;
+   //case 83: //ObjectSetInteger
+   //   response = Execute_ObjectSetInteger();
+   //break;
+   //case 84: //ObjectSetString
+   //   response = Execute_ObjectSetString();
+   //break;
+   //case 88: //iAC
+   //   response = Execute_iAC();
+   //break;
+   //case 89: //iAD
+   //   response = Execute_iAD();
+   //break;
+   //case 90: //iADX
+   //   response = Execute_iADX();
+   //break;
+   //case 91: //iADXWilder
+   //   response = Execute_iADXWilder();
+   //break;
+   //case 92: //iAlligator
+   //   response = Execute_iAlligator();
+   //break;
+   //case 93: //iAMA
+   //   response = Execute_iAMA();
+   //break;
+   //case 94: //iAO
+   //   response = Execute_iAO();
+   //break;
+   //case 95: //iATR
+   //   response = Execute_iATR();
+   //break;
+   //case 96: //iBearsPower
+   //   response = Execute_iBearsPower();
+   //break;
+   //case 97: //iBands
+   //   response = Execute_iBands();
+   //break;
+   //case 98: //iBullsPower
+   //   response = Execute_iBullsPower();
+   //break;
+   //case 99: //iCCI
+   //   response = Execute_iCCI();
+   //break;
+   //case 100: //iChaikin
+   //   response = Execute_iChaikin();
+   //break;
 //   case 101: //iCustom
 //   break;
-   case 102: //iDEMA
-      response = Execute_iDEMA();
-   break;
-   case 103: //iDeMarker
-      response = Execute_iDeMarker();
-   break;
-   case 104: //iEnvelopes
-      response = Execute_iEnvelopes();
-   break;
-   case 105: //iForce
-      response = Execute_iForce();
-   break;
-   case 106: //iFractals
-      response = Execute_iFractals();
-   break;
-   case 107: //iFrAMA
-      response = Execute_iFrAMA();
-   break;
-   case 108: //iGator
-      response = Execute_iGator();
-   break;
-   case 109: //iIchimoku
-      response = Execute_iIchimoku();
-   break;
-   case 110: //iBWMFI
-      response = Execute_iBWMFI();
-   break;
-   case 111: //iMomentum
-      response = Execute_iMomentum();
-   break;
-   case 112: //iMFI
-      response = Execute_iMFI();
-   break;
-   case 113: //iMA
-      response = Execute_iMA();
-   break;
-   case 114: //iOsMA
-      response = Execute_iOsMA();
-   break;
-   case 115: //iMACD
-      response = Execute_iMACD();
-   break;
-   case 116: //iOBV
-      response = Execute_iOBV();
-   break;
-   case 117: //iSAR
-      response = Execute_iSAR();
-   break;
-   case 118: //iRSI
-      response = Execute_iRSI();
-   break;
-   case 119: //iRVI
-      response = Execute_iRVI();
-   break;
-   case 120: //iStdDev
-      response = Execute_iStdDev();
-   break;
-   case 121: //iStochastic
-      response = Execute_iStochastic();
-   break;
-   case 122: //iTEMA
-      response = Execute_iTEMA();
-   break;
-   case 123: //iTriX
-      response = Execute_iTriX();
-   break;
-   case 124: //iWPR
-      response = Execute_iWPR();
-   break;
-   case 125: //iVIDyA
-      response = Execute_iVIDyA();
-   break;
-   case 126: //iVolumes
-      response = Execute_iVolumes();
-   break;
-   case 127: //TimeCurrent
-      response = Execute_TimeCurrent();
-   break;
-   case 128: //TimeTradeServer
-      response = Execute_TimeTradeServer();
-   break;
-   case 129: //TimeLocal
-      response = Execute_TimeLocal();
-   break;
-   case 130: //TimeGMT
-      response = Execute_TimeGMT();
-   break;
-   case 131: //IndicatorRelease
-      response = Execute_IndicatorRelease();
-   break;  
-   case 132: //GetLastError
-      response = Execute_GetLastError();
-   break;
-   case 136: //Alert
-      response = Execute_Alert();
-   break;
-   case 143: //ResetLastError
-      response = Execute_ResetLastError();
-   break;
-   case 146: //GlobalVariableCheck
-      response = Execute_GlobalVariableCheck();
-   break;
-   case 147: //GlobalVariableTime
-      response = Execute_GlobalVariableTime();
-   break;
-   case 148: //GlobalVariableDel
-      response = Execute_GlobalVariableDel();
-   break;
-   case 149: //GlobalVariableGet
-      response = Execute_GlobalVariableGet();
-   break;
-   case 150: //GlobalVariableName
-      response = Execute_GlobalVariableName();
-   break;
-   case 151: //GlobalVariableSet
-      response = Execute_GlobalVariableSet();
-   break;
-   case 152: //GlobalVariablesFlush
-      response = Execute_GlobalVariablesFlush();
-   break;
-   case 153: //TerminalInfoString
-      response = Execute_TerminalInfoString();
-   break;
-   case 154: //GlobalVariableTemp
-      response = Execute_GlobalVariableTemp();
-   break;
-   case 156: //GlobalVariableSetOnCondition
-      response = Execute_GlobalVariableSetOnCondition();
-   break;
-   case 157: //GlobalVariablesDeleteAll
-      response = Execute_GlobalVariablesDeleteAll();
-   break;
-   case 158: //GlobalVariablesTotal
-      response = Execute_GlobalVariablesTotal();
-   break;
-   case 159: //UnlockTiks
-      response = Execute_UnlockTicks();
-   break;
-   case 160: //PositionCloseAll
-      response = Execute_PositionCloseAll();
-   break;
-   case 161: //TesterStop
-      response = Execute_TesterStop();
-   break;   
-   case 204: //TerminalInfoInteger
-      Execute_TerminalInfoInteger();
-   break;
-   case 205: //TerminalInfoDouble
-      Execute_TerminalInfoDouble();
-   break;
-   case 206: //ChartId
-      response = Execute_ChartId();
-   break;
-   case 207: //ChartRedraw
-      response = Execute_ChartRedraw();
-   break;
-   case 236: //ChartApplyTemplate
-      response = Execute_ChartApplyTemplate();
-   break;
-   case 237: //ChartApplyTemplate
-      response = Execute_ChartSaveTemplate();
-   break;
-   case 238: //ChartWindowFind
-      response = Execute_ChartWindowFind();
-   break;
-   case 241: //ChartOpen
-      response = Execute_ChartOpen();
-   break;
-   case 242: //ChartFirst
-      response = Execute_ChartFirst();
-   break;
-   case 243: //ChartFirst
-      response = Execute_ChartNext();
-   break;
-   case 244: //ChartClose
-      response = Execute_ChartClose();
-   break;
-   case 245: //ChartFirst
-      response = Execute_ChartSymbol();
-   break;
-   case 246: //ChartPeriod
-      response = Execute_ChartPeriod();
-   break;
-   case 247: //ChartSetDouble
-      response = Execute_ChartSetDouble();
-   break;
-   case 248: //ChartSetInteger
-      response = Execute_ChartSetInteger();
-   break;
-   case 249: //ChartSetString
-      response = Execute_ChartSetString();
-   break;
-   case 250: //ChartGetDouble
-      response = Execute_ChartGetDouble();
-   break;
-   case 251: //ChartGetInteger
-      response = Execute_ChartGetInteger();
-   break;
-   case 252: //ChartGetString
-      response = Execute_ChartGetString();
-   break;
-   case 253: //ChartNavigate
-      response = Execute_ChartNavigate();
-   break;
-   case 254: //ChartIndicatorDelete
-      response = Execute_ChartIndicatorDelete();
-   break;
-   case 255: //ChartIndicatorName
-      response = Execute_ChartIndicatorName();
-   break;
-   case 256: //ChartIndicatorsTotal
-      response = Execute_ChartIndicatorsTotal();
-   break;
-   case 257: //ChartWindowOnDropped
-      response = Execute_ChartWindowOnDropped();
-   break;
-   case 258: //ChartPriceOnDropped
-      response = Execute_ChartPriceOnDropped();
-   break;
-   case 259: //ChartTimeOnDropped
-      response = Execute_ChartTimeOnDropped();
-   break;
-   case 260: //ChartXOnDropped
-      response = Execute_ChartXOnDropped();
-   break;
-   case 261: //ChartYOnDropped
-      response = Execute_ChartYOnDropped();
-   break;
-   case 262: //ChartSetSymbolPeriod
-      response = Execute_ChartSetSymbolPeriod();
-   break;
-   case 263: //ChartScreenShot
-      response = Execute_ChartScreenShot();
-   break;
-   case 264: //WindowBarsPerChart
-      response = Execute_WindowBarsPerChart();
-   break;
-   case 280: //ChartIndicatorAdd
-      response = Execute_ChartIndicatorAdd();
-   break;
-   case 281: //ChartIndicatorGet
-      response = Execute_ChartIndicatorGet();
-   break;
-   default:
-      {
+   //case 102: //iDEMA
+   //   response = Execute_iDEMA();
+   //break;
+   //case 103: //iDeMarker
+   //   response = Execute_iDeMarker();
+   //break;
+   //case 104: //iEnvelopes
+   //   response = Execute_iEnvelopes();
+   //break;
+   //case 105: //iForce
+   //   response = Execute_iForce();
+   //break;
+   //case 106: //iFractals
+   //   response = Execute_iFractals();
+   //break;
+   //case 107: //iFrAMA
+   //   response = Execute_iFrAMA();
+   //break;
+   //case 108: //iGator
+   //   response = Execute_iGator();
+   //break;
+   //case 109: //iIchimoku
+   //   response = Execute_iIchimoku();
+   //break;
+   //case 110: //iBWMFI
+   //   response = Execute_iBWMFI();
+   //break;
+   //case 111: //iMomentum
+   //   response = Execute_iMomentum();
+   //break;
+   //case 112: //iMFI
+   //   response = Execute_iMFI();
+   //break;
+   //case 113: //iMA
+   //   response = Execute_iMA();
+   //break;
+   //case 114: //iOsMA
+   //   response = Execute_iOsMA();
+   //break;
+   //case 115: //iMACD
+   //   response = Execute_iMACD();
+   //break;
+   //case 116: //iOBV
+   //   response = Execute_iOBV();
+   //break;
+   //case 117: //iSAR
+   //   response = Execute_iSAR();
+   //break;
+   //case 118: //iRSI
+   //   response = Execute_iRSI();
+   //break;
+   //case 119: //iRVI
+   //   response = Execute_iRVI();
+   //break;
+   //case 120: //iStdDev
+   //   response = Execute_iStdDev();
+   //break;
+   //case 121: //iStochastic
+   //   response = Execute_iStochastic();
+   //break;
+   //case 122: //iTEMA
+   //   response = Execute_iTEMA();
+   //break;
+   //case 123: //iTriX
+   //   response = Execute_iTriX();
+   //break;
+   //case 124: //iWPR
+   //   response = Execute_iWPR();
+   //break;
+   //case 125: //iVIDyA
+   //   response = Execute_iVIDyA();
+   //break;
+   //case 126: //iVolumes
+   //   response = Execute_iVolumes();
+   //break;
+   //case 127: //TimeCurrent
+   //   response = Execute_TimeCurrent();
+   //break;
+   //case 128: //TimeTradeServer
+   //   response = Execute_TimeTradeServer();
+   //break;
+   //case 129: //TimeLocal
+   //   response = Execute_TimeLocal();
+   //break;
+   //case 130: //TimeGMT
+   //   response = Execute_TimeGMT();
+   //break;
+   //case 131: //IndicatorRelease
+   //   response = Execute_IndicatorRelease();
+   //break;  
+   //case 132: //GetLastError
+   //   response = Execute_GetLastError();
+   //break;
+   //case 136: //Alert
+   //   response = Execute_Alert();
+   //break;
+   //case 143: //ResetLastError
+   //   response = Execute_ResetLastError();
+   //break;
+   //case 146: //GlobalVariableCheck
+   //   response = Execute_GlobalVariableCheck();
+   //break;
+   //case 147: //GlobalVariableTime
+   //   response = Execute_GlobalVariableTime();
+   //break;
+   //case 148: //GlobalVariableDel
+   //   response = Execute_GlobalVariableDel();
+   //break;
+   //case 149: //GlobalVariableGet
+   //   response = Execute_GlobalVariableGet();
+   //break;
+   //case 150: //GlobalVariableName
+   //   response = Execute_GlobalVariableName();
+   //break;
+   //case 151: //GlobalVariableSet
+   //   response = Execute_GlobalVariableSet();
+   //break;
+   //case 152: //GlobalVariablesFlush
+   //   response = Execute_GlobalVariablesFlush();
+   //break;
+   //case 153: //TerminalInfoString
+   //   response = Execute_TerminalInfoString();
+   //break;
+   //case 154: //GlobalVariableTemp
+   //   response = Execute_GlobalVariableTemp();
+   //break;
+   //case 156: //GlobalVariableSetOnCondition
+   //   response = Execute_GlobalVariableSetOnCondition();
+   //break;
+   //case 157: //GlobalVariablesDeleteAll
+   //   response = Execute_GlobalVariablesDeleteAll();
+   //break;
+   //case 158: //GlobalVariablesTotal
+   //   response = Execute_GlobalVariablesTotal();
+   //break;
+   //case 159: //UnlockTiks
+   //   response = Execute_UnlockTicks();
+   //break;
+   //case 160: //PositionCloseAll
+   //   response = Execute_PositionCloseAll();
+   //break;
+   //case 161: //TesterStop
+   //   response = Execute_TesterStop();
+   //break;   
+   //case 204: //TerminalInfoInteger
+   //   Execute_TerminalInfoInteger();
+   //break;
+   //case 205: //TerminalInfoDouble
+   //   Execute_TerminalInfoDouble();
+   //break;
+   //case 206: //ChartId
+   //   response = Execute_ChartId();
+   //break;
+   //case 207: //ChartRedraw
+   //   response = Execute_ChartRedraw();
+   //break;
+   //case 236: //ChartApplyTemplate
+   //   response = Execute_ChartApplyTemplate();
+   //break;
+   //case 237: //ChartApplyTemplate
+   //   response = Execute_ChartSaveTemplate();
+   //break;
+   //case 238: //ChartWindowFind
+   //   response = Execute_ChartWindowFind();
+   //break;
+   //case 241: //ChartOpen
+   //   response = Execute_ChartOpen();
+   //break;
+   //case 242: //ChartFirst
+   //   response = Execute_ChartFirst();
+   //break;
+   //case 243: //ChartFirst
+   //   response = Execute_ChartNext();
+   //break;
+   //case 244: //ChartClose
+   //   response = Execute_ChartClose();
+   //break;
+   //case 245: //ChartFirst
+   //   response = Execute_ChartSymbol();
+   //break;
+   //case 246: //ChartPeriod
+   //   response = Execute_ChartPeriod();
+   //break;
+   //case 247: //ChartSetDouble
+   //   response = Execute_ChartSetDouble();
+   //break;
+   //case 248: //ChartSetInteger
+   //   response = Execute_ChartSetInteger();
+   //break;
+   //case 249: //ChartSetString
+   //   response = Execute_ChartSetString();
+   //break;
+   //case 250: //ChartGetDouble
+   //   response = Execute_ChartGetDouble();
+   //break;
+   //case 251: //ChartGetInteger
+   //   response = Execute_ChartGetInteger();
+   //break;
+   //case 252: //ChartGetString
+   //   response = Execute_ChartGetString();
+   //break;
+   //case 253: //ChartNavigate
+   //   response = Execute_ChartNavigate();
+   //break;
+   //case 254: //ChartIndicatorDelete
+   //   response = Execute_ChartIndicatorDelete();
+   //break;
+   //case 255: //ChartIndicatorName
+   //   response = Execute_ChartIndicatorName();
+   //break;
+   //case 256: //ChartIndicatorsTotal
+   //   response = Execute_ChartIndicatorsTotal();
+   //break;
+   //case 257: //ChartWindowOnDropped
+   //   response = Execute_ChartWindowOnDropped();
+   //break;
+   //case 258: //ChartPriceOnDropped
+   //   response = Execute_ChartPriceOnDropped();
+   //break;
+   //case 259: //ChartTimeOnDropped
+   //   response = Execute_ChartTimeOnDropped();
+   //break;
+   //case 260: //ChartXOnDropped
+   //   response = Execute_ChartXOnDropped();
+   //break;
+   //case 261: //ChartYOnDropped
+   //   response = Execute_ChartYOnDropped();
+   //break;
+   //case 262: //ChartSetSymbolPeriod
+   //   response = Execute_ChartSetSymbolPeriod();
+   //break;
+   //case 263: //ChartScreenShot
+   //   response = Execute_ChartScreenShot();
+   //break;
+   //case 264: //WindowBarsPerChart
+   //   response = Execute_WindowBarsPerChart();
+   //break;
+   //case 280: //ChartIndicatorAdd
+   //   response = Execute_ChartIndicatorAdd();
+   //break;
+   //case 281: //ChartIndicatorGet
+   //   response = Execute_ChartIndicatorGet();
+   //break;
+   //default:
+   //   {
          Print("Unknown command type = ", commandType);
          response = CreateErrorResponse(-1, "Unknown command type");
-      }
-      break;
+   //   }
+   //   break;
+   //}
    }
    
-   if (response != "")
-   {
-      if (!sendResponse(ExpertHandle, response, _error))
-         PrintFormat("[ERROR] response: %s", _error);
-   }
+   if (!sendResponse(ExpertHandle, response, _error))
+      PrintFormat("[ERROR] response: %s", _error);
    
    return (commandType);
 }
@@ -2050,7 +2284,7 @@ string Execute_PositionModify()
    return CreateSuccessResponse(new JSONBool(ok));
 }
 
-string Execute_PositionClosePartial_bySymbol()
+string Execute_PositionClosePartialBySymbol()
 {
    GET_JSON_PAYLOAD(jo);
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
@@ -2066,7 +2300,7 @@ string Execute_PositionClosePartial_bySymbol()
    return CreateSuccessResponse(new JSONBool(ok));
 }
 
-string Execute_PositionClosePartial_byTicket()
+string Execute_PositionClosePartialByTicket()
 {
    GET_JSON_PAYLOAD(jo);
    GET_ULONG_JSON_VALUE(jo, "Ticket", ticket);
@@ -2082,7 +2316,7 @@ string Execute_PositionClosePartial_byTicket()
    return CreateSuccessResponse(new JSONBool(ok));
 }
 
-string Execute_PositionOpen(bool isTradeResultRequired)
+string Execute_PositionOpen()
 {
    GET_JSON_PAYLOAD(jo);
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
@@ -2104,13 +2338,6 @@ string Execute_PositionOpen(bool isTradeResultRequired)
 #ifdef __DEBUG_LOG__
    Print("command PositionOpen: result = ", ok);
 #endif
-
-   if (isTradeResultRequired)
-   {
-      MqlTradeResult tradeResult={0};
-      trade.Result(tradeResult);
-      return CreateSuccessResponse(MqlTradeResultToJson(tradeResult));
-   }
 
    return CreateSuccessResponse(new JSONBool(ok));
 }
