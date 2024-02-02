@@ -169,8 +169,6 @@ int preinit()
    StringInit(_error,1000,0);
 
    ADD_EXECUTOR(1, GetQuote);
-   ADD_EXECUTOR(63, OrderCloseAll);
-   ADD_EXECUTOR(64, PositionClose);
    ADD_EXECUTOR(2, OrderCalcMargin);
    ADD_EXECUTOR(3, OrderCalcProfit);
    ADD_EXECUTOR(4, PositionGetTicket);
@@ -244,11 +242,17 @@ int preinit()
    ADD_EXECUTOR(54, SymbolInfoDouble);
    ADD_EXECUTOR(55, SymbolInfoInteger);
    ADD_EXECUTOR(56, SymbolInfoString);
+   ADD_EXECUTOR(1056, SymbolInfoString2); // TODO !!!!!
    ADD_EXECUTOR(58, SymbolInfoSessionQuote); 
    ADD_EXECUTOR(59, SymbolInfoSessionTrade);
    ADD_EXECUTOR(60, MarketBookAdd);
-   ADD_EXECUTOR(61, MarketBookRelease);
+   ADD_EXECUTOR(61, MarketBookRelease);   
+   ADD_EXECUTOR(63, OrderCloseAll);
+   ADD_EXECUTOR(64, PositionClose);
    ADD_EXECUTOR(65, PositionOpen);
+   
+   ADD_EXECUTOR(1065, PositionOpen2);  //TODO !!!!
+   
    ADD_EXECUTOR(6066, PositionModify);
    ADD_EXECUTOR(6067, PositionClosePartialBySymbol);
    ADD_EXECUTOR(6068, PositionClosePartialByTicket);
@@ -365,7 +369,16 @@ int preinit()
    ADD_EXECUTOR(264, WindowBarsPerChart);
    ADD_EXECUTOR(280, ChartIndicatorAdd);
    ADD_EXECUTOR(281, ChartIndicatorGet);
-   ADD_EXECUTOR(155, Request);
+
+   // TODO !!!!!
+   ADD_EXECUTOR(300, CopyTicks);
+   ADD_EXECUTOR(301, iCustom);
+   ADD_EXECUTOR(302, OrderSend);
+   ADD_EXECUTOR(303, OrderSendAsync);
+   ADD_EXECUTOR(304, OrderCheck);
+   ADD_EXECUTOR(305, MarketBookGet);
+   ADD_EXECUTOR(306, IndicatorCreate);
+   ADD_EXECUTOR(307, ChartTimePriceToXY);
    
    return (0);
 }
@@ -547,53 +560,6 @@ public:
    }
 };
 
-#define PRINT_MSG_AND_RETURN_VALUE(msg,value) PrintFormat("%s: %s",__FUNCTION__,msg);return value
-#define GET_JSON_PAYLOAD(json) auto_ptr<JSONObject> json(GetJsonPayload()); if (json.p == NULL) { return CreateErrorResponse(-1, "Failed to get payload"); }
-#define CHECK_JSON_VALUE(json, name_value) if (json.p.getValue(name_value) == NULL) { PRINT_MSG_AND_RETURN_VALUE(StringFormat("failed to get %s from JSON!", name_value), CreateErrorResponse(-1, (StringFormat("Undefinded mandatory parameter %s", name_value)))); }
-#define GET_INT_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); int return_value = json.p.getInt(name_value)
-#define GET_UINT_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); uint return_value = json.p.getInt(name_value)
-#define GET_DOUBLE_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); double return_value = json.p.getDouble(name_value)
-#define GET_LONG_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); long return_value = json.p.getLong(name_value)
-#define GET_ULONG_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); ulong return_value = json.p.getLong(name_value)
-#define GET_STRING_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); string return_value = json.p.getString(name_value)
-#define GET_BOOL_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); bool return_value = json.p.getBool(name_value)
-
-//-------------------------------------------------------------
-string Execute_GetQuote()
-{
-   MqlTick tick;
-   SymbolInfoTick(Symbol(), tick);
-   
-   MtQuote quote(Symbol(), tick);
-   return CreateSuccessResponse(quote.CreateJson());
-}
-
-string Execute_Request()
-{
-   string request;
-   StringInit(request, 1000, 0);
-   
-   if (!getPayload(ExpertHandle, request, _error))
-      return CreateErrorResponse(-1, "Failed to get request");
-      
-   string response = "";
-   if (request != "")
-   {
-#ifdef __DEBUG_LOG__
-      Print("Execute_Request: incoming request = ", request);
-#endif
-      response = OnRequest(request);
-   }  
-   
-   return response;
-}
-
-string Execute_OrderCloseAll()
-{
-   OrderCloseAll();
-   return CreateSuccessResponse();
-}
-
 JSONObject* GetJsonPayload()
 {
    string payload;
@@ -615,6 +581,33 @@ JSONObject* GetJsonPayload()
    }
    
    return payload_json.isObject() ? payload_json : NULL;
+}
+
+#define PRINT_MSG_AND_RETURN_VALUE(msg,value) PrintFormat("%s: %s",__FUNCTION__,msg);return value
+#define GET_JSON_PAYLOAD(json) auto_ptr<JSONObject> json(GetJsonPayload()); if (json.p == NULL) { return CreateErrorResponse(-1, "Failed to get payload"); }
+#define CHECK_JSON_VALUE(json, name_value) if (json.p.getValue(name_value) == NULL) { PRINT_MSG_AND_RETURN_VALUE(StringFormat("failed to get %s from JSON!", name_value), CreateErrorResponse(-1, (StringFormat("Undefinded mandatory parameter %s", name_value)))); }
+#define GET_INT_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); int return_value = json.p.getInt(name_value)
+#define GET_UINT_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); uint return_value = json.p.getInt(name_value)
+#define GET_DOUBLE_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); double return_value = json.p.getDouble(name_value)
+#define GET_LONG_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); long return_value = json.p.getLong(name_value)
+#define GET_ULONG_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); ulong return_value = json.p.getLong(name_value)
+#define GET_STRING_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); string return_value = json.p.getString(name_value)
+#define GET_BOOL_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); bool return_value = json.p.getBool(name_value)
+
+//--------- Executors ----------------------------------------------------
+string Execute_GetQuote()
+{
+   MqlTick tick;
+   SymbolInfoTick(Symbol(), tick);
+   
+   MtQuote quote(Symbol(), tick);
+   return CreateSuccessResponse(quote.CreateJson());
+}
+
+string Execute_OrderCloseAll()
+{
+   OrderCloseAll();
+   return CreateSuccessResponse();
 }
 
 string Execute_PositionClose()
@@ -1714,7 +1707,13 @@ string Execute_PositionOpen()
    GET_DOUBLE_JSON_VALUE(jo, "Price", price);
    GET_DOUBLE_JSON_VALUE(jo, "Sl", sl);
    GET_DOUBLE_JSON_VALUE(jo, "Tp", tp);
-   GET_STRING_JSON_VALUE(jo, "Comment", comment);
+   
+   //Comment
+   string comment;
+   if (jo.p.getValue("Comment") != NULL)
+   {
+      comment = jo.p.getString("Comment");
+   }   
    
 #ifdef __DEBUG_LOG__
    PrintFormat("%s: symbol = %s, order_type = %d, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
@@ -1728,7 +1727,56 @@ string Execute_PositionOpen()
    Print("command PositionOpen: result = ", ok);
 #endif
 
+   if (jo.p.getValue("NeedTradeResult"))
+   {
+      MqlTradeResult trade_result={0};
+      trade.Result(trade_result);
+
+      JSONObject* result_value_jo = new JSONObject();
+      result_value_jo.put("RetVal", new JSONBool(ok));
+      result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
+      return CreateSuccessResponse(result_value_jo);
+   }
+
    return CreateSuccessResponse(new JSONBool(ok));
+}
+
+string Execute_PositionOpen2()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
+   GET_INT_JSON_VALUE(jo, "OrderType", order_type);
+   GET_DOUBLE_JSON_VALUE(jo, "Volume", volume);
+   GET_DOUBLE_JSON_VALUE(jo, "Price", price);
+   GET_DOUBLE_JSON_VALUE(jo, "Sl", sl);
+   GET_DOUBLE_JSON_VALUE(jo, "Tp", tp);
+   
+   //Comment
+   string comment;
+   if (jo.p.getValue("Comment") != NULL)
+   {
+      comment = jo.p.getString("Comment");
+   }   
+   
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: symbol = %s, order_type = %d, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
+      __FUNCTION__, symbol, order_type, volume, price, sl, tp, comment);
+#endif
+   
+   CTrade trade;
+   bool ok = trade.PositionOpen(symbol, (ENUM_ORDER_TYPE)order_type, volume, price, sl, tp, comment);
+
+#ifdef __DEBUG_LOG__
+   Print("command PositionOpen: result = ", ok);
+#endif
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
+   return CreateSuccessResponse(result_value_jo);
 }
 
 string Execute_BacktestingReady()
@@ -2964,23 +3012,463 @@ string Execute_ChartRedraw()
    ChartRedraw(chart_id);
    return CreateSuccessResponse();
 }
+
+string Execute_CopyTicks()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
+   GET_UINT_JSON_VALUE(jo, "Flags", flags);
+   GET_INT_JSON_VALUE(jo, "From", from);
+   GET_INT_JSON_VALUE(jo, "Count", count);
    
-// TODO !!!!!!!!
-/*void PrintParamError(string paramName)
-{
-   Print("[ERROR] parameter: ", paramName);
+   MqlTick ticks[];
+   int received = CopyTicks(symbol, ticks, flags, from, count); 
+   if(received == -1)
+      return CreateErrorResponse(GetLastError(), "CopyTicks failed");
+   
+   JSONArray* jaTicks = new JSONArray();
+   for(int i = 0; i < received; i++)
+      jaTicks.put(i, MqlTickToJson(ticks[i]));
+        
+   return CreateSuccessResponse(jaTicks);
 }
 
-void PrintParamError(string commandName, string paramName, string error)
+string Execute_iCustom()
 {
-   PrintFormat("[ERROR] Command: %s, parameter: %s. %s", commandName, paramName, error);
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
+   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
+   GET_STRING_JSON_VALUE(jo, "Name", name);
+
+   int result;
+   
+   if (jo.p.getValue("Params") == NULL)
+   {
+      result = iCustom(symbol, (ENUM_TIMEFRAMES)timeframe, name);
+   }
+   else
+   {
+      JSONArray *jaParams = jo.p.getArray("Params");
+      int size = jaParams.size();
+
+      if (size < 0 || size > 10)
+         return CreateErrorResponse(-1, "Parameter's count is out of range.");
+
+      if (jo.p.getValue("ParamsType") == NULL)
+         return CreateErrorResponse(-1, "Undefinded mandatory parameter ParamsType");
+
+      int paramsType =  jo.p.getInt("ParamsType");
+      switch (paramsType)
+      {
+      case 0: //Int
+      {
+         int intParams[];
+         ArrayResize(intParams, size);
+         for (int i = 0; i < size; i++)
+         {
+            intParams[i] = jaParams.getInt(i);
+         }
+         result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, intParams, size);
+      }
+      break;
+      case 1: //Double
+      {
+         int doubleParams[];
+         ArrayResize(doubleParams, size);
+         result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, doubleParams, size);
+      }
+      break;
+      case 2: //String
+      {
+         string stringParams[];
+         ArrayResize(stringParams, size);
+         result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, stringParams, size);
+      }
+      break;
+      case 3: //Boolean
+      {
+         string boolParams[];
+         ArrayResize(boolParams, size);
+         result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, boolParams, size);
+      }
+      break;
+      default:
+         return CreateErrorResponse(-1, "Unsupported type of iCustom parameters.");
+      }
+   }
+
+   return CreateSuccessResponse(new JSONNumber((long)result));
 }
 
-void PrintResponseError(string commandName, string error = "")
+string Execute_OrderSend()
 {
-   PrintFormat("[ERROR] response: %s. %s", commandName, error);
+   GET_JSON_PAYLOAD(jo);
+   CHECK_JSON_VALUE(jo, "TradeRequest");
+   JSONObject* trade_request_jo = jo.p.getObject("TradeRequest");
+      
+   MqlTradeRequest trade_request;
+   bool converted = JsonToMqlTradeRequest(trade_request_jo, trade_request);
+   if (converted == false)
+      return CreateErrorResponse(-1, "Failed to parse parameter TradeRequest");
+   
+   MqlTradeResult trade_result;
+   bool ok = OrderSend(trade_request, trade_result);
+   
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: return value = %s", __FUNCTION__, ok ? "true" : "false");
+#endif    
+      
+   return CreateSuccessResponse(result_value_jo);
 }
-*/
+
+string Execute_OrderSendAsync()
+{
+   GET_JSON_PAYLOAD(jo);
+   CHECK_JSON_VALUE(jo, "TradeRequest");
+   JSONObject* trade_request_jo = jo.p.getObject("TradeRequest");
+      
+   MqlTradeRequest trade_request;
+   bool converted = JsonToMqlTradeRequest(trade_request_jo, trade_request);
+   if (converted == false)
+      return CreateErrorResponse(-1, "Failed to parse parameter TradeRequest");
+   
+   MqlTradeResult trade_result;
+   bool ok = OrderSendAsync(trade_request, trade_result);
+   
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: return value = %s", __FUNCTION__, ok ? "true" : "false");
+#endif    
+      
+   return CreateSuccessResponse(result_value_jo);
+}
+
+string Execute_OrderCheck()
+{
+   GET_JSON_PAYLOAD(jo);
+   CHECK_JSON_VALUE(jo, "TradeRequest");
+   JSONObject* trade_request_jo = jo.p.getObject("TradeRequest");
+      
+   MqlTradeRequest trade_request;
+   JsonToMqlTradeRequest(trade_request_jo, trade_request);
+   
+   MqlTradeCheckResult trade_check_result;
+   bool ok = OrderCheck(trade_request, trade_check_result);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: return value = %s", __FUNCTION__, ok ? "true" : "false");
+#endif    
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", MqlTradeCheckResultToJson(trade_check_result));
+   
+   return CreateSuccessResponse(result_value_jo);   
+}
+
+string Execute_MarketBookGet()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
+   
+   MqlBookInfo info_array[];
+   bool ok = MarketBookGet(symbol, info_array); 
+
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: return value = %s.", __FUNCTION__, ok ? "true" : "false");
+#endif
+   
+   if (!ok)
+      return CreateErrorResponse(GetLastError(), "MarketBookGet failed");
+   
+   int size = ArraySize(info_array);
+   JSONArray* book_ja = new JSONArray();
+   for(int i = 0; i < size; i++)
+      book_ja.put(i, MqlBookInfoToJson(info_array[i]));
+
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: array size = %d.", __FUNCTION__, size);
+#endif   
+        
+   return CreateSuccessResponse(book_ja);
+}
+
+string Execute_IndicatorCreate()
+{
+   GET_JSON_PAYLOAD(jo);
+
+   //Symbol
+   string symbol = NULL;
+   if (jo.p.getValue("Symbol") != NULL)
+      symbol = jo.p.getString("Symbol");
+   
+   GET_INT_JSON_VALUE(jo, "Period", period);
+   GET_INT_JSON_VALUE(jo, "IndicatorType", indicator_type);
+   
+   int indicator_handle = -1;
+   if (jo.p.getValue("Parameters") != NULL)
+   {
+      JSONArray parameters_ja = jo.p.getArray("Parameters");
+      int size = parameters_ja.size();
+      if (size > 0)
+      {
+         MqlParam parameters[];
+         ArrayResize(parameters, size);
+         
+         for (int i = 0; i < size; i++)
+         {
+            JSONObject param_jo = parameters_ja.getObject(i);
+            
+            parameters[i].type = (ENUM_DATATYPE)param_jo.getInt("DataType");
+            if (param_jo.getValue("IntegerValue") != NULL)
+            {
+               parameters[i].integer_value = param_jo.getLong("IntegerValue");
+            }
+            if (param_jo.getValue("DoubleValue") != NULL)
+            {
+               parameters[i].double_value = param_jo.getDouble("DoubleValue");
+            }
+            if (param_jo.getValue("StringValue") != NULL)
+            {
+               parameters[i].string_value = param_jo.getString("StringValue");
+            }
+         }
+         
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: symbol = %s, period = %d, indicator_type = %d, size = %d.", __FUNCTION__, symbol, period, indicator_type, size);
+#endif   
+         
+         indicator_handle = IndicatorCreate(symbol, (ENUM_TIMEFRAMES)period, (ENUM_INDICATOR)indicator_type, size, parameters);
+      }
+   }
+   else
+   {
+#ifdef __DEBUG_LOG__   
+      PrintFormat("%s: symbol = %s, period = %d, indicator_type = %d.", __FUNCTION__, symbol, period, indicator_type);
+#endif
+   
+      indicator_handle = IndicatorCreate(symbol, (ENUM_TIMEFRAMES)period, (ENUM_INDICATOR)indicator_type);
+   }
+   
+#ifdef __DEBUG_LOG__   
+      PrintFormat("%s: result indicator handle = %d", __FUNCTION__, (ENUM_INDICATOR)indicator_handle);
+#endif
+   
+   return CreateSuccessResponse(new JSONNumber(indicator_handle));
+}
+
+string Execute_SymbolInfoString2()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
+   GET_INT_JSON_VALUE(jo, "PropId", prop_id);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: symbol_name = %s, prop_id = %s", __FUNCTION__, symbol_name, EnumToString(prop_id));
+#endif
+
+   string string_var;
+   bool ok = SymbolInfoString(symbol, (ENUM_SYMBOL_INFO_STRING)prop_id, string_var);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: ok = %s, string_var = %s", __FUNCTION__, BoolToString(ok), string_var);
+#endif
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", new JSONString(string_var));
+   
+   return CreateSuccessResponse(result_value_jo);   
+}
+
+string Execute_ChartTimePriceToXY()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_LONG_JSON_VALUE(jo, "ChartId", chart_id);
+   GET_INT_JSON_VALUE(jo, "SubWindow", sub_window);
+   GET_INT_JSON_VALUE(jo, "MtTime", time);
+   GET_DOUBLE_JSON_VALUE(jo, "Price", price);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: chart_id = %d, sub_window = %d, time = %s", __FUNCTION__, chart_id, sub_window, TimeToString(time));
+#endif
+
+   int x,y;
+   bool ok = ChartTimePriceToXY(chart_id, sub_window, time, price, x, y);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: ok = %s, x = %d, y = %d", __FUNCTION__, BoolToString(ok), x, y);
+#endif
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   JSONObject* xy_jo = new JSONObject();
+   xy_jo.put("X", new JSONNumber(x));
+   xy_jo.put("Y", new JSONNumber(y));
+   result_value_jo.put("Result", xy_jo);
+   
+   return CreateSuccessResponse(result_value_jo);  
+}
+
+string Execute_ChartXYToTimePrice()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_LONG_JSON_VALUE(jo, "ChartId", chart_id);
+   GET_INT_JSON_VALUE(jo, "X", x);
+   GET_INT_JSON_VALUE(jo, "Y", y);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: chart_id = %d, x = %d, y = %d", __FUNCTION__, chart_id, x, y);
+#endif
+
+   int sub_window;
+   datetime time;
+   double price;
+   bool ok = ChartXYToTimePrice(chart_id, x, y, sub_window, time, price);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: ok = %s, sub_window = %d, time = %s, price = %f", __FUNCTION__, BoolToString(ok), sub_window, TimeToString(time), price);
+#endif
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   JSONObject* time_price_jo = new JSONObject();
+   time_price_jo.put("SubWindow", new JSONNumber(sub_window));
+   time_price_jo.put("MtTime", new JSONNumber((int)time));
+   time_price_jo.put("Price", new JSONNumber(price));
+   result_value_jo.put("Result", time_price_jo);
+   
+   return CreateSuccessResponse(result_value_jo);
+}
+
+string ExecuteRequest_PositionClose()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_ULONG_JSON_VALUE(jo, "Ticket", ticket);
+   GET_ULONG_JSON_VALUE(jo, "Deviation", deviation);
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: Ticket = %d, Deviation = %d", __FUNCTION__, ticket, deviation);
+#endif
+
+   CTrade trade;
+   bool ok = trade.PositionClose(ticket, deviation);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+   
+#ifdef __DEBUG_LOG__
+   Print("ExecuteRequest_PositionClose: retcode = ", trade.ResultRetcode());
+#endif
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse(result_value_jo);  
+}
+
+string ExecuteRequest_SymbolInfoTick()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "SymbolName", symbol_name);
+
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: symbol_name = %s", __FUNCTION__, symbol_name);
+#endif
+
+   MqlTick tick={0};
+   bool ok = SymbolInfoTick(symbol_name, tick);
+     
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: ok = %s", __FUNCTION__, BoolToString(ok));
+#endif
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", MqlTickToJson(tick));
+
+   return CreateSuccessResponse(result_value_jo);      
+}
+
+string ExecuteRequest_Buy()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_DOUBLE_JSON_VALUE(jo, "Volume", volume);
+   GET_DOUBLE_JSON_VALUE(jo, "Price", price);
+   GET_DOUBLE_JSON_VALUE(jo, "Sl", sl);
+   GET_DOUBLE_JSON_VALUE(jo, "Tp", tp);
+
+   //Symbol
+   string symbol = Symbol();
+   if (jo.p.getValue("Symbol") != NULL)
+      symbol = jo.p.getString("Symbol");   
+     
+   //Comment
+   string comment = "";
+   if (jo.p.getValue("Comment") != NULL)
+      comment = jo.p.getString("Comment");
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: symbol = %s, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
+      __FUNCTION__, symbol, volume, price, sl, tp, comment);
+#endif
+
+   CTrade trade;
+   bool ok = trade.Buy(volume, symbol, price, sl, tp, comment);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse(result_value_jo);   
+}
+
+string ExecuteRequest_Sell()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_DOUBLE_JSON_VALUE(jo, "Volume", volume);
+   GET_DOUBLE_JSON_VALUE(jo, "Price", price);
+   GET_DOUBLE_JSON_VALUE(jo, "Sl", sl);
+   GET_DOUBLE_JSON_VALUE(jo, "Tp", tp);
+
+   //Symbol
+   string symbol=Symbol();
+   if (jo.p.getValue("Symbol") != NULL)
+      symbol = jo.p.getString("Symbol");   
+
+   //Comment
+   string comment="";
+   if (jo.p.getValue("Comment") != NULL)
+      comment = jo.p.getString("Comment");
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: symbol = %s, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
+      __FUNCTION__, symbol, volume, price, sl, tp, comment);
+#endif
+
+   CTrade trade;
+   bool ok = trade.Sell(volume, symbol, price, sl, tp, comment);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse(result_value_jo); 
+}
 
 bool OrderCloseAll()
 {
@@ -3003,88 +3491,6 @@ int PositionCloseAll()
       if (trade.PositionClose(PositionGetSymbol(i))) i--;
    }
    return total;
-}
-
-//------------ Requests -------------------------------------------------------
-
-string OnRequest(string json)
-{
-   string response = "";
-
-   JSONParser *parser = new JSONParser();
-   JSONValue *jv = parser.parse(json);
-   
-   if(jv == NULL) 
-   {   
-      PrintFormat("%s [ERROR]: %d - %s", __FUNCTION__, (string)parser.getErrorCode(), parser.getErrorMessage());
-   }
-   else
-   {
-      if(jv.isObject()) 
-      {
-         JSONObject *jo = jv;
-         int requestType = jo.getInt("RequestType");
-     
-         switch(requestType)
-         {
-            case 1: //CopyTicks
-               response = ExecuteRequest_CopyTicks(jo);
-               break;
-            case 2: //iCustom
-               response = ExecuteRequest_iCustom(jo);
-               break;
-            case 3: //OrderSend
-               response = ExecuteRequest_OrderSend(jo);
-               break;
-            case 4: //PositionOpen
-               response = ExecuteRequest_PositionOpen(jo);
-               break;
-            case 5: //OrderCheck
-               response = ExecuteRequest_OrderCheck(jo);
-               break;
-            case 6: //MarketBookGet
-               response = ExecuteRequest_MarketBookGet(jo);
-               break;
-            case 7: //IndicatorCreate
-               response = ExecuteRequest_IndicatorCreate(jo);
-               break;
-            case 8: //SymbolInfoString
-               response = ExecuteRequest_SymbolInfoString(jo);
-               break;
-            case 9: //ChartTimePriceToXY
-               response = ExecuteRequest_ChartTimePriceToXY(jo);
-               break;
-            case 10: //ChartXYToTimePrice
-               response = ExecuteRequest_ChartXYToTimePrice(jo);
-               break;
-            case 11: //PositionClose
-               response = ExecuteRequest_PositionClose(jo);
-               break;
-            case 12: //SymbolInfoTick
-               response = ExecuteRequest_SymbolInfoTick(jo);
-               break;
-            case 13: //Buy
-               response = ExecuteRequest_Buy(jo);
-               break;
-            case 14: //Sell
-               response = ExecuteRequest_Sell(jo);
-               break;
-            case 15: //OrderSendAsync
-               response = ExecuteRequest_OrderSendAsync(jo);
-               break;
-            default:
-               PrintFormat("%s [WARNING]: Unknown request type %d", __FUNCTION__, requestType);
-               response = CreateErrorResponse(-1, "Unknown request type");
-               break;
-        }
-      }
-      
-      delete jv;
-   }   
-   
-   delete parser;
-   
-   return response;
 }
 
 string CreateErrorResponse(int code, string message_er)
@@ -3126,108 +3532,6 @@ string CreateSuccessResponse(string responseName, JSONValue* responseBody)
    return joResponse.toString();  
 }
 
-string ExecuteRequest_CopyTicks(JSONObject *jo)
-{
-   if (jo.getValue("SymbolName") == NULL)
-      return CreateErrorResponse(-1, "Undefinded mandatory parameter SymbolName");
-   if (jo.getValue("Flags") == NULL)
-      return CreateErrorResponse(-1, "Undefinded mandatory parameter Flags");
-   if (jo.getValue("From") == NULL)
-      return CreateErrorResponse(-1, "Undefinded mandatory parameter From");
-   if (jo.getValue("Count") == NULL)
-      return CreateErrorResponse(-1, "Undefinded mandatory parameter Count");      
-
-   string symbol = jo.getString("SymbolName");
-   uint flags = jo.getInt("Flags");
-   int from = jo.getInt("From");
-   int count = jo.getInt("Count");
-   
-   MqlTick ticks[];
-   int received = CopyTicks(symbol, ticks, flags, from, count); 
-   if(received == -1)
-      return CreateErrorResponse(GetLastError(), "CopyTicks failed");
-   
-   JSONArray* jaTicks = new JSONArray();
-   for(int i = 0; i < received; i++)
-   {
-      jaTicks.put(i, MqlTickToJson(ticks[i]));
-   }
-        
-   return CreateSuccessResponse("Value", jaTicks);
-}
-
-string ExecuteRequest_iCustom(JSONObject *jo)
-{
-   if (jo.getValue("Symbol") == NULL)
-      return CreateErrorResponse(-1, "Undefinded mandatory parameter Symbol");
-   if (jo.getValue("Timeframe") == NULL)
-      return CreateErrorResponse(-1, "Undefinded mandatory parameter Timeframe");
-   if (jo.getValue("Name") == NULL)
-      return CreateErrorResponse(-1, "Undefinded mandatory parameter Name");
-   
-   string symbol = jo.getString("Symbol");   
-   int timeframe = jo.getInt("Timeframe");
-   string name = jo.getString("Name");
-
-   int result;
-   
-   if (jo.getValue("Params") == NULL)
-   {
-      result = iCustom(symbol, (ENUM_TIMEFRAMES)timeframe, name);
-   }
-   else
-   {
-      JSONArray *jaParams = jo.getArray("Params");
-      int size = jaParams.size();
-
-      if (size < 0 || size > 10)
-         return CreateErrorResponse(-1, "Parameter's count is out of range.");
-
-      if (jo.getValue("ParamsType") == NULL)
-         return CreateErrorResponse(-1, "Undefinded mandatory parameter ParamsType");
-
-      int paramsType =  jo.getInt("ParamsType");
-      switch (paramsType)
-      {
-      case 0: //Int
-      {
-         int intParams[];
-         ArrayResize(intParams, size);
-         for (int i = 0; i < size; i++)
-         {
-            intParams[i] = jaParams.getInt(i);
-         }
-         result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, intParams, size);
-      }
-      break;
-      case 1: //Double
-      {
-         int doubleParams[];
-         ArrayResize(doubleParams, size);
-         result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, doubleParams, size);
-      }
-      break;
-      case 2: //String
-      {
-         string stringParams[];
-         ArrayResize(stringParams, size);
-         result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, stringParams, size);
-      }
-      break;
-      case 3: //Boolean
-      {
-         string boolParams[];
-         ArrayResize(boolParams, size);
-         result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, boolParams, size);
-      }
-      break;
-      default:
-         return CreateErrorResponse(-1, "Unsupported type of iCustom parameters.");
-      }
-   }
-
-   return CreateSuccessResponse("Value", new JSONNumber((long)result));
-}
 
 template<typename T>
 int iCustomT(string symbol, ENUM_TIMEFRAMES timeframe, string name, T &p[], int count)
@@ -3261,127 +3565,6 @@ int iCustomT(string symbol, ENUM_TIMEFRAMES timeframe, string name, T &p[], int 
    }
 }
 
-string ExecuteRequest_OrderSend(JSONObject *jo)
-{
-   //CHECK_JSON_VALUE(jo, "TradeRequest");
-   JSONObject* trade_request_jo = jo.getObject("TradeRequest");
-      
-   MqlTradeRequest trade_request;
-   bool converted = JsonToMqlTradeRequest(trade_request_jo, trade_request);
-   if (converted == false)
-      return CreateErrorResponse(-1, "Failed to parse parameter TradeRequest");
-   
-   MqlTradeResult trade_result;
-   bool ok = OrderSend(trade_request, trade_result);
-   
-   JSONObject* result_value_jo = new JSONObject();
-   result_value_jo.put("RetVal", new JSONBool(ok));
-   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
-   
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: return value = %s", __FUNCTION__, ok ? "true" : "false");
-#endif    
-      
-   return CreateSuccessResponse("Value", result_value_jo);
-}
-
-string ExecuteRequest_OrderSendAsync(JSONObject *jo)
-{
-   //CHECK_JSON_VALUE(jo, "TradeRequest");
-   JSONObject* trade_request_jo = jo.getObject("TradeRequest");
-      
-   MqlTradeRequest trade_request;
-   bool converted = JsonToMqlTradeRequest(trade_request_jo, trade_request);
-   if (converted == false)
-      return CreateErrorResponse(-1, "Failed to parse parameter TradeRequest");
-   
-   MqlTradeResult trade_result;
-   bool ok = OrderSendAsync(trade_request, trade_result);
-   
-   JSONObject* result_value_jo = new JSONObject();
-   result_value_jo.put("RetVal", new JSONBool(ok));
-   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
-   
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: return value = %s", __FUNCTION__, ok ? "true" : "false");
-#endif    
-      
-   return CreateSuccessResponse("Value", result_value_jo);
-}
-
-string ExecuteRequest_PositionOpen(JSONObject *jo)
-{   
-   //Symbol
-   //CHECK_JSON_VALUE(jo, "Symbol");
-   string symbol = jo.getString("Symbol");
-     
-   //OrderType 
-   //CHECK_JSON_VALUE(jo, "OrderType");
-   ENUM_ORDER_TYPE order_type = (ENUM_ORDER_TYPE) jo.getInt("OrderType");
-   
-   //Volume
-   //CHECK_JSON_VALUE(jo, "Volume");
-   double volume = jo.getDouble("Volume");
-
-   //Price
-   //CHECK_JSON_VALUE(jo, "Price");
-   double price = jo.getDouble("Price");
-
-   //Sl
-   //CHECK_JSON_VALUE(jo, "Sl");
-   double sl = jo.getDouble("Sl");
-   
-   //Tp
-   //CHECK_JSON_VALUE(jo, "Tp");
-   double tp = jo.getDouble("Tp");
-   
-   //Comment
-   string comment;
-   if (jo.getValue("Comment") != NULL)
-   {
-      comment = jo.getString("Comment");
-   }   
-
-#ifdef __DEBUG_LOG__
-   PrintFormat("%s: symbol = %s, order_type = %d, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
-      __FUNCTION__, symbol, order_type, volume, price, sl, tp, comment);
-#endif
-
-   CTrade trade;
-   bool ok = trade.PositionOpen(symbol, order_type, volume, price, sl, tp, comment);
-
-   MqlTradeResult trade_result={0};
-   trade.Result(trade_result);
-
-   JSONObject* result_value_jo = new JSONObject();
-   result_value_jo.put("RetVal", new JSONBool(ok));
-   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
-
-   return CreateSuccessResponse("Value", result_value_jo);   
-}
-
-string ExecuteRequest_OrderCheck(JSONObject *jo)
-{
-   if (jo.getValue("TradeRequest") == NULL) return CreateErrorResponse(-1, "Undefined parameter TradeRequest");
-   JSONObject* trade_request_jo = jo.getObject("TradeRequest");
-      
-   MqlTradeRequest trade_request;
-   JsonToMqlTradeRequest(trade_request_jo, trade_request);
-   
-   MqlTradeCheckResult trade_check_result;
-   bool ok = OrderCheck(trade_request, trade_check_result);
-   
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: return value = %s", __FUNCTION__, ok ? "true" : "false");
-#endif    
-
-   JSONObject* result_value_jo = new JSONObject();
-   result_value_jo.put("RetVal", new JSONBool(ok));
-   result_value_jo.put("TradeCheckResult", MqlTradeCheckResultToJson(trade_check_result));
-   
-   return CreateSuccessResponse("Value", result_value_jo);   
-}
-
 JSONObject* MqlBookInfoToJson(MqlBookInfo& info)
 {
     JSONObject *jo = new JSONObject();
@@ -3390,337 +3573,6 @@ JSONObject* MqlBookInfoToJson(MqlBookInfo& info)
     jo.put("volume", new JSONNumber(info.volume));
     jo.put("volume_real", new JSONNumber(info.volume_real));
     return jo;
-}
-
-string ExecuteRequest_MarketBookGet(JSONObject *jo)
-{
-   if (jo.getValue("Symbol") == NULL) return CreateErrorResponse(-1, "Undefined parameter Symbol");
-   string symbol = jo.getString("Symbol");
-   
-   MqlBookInfo info_array[];
-   bool ok = MarketBookGet(symbol, info_array); 
-
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: return value = %s.", __FUNCTION__, ok ? "true" : "false");
-#endif
-   
-   if (!ok)
-      return CreateErrorResponse(GetLastError(), "MarketBookGet failed");
-   
-   int size = ArraySize(info_array);
-   JSONArray* book_ja = new JSONArray();
-   for(int i = 0; i < size; i++)
-   {
-      book_ja.put(i, MqlBookInfoToJson(info_array[i]));
-   }
-
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: array size = %d.", __FUNCTION__, size);
-#endif   
-        
-   return CreateSuccessResponse("Value", book_ja);
-}
-
-string ExecuteRequest_IndicatorCreate(JSONObject *jo)
-{
-   //Symbol
-   string symbol;
-   if (jo.getValue("Symbol") != NULL)
-   {
-      symbol = jo.getString("Symbol");
-   }
-   
-   if (jo.getValue("Period") == NULL) return CreateErrorResponse(-1, "Undefinded parameter Period");
-   ENUM_TIMEFRAMES period = (ENUM_TIMEFRAMES) jo.getInt("Period");
-   
-   if (jo.getValue("IndicatorType") == NULL) return CreateErrorResponse(-1, "Undefinded parameter IndicatorType");
-   ENUM_INDICATOR indicator_type = (ENUM_INDICATOR) jo.getInt("IndicatorType");
-   
-   int indicator_handle = -1;
-   if (jo.getValue("Parameters") != NULL)
-   {
-      JSONArray parameters_ja = jo.getArray("Parameters");
-      int size = parameters_ja.size();
-      if (size > 0)
-      {
-         MqlParam parameters[];
-         ArrayResize(parameters, size);
-         
-         for (int i = 0; i < size; i++)
-         {
-            JSONObject param_jo = parameters_ja.getObject(i);
-            
-            parameters[i].type = (ENUM_DATATYPE)param_jo.getInt("DataType");
-            if (param_jo.getValue("IntegerValue") != NULL)
-            {
-               parameters[i].integer_value = param_jo.getLong("IntegerValue");
-            }
-            if (param_jo.getValue("DoubleValue") != NULL)
-            {
-               parameters[i].double_value = param_jo.getDouble("DoubleValue");
-            }
-            if (param_jo.getValue("StringValue") != NULL)
-            {
-               parameters[i].string_value = param_jo.getString("StringValue");
-            }
-         }
-         
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: symbol = %s, period = %d, indicator_type = %d, size = %d.", __FUNCTION__, symbol, period, indicator_type, size);
-#endif   
-         
-         indicator_handle = IndicatorCreate(symbol, period, indicator_type, size, parameters);
-      }
-   }
-   else
-   {
-#ifdef __DEBUG_LOG__   
-      PrintFormat("%s: symbol = %s, period = %d, indicator_type = %d.", __FUNCTION__, symbol, period, indicator_type);
-#endif
-   
-      indicator_handle = IndicatorCreate(symbol, period, indicator_type);
-   }
-   
-#ifdef __DEBUG_LOG__   
-      PrintFormat("%s: result indicator handle = %d", __FUNCTION__, indicator_handle);
-#endif
-   
-   return CreateSuccessResponse("Value", new JSONNumber(indicator_handle));
-}
-
-string ExecuteRequest_SymbolInfoString(JSONObject *jo)
-{
-   if (jo.getValue("SymbolName") == NULL) return CreateErrorResponse(-1, "Undefined parameter SymbolName");
-   string symbol_name = jo.getString("SymbolName");
-   
-   if (jo.getValue("PropId") == NULL) return CreateErrorResponse(-1, "Undefined parameter PropId");
-   ENUM_SYMBOL_INFO_STRING prop_id = (ENUM_SYMBOL_INFO_STRING) jo.getInt("PropId");
-   
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: symbol_name = %s, prop_id = %s", __FUNCTION__, symbol_name, EnumToString(prop_id));
-#endif
-
-   string string_var;
-   bool ok = SymbolInfoString(symbol_name, prop_id, string_var);
-   
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: ok = %s, string_var = %s", __FUNCTION__, BoolToString(ok), string_var);
-#endif
-
-   JSONObject* result_value_jo = new JSONObject();
-   result_value_jo.put("RetVal", new JSONBool(ok));
-   result_value_jo.put("StringVar", new JSONString(string_var));
-   
-   return CreateSuccessResponse("Value", result_value_jo);   
-}
-
-
-string ExecuteRequest_ChartTimePriceToXY(JSONObject *jo)
-{
-   if (jo.getValue("ChartId") == NULL) return CreateErrorResponse(-1, "Undefined parameter ChartId");
-   long chart_id = jo.getLong("ChartId");
-   
-   if (jo.getValue("SubWindow") == NULL) return CreateErrorResponse(-1, "Undefined parameter SubWindow");
-   int sub_window = jo.getInt("SubWindow");
-   
-   if (jo.getValue("MtTime") == NULL) return CreateErrorResponse(-1, "Undefined parameter MtTime");
-   datetime time = (datetime)jo.getInt("MtTime");
-   
-   if (jo.getValue("Price") == NULL) return CreateErrorResponse(-1, "Undefined parameter Price");
-   double price = jo.getDouble("Price");
-   
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: chart_id = %d, sub_window = %d, time = %s", __FUNCTION__, chart_id, sub_window, TimeToString(time));
-#endif
-
-   int x,y;
-   bool ok = ChartTimePriceToXY(chart_id, sub_window, time, price, x, y);
-   
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: ok = %s, x = %d, y = %d", __FUNCTION__, BoolToString(ok), x, y);
-#endif
-
-   JSONObject* result_value_jo = new JSONObject();
-   result_value_jo.put("RetVal", new JSONBool(ok));
-   result_value_jo.put("X", new JSONNumber(x));
-   result_value_jo.put("Y", new JSONNumber(y));
-   
-   return CreateSuccessResponse("Value", result_value_jo);  
-}
-
-string ExecuteRequest_ChartXYToTimePrice(JSONObject *jo)
-{
-   if (jo.getValue("ChartId") == NULL) return CreateErrorResponse(-1, "Undefined parameter ChartId");
-   long chart_id = jo.getLong("ChartId");
-   
-   if (jo.getValue("X") == NULL) return CreateErrorResponse(-1, "Undefined parameter X");
-   int x = jo.getInt("X");
-   
-   if (jo.getValue("Y") == NULL) return CreateErrorResponse(-1, "Undefined parameter Y");
-   int y = jo.getInt("Y");
-   
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: chart_id = %d, x = %d, y = %d", __FUNCTION__, chart_id, x, y);
-#endif
-
-   int sub_window;
-   datetime time;
-   double price;
-   bool ok = ChartXYToTimePrice(chart_id, x, y, sub_window, time, price);
-   
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: ok = %s, sub_window = %d, time = %s, price = %f", __FUNCTION__, BoolToString(ok), sub_window, TimeToString(time), price);
-#endif
-
-   JSONObject* result_value_jo = new JSONObject();
-   result_value_jo.put("RetVal", new JSONBool(ok));
-   result_value_jo.put("SubWindow", new JSONNumber(sub_window));
-   result_value_jo.put("MtTime", new JSONNumber((int)time));
-   result_value_jo.put("Price", new JSONNumber(price));
-   
-   return CreateSuccessResponse("Value", result_value_jo);
-}
-
-string ExecuteRequest_PositionClose(JSONObject *jo)
-{
-   //Ticket
-   if (jo.getValue("Ticket") == NULL) return CreateErrorResponse(-1, "Undefined parameter Ticket");
-   ulong ticket = jo.getLong("Ticket");
-   
-   //Deviation
-   if (jo.getValue("Deviation") == NULL) return CreateErrorResponse(-1, "Undefined parameter Deviation");
-   ulong deviation = jo.getLong("Deviation");
-
-#ifdef __DEBUG_LOG__
-   PrintFormat("%s: Ticket = %d, Deviation = %d", __FUNCTION__, ticket, deviation);
-#endif
-
-   CTrade trade;
-   bool ok = trade.PositionClose(ticket, deviation);
-
-   MqlTradeResult trade_result={0};
-   trade.Result(trade_result);
-   
-#ifdef __DEBUG_LOG__
-   Print("ExecuteRequest_PositionClose: retcode = ", trade.ResultRetcode());
-#endif
-
-   JSONObject* result_value_jo = new JSONObject();
-   result_value_jo.put("RetVal", new JSONBool(ok));
-   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
-
-   return CreateSuccessResponse("Value", result_value_jo);  
-}
-
-string ExecuteRequest_SymbolInfoTick(JSONObject *jo)
-{
-   if (jo.getValue("SymbolName") == NULL) return CreateErrorResponse(-1, "Undefined parameter SymbolName");
-   string symbol_name = jo.getString("SymbolName");
-   
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: symbol_name = %s", __FUNCTION__, symbol_name);
-#endif
-
-   MqlTick tick={0};
-   bool ok = SymbolInfoTick(symbol_name, tick);
-     
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: ok = %s", __FUNCTION__, BoolToString(ok));
-#endif
-
-   return CreateSuccessResponse("Value", MqlTickToJson(tick));      
-}
-
-string ExecuteRequest_Buy(JSONObject *jo)
-{
-   //Symbol
-   string symbol=Symbol();
-   if (jo.getValue("Symbol") != NULL)
-      symbol = jo.getString("Symbol");   
-     
-   //Volume
-   if (jo.getValue("Volume") == NULL) return CreateErrorResponse(-1, "Undefined parameter Volume");
-   double volume = jo.getDouble("Volume");
-
-   //Price
-   if (jo.getValue("Price") == NULL) return CreateErrorResponse(-1, "Undefined parameter Price");
-   double price = jo.getDouble("Price");
-
-   //Sl
-   if (jo.getValue("Sl") == NULL) return CreateErrorResponse(-1, "Undefined parameter Sl");
-   double sl = jo.getDouble("Sl");
-   
-   //Tp
-   if (jo.getValue("Tp") == NULL) return CreateErrorResponse(-1, "Undefined parameter Tp");
-   double tp = jo.getDouble("Tp");
-   
-   //Comment
-   string comment="";
-   if (jo.getValue("Comment") != NULL)
-      comment = jo.getString("Comment");
-
-#ifdef __DEBUG_LOG__
-   PrintFormat("%s: symbol = %s, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
-      __FUNCTION__, symbol, volume, price, sl, tp, comment);
-#endif
-
-   CTrade trade;
-   bool ok = trade.Buy(volume, symbol, price, sl, tp, comment);
-
-   MqlTradeResult trade_result={0};
-   trade.Result(trade_result);
-
-   JSONObject* result_value_jo = new JSONObject();
-   result_value_jo.put("RetVal", new JSONBool(ok));
-   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
-
-   return CreateSuccessResponse("Value", result_value_jo);   
-}
-
-string ExecuteRequest_Sell(JSONObject *jo)
-{
-   //Symbol
-   string symbol=Symbol();
-   if (jo.getValue("Symbol") != NULL)
-      symbol = jo.getString("Symbol");   
-     
-   //Volume
-   if (jo.getValue("Volume") == NULL) return CreateErrorResponse(-1, "Undefined parameter Volume");
-   double volume = jo.getDouble("Volume");
-
-   //Price
-   if (jo.getValue("Price") == NULL) return CreateErrorResponse(-1, "Undefined parameter Price");
-   double price = jo.getDouble("Price");
-
-   //Sl
-   if (jo.getValue("Sl") == NULL) return CreateErrorResponse(-1, "Undefined parameter Sl");
-   double sl = jo.getDouble("Sl");
-   
-   //Tp
-   if (jo.getValue("Tp") == NULL) return CreateErrorResponse(-1, "Undefined parameter Tp");
-   double tp = jo.getDouble("Tp");
-   
-   //Comment
-   string comment="";
-   if (jo.getValue("Comment") != NULL)
-      comment = jo.getString("Comment");
-
-#ifdef __DEBUG_LOG__
-   PrintFormat("%s: symbol = %s, volume = %f, price = %f, sl = %f, tp = %f, comment = %s", 
-      __FUNCTION__, symbol, volume, price, sl, tp, comment);
-#endif
-
-   CTrade trade;
-   bool ok = trade.Sell(volume, symbol, price, sl, tp, comment);
-
-   MqlTradeResult trade_result={0};
-   trade.Result(trade_result);
-
-   JSONObject* result_value_jo = new JSONObject();
-   result_value_jo.put("RetVal", new JSONBool(ok));
-   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
-
-   return CreateSuccessResponse("Value", result_value_jo); 
 }
 
 //------------ MtProtocol -------------------------------------------------------
