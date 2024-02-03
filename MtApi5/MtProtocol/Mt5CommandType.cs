@@ -90,6 +90,7 @@ namespace MtApi5.MtProtocol
         SymbolInfoDouble = 54,
         SymbolInfoInteger = 55,
         SymbolInfoString = 56,
+        SymbolInfoString2 = 1056,
         SymbolInfoTick = 57,
         SymbolInfoSessionQuote = 58,
         SymbolInfoSessionTrade = 59,
@@ -101,6 +102,7 @@ namespace MtApi5.MtProtocol
         //CTrade
         PositionClose = 64,
         PositionOpen = 65,
+        PositionOpen2 = 1065,
         PositionModify = 6066,
         PositionClosePartial_bySymbol = 6067,
         PositionClosePartial_byTicket = 6068,
@@ -111,7 +113,7 @@ namespace MtApi5.MtProtocol
         IsTesting = 67,
 
         //Requests
-        MtRequest = 155,
+        //MtRequest = 155,
 
         PositionSelectByTicket = 69,
 
@@ -147,7 +149,7 @@ namespace MtApi5.MtProtocol
         iBullsPower = 98,
         iCCI = 99,
         iChaikin = 100,
-        //iCustom                             = 101,
+        iCustom = 101,
         iDEMA = 102,
         iDeMarker = 103,
         iEnvelopes = 104,
@@ -188,8 +190,8 @@ namespace MtApi5.MtProtocol
         ChartApplyTemplate = 236,
         ChartSaveTemplate = 237,
         ChartWindowFind = 238,
-        //ChartTimePriceToXY                  = 239,
-        //ChartXYToTimePrice                  = 240,
+        ChartTimePriceToXY = 239,
+        ChartXYToTimePrice  = 240,
         ChartOpen = 241,
         ChartFirst = 242,
         ChartNext = 243,
@@ -255,6 +257,15 @@ namespace MtApi5.MtProtocol
 
         UnlockTicks = 159,
         PositionCloseAll = 160,
-        TesterStop = 161
+        TesterStop = 161,
+
+        CopyTicks = 300,
+        OrderSend = 301,
+        OrderSendAsync = 302,
+        OrderCheck = 303,
+        MarketBookGet = 304,
+        IndicatorCreate = 305,
+        Buy = 306,
+        Sell = 307
     }
 }

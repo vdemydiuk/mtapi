@@ -5,6 +5,7 @@ using MtClient;
 using MtApi5.MtProtocol;
 using System.Linq;
 using System.Net.Http.Headers;
+using Newtonsoft.Json.Linq;
 
 namespace MtApi5
 {
@@ -131,12 +132,9 @@ namespace MtApi5
                 return false;
             }
 
-            var response = SendRequest<OrderSendResult>(new OrderSendRequest
-            {
-                TradeRequest = request
-            });
-
-            result = response?.TradeResult;
+            Dictionary<string, object> commandParameters = new() { { "TradeRequest", request } };
+            var response = SendCommand<FuncResult<MqlTradeResult>>(ExecutorHandle, Mt5CommandType.OrderSend, commandParameters);
+            result = response?.Result;
             return response != null && response.RetVal;
         }
 
@@ -163,12 +161,9 @@ namespace MtApi5
                 return false;
             }
 
-            var response = SendRequest<OrderSendResult>(new OrderSendAsyncRequest
-            {
-                TradeRequest = request
-            });
-
-            result = response?.TradeResult;
+            Dictionary<string, object> commandParameters = new() { { "TradeRequest", request } };
+            var response = SendCommand<FuncResult<MqlTradeResult>>(ExecutorHandle, Mt5CommandType.OrderSendAsync, commandParameters);
+            result = response?.Result;
             return response != null && response.RetVal;
         }
 
@@ -244,12 +239,9 @@ namespace MtApi5
                 return false;
             }
 
-            var response = SendRequest<OrderCheckResult>(new OrderCheckRequest
-            {
-                TradeRequest = request
-            });
-
-            result = response?.TradeCheckResult;
+            Dictionary<string, object> commandParameters = new() { { "TradeRequest", request } };
+            var response = SendCommand<FuncResult<MqlTradeCheckResult>>(ExecutorHandle, Mt5CommandType.OrderCheck, commandParameters);
+            result = response?.Result;
             return response != null && response.RetVal;
         }
 
@@ -610,13 +602,10 @@ namespace MtApi5
         {
             Log?.Debug($"PositionClose: ticket = {ticket}, deviation = {deviation}");
 
-            var response = SendRequest<PositionCloseResult>(new PositionCloseRequest
-            {
-                Ticket = ticket,
-                Deviation = deviation
-            });
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket }, { "Deviation", deviation } };
+            var response = SendCommand<FuncResult<MqlTradeResult>>(ExecutorHandle, Mt5CommandType.PositionClose, cmdParams);
 
-            result = response?.TradeResult;
+            result = response?.Result;
             return response != null && response.RetVal;
         }
 
@@ -643,9 +632,10 @@ namespace MtApi5
         /// <returns>true - successful check of the basic structures, otherwise - false.</returns>
         public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, string comment = "")
         {
-            var commandParameters = new ArrayList { symbol, (int) orderType, volume, price, sl, tp, comment };
-
-            return SendCommand<bool>(Mt5CommandType.PositionOpen, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "OrderType", (int)orderType },
+                { "Volume", volume }, { "Price", price }, { "Sl", sl }, { "Tp", tp }, { "Comment", comment } };
+            var response = SendCommand<bool>(ExecutorHandle, Mt5CommandType.PositionOpen, cmdParams);
+            return response;
         }
 
         /// <summary>
@@ -660,22 +650,17 @@ namespace MtApi5
         /// <param name="comment">comment</param>
         /// <param name="result">output result</param>
         /// <returns>true - successful check of the basic structures, otherwise - false.</returns>
-        public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, string comment, out MqlTradeResult? result)
+        public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, string? comment, out MqlTradeResult? result)
         {
             Log?.Debug($"PositionOpen: symbol = {symbol}, orderType = {orderType}, volume = {volume}, price = {price}, sl = {sl}, tp = {tp}, comment = {comment}");
 
-            var response = SendRequest<OrderSendResult>(new PositionOpenRequest
-            {
-                Symbol = symbol,
-                OrderType = orderType,
-                Volume = volume,
-                Price = price,
-                Sl = sl,
-                Tp = tp,
-                Comment = comment
-            });
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "OrderType", (int)orderType },
+                { "Volume", volume }, { "Price", price }, { "Sl", sl }, { "Tp", tp } };
+            if (comment != null)
+                cmdParams["Comment"] = comment;
+            var response = SendCommand<FuncResult<MqlTradeResult>>(ExecutorHandle, Mt5CommandType.PositionOpen2, cmdParams);
 
-            result = response?.TradeResult;
+            result = response?.Result;
             return response != null && response.RetVal;
         }
 
@@ -738,17 +723,15 @@ namespace MtApi5
         {
             Log?.Debug($"Buy: volume = {volume}, symbol = {symbol}, sl = {sl}, tp = {tp}, comment = {comment}");
 
-            var response = SendRequest<OrderSendResult>(new BuyRequest
-            {
-                Volume = volume,
-                Symbol = symbol,
-                Price = price,
-                Sl = sl,
-                Tp = tp,
-                Comment = comment
-            });
+            Dictionary<string, object> cmdParams = new() { { "Volume", volume }, { "Price", price }, { "Sl", sl }, { "Tp", tp } };
+            if (symbol != null)
+                cmdParams["Symbol"] = symbol;
+            if (comment != null)
+                cmdParams["Comment"] = comment;
 
-            result = response?.TradeResult;
+            var response = SendCommand<FuncResult<MqlTradeResult>>(ExecutorHandle, Mt5CommandType.Buy, cmdParams);
+
+            result = response?.Result;
             return response != null && response.RetVal;
         }
 
@@ -767,17 +750,15 @@ namespace MtApi5
         {
             Log?.Debug($"Sell: volume = {volume}, symbol = {symbol}, sl = {sl}, tp = {tp}, comment = {comment}");
 
-            var response = SendRequest<OrderSendResult>(new SellRequest
-            {
-                Volume = volume,
-                Symbol = symbol,
-                Price = price,
-                Sl = sl,
-                Tp = tp,
-                Comment = comment
-            });
+            Dictionary<string, object> cmdParams = new() { { "Volume", volume }, { "Price", price }, { "Sl", sl }, { "Tp", tp } };
+            if (symbol != null)
+                cmdParams["Symbol"] = symbol;
+            if (comment != null)
+                cmdParams["Comment"] = comment;
 
-            result = response?.TradeResult;
+            var response = SendCommand<FuncResult<MqlTradeResult>>(ExecutorHandle, Mt5CommandType.Sell, cmdParams);
+
+            result = response?.Result;
             return response != null && response.RetVal;
         }
         #endregion
@@ -1465,15 +1446,11 @@ namespace MtApi5
         ///<param name="from">The date from which you want to request ticks.  In milliseconds since 1970.01.01. If from=0, the last count ticks will be returned.</param>
         ///<param name="count">The number of ticks that you want to receive. If the 'from' and 'count' parameters are not specified, all available recent ticks (but not more than 2000) will be written to result.</param>
         ///<see href="https://www.mql5.com/en/docs/series/copyticks"/>
-        public List<MqlTick> CopyTicks(string symbolName, CopyTicksFlag flags = CopyTicksFlag.All, ulong from = 0, uint count = 0)
+        public List<MqlTick>? CopyTicks(string symbolName, CopyTicksFlag flags = CopyTicksFlag.All, ulong from = 0, uint count = 0)
         {
-            var response = SendRequest<List<MqlTick>>(new CopyTicksRequest
-            {
-                SymbolName = symbolName,
-                Flags = (int)flags,
-                From = from,
-                Count = count
-            });
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Flags", flags },
+                { "From", from }, { "Count", count }  };
+            var response = SendCommand<List<MqlTick>>(ExecutorHandle, Mt5CommandType.CopyTicks, cmdParams);
             return response;
         }
 
@@ -1484,15 +1461,14 @@ namespace MtApi5
         ///<param name="period">The value of the timeframe can be one of values of the ENUM_TIMEFRAMES enumeration, 0 means the current timeframe.</param>
         ///<param name="indicatorType">Indicator type, can be one of values of the ENUM_INDICATOR enumeration.</param>
         ///<param name="parameters">An array of MqlParam type, whose elements contain the type and value of each input parameter of a technical indicator.</param>
-        public int IndicatorCreate(string symbol, ENUM_TIMEFRAMES period, ENUM_INDICATOR indicatorType, List<MqlParam>? parameters = null)
+        public int IndicatorCreate(string? symbol, ENUM_TIMEFRAMES period, ENUM_INDICATOR indicatorType, List<MqlParam>? parameters = null)
         {
-            var response = SendRequest<int>(new IndicatorCreateRequest
-            {
-                Symbol = symbol,
-                Period = period,
-                IndicatorType = indicatorType,
-                Parameters = parameters
-            });
+            Dictionary<string, object> cmdParams = new() { { "Period", (int)period }, { "IndicatorType", (int)indicatorType } };
+            if (symbol != null)
+                cmdParams["Symbol"] = symbol;
+            if (parameters != null)
+                cmdParams["Parameters"] = parameters;
+            var response = SendCommand<int>(ExecutorHandle, Mt5CommandType.IndicatorCreate, cmdParams);
             return response;
         }
 
@@ -1581,11 +1557,11 @@ namespace MtApi5
         ///</summary>
         ///<param name="symbolName">Symbol name.</param>
         ///<param name="propId">Identifier of a symbol property.</param>
-        public string SymbolInfoString(string symbolName, ENUM_SYMBOL_INFO_STRING propId)
+        public string? SymbolInfoString(string symbolName, ENUM_SYMBOL_INFO_STRING propId)
         {
-            var commandParameters = new ArrayList { symbolName, (int)propId };
-
-            return SendCommand<string>(Mt5CommandType.SymbolInfoString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "PropId", (int)propId } };
+            var response = SendCommand<string>(ExecutorHandle, Mt5CommandType.SymbolInfoString, cmdParams);
+            return response;
         }
 
         ///<summary>
@@ -1596,13 +1572,9 @@ namespace MtApi5
         ///<param name="value">Variable of the string type receiving the value of the requested property.</param>
         public bool SymbolInfoString(string symbolName, ENUM_SYMBOL_INFO_STRING propId, out string? value)
         {
-            var response = SendRequest<SymbolInfoStringResult>(new SymbolInfoStringRequest
-            {
-                SymbolName = symbolName,
-                PropId = propId
-            });
-
-            value = response?.StringVar;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "PropId", (int)propId } };
+            var response = SendCommand<FuncResult<string>>(ExecutorHandle, Mt5CommandType.SymbolInfoString2, cmdParams);
+            value = response?.Result;
             return response?.RetVal ?? false;
         }
 
@@ -1612,28 +1584,23 @@ namespace MtApi5
         ///</summary>
         ///<param name="symbol">Symbol name.</param>
         ///<param name="tick"> Link to the structure of the MqlTick type, to which the current prices and time of the last price update will be placed.</param>
-        public bool SymbolInfoTick(string symbol, out MqlTick  tick)
+        public bool SymbolInfoTick(string symbol, out MqlTick? tick)
         {
-            tick = SendRequest<MqlTick>(new SymbolInfoTickRequest
-            {
-                SymbolName = symbol
-            });
-
-            return tick != null;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol } };
+            var response = SendCommand<FuncResult<MqlTick>>(ExecutorHandle, Mt5CommandType.SymbolInfoTick, cmdParams);
+            tick = response?.Result;
+            return response?.RetVal ?? false;
         }
 
         ///<summary>
         ///The function returns current prices of a specified symbol in a variable of the MqlTick type.
         ///</summary>
         ///<param name="symbol">Symbol name.</param>
-        public MqlTick SymbolInfoTick(string symbol)
+        public MqlTick? SymbolInfoTick(string symbol)
         {
-            var tick = SendRequest<MqlTick>(new SymbolInfoTickRequest
-            {
-                SymbolName = symbol
-            });
-
-            return tick;
+            if (SymbolInfoTick(symbol, out MqlTick? tick))
+                return tick;
+            return null;
         }
 
         ///<summary>
@@ -1699,11 +1666,8 @@ namespace MtApi5
         ///<param name="book">Reference to an array of Depth of Market records.</param>        
         public bool MarketBookGet(string symbol, out MqlBookInfo[]? book)
         {
-            var response = SendRequest<List<MqlBookInfo>>(new MarketBookGetRequest
-            {
-                Symbol = symbol
-            });
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol } };
+            var response = SendCommand<List<MqlBookInfo>>(ExecutorHandle, Mt5CommandType.MarketBookGet, cmdParams);
             book = response?.ToArray();
             return response != null;
         }
@@ -1801,17 +1765,17 @@ namespace MtApi5
         ///</returns>
         public bool ChartTimePriceToXY(long chartId, int subWindow, DateTime? time, double price, out int x, out int y)
         {
-            var result = SendRequest<ChartTimePriceToXyResult>(new ChartTimePriceToXyRequest
-                {
-                    ChartId = chartId,
-                    SubWindow = subWindow,
-                    Time = time,
-                    Price = price
-                });
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "SubWindow", subWindow },
+                { "Time", Mt5TimeConverter.ConvertToMtTime(time) }, { "Price", price } };
 
-            x = result?.X ?? 0;
-            y = result?.Y ?? 0;
-            return result?.RetVal ?? false;
+            Dictionary<string, int> XY = [];
+            var response = SendCommand<FuncResult<Dictionary<string, int>>>(ExecutorHandle, Mt5CommandType.ChartTimePriceToXY, cmdParams);
+            if (response != null && response.Result != null
+                && response.Result.TryGetValue("X", out x)
+                && response.Result.TryGetValue("Y", out y))
+                return response.RetVal;
+            x = 0; y = 0;
+            return false;
         }
 
         ///<summary>
@@ -1828,17 +1792,22 @@ namespace MtApi5
         ///</returns>
         public bool ChartXYToTimePrice(long chartId, int x, int y, out int subWindow, out DateTime? time, out double price)
         {
-            var result = SendRequest<ChartXyToTimePriceResult>(new ChartXyToTimePriceRequest
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "X", x }, { "Y", y } };
+            var response = SendCommand<FuncResult<Dictionary<string, object>>>(ExecutorHandle, Mt5CommandType.ChartXYToTimePrice, cmdParams);
+            if (response != null && response.Result != null
+                && response.Result.TryGetValue("SubWindow", out object? mtSubWindow)
+                && response.Result.TryGetValue("Time", out object? mtTime)
+                && response.Result.TryGetValue("Price", out object? mtPrice))
             {
-                ChartId = chartId,
-                X = x,
-                Y = y
-            });
-
-            subWindow = result?.SubWindow ?? 0;
-            time = result?.Time;
-            price = result?.Price ?? double.NaN;
-            return result?.RetVal ?? false;
+                subWindow = Convert.ToInt32(mtSubWindow);
+                time = Mt5TimeConverter.ConvertFromMtTime(Convert.ToInt32(mtTime));
+                price = Convert.ToDouble(mtPrice);
+                return response.RetVal;
+            }
+            subWindow = 0;
+            time = null;
+            price = double.NaN;
+            return false;
         }
 
         ///<summary>
@@ -2987,16 +2956,11 @@ namespace MtApi5
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, double[] parameters)
         {
-            Log?.Debug("iCustom: called.");
-            var response = SendRequest<int>(new ICustomRequest
-            {
-                Symbol = symbol,
-                Timeframe = (int)period,
-                Name = name,
-                Params = new ArrayList(parameters),
-                ParamsType = ICustomRequest.ParametersType.Double
-            });
-            Log?.Debug($"iCustom: response = {response}.");
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "Name", name }, { "Parameters", parameters } };
+            cmdParams["ParamsType"] = ICustomRequest.ParametersType.Double;
+
+            var response = SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
             return response;
         }
 
@@ -3009,16 +2973,11 @@ namespace MtApi5
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, int[] parameters)
         {
-            Log?.Debug("iCustom: called.");
-            var response = SendRequest<int>(new ICustomRequest
-            {
-                Symbol = symbol,
-                Timeframe = (int)period,
-                Name = name,
-                Params = new ArrayList(parameters),
-                ParamsType = ICustomRequest.ParametersType.Int
-            });
-            Log?.Debug($"iCustom: response = {response}.");
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "Name", name }, { "Parameters", parameters } };
+            cmdParams["ParamsType"] = ICustomRequest.ParametersType.Int;
+
+            var response = SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
             return response;
         }
 
@@ -3031,16 +2990,11 @@ namespace MtApi5
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, string[] parameters)
         {
-            Log?.Debug("iCustom: called.");
-            var response = SendRequest<int>(new ICustomRequest
-            {
-                Symbol = symbol,
-                Timeframe = (int)period,
-                Name = name,
-                Params = new ArrayList(parameters),
-                ParamsType = ICustomRequest.ParametersType.Int
-            });
-            Log?.Debug($"iCustom: response = {response}.");
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "Name", name }, { "Parameters", parameters } };
+            cmdParams["ParamsType"] = ICustomRequest.ParametersType.String;
+
+            var response = SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
             return response;
         }
 
@@ -3053,16 +3007,11 @@ namespace MtApi5
         ///<param name="parameters">input-parameters of a custom indicator. If there is no parameters specified, then default values will be used.</param>
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, bool[] parameters)
         {
-            Log?.Debug("iCustom: called.");
-            var response = SendRequest<int>(new ICustomRequest
-            {
-                Symbol = symbol,
-                Timeframe = (int)period,
-                Name = name,
-                Params = new ArrayList(parameters),
-                ParamsType = ICustomRequest.ParametersType.Int
-            });
-            Log?.Debug($"iCustom: response = {response}.");
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "Name", name }, { "Parameters", parameters } };
+            cmdParams["ParamsType"] = ICustomRequest.ParametersType.Boolean;
+
+            var response = SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
             return response;
         }
 
@@ -3682,35 +3631,35 @@ namespace MtApi5
             return default(T);
         }
 
-        private T SendRequest<T>(RequestBase request)
-        {
-            if (request == null)
-                return default(T);
+        //private T SendRequest<T>(RequestBase request)
+        //{
+        //    if (request == null)
+        //        return default(T);
 
-            var serializer = JsonConvert.SerializeObject(request, Formatting.None,
-                            new JsonSerializerSettings
-                            {
-                                NullValueHandling = NullValueHandling.Ignore
-                            });
-            var commandParameters = new ArrayList { serializer };
+        //    var serializer = JsonConvert.SerializeObject(request, Formatting.None,
+        //                    new JsonSerializerSettings
+        //                    {
+        //                        NullValueHandling = NullValueHandling.Ignore
+        //                    });
+        //    var commandParameters = new ArrayList { serializer };
 
-            var res = SendCommand<string>(Mt5CommandType.MtRequest, commandParameters);
+        //    var res = SendCommand<string>(Mt5CommandType.MtRequest, commandParameters);
 
-            if (res == null)
-            {
-                Log?.Warn("SendRequest: Response from MetaTrader is null");
-                throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
-            }
+        //    if (res == null)
+        //    {
+        //        Log?.Warn("SendRequest: Response from MetaTrader is null");
+        //        throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
+        //    }
 
-            var response = JsonConvert.DeserializeObject<Response<T>>(res) ?? throw new Exception("Failed to deserialize response");
-            if (response.ErrorCode != 0)
-            {
-                Log?.Warn($"SendRequest: ErrorCode = {response.ErrorCode}. {response}");
-                throw new ExecutionException((ErrorCode)response.ErrorCode, response.ErrorMessage);
-            }
+        //    var response = JsonConvert.DeserializeObject<Response<T>>(res) ?? throw new Exception("Failed to deserialize response");
+        //    if (response.ErrorCode != 0)
+        //    {
+        //        Log?.Warn($"SendRequest: ErrorCode = {response.ErrorCode}. {response}");
+        //        throw new ExecutionException((ErrorCode)response.ErrorCode, response.ErrorMessage);
+        //    }
 
-            return response.Value;
-        }
+        //    return response.Value;
+        //}
 
         private void OnConnected()
         {
