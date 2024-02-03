@@ -242,7 +242,8 @@ int preinit()
    ADD_EXECUTOR(54, SymbolInfoDouble);
    ADD_EXECUTOR(55, SymbolInfoInteger);
    ADD_EXECUTOR(56, SymbolInfoString);
-   ADD_EXECUTOR(1056, SymbolInfoString2); // TODO !!!!!
+   ADD_EXECUTOR(1056, SymbolInfoString2);
+   ADD_EXECUTOR(57, SymbolInfoTick);
    ADD_EXECUTOR(58, SymbolInfoSessionQuote); 
    ADD_EXECUTOR(59, SymbolInfoSessionTrade);
    ADD_EXECUTOR(60, MarketBookAdd);
@@ -250,9 +251,7 @@ int preinit()
    ADD_EXECUTOR(63, OrderCloseAll);
    ADD_EXECUTOR(64, PositionClose);
    ADD_EXECUTOR(65, PositionOpen);
-   
-   ADD_EXECUTOR(1065, PositionOpen2);  //TODO !!!!
-   
+   ADD_EXECUTOR(1065, PositionOpen2);
    ADD_EXECUTOR(6066, PositionModify);
    ADD_EXECUTOR(6067, PositionClosePartialBySymbol);
    ADD_EXECUTOR(6068, PositionClosePartialByTicket);
@@ -288,6 +287,7 @@ int preinit()
    ADD_EXECUTOR(98, iBullsPower);
    ADD_EXECUTOR(99, iCCI);
    ADD_EXECUTOR(100, iChaikin);
+   ADD_EXECUTOR(101, iCustom);
    ADD_EXECUTOR(102, iDEMA);
    ADD_EXECUTOR(103, iDeMarker);
    ADD_EXECUTOR(104, iEnvelopes);
@@ -343,6 +343,8 @@ int preinit()
    ADD_EXECUTOR(236, ChartApplyTemplate);
    ADD_EXECUTOR(237, ChartSaveTemplate);
    ADD_EXECUTOR(238, ChartWindowFind);
+   ADD_EXECUTOR(239, ChartTimePriceToXY);
+   ADD_EXECUTOR(240, ChartXYToTimePrice);
    ADD_EXECUTOR(241, ChartOpen);
    ADD_EXECUTOR(242, ChartFirst);
    ADD_EXECUTOR(243, ChartNext);
@@ -372,13 +374,13 @@ int preinit()
 
    // TODO !!!!!
    ADD_EXECUTOR(300, CopyTicks);
-   ADD_EXECUTOR(301, iCustom);
-   ADD_EXECUTOR(302, OrderSend);
-   ADD_EXECUTOR(303, OrderSendAsync);
-   ADD_EXECUTOR(304, OrderCheck);
-   ADD_EXECUTOR(305, MarketBookGet);
-   ADD_EXECUTOR(306, IndicatorCreate);
-   ADD_EXECUTOR(307, ChartTimePriceToXY);
+   ADD_EXECUTOR(301, OrderSend);
+   ADD_EXECUTOR(302, OrderSendAsync);
+   ADD_EXECUTOR(303, OrderCheck);
+   ADD_EXECUTOR(304, MarketBookGet);
+   ADD_EXECUTOR(305, IndicatorCreate);
+   ADD_EXECUTOR(306, Buy);
+   ADD_EXECUTOR(307, Sell);
    
    return (0);
 }
@@ -608,17 +610,6 @@ string Execute_OrderCloseAll()
 {
    OrderCloseAll();
    return CreateSuccessResponse();
-}
-
-string Execute_PositionClose()
-{
-   GET_JSON_PAYLOAD(jo);
-   GET_ULONG_JSON_VALUE(jo, "Ticket", ticket);
-   GET_ULONG_JSON_VALUE(jo, "Deviation", deviation);
-   
-   CTrade trade;
-   bool result = trade.PositionClose(ticket, deviation);
-   return CreateSuccessResponse(new JSONBool(result));
 }
 
 string Execute_OrderCalcMargin()
@@ -1590,6 +1581,30 @@ string Execute_SymbolInfoString()
    return CreateSuccessResponse(new JSONString(result));
 }
 
+string Execute_SymbolInfoString2()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
+   GET_INT_JSON_VALUE(jo, "PropId", prop_id);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: symbol_name = %s, prop_id = %s", __FUNCTION__, symbol_name, EnumToString(prop_id));
+#endif
+
+   string string_var;
+   bool ok = SymbolInfoString(symbol, (ENUM_SYMBOL_INFO_STRING)prop_id, string_var);
+   
+#ifdef __DEBUG_LOG__   
+   PrintFormat("%s: ok = %s, string_var = %s", __FUNCTION__, BoolToString(ok), string_var);
+#endif
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", new JSONString(string_var));
+   
+   return CreateSuccessResponse(result_value_jo);   
+}
+
    // !!!!! TODO !!!!!!
 string Execute_SymbolInfoSessionQuote()
 {
@@ -1726,17 +1741,6 @@ string Execute_PositionOpen()
 #ifdef __DEBUG_LOG__
    Print("command PositionOpen: result = ", ok);
 #endif
-
-   if (jo.p.getValue("NeedTradeResult"))
-   {
-      MqlTradeResult trade_result={0};
-      trade.Result(trade_result);
-
-      JSONObject* result_value_jo = new JSONObject();
-      result_value_jo.put("RetVal", new JSONBool(ok));
-      result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
-      return CreateSuccessResponse(result_value_jo);
-   }
 
    return CreateSuccessResponse(new JSONBool(ok));
 }
@@ -3116,7 +3120,7 @@ string Execute_OrderSend()
    
    JSONObject* result_value_jo = new JSONObject();
    result_value_jo.put("RetVal", new JSONBool(ok));
-   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
+   result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
    
 #ifdef __DEBUG_LOG__   
    PrintFormat("%s: return value = %s", __FUNCTION__, ok ? "true" : "false");
@@ -3141,7 +3145,7 @@ string Execute_OrderSendAsync()
    
    JSONObject* result_value_jo = new JSONObject();
    result_value_jo.put("RetVal", new JSONBool(ok));
-   result_value_jo.put("TradeResult", MqlTradeResultToJson(trade_result));
+   result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
    
 #ifdef __DEBUG_LOG__   
    PrintFormat("%s: return value = %s", __FUNCTION__, ok ? "true" : "false");
@@ -3264,36 +3268,12 @@ string Execute_IndicatorCreate()
    return CreateSuccessResponse(new JSONNumber(indicator_handle));
 }
 
-string Execute_SymbolInfoString2()
-{
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "PropId", prop_id);
-   
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: symbol_name = %s, prop_id = %s", __FUNCTION__, symbol_name, EnumToString(prop_id));
-#endif
-
-   string string_var;
-   bool ok = SymbolInfoString(symbol, (ENUM_SYMBOL_INFO_STRING)prop_id, string_var);
-   
-#ifdef __DEBUG_LOG__   
-   PrintFormat("%s: ok = %s, string_var = %s", __FUNCTION__, BoolToString(ok), string_var);
-#endif
-
-   JSONObject* result_value_jo = new JSONObject();
-   result_value_jo.put("RetVal", new JSONBool(ok));
-   result_value_jo.put("Result", new JSONString(string_var));
-   
-   return CreateSuccessResponse(result_value_jo);   
-}
-
 string Execute_ChartTimePriceToXY()
 {
    GET_JSON_PAYLOAD(jo);
    GET_LONG_JSON_VALUE(jo, "ChartId", chart_id);
    GET_INT_JSON_VALUE(jo, "SubWindow", sub_window);
-   GET_INT_JSON_VALUE(jo, "MtTime", time);
+   GET_INT_JSON_VALUE(jo, "Time", time);
    GET_DOUBLE_JSON_VALUE(jo, "Price", price);
    
 #ifdef __DEBUG_LOG__   
@@ -3341,14 +3321,14 @@ string Execute_ChartXYToTimePrice()
    result_value_jo.put("RetVal", new JSONBool(ok));
    JSONObject* time_price_jo = new JSONObject();
    time_price_jo.put("SubWindow", new JSONNumber(sub_window));
-   time_price_jo.put("MtTime", new JSONNumber((int)time));
+   time_price_jo.put("Time", new JSONNumber((int)time));
    time_price_jo.put("Price", new JSONNumber(price));
    result_value_jo.put("Result", time_price_jo);
    
    return CreateSuccessResponse(result_value_jo);
 }
 
-string ExecuteRequest_PositionClose()
+string Execute_PositionClose()
 {
    GET_JSON_PAYLOAD(jo);
    GET_ULONG_JSON_VALUE(jo, "Ticket", ticket);
@@ -3375,17 +3355,17 @@ string ExecuteRequest_PositionClose()
    return CreateSuccessResponse(result_value_jo);  
 }
 
-string ExecuteRequest_SymbolInfoTick()
+string Execute_SymbolInfoTick()
 {
    GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "SymbolName", symbol_name);
+   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
 
 #ifdef __DEBUG_LOG__   
-   PrintFormat("%s: symbol_name = %s", __FUNCTION__, symbol_name);
+   PrintFormat("%s: symbol = %s", __FUNCTION__, symbol);
 #endif
 
    MqlTick tick={0};
-   bool ok = SymbolInfoTick(symbol_name, tick);
+   bool ok = SymbolInfoTick(symbol, tick);
      
 #ifdef __DEBUG_LOG__   
    PrintFormat("%s: ok = %s", __FUNCTION__, BoolToString(ok));
@@ -3398,7 +3378,7 @@ string ExecuteRequest_SymbolInfoTick()
    return CreateSuccessResponse(result_value_jo);      
 }
 
-string ExecuteRequest_Buy()
+string Execute_Buy()
 {
    GET_JSON_PAYLOAD(jo);
    GET_DOUBLE_JSON_VALUE(jo, "Volume", volume);
@@ -3434,7 +3414,7 @@ string ExecuteRequest_Buy()
    return CreateSuccessResponse(result_value_jo);   
 }
 
-string ExecuteRequest_Sell()
+string Execute_Sell()
 {
    GET_JSON_PAYLOAD(jo);
    GET_DOUBLE_JSON_VALUE(jo, "Volume", volume);
