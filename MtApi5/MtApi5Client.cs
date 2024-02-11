@@ -3369,6 +3369,13 @@ namespace MtApi5
             _quotesWaiter.Set();
 
             QuoteList?.Invoke(this, new(quotes.Values.ToList()));
+
+            _isBacktestingMode = IsTesting();
+
+            if (_isBacktestingMode)
+            {
+                BacktestingReady();
+            }
         }
 
         private void ProcessExpertAdded(int handle)
@@ -3555,7 +3562,7 @@ namespace MtApi5
                 throw new Exception("No connection");
             }
 
-            var payloadJson = JsonConvert.SerializeObject(payload);
+            var payloadJson = payload == null ? string.Empty : JsonConvert.SerializeObject(payload);
             Log?.Debug($"SendCommand: sending '{payloadJson}' ...");
 
             var responseJson = client.SendCommand(expertHandle, (int)commandType, payloadJson);
@@ -3589,13 +3596,6 @@ namespace MtApi5
             Log?.Debug("OnConnected: begin");
 
             Client?.NotifyClientReady();
-
-            _isBacktestingMode = IsTesting();
-
-            if (_isBacktestingMode)
-            {
-                BacktestingReady();
-            }
 
             Log?.Debug("OnConnected: finished");
         }
