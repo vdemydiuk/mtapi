@@ -205,6 +205,8 @@ int preinit()
    ADD_EXECUTOR(36, Bars);
    ADD_EXECUTOR(1036, Bars2);
    ADD_EXECUTOR(37, BarsCalculated);
+   ADD_EXECUTOR(38, IndicatorCreate);
+   ADD_EXECUTOR(39, IndicatorRelease);
    ADD_EXECUTOR(40, CopyBuffer);
    ADD_EXECUTOR(1040, CopyBuffer1);
    ADD_EXECUTOR(1140, CopyBuffer2);
@@ -247,7 +249,8 @@ int preinit()
    ADD_EXECUTOR(58, SymbolInfoSessionQuote); 
    ADD_EXECUTOR(59, SymbolInfoSessionTrade);
    ADD_EXECUTOR(60, MarketBookAdd);
-   ADD_EXECUTOR(61, MarketBookRelease);   
+   ADD_EXECUTOR(61, MarketBookRelease);
+   ADD_EXECUTOR(62, MarketBookGet);
    ADD_EXECUTOR(63, OrderCloseAll);
    ADD_EXECUTOR(64, PositionClose);
    ADD_EXECUTOR(65, PositionOpen);
@@ -317,7 +320,6 @@ int preinit()
    ADD_EXECUTOR(128, TimeTradeServer);
    ADD_EXECUTOR(129, TimeLocal);
    ADD_EXECUTOR(130, TimeGMT);
-   ADD_EXECUTOR(131, IndicatorRelease);
    ADD_EXECUTOR(132, GetLastError);
    ADD_EXECUTOR(136, Alert);
    ADD_EXECUTOR(143, ResetLastError);
@@ -372,15 +374,12 @@ int preinit()
    ADD_EXECUTOR(280, ChartIndicatorAdd);
    ADD_EXECUTOR(281, ChartIndicatorGet);
 
-   // TODO !!!!!
    ADD_EXECUTOR(300, CopyTicks);
    ADD_EXECUTOR(301, OrderSend);
    ADD_EXECUTOR(302, OrderSendAsync);
    ADD_EXECUTOR(303, OrderCheck);
-   ADD_EXECUTOR(304, MarketBookGet);
-   ADD_EXECUTOR(305, IndicatorCreate);
-   ADD_EXECUTOR(306, Buy);
-   ADD_EXECUTOR(307, Sell);
+   ADD_EXECUTOR(304, Buy);
+   ADD_EXECUTOR(305, Sell);
    
    return (0);
 }
@@ -1605,7 +1604,6 @@ string Execute_SymbolInfoString2()
    return CreateSuccessResponse(result_value_jo);   
 }
 
-   // !!!!! TODO !!!!!!
 string Execute_SymbolInfoSessionQuote()
 {
    GET_JSON_PAYLOAD(jo);
@@ -1627,7 +1625,6 @@ string Execute_SymbolInfoSessionQuote()
    return CreateSuccessResponse(result_value_jo);
 }
 
-   // !!!!! TODO !!!!!!
 string Execute_SymbolInfoSessionTrade()
 {
    GET_JSON_PAYLOAD(jo);
@@ -1819,7 +1816,6 @@ string Execute_PositionSelectByTicket()
    return CreateSuccessResponse(new JSONBool(result));
 }
 
-// !!!!!!!!!!!!!!!!!!!! TODO !!!!!!!!!!!!!!!!!!!!!!!!
 string Execute_ObjectCreate()
 {
    GET_JSON_PAYLOAD(jo);
@@ -1828,8 +1824,8 @@ string Execute_ObjectCreate()
    GET_INT_JSON_VALUE(jo, "Type", type);
    GET_INT_JSON_VALUE(jo, "Nwin", nwin);
    
-   CHECK_JSON_VALUE(jo, "Time");
-   CHECK_JSON_VALUE(jo, "Price");
+   CHECK_JSON_VALUE(jo, "Times");
+   CHECK_JSON_VALUE(jo, "Prices");
    
    datetime times[30];
    double prices[30];
@@ -1908,7 +1904,7 @@ string Execute_ObjectGetTimeByValue()
    GET_LONG_JSON_VALUE(jo, "ChartId", chartId);
    GET_STRING_JSON_VALUE(jo, "Name", name);
    GET_DOUBLE_JSON_VALUE(jo, "Value", value);
-   GET_INT_JSON_VALUE(jo, "lineId", lineId);
+   GET_INT_JSON_VALUE(jo, "LineId", lineId);
    
    int result = (int)ObjectGetTimeByValue(chartId, name, value, lineId);
    return CreateSuccessResponse(new JSONNumber(result));
@@ -1920,7 +1916,7 @@ string Execute_ObjectGetValueByTime()
    GET_LONG_JSON_VALUE(jo, "ChartId", chartId);
    GET_STRING_JSON_VALUE(jo, "Name", name);
    GET_INT_JSON_VALUE(jo, "Time", time);
-   GET_INT_JSON_VALUE(jo, "lineId", lineId);
+   GET_INT_JSON_VALUE(jo, "LineId", lineId);
    
    double result = ObjectGetValueByTime(chartId, name, (datetime)time, lineId);
    return CreateSuccessResponse(new JSONNumber(result));
@@ -2034,7 +2030,7 @@ string Execute_iAD()
    GET_JSON_PAYLOAD(jo);
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
    GET_INT_JSON_VALUE(jo, "Period", period);
-   GET_INT_JSON_VALUE(jo, "AppliedVolue", applied_volume);
+   GET_INT_JSON_VALUE(jo, "AppliedVolume", applied_volume);
    
    int result = iAD(symbol, (ENUM_TIMEFRAMES)period, (ENUM_APPLIED_VOLUME)applied_volume);
    return CreateSuccessResponse(new JSONNumber(result));
@@ -2768,7 +2764,7 @@ string Execute_ChartIndicatorName()
    GET_JSON_PAYLOAD(jo);
    GET_LONG_JSON_VALUE(jo, "ChartId", chart_id);
    GET_INT_JSON_VALUE(jo, "SubWindow", sub_window);
-   GET_INT_JSON_VALUE(jo, "index", index);   
+   GET_INT_JSON_VALUE(jo, "Index", index);   
    
 #ifdef __DEBUG_LOG__
    PrintFormat("%s: chart_id = %I64d, sub_window = %d, index = %d", __FUNCTION__, chart_id, sub_window, index);
