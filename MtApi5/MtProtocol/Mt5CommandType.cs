@@ -48,9 +48,9 @@ namespace MtApi5.MtProtocol
         Bars = 36,
         Bars2 = 1036,
         BarsCalculated = 37,
-        //        IndicatorCreate                     = 38,
+        IndicatorCreate = 38,
         //        IndicatorParameters                 = 38,
-        //        IndicatorRelease                    = 39,
+        IndicatorRelease = 39,
         CopyBuffer = 40,
         CopyBuffer1 = 1040,
         CopyBuffer2 = 1140,
@@ -96,7 +96,7 @@ namespace MtApi5.MtProtocol
         SymbolInfoSessionTrade = 59,
         MarketBookAdd = 60,
         MarketBookRelease = 61,
-        //MarketBookGet                       = 62,
+        MarketBookGet = 62,
         OrderCloseAll = 63,
 
         //CTrade
@@ -111,9 +111,6 @@ namespace MtApi5.MtProtocol
         //Backtesting
         BacktestingReady = 66,
         IsTesting = 67,
-
-        //Requests
-        //MtRequest = 155,
 
         PositionSelectByTicket = 69,
 
@@ -181,8 +178,6 @@ namespace MtApi5.MtProtocol
         TimeTradeServer = 128,
         TimeLocal = 129,
         TimeGMT = 130,
-
-        IndicatorRelease = 131,
 
         //Chart Operations
         ChartId = 206,
@@ -263,9 +258,7 @@ namespace MtApi5.MtProtocol
         OrderSend = 301,
         OrderSendAsync = 302,
         OrderCheck = 303,
-        MarketBookGet = 304,
-        IndicatorCreate = 305,
-        Buy = 306,
-        Sell = 307
+        Buy = 304,
+        Sell = 305
     }
 }

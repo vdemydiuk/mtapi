@@ -3,9 +3,6 @@ using MtApi5.Requests;
 using Newtonsoft.Json;
 using MtClient;
 using MtApi5.MtProtocol;
-using System.Linq;
-using System.Net.Http.Headers;
-using Newtonsoft.Json.Linq;
 
 namespace MtApi5
 {
@@ -106,7 +103,7 @@ namespace MtApi5
         ///</summary>
         public bool IsTesting()
         {
-            return SendCommand<bool>(Mt5CommandType.IsTesting, null);
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.IsTesting);
         }
 
         #region Trading functions
@@ -184,11 +181,12 @@ namespace MtApi5
         /// </returns>
         public bool OrderCalcMargin(ENUM_ORDER_TYPE action, string symbol, double volume, double price, out double margin)
         {
-            var commandParameters = new ArrayList { (int)action, symbol, volume, price };
+            Dictionary<string, object> cmdParams = new() { { "Action", (int)action }, { "Symbol", symbol },
+                { "Volume", volume }, { "Price", price } };
 
-            var strResult = SendCommand<string>(Mt5CommandType.OrderCalcMargin, commandParameters);
-
-            return strResult.ParseResult(ParamSeparator, out margin);
+            var response = SendCommand<FuncResult<double>>(ExecutorHandle, Mt5CommandType.OrderCalcMargin, cmdParams);
+            margin = response != null ? response.Result : double.NaN;
+            return response != null && response.RetVal;
         }
 
         ///<summary>
@@ -209,11 +207,12 @@ namespace MtApi5
         /// </returns>
         public bool OrderCalcProfit(ENUM_ORDER_TYPE action, string symbol, double volume, double priceOpen, double priceClose, out double profit)
         {
-            var commandParameters = new ArrayList { (int)action, symbol, volume, priceOpen, priceClose };
+            Dictionary<string, object> cmdParams = new() { { "Action", (int)action }, { "Symbol", symbol },
+                { "Volume", volume }, { "PriceOpen", priceOpen }, { "PriceClose", priceClose} };
 
-            var strResult = SendCommand<string>(Mt5CommandType.OrderCalcProfit, commandParameters);
-
-            return strResult.ParseResult(ParamSeparator, out profit);
+            var response = SendCommand<FuncResult<double>>(ExecutorHandle, Mt5CommandType.OrderCalcProfit, cmdParams);
+            profit = response != null ? response.Result : double.NaN;
+            return response != null && response.RetVal;
         }
 
         ///<summary>
@@ -250,7 +249,7 @@ namespace MtApi5
         ///</summary>
         public int PositionsTotal()
         {
-            return SendCommand<int>(Mt5CommandType.PositionsTotal, null);
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.PositionsTotal);
         }
 
         ///<summary>
@@ -259,9 +258,7 @@ namespace MtApi5
         ///<param name="index">Number of the position in the list of open positions.</param>
         public string? PositionGetSymbol(int index)
         {
-            Dictionary<string, object> commandParameters = [];
-            commandParameters["Index"] = index;
-
+            Dictionary<string, object> commandParameters = new() { { "Index", index } };
             return SendCommand<string>(ExecutorHandle, Mt5CommandType.PositionGetSymbol, commandParameters);
         }
 
@@ -271,9 +268,8 @@ namespace MtApi5
         ///<param name="symbol">Name of the financial security.</param>
         public bool PositionSelect(string symbol)
         {
-            var commandParameters = new ArrayList { symbol };
-
-            return SendCommand<bool>(Mt5CommandType.PositionSelect, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.PositionSelect, cmdParams);
         }
 
         ///<summary>
@@ -282,9 +278,8 @@ namespace MtApi5
         ///<param name="ticket">Position ticket.</param>
         public bool PositionSelectByTicket(ulong ticket)
         {
-            var commandParameters = new ArrayList { ticket };
-
-            return SendCommand<bool>(Mt5CommandType.PositionSelectByTicket, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.PositionSelectByTicket, cmdParams);
         }
 
         ///<summary>
@@ -293,9 +288,8 @@ namespace MtApi5
         ///<param name="propertyId">Identifier of a position property.</param>
         public double PositionGetDouble(ENUM_POSITION_PROPERTY_DOUBLE propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-
-            return SendCommand<double>(Mt5CommandType.PositionGetDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", (int)propertyId } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.PositionGetDouble, cmdParams);
         }
 
         ///<summary>
@@ -304,20 +298,18 @@ namespace MtApi5
         ///<param name="propertyId">Identifier of a position property.</param>
         public long PositionGetInteger(ENUM_POSITION_PROPERTY_INTEGER propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-
-            return SendCommand<long>(Mt5CommandType.PositionGetInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", (int)propertyId } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.PositionGetInteger, cmdParams);
         }
 
         ///<summary>
         ///The function returns the requested property of an open position, pre-selected using PositionGetSymbol or PositionSelect.
         ///</summary>
         ///<param name="propertyId">Identifier of a position property.</param>
-        public string PositionGetString(ENUM_POSITION_PROPERTY_STRING propertyId)
+        public string? PositionGetString(ENUM_POSITION_PROPERTY_STRING propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-
-            return SendCommand<string>(Mt5CommandType.PositionGetString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", (int)propertyId } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.PositionGetString, cmdParams);
         }
 
         ///<summary>
@@ -326,9 +318,8 @@ namespace MtApi5
         ///<param name="index">Identifier of a position property.</param>
         public ulong PositionGetTicket(int index)
         {
-            var commandParameters = new ArrayList { index };
-
-            return SendCommand<ulong>(Mt5CommandType.PositionGetTicket, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Index", index } };
+            return SendCommand<ulong>(ExecutorHandle, Mt5CommandType.PositionGetTicket, cmdParams);
         }
 
         ///<summary>
@@ -336,7 +327,7 @@ namespace MtApi5
         ///</summary>
         public int OrdersTotal()
         {
-            return SendCommand<int>(Mt5CommandType.OrdersTotal, null);
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.OrdersTotal);
         }
 
         ///<summary>
@@ -345,9 +336,8 @@ namespace MtApi5
         ///<param name="index">Number of an order in the list of current orders.</param>
         public ulong OrderGetTicket(int index)
         {
-            var commandParameters = new ArrayList { index };
-
-            return SendCommand<ulong>(Mt5CommandType.OrderGetTicket, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Index", index } };
+            return SendCommand<ulong>(ExecutorHandle, Mt5CommandType.OrderGetTicket, cmdParams);
         }
 
         ///<summary>
@@ -356,9 +346,8 @@ namespace MtApi5
         ///<param name="ticket">Order ticket.</param>
         public bool OrderSelect(ulong ticket)
         {
-            var commandParameters = new ArrayList { ticket };
-
-            return SendCommand<bool>(Mt5CommandType.OrderSelect, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.OrderSelect, cmdParams);
         }
 
         ///<summary>
@@ -367,9 +356,8 @@ namespace MtApi5
         ///<param name="propertyId"> Identifier of the order property.</param>
         public double OrderGetDouble(ENUM_ORDER_PROPERTY_DOUBLE propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-
-            return SendCommand<double>(Mt5CommandType.OrderGetDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", (int)propertyId } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.OrderGetDouble, cmdParams);
         }
 
         ///<summary>
@@ -378,20 +366,18 @@ namespace MtApi5
         ///<param name="propertyId"> Identifier of the order property.</param>
         public long OrderGetInteger(ENUM_ORDER_PROPERTY_INTEGER propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-
-            return SendCommand<long>(Mt5CommandType.OrderGetInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", (int)propertyId } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.OrderGetInteger, cmdParams);
         }
 
         ///<summary>
         ///Returns the requested property of an order, pre-selected using OrderGetTicket or OrderSelect.
         ///</summary>
         ///<param name="propertyId"> Identifier of the order property.</param>
-        public string OrderGetString(ENUM_ORDER_PROPERTY_STRING propertyId)
+        public string? OrderGetString(ENUM_ORDER_PROPERTY_STRING propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-
-            return SendCommand<string>(Mt5CommandType.OrderGetString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", (int)propertyId } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.OrderGetString, cmdParams);
         }
 
         ///<summary>
@@ -401,9 +387,9 @@ namespace MtApi5
         ///<param name="toDate">End date of the request.</param>
         public bool HistorySelect(DateTime fromDate, DateTime toDate)
         {
-            var commandParameters = new ArrayList { Mt5TimeConverter.ConvertToMtTime(fromDate), Mt5TimeConverter.ConvertToMtTime(toDate) };
-
-            return SendCommand<bool>(Mt5CommandType.HistorySelect, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "FromDate", Mt5TimeConverter.ConvertToMtTime(fromDate) },
+                { "ToDate", Mt5TimeConverter.ConvertToMtTime(toDate) } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.HistorySelect, cmdParams);
         }
 
         ///<summary>
@@ -412,9 +398,8 @@ namespace MtApi5
         ///<param name="positionId">Position identifier that is set to every executed order and every deal.</param>
         public bool HistorySelectByPosition(long positionId)
         {
-            var commandParameters = new ArrayList { positionId };
-
-            return SendCommand<bool>(Mt5CommandType.HistorySelectByPosition, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PositionId", positionId } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.HistorySelectByPosition, cmdParams);
         }
 
         ///<summary>
@@ -423,9 +408,8 @@ namespace MtApi5
         ///<param name="ticket">Order ticket.</param>
         public bool HistoryOrderSelect(ulong ticket)
         {
-            var commandParameters = new ArrayList { ticket };
-
-            return SendCommand<bool>(Mt5CommandType.HistoryOrderSelect, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.HistoryOrderSelect, cmdParams);
         }
 
         ///<summary>
@@ -433,7 +417,7 @@ namespace MtApi5
         ///</summary>
         public int HistoryOrdersTotal()
         {
-            return SendCommand<int>(Mt5CommandType.HistoryOrdersTotal, null);
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.HistoryOrdersTotal);
         }
 
         ///<summary>
@@ -442,9 +426,8 @@ namespace MtApi5
         ///<param name="index">Number of the order in the list of orders.</param>
         public ulong HistoryOrderGetTicket(int index)
         {
-            var commandParameters = new ArrayList { index };
-
-            return SendCommand<ulong>(Mt5CommandType.HistoryOrderGetTicket, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Index", index } };
+            return SendCommand<ulong>(ExecutorHandle, Mt5CommandType.HistoryOrderGetTicket, cmdParams);
         }
 
         ///<summary>
@@ -454,9 +437,9 @@ namespace MtApi5
         ///<param name="propertyId">Identifier of the order property.</param>
         public double HistoryOrderGetDouble(ulong ticketNumber, ENUM_ORDER_PROPERTY_DOUBLE propertyId)
         {
-            var commandParameters = new ArrayList { ticketNumber, (int)propertyId };
-
-            return SendCommand<double>(Mt5CommandType.HistoryOrderGetDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "TicketNumber", ticketNumber },
+                { "PropertyId", (int)propertyId } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.HistoryOrderGetDouble, cmdParams);
         }
 
         ///<summary>
@@ -466,9 +449,9 @@ namespace MtApi5
         ///<param name="propertyId">Identifier of the order property.</param>
         public long HistoryOrderGetInteger(ulong ticketNumber, ENUM_ORDER_PROPERTY_INTEGER propertyId)
         {
-            var commandParameters = new ArrayList { ticketNumber, (int)propertyId };
-
-            return SendCommand<long>(Mt5CommandType.HistoryOrderGetInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "TicketNumber", ticketNumber },
+                { "PropertyId", (int)propertyId } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.HistoryOrderGetInteger, cmdParams);
         }
 
         ///<summary>
@@ -476,11 +459,11 @@ namespace MtApi5
         ///</summary>
         ///<param name="ticketNumber">Order ticket.</param>
         ///<param name="propertyId">Identifier of the order property.</param>
-        public string HistoryOrderGetString(ulong ticketNumber, ENUM_ORDER_PROPERTY_STRING propertyId)
+        public string? HistoryOrderGetString(ulong ticketNumber, ENUM_ORDER_PROPERTY_STRING propertyId)
         {
-            var commandParameters = new ArrayList { ticketNumber, (int)propertyId };
-
-            return SendCommand<string>(Mt5CommandType.HistoryOrderGetString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "TicketNumber", ticketNumber },
+                { "PropertyId", (int)propertyId } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.HistoryOrderGetString, cmdParams);
         }
 
         ///<summary>
@@ -489,9 +472,8 @@ namespace MtApi5
         ///<param name="ticket">Deal ticket.</param>
         public bool HistoryDealSelect(ulong ticket)
         {
-            var commandParameters = new ArrayList { ticket };
-
-            return SendCommand<bool>(Mt5CommandType.HistoryDealSelect, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.HistoryDealSelect, cmdParams);
         }
 
         ///<summary>
@@ -499,7 +481,7 @@ namespace MtApi5
         ///</summary>
         public int HistoryDealsTotal()
         {
-            return SendCommand<int>(Mt5CommandType.HistoryDealsTotal, null);
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.HistoryDealsTotal);
         }
 
         ///<summary>
@@ -508,9 +490,8 @@ namespace MtApi5
         ///<param name="index">Number of a deal in the list of deals.</param>
         public ulong HistoryDealGetTicket(int index)
         {
-            var commandParameters = new ArrayList { index };
-
-            return SendCommand<ulong>(Mt5CommandType.HistoryDealGetTicket, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Index", index } };
+            return SendCommand<ulong>(ExecutorHandle, Mt5CommandType.HistoryDealGetTicket, cmdParams);
         }
 
         ///<summary>
@@ -520,9 +501,9 @@ namespace MtApi5
         ///<param name="propertyId"> Identifier of a deal property.</param>
         public double HistoryDealGetDouble(ulong ticketNumber, ENUM_DEAL_PROPERTY_DOUBLE propertyId)
         {
-            var commandParameters = new ArrayList { ticketNumber, (int)propertyId };
-
-            return SendCommand<double>(Mt5CommandType.HistoryDealGetDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "TicketNumber", ticketNumber },
+                { "PropertyId", (int)propertyId } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.HistoryDealGetDouble, cmdParams);
         }
 
         ///<summary>
@@ -532,9 +513,9 @@ namespace MtApi5
         ///<param name="propertyId"> Identifier of a deal property.</param>
         public long HistoryDealGetInteger(ulong ticketNumber, ENUM_DEAL_PROPERTY_INTEGER propertyId)
         {
-            var commandParameters = new ArrayList { ticketNumber, (int)propertyId };
-
-            return SendCommand<long>(Mt5CommandType.HistoryDealGetInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "TicketNumber", ticketNumber },
+                { "PropertyId", (int)propertyId } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.HistoryDealGetInteger, cmdParams);
         }
 
         ///<summary>
@@ -542,11 +523,11 @@ namespace MtApi5
         ///</summary>
         ///<param name="ticketNumber">Deal ticket.</param>
         ///<param name="propertyId"> Identifier of a deal property.</param>
-        public string HistoryDealGetString(ulong ticketNumber, ENUM_DEAL_PROPERTY_STRING propertyId)
+        public string? HistoryDealGetString(ulong ticketNumber, ENUM_DEAL_PROPERTY_STRING propertyId)
         {
-            var commandParameters = new ArrayList { ticketNumber, (int)propertyId };
-
-            return SendCommand<string>(Mt5CommandType.HistoryDealGetString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "TicketNumber", ticketNumber },
+                { "PropertyId", (int)propertyId } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.HistoryDealGetString, cmdParams);
         }
 
         ///<summary>
@@ -555,7 +536,7 @@ namespace MtApi5
         [Obsolete("OrderCloseAll is deprecated, please use PositionCloseAll instead.")]
         public bool OrderCloseAll()
         {
-            return SendCommand<bool>(Mt5CommandType.OrderCloseAll, null);
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.OrderCloseAll);
         }
 
         ///<summary>
@@ -563,7 +544,7 @@ namespace MtApi5
         ///</summary>
         public int PositionCloseAll()
         {
-            return SendCommand<int>(Mt5CommandType.PositionCloseAll, null);
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.PositionCloseAll);
         }
 
         ///<summary>
@@ -573,9 +554,7 @@ namespace MtApi5
         ///<param name="deviation">Maximal deviation from the current price (in points).</param>
         public bool PositionClose(ulong ticket, ulong deviation = ulong.MaxValue)
         {
-            var commandParameters = new ArrayList { ticket, deviation };
-
-            return SendCommand<bool>(Mt5CommandType.PositionClose, commandParameters);
+            return PositionClose(ticket, deviation, out MqlTradeResult? result);
         }
 
         /// <summary>
@@ -587,9 +566,8 @@ namespace MtApi5
         /// <returns></returns>
         public bool PositionModify(ulong ticket, double sl, double tp)
         {
-            var commandParameters = new ArrayList { ticket, sl,tp };
-
-            return SendCommand<bool>(Mt5CommandType.PositionModify, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket }, { "Sl", sl }, { "Tp", tp } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.PositionModify, cmdParams);
         }
 
         ///<summary>
@@ -600,8 +578,6 @@ namespace MtApi5
         /// <param name="result">output result</param>
         public bool PositionClose(ulong ticket, ulong deviation, out MqlTradeResult? result)
         {
-            Log?.Debug($"PositionClose: ticket = {ticket}, deviation = {deviation}");
-
             Dictionary<string, object> cmdParams = new() { { "Ticket", ticket }, { "Deviation", deviation } };
             var response = SendCommand<FuncResult<MqlTradeResult>>(ExecutorHandle, Mt5CommandType.PositionClose, cmdParams);
 
@@ -634,8 +610,7 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "OrderType", (int)orderType },
                 { "Volume", volume }, { "Price", price }, { "Sl", sl }, { "Tp", tp }, { "Comment", comment } };
-            var response = SendCommand<bool>(ExecutorHandle, Mt5CommandType.PositionOpen, cmdParams);
-            return response;
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.PositionOpen, cmdParams);
         }
 
         /// <summary>
@@ -652,8 +627,6 @@ namespace MtApi5
         /// <returns>true - successful check of the basic structures, otherwise - false.</returns>
         public bool PositionOpen(string symbol, ENUM_ORDER_TYPE orderType, double volume, double price, double sl, double tp, string? comment, out MqlTradeResult? result)
         {
-            Log?.Debug($"PositionOpen: symbol = {symbol}, orderType = {orderType}, volume = {volume}, price = {price}, sl = {sl}, tp = {tp}, comment = {comment}");
-
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "OrderType", (int)orderType },
                 { "Volume", volume }, { "Price", price }, { "Sl", sl }, { "Tp", tp } };
             if (comment != null)
@@ -689,9 +662,9 @@ namespace MtApi5
         /// <returns>true if the basic check of structures is successful, otherwise false.</returns>
         public bool PositionClosePartial(string symbol, double volume, ulong deviation = ulong.MaxValue)
         {
-            var commandParameters = new ArrayList { symbol, volume, deviation };
-
-            return SendCommand<bool>(Mt5CommandType.PositionClosePartial_bySymbol, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Volume", volume },
+                { "Deviation", deviation} };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.PositionClosePartial_bySymbol, cmdParams);
         }
 
         /// <summary>
@@ -703,9 +676,9 @@ namespace MtApi5
         /// <returns>true if the basic check of structures is successful, otherwise false.</returns>
         public bool PositionClosePartial(ulong ticket, double volume, ulong deviation = ulong.MaxValue)
         {
-            var commandParameters = new ArrayList { ticket, volume, deviation };
-
-            return SendCommand<bool>(Mt5CommandType.PositionClosePartial_byTicket, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket }, { "Volume", volume },
+                { "Deviation", deviation} };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.PositionClosePartial_byTicket, cmdParams);
         }
 
         /// <summary>
@@ -721,8 +694,6 @@ namespace MtApi5
         /// <returns>true - successful check of the structures, otherwise - false.</returns>
         public bool Buy(out MqlTradeResult? result, double volume, string? symbol = null, double price = 0.0, double sl = 0.0, double tp = 0.0, string? comment = null)
         {
-            Log?.Debug($"Buy: volume = {volume}, symbol = {symbol}, sl = {sl}, tp = {tp}, comment = {comment}");
-
             Dictionary<string, object> cmdParams = new() { { "Volume", volume }, { "Price", price }, { "Sl", sl }, { "Tp", tp } };
             if (symbol != null)
                 cmdParams["Symbol"] = symbol;
@@ -748,8 +719,6 @@ namespace MtApi5
         /// <returns>true - successful check of the structures, otherwise - false.</returns>
         public bool Sell(out MqlTradeResult? result, double volume, string? symbol = null, double price = 0.0, double sl = 0.0, double tp = 0.0, string? comment = null)
         {
-            Log?.Debug($"Sell: volume = {volume}, symbol = {symbol}, sl = {sl}, tp = {tp}, comment = {comment}");
-
             Dictionary<string, object> cmdParams = new() { { "Volume", volume }, { "Price", price }, { "Sl", sl }, { "Tp", tp } };
             if (symbol != null)
                 cmdParams["Symbol"] = symbol;
@@ -771,8 +740,8 @@ namespace MtApi5
         ///<param name="propertyId">Identifier of the property.</param>
         public double AccountInfoDouble(ENUM_ACCOUNT_INFO_DOUBLE propertyId)
         {
-            Dictionary<string, object> commandParameters = new() { { "PropertyId", propertyId } };
-            return SendCommand<double>(ExecutorHandle, Mt5CommandType.AccountInfoDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", propertyId } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.AccountInfoDouble, cmdParams);
         }
 
         ///<summary>
@@ -781,8 +750,8 @@ namespace MtApi5
         ///<param name="propertyId">Identifier of the property.</param>
         public long AccountInfoInteger(ENUM_ACCOUNT_INFO_INTEGER propertyId)
         {
-            Dictionary<string, object> commandParameters = new() { { "PropertyId", propertyId } };
-            return SendCommand<long>(ExecutorHandle, Mt5CommandType.AccountInfoInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", propertyId } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.AccountInfoInteger, cmdParams);
         }
 
         ///<summary>
@@ -791,8 +760,8 @@ namespace MtApi5
         ///<param name="propertyId">Identifier of the property.</param>
         public string? AccountInfoString(ENUM_ACCOUNT_INFO_STRING propertyId)
         {
-            Dictionary<string, object> commandParameters = new() { { "PropertyId", propertyId } };
-            return SendCommand<string>(ExecutorHandle, Mt5CommandType.AccountInfoString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", propertyId } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.AccountInfoString, cmdParams);
         }
         #endregion
 
@@ -805,9 +774,9 @@ namespace MtApi5
         ///<param name="propId">Identifier of the requested property, value of the ENUM_SERIES_INFO_INTEGER enumeration.</param>
         public long SeriesInfoInteger(string symbolName, ENUM_TIMEFRAMES timeframe, ENUM_SERIES_INFO_INTEGER propId)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, (int)propId };
-
-            return SendCommand<long>(Mt5CommandType.SeriesInfoInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName },
+                { "Timeframe", (int)timeframe }, { "PropId", (int)propId } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.SeriesInfoInteger, cmdParams);
         }
 
         ///<summary>
@@ -817,9 +786,8 @@ namespace MtApi5
         ///<param name="timeframe"> Period.</param>
         public int Bars(string symbolName, ENUM_TIMEFRAMES timeframe)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe };
-
-            return SendCommand<int>(Mt5CommandType.Bars, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.Bars, cmdParams);
         }
 
         ///<summary>
@@ -831,9 +799,10 @@ namespace MtApi5
         ///<param name="stopTime">Bar time corresponding to the last element.</param>
         public int Bars(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, DateTime stopTime)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), Mt5TimeConverter.ConvertToMtTime(stopTime) };
-
-            return SendCommand<int>(Mt5CommandType.Bars2, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime",  Mt5TimeConverter.ConvertToMtTime(startTime) },
+                { "StopTime",  Mt5TimeConverter.ConvertToMtTime(stopTime)} };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.Bars2, cmdParams);
         }
 
         ///<summary>
@@ -842,9 +811,8 @@ namespace MtApi5
         ///<param name="indicatorHandle">The indicator handle, returned by the corresponding indicator function.</param>
         public int BarsCalculated(int indicatorHandle)
         {
-            var commandParameters = new ArrayList { indicatorHandle };
-
-            return SendCommand<int>(Mt5CommandType.BarsCalculated, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "IndicatorHandle", indicatorHandle } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.BarsCalculated, cmdParams);
         }
 
         ///<summary>
@@ -857,10 +825,11 @@ namespace MtApi5
         ///<param name="buffer">Array of double type.</param>
         public int CopyBuffer(int indicatorHandle, int bufferNum, int startPos, int count, out double[] buffer)
         {
-            var commandParameters = new ArrayList { indicatorHandle, bufferNum, startPos, count };
-            buffer = SendCommand<double[]>(Mt5CommandType.CopyBuffer, commandParameters);
-
-            return buffer?.Length ?? 0;
+            Dictionary<string, object> cmdParams = new() { { "IndicatorHandle", indicatorHandle },
+                { "BufferNum", bufferNum }, { "StartPos", startPos }, { "Count", count } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyBuffer, cmdParams);
+            buffer = response?.ToArray() ?? [];
+            return response?.Count ?? 0;
         }
 
         ///<summary>
@@ -873,10 +842,11 @@ namespace MtApi5
         ///<param name="buffer">Array of double type.</param>
         public int CopyBuffer(int indicatorHandle, int bufferNum, DateTime startTime, int count, out double[] buffer)
         {
-            var commandParameters = new ArrayList { indicatorHandle, bufferNum, Mt5TimeConverter.ConvertToMtTime(startTime), count };
-            buffer = SendCommand<double[]>(Mt5CommandType.CopyBuffer1, commandParameters);
-
-            return buffer?.Length ?? 0;
+            Dictionary<string, object> cmdParams = new() { { "IndicatorHandle", indicatorHandle },
+                { "BufferNum", bufferNum }, { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) }, { "Count", count } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyBuffer1, cmdParams);
+            buffer = response?.ToArray() ?? [];
+            return response?.Count ?? 0;
         }
 
         ///<summary>
@@ -889,10 +859,12 @@ namespace MtApi5
         ///<param name="buffer">Array of double type.</param>
         public int CopyBuffer(int indicatorHandle, int bufferNum, DateTime startTime, DateTime stopTime, out double[] buffer)
         {
-            var commandParameters = new ArrayList { indicatorHandle, bufferNum, Mt5TimeConverter.ConvertToMtTime(startTime), Mt5TimeConverter.ConvertToMtTime(stopTime) };
-            buffer = SendCommand<double[]>(Mt5CommandType.CopyBuffer1, commandParameters);
-
-            return buffer?.Length ?? 0;
+            Dictionary<string, object> cmdParams = new() { { "IndicatorHandle", indicatorHandle },
+                { "BufferNum", bufferNum }, { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) },
+                 { "StopTime", Mt5TimeConverter.ConvertToMtTime(stopTime) } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyBuffer2, cmdParams);
+            buffer = response?.ToArray() ?? [];
+            return response?.Count ?? 0;
         }
 
         ///<summary>
@@ -905,30 +877,11 @@ namespace MtApi5
         ///<param name="ratesArray">Array of MqlRates type.</param>
         public int CopyRates(string symbolName, ENUM_TIMEFRAMES timeframe, int startPos, int count, out MqlRates[]? ratesArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, startPos, count };
-
-            ratesArray = null;
-
-            //TODO: !!!
-
-            //var retVal = SendCommand<MtMqlRates[]>(Mt5CommandType.CopyRates, commandParameters);
-            //if (retVal != null)
-            //{
-            //    ratesArray = new MqlRates[retVal.Length];
-            //    for(var i = 0; i < retVal.Length; i++)
-            //    {
-            //        ratesArray[i] = new MqlRates(retVal[i].time
-            //            , retVal[i].open
-            //            , retVal[i].high
-            //            , retVal[i].low
-            //            , retVal[i].close
-            //            , retVal[i].tick_volume
-            //            , retVal[i].spread
-            //            , retVal[i].real_volume);
-            //    }
-            //}
-
-            return ratesArray?.Length ?? 0;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartPos", startPos }, { "Count", count } };
+            var response = SendCommand<List<MqlRates>>(ExecutorHandle, Mt5CommandType.CopyRates, cmdParams);
+            ratesArray = response?.ToArray() ?? [];
+            return response?.Count ?? 0;
         }
             
         ///<summary>
@@ -941,28 +894,11 @@ namespace MtApi5
         ///<param name="ratesArray">Array of MqlRates type.</param>
         public int CopyRates(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, int count, out MqlRates[]? ratesArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), count };
-
-            ratesArray = null;
-
-            //var retVal = SendCommand<MtMqlRates[]>(Mt5CommandType.CopyRates1, commandParameters);
-            //if (retVal != null)
-            //{
-            //    ratesArray = new MqlRates[retVal.Length];
-            //    for (var i = 0; i < retVal.Length; i++)
-            //    {
-            //        ratesArray[i] = new MqlRates(retVal[i].time
-            //            , retVal[i].open
-            //            , retVal[i].high
-            //            , retVal[i].low
-            //            , retVal[i].close
-            //            , retVal[i].tick_volume
-            //            , retVal[i].spread
-            //            , retVal[i].real_volume);
-            //    }
-            //}
-
-            return ratesArray?.Length ?? 0;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime",  Mt5TimeConverter.ConvertToMtTime(startTime) }, { "Count", count } };
+            var response = SendCommand<List<MqlRates>>(ExecutorHandle, Mt5CommandType.CopyRates1, cmdParams);
+            ratesArray = response?.ToArray() ?? [];
+            return response?.Count ?? 0;
         }
 
         ///<summary>
@@ -975,28 +911,12 @@ namespace MtApi5
         ///<param name="ratesArray">Array of MqlRates type.</param>
         public int CopyRates(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, DateTime stopTime, out MqlRates[]? ratesArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), Mt5TimeConverter.ConvertToMtTime(stopTime) };
-
-            ratesArray = null;
-
-            //var retVal = SendCommand<MtMqlRates[]>(Mt5CommandType.CopyRates2, commandParameters);
-            //if (retVal != null)
-            //{
-            //    ratesArray = new MqlRates[retVal.Length];
-            //    for (var i = 0; i < retVal.Length; i++)
-            //    {
-            //        ratesArray[i] = new MqlRates(retVal[i].time
-            //            , retVal[i].open
-            //            , retVal[i].high
-            //            , retVal[i].low
-            //            , retVal[i].close
-            //            , retVal[i].tick_volume
-            //            , retVal[i].spread
-            //            , retVal[i].real_volume);
-            //    }
-            //}
-
-            return ratesArray?.Length ?? 0;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime",  Mt5TimeConverter.ConvertToMtTime(startTime) },
+                { "StopTime", Mt5TimeConverter.ConvertToMtTime(stopTime) } };
+            var response = SendCommand<List<MqlRates>>(ExecutorHandle, Mt5CommandType.CopyRates2, cmdParams);
+            ratesArray = response?.ToArray() ?? [];
+            return response?.Count ?? 0;
         }
 
         ///<summary>
@@ -1009,21 +929,18 @@ namespace MtApi5
         ///<param name="timeArray">Array of DatetTme type.</param>
         public int CopyTime(string symbolName, ENUM_TIMEFRAMES timeframe, int startPos, int count, out DateTime[]? timeArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, startPos, count };
-
-            timeArray = null;
-
-            var retVal = SendCommand<long[]>(Mt5CommandType.CopyTime, commandParameters);
-            if (retVal != null)
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartPos", startPos }, { "Count", count } };
+            var response = SendCommand<List<long>>(ExecutorHandle, Mt5CommandType.CopyTime, cmdParams);
+            if (response != null)
             {
-                timeArray = new DateTime[retVal.Length];
-                for (var i = 0; i < retVal.Length; i++)
-                {
-                    timeArray[i] = Mt5TimeConverter.ConvertFromMtTime(retVal[i]);
-                }
+                timeArray = new DateTime[response.Count];
+                for (var i = 0; i < response.Count; i++)
+                    timeArray[i] = Mt5TimeConverter.ConvertFromMtTime(response[i]);
             }
-
-            return timeArray?.Length ?? 0;
+            else
+                timeArray = [];
+            return response?.Count ?? 0;
         }
 
         ///<summary>
@@ -1036,21 +953,18 @@ namespace MtApi5
         ///<param name="timeArray">Array of DatetTme type.</param>
         public int CopyTime(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, int count, out DateTime[]? timeArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), count };
-
-            timeArray = null;
-
-            var retVal = SendCommand<long[]>(Mt5CommandType.CopyTime1, commandParameters);
-            if (retVal != null)
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) }, { "Count", count } };
+            var response = SendCommand<List<long>>(ExecutorHandle, Mt5CommandType.CopyTime1, cmdParams);
+            if (response != null)
             {
-                timeArray = new DateTime[retVal.Length];
-                for (var i = 0; i < retVal.Length; i++)
-                {
-                    timeArray[i] = Mt5TimeConverter.ConvertFromMtTime(retVal[i]);
-                }
+                timeArray = new DateTime[response.Count];
+                for (var i = 0; i < response.Count; i++)
+                    timeArray[i] = Mt5TimeConverter.ConvertFromMtTime(response[i]);
             }
-
-            return timeArray?.Length ?? 0;
+            else
+                timeArray = [];
+            return response?.Count ?? 0;
         }
 
         ///<summary>
@@ -1063,21 +977,19 @@ namespace MtApi5
         ///<param name="timeArray">Array of DatetTme type.</param>
         public int CopyTime(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, DateTime stopTime, out DateTime[]? timeArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), Mt5TimeConverter.ConvertToMtTime(stopTime) };
-
-            timeArray = null;
-
-            var retVal = SendCommand<long[]>(Mt5CommandType.CopyTime2, commandParameters);
-            if (retVal != null)
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) },
+                { "StopTime", Mt5TimeConverter.ConvertToMtTime(stopTime) } };
+            var response = SendCommand<List<long>>(ExecutorHandle, Mt5CommandType.CopyTime2, cmdParams);
+            if (response != null)
             {
-                timeArray = new DateTime[retVal.Length];
-                for (var i = 0; i < retVal.Length; i++)
-                {
-                    timeArray[i] = Mt5TimeConverter.ConvertFromMtTime(retVal[i]);
-                }
+                timeArray = new DateTime[response.Count];
+                for (var i = 0; i < response.Count; i++)
+                    timeArray[i] = Mt5TimeConverter.ConvertFromMtTime(response[i]);
             }
-
-            return timeArray?.Length ?? 0;
+            else
+                timeArray = [];
+            return response?.Count ?? 0;
         }
 
         ///<summary>
@@ -1090,10 +1002,10 @@ namespace MtApi5
         ///<param name="openArray">Array of double type.</param>
         public int CopyOpen(string symbolName, ENUM_TIMEFRAMES timeframe, int startPos, int count, out double[] openArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, startPos, count };
-
-            openArray = SendCommand<double[]>(Mt5CommandType.CopyOpen, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartPos", startPos }, { "Count", count } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyOpen, cmdParams);
+            openArray = response != null ? response.ToArray() : [];
             return openArray?.Length ?? 0;
         }
 
@@ -1107,10 +1019,10 @@ namespace MtApi5
         ///<param name="openArray">Array of double type.</param>
         public int CopyOpen(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, int count, out double[] openArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), count };
-
-            openArray = SendCommand<double[]>(Mt5CommandType.CopyOpen1, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) }, { "Count", count } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyOpen1, cmdParams);
+            openArray = response != null ? response.ToArray() : [];
             return openArray?.Length ?? 0;
         }
 
@@ -1124,10 +1036,11 @@ namespace MtApi5
         ///<param name="openArray">Array of double type.</param>
         public int CopyOpen(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, DateTime stopTime, out double[] openArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), Mt5TimeConverter.ConvertToMtTime(stopTime) };
-
-            openArray = SendCommand<double[]>(Mt5CommandType.CopyOpen2, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) },
+                { "StopTime", Mt5TimeConverter.ConvertToMtTime(stopTime) } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyOpen2, cmdParams);
+            openArray = response != null ? response.ToArray() : [];
             return openArray?.Length ?? 0;
         }
 
@@ -1141,10 +1054,10 @@ namespace MtApi5
         ///<param name="highArray">Array of double type.</param>
         public int CopyHigh(string symbolName, ENUM_TIMEFRAMES timeframe, int startPos, int count, out double[] highArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, startPos, count };
-
-            highArray = SendCommand<double[]>(Mt5CommandType.CopyHigh, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartPos", startPos }, { "Count", count } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyHigh, cmdParams);
+            highArray = response != null ? response.ToArray() : [];
             return highArray?.Length ?? 0;
         }
 
@@ -1158,10 +1071,10 @@ namespace MtApi5
         ///<param name="highArray">Array of double type.</param>
         public int CopyHigh(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, int count, out double[] highArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), count };
-
-            highArray = SendCommand<double[]>(Mt5CommandType.CopyHigh1, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                 { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) }, { "Count", count } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyHigh1, cmdParams);
+            highArray = response != null ? response.ToArray() : [];
             return highArray?.Length ?? 0;
         }
 
@@ -1175,10 +1088,11 @@ namespace MtApi5
         ///<param name="highArray">Array of double type.</param>
         public int CopyHigh(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, DateTime stopTime, out double[] highArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), Mt5TimeConverter.ConvertToMtTime(stopTime) };
-
-            highArray = SendCommand<double[]>(Mt5CommandType.CopyHigh2, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                 { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) }, 
+                 { "StopTime", Mt5TimeConverter.ConvertToMtTime(stopTime) } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyHigh2, cmdParams);
+            highArray = response != null ? response.ToArray() : [];
             return highArray?.Length ?? 0;
         }
 
@@ -1192,10 +1106,10 @@ namespace MtApi5
         ///<param name="lowArray">Array of double type.</param>
         public int CopyLow(string symbolName, ENUM_TIMEFRAMES timeframe, int startPos, int count, out double[] lowArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, startPos, count };
-
-            lowArray = SendCommand<double[]>(Mt5CommandType.CopyLow, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartPos", startPos }, { "Count", count } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyLow, cmdParams);
+            lowArray = response != null ? response.ToArray() : [];
             return lowArray?.Length ?? 0;
         }
 
@@ -1209,10 +1123,10 @@ namespace MtApi5
         ///<param name="lowArray">Array of double type.</param>
         public int CopyLow(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, int count, out double[] lowArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), count };
-
-            lowArray = SendCommand<double[]>(Mt5CommandType.CopyLow1, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) }, { "Count", count } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyLow1, cmdParams);
+            lowArray = response != null ? response.ToArray() : [];
             return lowArray?.Length ?? 0;
         }
 
@@ -1226,10 +1140,11 @@ namespace MtApi5
         ///<param name="lowArray">Array of double type.</param>
         public int CopyLow(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, DateTime stopTime, out double[] lowArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), Mt5TimeConverter.ConvertToMtTime(stopTime) };
-
-            lowArray = SendCommand<double[]>(Mt5CommandType.CopyLow2, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) },
+                { "StopTime", Mt5TimeConverter.ConvertToMtTime(stopTime) } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyLow2, cmdParams);
+            lowArray = response != null ? response.ToArray() : [];
             return lowArray?.Length ?? 0;
         }
 
@@ -1243,10 +1158,10 @@ namespace MtApi5
         ///<param name="closeArray">Array of double type.</param>
         public int CopyClose(string symbolName, ENUM_TIMEFRAMES timeframe, int startPos, int count, out double[] closeArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, startPos, count };
-
-            closeArray = SendCommand<double[]>(Mt5CommandType.CopyClose, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartPos", startPos }, { "Count", count } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyClose, cmdParams);
+            closeArray = response != null ? response.ToArray() : [];
             return closeArray?.Length ?? 0;
         }
 
@@ -1260,10 +1175,10 @@ namespace MtApi5
         ///<param name="closeArray">Array of double type.</param>
         public int CopyClose(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, int count, out double[] closeArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), count };
-
-            closeArray = SendCommand<double[]>(Mt5CommandType.CopyClose1, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) }, { "Count", count } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyClose1, cmdParams);
+            closeArray = response != null ? response.ToArray() : [];
             return closeArray?.Length ?? 0;
         }
 
@@ -1277,10 +1192,11 @@ namespace MtApi5
         ///<param name="closeArray">Array of double type.</param>
         public int CopyClose(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, DateTime stopTime, out double[] closeArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), Mt5TimeConverter.ConvertToMtTime(stopTime) };
-
-            closeArray = SendCommand<double[]>(Mt5CommandType.CopyClose2, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) },
+                { "StopTime", Mt5TimeConverter.ConvertToMtTime(stopTime) } };
+            var response = SendCommand<List<double>>(ExecutorHandle, Mt5CommandType.CopyClose2, cmdParams);
+            closeArray = response != null ? response.ToArray() : [];
             return closeArray?.Length ?? 0;
         }
 
@@ -1294,10 +1210,10 @@ namespace MtApi5
         ///<param name="volumeArray">Array of long type.</param>
         public int CopyTickVolume(string symbolName, ENUM_TIMEFRAMES timeframe, int startPos, int count, out long[] volumeArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, startPos, count };
-
-            volumeArray = SendCommand<long[]>(Mt5CommandType.CopyTickVolume, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartPos", startPos }, { "Count", count } };
+            var response = SendCommand<List<long>>(ExecutorHandle, Mt5CommandType.CopyTickVolume, cmdParams);
+            volumeArray = response != null ? response.ToArray() : [];
             return volumeArray?.Length ?? 0;
         }
 
@@ -1311,10 +1227,10 @@ namespace MtApi5
         ///<param name="volumeArray">Array of long type.</param>
         public int CopyTickVolume(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, int count, out long[] volumeArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), count };
-
-            volumeArray = SendCommand<long[]>(Mt5CommandType.CopyTickVolume1, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                 { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) }, { "Count", count } };
+            var response = SendCommand<List<long>>(ExecutorHandle, Mt5CommandType.CopyTickVolume1, cmdParams);
+            volumeArray = response != null ? response.ToArray() : [];
             return volumeArray?.Length ?? 0;
         }
 
@@ -1328,10 +1244,11 @@ namespace MtApi5
         ///<param name="volumeArray">Array of long type.</param>
         public int CopyTickVolume(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, DateTime stopTime, out long[] volumeArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), Mt5TimeConverter.ConvertToMtTime(stopTime) };
-
-            volumeArray = SendCommand<long[]>(Mt5CommandType.CopyTickVolume2, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                 { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) },
+                 { "StopTime", Mt5TimeConverter.ConvertToMtTime(stopTime) } };
+            var response = SendCommand<List<long>>(ExecutorHandle, Mt5CommandType.CopyTickVolume2, cmdParams);
+            volumeArray = response != null ? response.ToArray() : [];
             return volumeArray?.Length ?? 0;
         }
 
@@ -1345,10 +1262,10 @@ namespace MtApi5
         ///<param name="volumeArray">Array of long type.</param>
         public int CopyRealVolume(string symbolName, ENUM_TIMEFRAMES timeframe, int startPos, int count, out long[] volumeArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, startPos, count };
-
-            volumeArray = SendCommand<long[]>(Mt5CommandType.CopyRealVolume, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartPos", startPos }, { "Count", count } };
+            var response = SendCommand<List<long>>(ExecutorHandle, Mt5CommandType.CopyRealVolume, cmdParams);
+            volumeArray = response != null ? response.ToArray() : [];
             return volumeArray?.Length ?? 0;
         }
 
@@ -1362,10 +1279,10 @@ namespace MtApi5
         ///<param name="volumeArray">Array of long type.</param>
         public int CopyRealVolume(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, int count, out long[] volumeArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), count };
-
-            volumeArray = SendCommand<long[]>(Mt5CommandType.CopyRealVolume1, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) }, { "Count", count } };
+            var response = SendCommand<List<long>>(ExecutorHandle, Mt5CommandType.CopyRealVolume1, cmdParams);
+            volumeArray = response != null ? response.ToArray() : [];
             return volumeArray?.Length ?? 0;
         }
 
@@ -1379,10 +1296,11 @@ namespace MtApi5
         ///<param name="volumeArray">Array of long type.</param>
         public int CopyRealVolume(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, DateTime stopTime, out long[] volumeArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), Mt5TimeConverter.ConvertToMtTime(stopTime) };
-
-            volumeArray = SendCommand<long[]>(Mt5CommandType.CopyRealVolume2, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) },
+                { "StopTime", Mt5TimeConverter.ConvertToMtTime(stopTime) } };
+            var response = SendCommand<List<long>>(ExecutorHandle, Mt5CommandType.CopyRealVolume2, cmdParams);
+            volumeArray = response != null ? response.ToArray() : [];
             return volumeArray?.Length ?? 0;
         }
 
@@ -1396,10 +1314,10 @@ namespace MtApi5
         ///<param name="spreadArray">Array of long type.</param>
         public int CopySpread(string symbolName, ENUM_TIMEFRAMES timeframe, int startPos, int count, out int[] spreadArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, startPos, count };
-
-            spreadArray = SendCommand<int[]>(Mt5CommandType.CopySpread, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartPos", startPos }, { "Count", count } };
+            var response = SendCommand<List<int>>(ExecutorHandle, Mt5CommandType.CopySpread, cmdParams);
+            spreadArray = response != null ? response.ToArray() : [];
             return spreadArray?.Length ?? 0;
         }
 
@@ -1413,10 +1331,10 @@ namespace MtApi5
         ///<param name="spreadArray">Array of long type.</param>
         public int CopySpread(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, int count, out int[] spreadArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), count };
-
-            spreadArray = SendCommand<int[]>(Mt5CommandType.CopySpread1, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+               { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) }, { "Count", count } };
+            var response = SendCommand<List<int>>(ExecutorHandle, Mt5CommandType.CopySpread1, cmdParams);
+            spreadArray = response != null ? response.ToArray() : [];
             return spreadArray?.Length ?? 0;
         }
 
@@ -1430,10 +1348,11 @@ namespace MtApi5
         ///<param name="spreadArray">Array of long type.</param>
         public int CopySpread(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, DateTime stopTime, out int[] spreadArray)
         {
-            var commandParameters = new ArrayList { symbolName, (int)timeframe, Mt5TimeConverter.ConvertToMtTime(startTime), Mt5TimeConverter.ConvertToMtTime(stopTime) };
-
-            spreadArray = SendCommand<int[]>(Mt5CommandType.CopySpread2, commandParameters);
-
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Timeframe", (int)timeframe },
+                { "StartTime", Mt5TimeConverter.ConvertToMtTime(startTime) },
+                { "StopTime", Mt5TimeConverter.ConvertToMtTime(stopTime) } };
+            var response = SendCommand<List<int>>(ExecutorHandle, Mt5CommandType.CopySpread2, cmdParams);
+            spreadArray = response != null ? response.ToArray() : [];
             return spreadArray?.Length ?? 0;
         }
 
@@ -1450,8 +1369,7 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Flags", flags },
                 { "From", from }, { "Count", count }  };
-            var response = SendCommand<List<MqlTick>>(ExecutorHandle, Mt5CommandType.CopyTicks, cmdParams);
-            return response;
+            return SendCommand<List<MqlTick>>(ExecutorHandle, Mt5CommandType.CopyTicks, cmdParams);
         }
 
         ///<summary>
@@ -1468,15 +1386,13 @@ namespace MtApi5
                 cmdParams["Symbol"] = symbol;
             if (parameters != null)
                 cmdParams["Parameters"] = parameters;
-            var response = SendCommand<int>(ExecutorHandle, Mt5CommandType.IndicatorCreate, cmdParams);
-            return response;
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.IndicatorCreate, cmdParams);
         }
 
         public bool IndicatorRelease(int indicatorHandle)
         {
-            var commandParameters = new ArrayList { indicatorHandle };
-
-            return SendCommand<bool>(Mt5CommandType.IndicatorRelease, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "IndicatorHandle", indicatorHandle } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.IndicatorRelease, cmdParams);
         }
         #endregion
 
@@ -1488,9 +1404,8 @@ namespace MtApi5
         ///<param name="selected">Request mode. Can be true or false.</param>
         public int SymbolsTotal(bool selected)
         {
-            var commandParameters = new ArrayList { selected };
-
-            return SendCommand<int>(Mt5CommandType.SymbolsTotal, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Selected", selected } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.SymbolsTotal, cmdParams);
         }
 
         ///<summary>
@@ -1498,11 +1413,10 @@ namespace MtApi5
         ///</summary>
         ///<param name="pos">Order number of a symbol.</param>
         ///<param name="selected">Request mode. If the value is true, the symbol is taken from the list of symbols selected in MarketWatch. If the value is false, the symbol is taken from the general list.</param>
-        public string SymbolName(int pos, bool selected)
+        public string? SymbolName(int pos, bool selected)
         {
-            var commandParameters = new ArrayList { pos, selected };
-
-            return SendCommand<string>(Mt5CommandType.SymbolName, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Pos", pos }, { "Selected", selected } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.SymbolName, cmdParams);
         }
 
         ///<summary>
@@ -1512,9 +1426,8 @@ namespace MtApi5
         ///<param name="selected">Switch. If the value is false, a symbol should be removed from MarketWatch, otherwise a symbol should be selected in this window. A symbol can't be removed if the symbol chart is open, or there are open positions for this symbol.</param>
         public bool SymbolSelect(string symbolName, bool selected)
         {
-            var commandParameters = new ArrayList { symbolName, selected };
-
-            return SendCommand<bool>(Mt5CommandType.SymbolSelect, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "Selected", selected } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.SymbolSelect, cmdParams);
         }
 
         ///<summary>
@@ -1523,9 +1436,8 @@ namespace MtApi5
         ///<param name="symbolName">Symbol name.</param>
         public bool SymbolIsSynchronized(string symbolName)
         {
-            var commandParameters = new ArrayList { symbolName };
-
-            return SendCommand<bool>(Mt5CommandType.SymbolIsSynchronized, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.SymbolIsSynchronized, cmdParams);
         }
 
         ///<summary>
@@ -1535,9 +1447,8 @@ namespace MtApi5
         ///<param name="propId">Identifier of a symbol property.</param>
         public double SymbolInfoDouble(string symbolName, ENUM_SYMBOL_INFO_DOUBLE propId)
         {
-            var commandParameters = new ArrayList { symbolName, (int)propId };
-
-            return SendCommand<double>(Mt5CommandType.SymbolInfoDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "PropId", (int)propId } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.SymbolInfoDouble, cmdParams);
         }
 
         ///<summary>
@@ -1547,9 +1458,8 @@ namespace MtApi5
         ///<param name="propId">Identifier of a symbol property.</param>
         public long SymbolInfoInteger(string symbolName, ENUM_SYMBOL_INFO_INTEGER propId)
         {
-            var commandParameters = new ArrayList { symbolName, (int)propId };
-
-            return SendCommand<long>(Mt5CommandType.SymbolInfoInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName }, { "PropId", (int)propId } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.SymbolInfoInteger, cmdParams);
         }
 
         ///<summary>
@@ -1613,11 +1523,22 @@ namespace MtApi5
         ///<param name="to">Session end time in seconds from 00 hours 00 minutes, in the returned value date should be ignored.</param>
         public bool SymbolInfoSessionQuote(string name, ENUM_DAY_OF_WEEK dayOfWeek, uint sessionIndex, out DateTime from, out DateTime to)
         {
-            var commandParameters = new ArrayList { name, (int)dayOfWeek, sessionIndex };
+            Dictionary<string, object> cmdParams = new() { { "Symbol", name }, { "DayOfWeek", dayOfWeek },
+                { "SessionIndex", sessionIndex } };
 
-            string strResult = SendCommand<string>(Mt5CommandType.SymbolInfoSessionQuote, commandParameters);
-
-            return strResult.ParseResult(ParamSeparator, out from, out to); 
+            var response = SendCommand<FuncResult<Dictionary<string,int>>>(ExecutorHandle,
+                Mt5CommandType.SymbolInfoSessionQuote, cmdParams);
+            if (response != null && response.Result != null
+                && response.Result.TryGetValue("From", out int mtFrom)
+                && response.Result.TryGetValue("To", out int mtTo))
+            {
+                from = Mt5TimeConverter.ConvertFromMtTime(mtFrom);
+                to = Mt5TimeConverter.ConvertFromMtTime(mtTo);
+                return response.RetVal;
+            }
+            from = DateTime.MinValue;
+            to = DateTime.MinValue;
+            return false;
         }
 
         ///<summary>
@@ -1630,11 +1551,22 @@ namespace MtApi5
         ///<param name="to">Session end time in seconds from 00 hours 00 minutes, in the returned value date should be ignored.</param>
         public bool SymbolInfoSessionTrade(string name, ENUM_DAY_OF_WEEK dayOfWeek, uint sessionIndex, out DateTime from, out DateTime to)
         {
-            var commandParameters = new ArrayList { name, (int)dayOfWeek, sessionIndex };
+            Dictionary<string, object> cmdParams = new() { { "Symbol", name }, { "DayOfWeek", dayOfWeek },
+                { "SessionIndex", sessionIndex } };
 
-            string strResult = SendCommand<string>(Mt5CommandType.SymbolInfoSessionTrade, commandParameters);
-
-            return strResult.ParseResult(ParamSeparator, out from, out to);
+            var response = SendCommand<FuncResult<Dictionary<string,int>>>(ExecutorHandle,
+                Mt5CommandType.SymbolInfoSessionTrade, cmdParams);
+            if (response != null && response.Result != null
+                && response.Result.TryGetValue("From", out int mtFrom)
+                && response.Result.TryGetValue("To", out int mtTo))
+            {
+                from = Mt5TimeConverter.ConvertFromMtTime(mtFrom);
+                to = Mt5TimeConverter.ConvertFromMtTime(mtTo);
+                return response.RetVal;
+            }
+            from = DateTime.MinValue;
+            to = DateTime.MinValue;
+            return false;
         }
 
         ///<summary>
@@ -1643,9 +1575,8 @@ namespace MtApi5
         ///<param name="symbol">Symbol name.</param>
         public bool MarketBookAdd(string symbol)
         {
-            var commandParameters = new ArrayList { symbol };
-
-            return SendCommand<bool>(Mt5CommandType.MarketBookAdd, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.MarketBookAdd, cmdParams);
         }
 
         ///<summary>
@@ -1654,9 +1585,8 @@ namespace MtApi5
         ///<param name="symbol">Symbol name.</param>
         public bool MarketBookRelease(string symbol)
         {
-            var commandParameters = new ArrayList { symbol };
-
-            return SendCommand<bool>(Mt5CommandType.MarketBookRelease, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.MarketBookRelease, cmdParams);
         }
 
         ///<summary>
@@ -1684,7 +1614,7 @@ namespace MtApi5
         ///</returns>
         public long ChartId()
         {
-            return SendCommand<long>(Mt5CommandType.ChartId, null);
+            return ChartId(ExecutorHandle);
         }
 
         ///<summary>
@@ -1696,7 +1626,7 @@ namespace MtApi5
         ///</returns>
         public long ChartId(int expertHandle)
         {
-            return SendCommand<long>(Mt5CommandType.ChartId, null, null, expertHandle);
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.ChartId, expertHandle);
         }
 
         ///<summary>
@@ -1705,8 +1635,8 @@ namespace MtApi5
         ///<param name="chartId">Chart ID. 0 means the current chart.</param>
         public void ChartRedraw(long chartId = 0)
         {
-            var commandParameters = new ArrayList { chartId };
-            SendCommand<object>(Mt5CommandType.ChartRedraw, commandParameters);
+            Dictionary<string, long> cmdParams = new() { { "ChartId", chartId } };
+            SendCommand<object>(ExecutorHandle, Mt5CommandType.ChartRedraw, cmdParams);
         }
 
         ///<summary>
@@ -1719,8 +1649,9 @@ namespace MtApi5
         ///</returns>
         public bool ChartApplyTemplate(long chartId, string filename)
         {
-            var commandParameters = new ArrayList { chartId, filename };
-            return SendCommand<bool>(Mt5CommandType.ChartApplyTemplate, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "TemplateFileName", filename } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ChartApplyTemplate, cmdParams);
         }
 
         ///<summary>
@@ -1733,8 +1664,9 @@ namespace MtApi5
         ///</returns>
         public bool ChartSaveTemplate(long chartId, string filename)
         {
-            var commandParameters = new ArrayList { chartId, filename };
-            return SendCommand<bool>(Mt5CommandType.ChartSaveTemplate, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "TemplateFileName", filename } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ChartSaveTemplate, cmdParams);
         }
 
         ///<summary>
@@ -1747,8 +1679,9 @@ namespace MtApi5
         ///</returns>
         public int ChartWindowFind(long chartId, string indicatorShortname)
         {
-            var commandParameters = new ArrayList { chartId, indicatorShortname };
-            return SendCommand<int>(Mt5CommandType.ChartWindowFind, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "IndicatorShortname", indicatorShortname } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.ChartWindowFind, cmdParams);
         }
 
         ///<summary>
@@ -1769,7 +1702,7 @@ namespace MtApi5
                 { "Time", Mt5TimeConverter.ConvertToMtTime(time) }, { "Price", price } };
 
             Dictionary<string, int> XY = [];
-            var response = SendCommand<FuncResult<Dictionary<string, int>>>(ExecutorHandle, Mt5CommandType.ChartTimePriceToXY, cmdParams);
+            var response = SendCommand<FuncResult<Dictionary<string,int>>>(ExecutorHandle, Mt5CommandType.ChartTimePriceToXY, cmdParams);
             if (response != null && response.Result != null
                 && response.Result.TryGetValue("X", out x)
                 && response.Result.TryGetValue("Y", out y))
@@ -1793,7 +1726,7 @@ namespace MtApi5
         public bool ChartXYToTimePrice(long chartId, int x, int y, out int subWindow, out DateTime? time, out double price)
         {
             Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "X", x }, { "Y", y } };
-            var response = SendCommand<FuncResult<Dictionary<string, object>>>(ExecutorHandle, Mt5CommandType.ChartXYToTimePrice, cmdParams);
+            var response = SendCommand<FuncResult<Dictionary<string,object>>>(ExecutorHandle, Mt5CommandType.ChartXYToTimePrice, cmdParams);
             if (response != null && response.Result != null
                 && response.Result.TryGetValue("SubWindow", out object? mtSubWindow)
                 && response.Result.TryGetValue("Time", out object? mtTime)
@@ -1820,8 +1753,8 @@ namespace MtApi5
         ///</returns>
         public long ChartOpen(string symbol, ENUM_TIMEFRAMES period)
         {
-            var commandParameters = new ArrayList { symbol, (int)period };
-            return SendCommand<long>(Mt5CommandType.ChartOpen, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Timeframe", (int)period } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.ChartOpen, cmdParams);
         }
 
         ///<summary>
@@ -1829,7 +1762,7 @@ namespace MtApi5
         ///</summary>
         public long ChartFirst()
         {
-            return SendCommand<long>(Mt5CommandType.ChartFirst, null);
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.ChartFirst);
         }
 
         ///<summary>
@@ -1841,8 +1774,8 @@ namespace MtApi5
         ///</returns>
         public long ChartNext(long chartId)
         {
-            var commandParameters = new ArrayList { chartId };
-            return SendCommand<long>(Mt5CommandType.ChartNext, commandParameters);
+            Dictionary<string, long> cmdParams = new() { { "ChartId", chartId } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.ChartNext, cmdParams);
         }
 
         ///<summary>
@@ -1854,8 +1787,8 @@ namespace MtApi5
         ///</returns>
         public bool ChartClose(long chartId = 0)
         {
-            var commandParameters = new ArrayList { chartId };
-            return SendCommand<bool>(Mt5CommandType.ChartClose, commandParameters);
+            Dictionary<string, long> cmdParams = new() { { "ChartId", chartId } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ChartClose, cmdParams);
         }
 
         ///<summary>
@@ -1865,10 +1798,10 @@ namespace MtApi5
         ///<returns>
         ///If chart does not exist, the result will be an empty string.
         ///</returns>
-        public string ChartSymbol(long chartId)
+        public string? ChartSymbol(long chartId)
         {
-            var commandParameters = new ArrayList { chartId };
-            return SendCommand<string>(Mt5CommandType.ChartSymbol, commandParameters);
+            Dictionary<string, long> cmdParams = new() { { "ChartId", chartId } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.ChartSymbol, cmdParams);
         }
 
         ///<summary>
@@ -1880,8 +1813,8 @@ namespace MtApi5
         ///</returns>
         public ENUM_TIMEFRAMES ChartPeriod(long chartId)
         {
-            var commandParameters = new ArrayList { chartId };
-            return (ENUM_TIMEFRAMES)SendCommand<int>(Mt5CommandType.ChartPeriod, commandParameters);
+            Dictionary<string, long> cmdParams = new() { { "ChartId", chartId } };
+            return (ENUM_TIMEFRAMES)SendCommand<int>(ExecutorHandle, Mt5CommandType.ChartPeriod, cmdParams);
         }
 
         ///<summary>
@@ -1895,8 +1828,9 @@ namespace MtApi5
         ///</returns>
         public bool ChartSetDouble(long chartId, ENUM_CHART_PROPERTY_DOUBLE propId, double value)
         {
-            var commandParameters = new ArrayList { chartId, (int)propId, value };
-            return SendCommand<bool>(Mt5CommandType.ChartSetDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "PropId", (int)propId }, { "Value", value } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ChartSetDouble, cmdParams);
         }
 
         ///<summary>
@@ -1910,8 +1844,9 @@ namespace MtApi5
         ///</returns>
         public bool ChartSetInteger(long chartId, ENUM_CHART_PROPERTY_INTEGER propId, long value)
         {
-            var commandParameters = new ArrayList { chartId, (int)propId, value };
-            return SendCommand<bool>(Mt5CommandType.ChartSetInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "PropId", (int)propId }, { "Value", value } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ChartSetInteger, cmdParams);
         }
 
         ///<summary>
@@ -1925,8 +1860,9 @@ namespace MtApi5
         ///</returns>
         public bool ChartSetString(long chartId, ENUM_CHART_PROPERTY_STRING propId, string value)
         {
-            var commandParameters = new ArrayList { chartId, (int)propId, value };
-            return SendCommand<bool>(Mt5CommandType.ChartSetString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "PropId", (int)propId }, { "Value", value } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ChartSetString, cmdParams);
         }
 
         ///<summary>
@@ -1940,8 +1876,9 @@ namespace MtApi5
         ///</returns>
         public double ChartGetDouble(long chartId, ENUM_CHART_PROPERTY_DOUBLE propId, int subWindow = 0)
         {
-            var commandParameters = new ArrayList { chartId, (int)propId, subWindow };
-            return SendCommand<double>(Mt5CommandType.ChartGetDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "PropId", (int)propId }, { "SubWindow", subWindow } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.ChartGetDouble, cmdParams);
         }
 
         ///<summary>
@@ -1955,8 +1892,9 @@ namespace MtApi5
         ///</returns>
         public long ChartGetInteger(long chartId, ENUM_CHART_PROPERTY_INTEGER propId, int subWindow = 0)
         {
-            var commandParameters = new ArrayList { chartId, (int)propId, subWindow };
-            return SendCommand<long>(Mt5CommandType.ChartGetInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "PropId", (int)propId }, { "SubWindow", subWindow } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.ChartGetInteger, cmdParams);
         }
 
         ///<summary>
@@ -1967,10 +1905,11 @@ namespace MtApi5
         ///<returns>
         ///The value of string type.
         ///</returns>
-        public string ChartGetString(long chartId, ENUM_CHART_PROPERTY_STRING propId)
+        public string? ChartGetString(long chartId, ENUM_CHART_PROPERTY_STRING propId)
         {
-            var commandParameters = new ArrayList { chartId, (int)propId };
-            return SendCommand<string>(Mt5CommandType.ChartGetString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "PropId", (int)propId } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.ChartGetString, cmdParams);
         }
 
         ///<summary>
@@ -1984,8 +1923,9 @@ namespace MtApi5
         ///</returns>
         public bool ChartNavigate(long chartId, ENUM_CHART_POSITION position, int shift = 0)
         {
-            var commandParameters = new ArrayList { chartId, (int)position, shift };
-            return SendCommand<bool>(Mt5CommandType.ChartNavigate, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "Position", (int)position }, { "Shift", shift } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ChartNavigate, cmdParams);
         }
 
         ///<summary>
@@ -1999,8 +1939,9 @@ namespace MtApi5
         ///</returns>
         public bool ChartIndicatorAdd(long chartId, int subWindow, int indicatorHandle)
         {
-            var commandParameters = new ArrayList { chartId, subWindow, indicatorHandle };
-            return SendCommand<bool>(Mt5CommandType.ChartIndicatorAdd, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "SubWindow", subWindow }, { "IndicatorHandle", indicatorHandle } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ChartIndicatorAdd, cmdParams);
         }
 
         ///<summary>
@@ -2014,8 +1955,9 @@ namespace MtApi5
         ///</returns>
         public bool ChartIndicatorDelete(long chartId, int subWindow, string indicatorShortname)
         {
-            var commandParameters = new ArrayList { chartId, subWindow, indicatorShortname };
-            return SendCommand<bool>(Mt5CommandType.ChartIndicatorDelete, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "SubWindow", subWindow }, { "IndicatorShortname", indicatorShortname } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ChartIndicatorDelete, cmdParams);
         }
 
         ///<summary>
@@ -2029,8 +1971,9 @@ namespace MtApi5
         ///</returns>
         public int ChartIndicatorGet(long chartId, int subWindow, string indicatorShortname)
         {
-            var commandParameters = new ArrayList { chartId, subWindow, indicatorShortname };
-            return SendCommand<int>(Mt5CommandType.ChartIndicatorGet, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "SubWindow", subWindow }, { "IndicatorShortname", indicatorShortname } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.ChartIndicatorGet, cmdParams);
         }
 
         ///<summary>
@@ -2042,10 +1985,11 @@ namespace MtApi5
         ///<returns>
         ///The short name of the indicator which is set in the INDICATOR_SHORTNAME property with the IndicatorSetString() function.
         ///</returns>
-        public string ChartIndicatorName(long chartId, int subWindow, int index)
+        public string? ChartIndicatorName(long chartId, int subWindow, int index)
         {
-            var commandParameters = new ArrayList { chartId, subWindow, index };
-            return SendCommand<string>(Mt5CommandType.ChartIndicatorName, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "SubWindow", subWindow }, { "Index", index } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.ChartIndicatorName, cmdParams);
         }
 
         ///<summary>
@@ -2058,8 +2002,9 @@ namespace MtApi5
         ///</returns>
         public int ChartIndicatorsTotal(long chartId, int subWindow)
         {
-            var commandParameters = new ArrayList { chartId, subWindow };
-            return SendCommand<int>(Mt5CommandType.ChartIndicatorsTotal, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "SubWindow", subWindow } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.ChartIndicatorsTotal, cmdParams);
         }
 
         ///<summary>
@@ -2067,7 +2012,7 @@ namespace MtApi5
         ///</summary>
         public int ChartWindowOnDropped()
         {
-            return SendCommand<int>(Mt5CommandType.ChartWindowOnDropped, null);
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.ChartWindowOnDropped);
         }
 
         ///<summary>
@@ -2075,7 +2020,7 @@ namespace MtApi5
         ///</summary>
         public double ChartPriceOnDropped()
         {
-            return SendCommand<double>(Mt5CommandType.ChartPriceOnDropped, null);
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.ChartPriceOnDropped);
         }
 
         ///<summary>
@@ -2083,7 +2028,7 @@ namespace MtApi5
         ///</summary>
         public DateTime ChartTimeOnDropped()
         {
-            var res = SendCommand<int>(Mt5CommandType.ChartTimeOnDropped, null);
+            var res = SendCommand<int>(ExecutorHandle, Mt5CommandType.ChartTimeOnDropped);
             return Mt5TimeConverter.ConvertFromMtTime(res);
         }
 
@@ -2092,7 +2037,7 @@ namespace MtApi5
         ///</summary>
         public int ChartXOnDropped()
         {
-            return SendCommand<int>(Mt5CommandType.ChartXOnDropped, null);
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.ChartXOnDropped);
         }
 
         ///<summary>
@@ -2100,7 +2045,7 @@ namespace MtApi5
         ///</summary>
         public int ChartYOnDropped()
         {
-            return SendCommand<int>(Mt5CommandType.ChartYOnDropped, null);
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.ChartYOnDropped);
         }
 
         ///<summary>
@@ -2114,8 +2059,9 @@ namespace MtApi5
         ///</returns>
         public bool ChartSetSymbolPeriod(long chartId, string symbol, ENUM_TIMEFRAMES period)
         {
-            var commandParameters = new ArrayList { chartId, symbol, (int)period };
-            return SendCommand<bool>(Mt5CommandType.ChartSetSymbolPeriod, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "Symbol", symbol },
+                { "Period", (int)period } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ChartSetSymbolPeriod, cmdParams);
         }
 
         ///<summary>
@@ -2131,8 +2077,9 @@ namespace MtApi5
         ///</returns>
         public bool ChartScreenShot(long chartId, string filename, int width, int height, ENUM_ALIGN_MODE alignMode = ENUM_ALIGN_MODE.ALIGN_RIGHT)
         {
-            var commandParameters = new ArrayList { chartId, filename, width, height, (int)alignMode };
-            return SendCommand<bool>(Mt5CommandType.ChartScreenShot, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "Filename", filename },
+                { "Width", width }, { "Height", height }, { "AlignMode", (int)alignMode } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ChartScreenShot, cmdParams);
         }
         #endregion
 
@@ -2144,10 +2091,10 @@ namespace MtApi5
         ///<returns>
         ///Value of string type.
         ///</returns>
-        public string TerminalInfoString(ENUM_TERMINAL_INFO_STRING propertyId)
+        public string? TerminalInfoString(ENUM_TERMINAL_INFO_STRING propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-            return SendCommand<string>(Mt5CommandType.TerminalInfoString, commandParameters);
+            Dictionary<string, int> cmdParams = new() { { "PropertyId", (int)propertyId } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.TerminalInfoString, cmdParams);
         }
 
         ///<summary>
@@ -2159,8 +2106,8 @@ namespace MtApi5
         ///</returns>
         public int TerminalInfoInteger(ENUM_TERMINAL_INFO_INTEGER propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-            return SendCommand<int>(Mt5CommandType.TerminalInfoInteger, commandParameters);
+            Dictionary<string, int> cmdParams = new() { { "PropertyId", (int)propertyId } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.TerminalInfoInteger, cmdParams);
         }
 
         ///<summary>
@@ -2172,8 +2119,8 @@ namespace MtApi5
         ///</returns>
         public double TerminalInfoDouble(ENUM_TERMINAL_INFO_DOUBLE propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-            return SendCommand<double>(Mt5CommandType.TerminalInfoDouble, commandParameters);
+            Dictionary<string, int> cmdParams = new() { { "PropertyId", (int)propertyId } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.TerminalInfoDouble, cmdParams);
         }
         #endregion 
 
@@ -2181,13 +2128,13 @@ namespace MtApi5
         #region Common Functions
 
         ///<summary>
-        ///It enters a message in the Expert Advisor Log?.
+        ///It enters a message in the Expert Advisor
         ///</summary>
         ///<param name="message">Message</param>
         public bool Print(string message)
         {
-            var commandParameters = new ArrayList { message };
-            return SendCommand<bool>(Mt5CommandType.Print, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PrintMsg", message } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.Print, cmdParams);
         }
 
         ///<summary>
@@ -2196,8 +2143,8 @@ namespace MtApi5
         ///<param name="message">Message</param>
         public void Alert(string message)
         {
-            var commandParameters = new ArrayList { message };
-            SendCommand<object>(Mt5CommandType.Alert, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Message", message } };
+            SendCommand<object>(ExecutorHandle, Mt5CommandType.Alert, cmdParams);
         }
 
         ///<summary>
@@ -2205,7 +2152,7 @@ namespace MtApi5
         ///</summary>
         public void TesterStop()
         {
-            SendCommand<object>(Mt5CommandType.TesterStop, null);
+            SendCommand<object>(ExecutorHandle, Mt5CommandType.TesterStop);
         }
 
         #endregion // Common Functions
@@ -2227,23 +2174,27 @@ namespace MtApi5
             //Count the additional coordinates
             int iAdditionalCoordinates = (listOfCoordinates != null) ? listOfCoordinates.Count() : 0;
             if(iAdditionalCoordinates > 29)
-            {
                 throw new ArgumentOutOfRangeException("listOfCoordinates", "The maximum amount of coordinates in 30.");
-            }
 
-            int nParameter = 6 + iAdditionalCoordinates * 2;
-            var commandParameters = new ArrayList { nParameter, chartId, name, (int)type, nwin, Mt5TimeConverter.ConvertToMtTime(time), price };
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "Name", name },
+                { "Type", (int)type }, { "Nwin", nwin } };
+
+            List<int> times = [];
+            List<double> prices = [];
 
             if (iAdditionalCoordinates > 0 && listOfCoordinates != null)
             {
-                foreach (Tuple<DateTime, double> coordinateTuple in listOfCoordinates)
+                foreach (var coordinateTuple in listOfCoordinates)
                 {
-                    commandParameters.Add(Mt5TimeConverter.ConvertToMtTime(coordinateTuple.Item1));
-                    commandParameters.Add(coordinateTuple.Item2);
+                    times.Add(Mt5TimeConverter.ConvertToMtTime(coordinateTuple.Item1));
+                    prices.Add(coordinateTuple.Item2);
                 }
             }
 
-            return SendCommand<bool>(Mt5CommandType.ObjectCreate, commandParameters);
+            cmdParams["Times"] = times;
+            cmdParams["Prices"] = prices;
+
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ObjectCreate, cmdParams);
         }
 
         ///<summary>
@@ -2253,10 +2204,11 @@ namespace MtApi5
         ///<param name="pos">Ordinal number of the object according to the specified filter by the number and type of the subwindow.</param>
         ///<param name="subWindow">umber of the chart subwindow. 0 means the main chart window, -1 means all the subwindows of the chart, including the main window.</param>
         ///<param name="type">Type of the object. The value can be one of the values of the ENUM_OBJECT enumeration. -1 means all types.</param>
-        public string ObjectName(long chartId, int pos, int subWindow = -1, int type = -1)
+        public string? ObjectName(long chartId, int pos, int subWindow = -1, int type = -1)
         {
-            var commandParameters = new ArrayList { chartId, pos, subWindow, type };
-            return SendCommand<string>(Mt5CommandType.ObjectName, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "Pos", pos },
+                { "SubWindow", subWindow }, { "Type", type } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.ObjectName, cmdParams);
         }
 
         ///<summary>
@@ -2266,8 +2218,8 @@ namespace MtApi5
         ///<param name="name">Name of object to be deleted.</param>
         public bool ObjectDelete(long chartId, string name)
         {
-            var commandParameters = new ArrayList { chartId, name };
-            return SendCommand<bool>(Mt5CommandType.ObjectDelete, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "Name", name } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ObjectDelete, cmdParams);
         }
 
         ///<summary>
@@ -2278,8 +2230,9 @@ namespace MtApi5
         ///<param name="type">Type of the object. The value can be one of the values of the ENUM_OBJECT enumeration. -1 means all types.</param>
         public int ObjectsDeleteAll(long chartId, int subWindow = -1, int type = -1)
         {
-            var commandParameters = new ArrayList { chartId, subWindow, type };
-            return SendCommand<int>(Mt5CommandType.ObjectsDeleteAll, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "SubWindow", subWindow }, { "Type", type } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.ObjectsDeleteAll, cmdParams);
         }
 
         ///<summary>
@@ -2289,8 +2242,8 @@ namespace MtApi5
         ///<param name="name">The name of the searched object.</param>
         public int ObjectFind(long chartId, string name)
         {
-            var commandParameters = new ArrayList { chartId, name };
-            return SendCommand<int>(Mt5CommandType.ObjectFind, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "Name", name } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.ObjectFind, cmdParams);
         }
 
         ///<summary>
@@ -2302,8 +2255,9 @@ namespace MtApi5
         ///<param name="lineId">Line identifier.</param>
         public DateTime ObjectGetTimeByValue(long chartId, string name, double value, int lineId)
         {
-            var commandParameters = new ArrayList { chartId, name, value, lineId };
-            var res = SendCommand<int>(Mt5CommandType.ObjectGetTimeByValue, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "Name", name },
+                { "Value", value }, { "LineId", lineId } };
+            var res = SendCommand<int>(ExecutorHandle, Mt5CommandType.ObjectGetTimeByValue, cmdParams);
             return Mt5TimeConverter.ConvertFromMtTime(res);
         }
 
@@ -2316,8 +2270,9 @@ namespace MtApi5
         ///<param name="lineId">Line identifier.</param>
         public double ObjectGetValueByTime(long chartId, string name, DateTime time, int lineId)
         {
-            var commandParameters = new ArrayList { chartId, name, Mt5TimeConverter.ConvertToMtTime(time), lineId };
-            return SendCommand<double>(Mt5CommandType.ObjectGetValueByTime, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "Name", name },
+                { "Time",  Mt5TimeConverter.ConvertToMtTime(time) }, { "LineId", lineId } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.ObjectGetValueByTime, cmdParams);
         }
 
         ///<summary>
@@ -2330,8 +2285,9 @@ namespace MtApi5
         ///<param name="price">Price coordinate of the selected anchor point.</param>
         public bool ObjectMove(long chartId, string name, int pointIndex, DateTime time, double price)
         {
-            var commandParameters = new ArrayList { chartId, name, pointIndex, Mt5TimeConverter.ConvertToMtTime(time), price };
-            return SendCommand<bool>(Mt5CommandType.ObjectMove, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "Name", name }, { "PointIndex", pointIndex },
+                { "Time",  Mt5TimeConverter.ConvertToMtTime(time) }, { "Price", price } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ObjectMove, cmdParams);
         }
 
         ///<summary>
@@ -2341,10 +2297,10 @@ namespace MtApi5
         ///<param name="subWindow">Number of the chart subwindow. 0 means the main chart window, -1 means all the subwindows of the chart, including the main window.</param>
         ///<param name="type">Type of the object. The value can be one of the values of the ENUM_OBJECT enumeration. -1 means all types.</param>
         public int ObjectsTotal(long chartId, int subWindow = -1, int type = -1)
-
         {
-            var commandParameters = new ArrayList { chartId, subWindow, type };
-            return SendCommand<int>(Mt5CommandType.ObjectsTotal, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "SubWindow", subWindow }, { "Type", type } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.ObjectsTotal, cmdParams);
         }
 
         ///<summary>
@@ -2355,10 +2311,10 @@ namespace MtApi5
         ///<param name="propId">ID of the object property. The value can be one of the values of the ENUM_OBJECT_PROPERTY_DOUBLE enumeration.</param>
         ///<param name="propValue">The value of the property.</param>
         public bool ObjectSetDouble(long chartId, string name, ENUM_OBJECT_PROPERTY_DOUBLE propId, double propValue)
-
         {
-            var commandParameters = new ArrayList { chartId, name, (int)propId, propValue };
-            return SendCommand<bool>(Mt5CommandType.ObjectSetDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "Name", name }, { "PropId", (int)propId }, { "PropValue", propValue} };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ObjectSetDouble, cmdParams);
         }
 
         ///<summary>
@@ -2369,10 +2325,10 @@ namespace MtApi5
         ///<param name="propId">ID of the object property. The value can be one of the values of the ENUM_OBJECT_PROPERTY_INTEGER enumeration.</param>
         ///<param name="propValue">The value of the property.</param>
         public bool ObjectSetInteger(long chartId, string name, ENUM_OBJECT_PROPERTY_INTEGER propId, long propValue)
-
         {
-            var commandParameters = new ArrayList { chartId, name, (int)propId, propValue };
-            return SendCommand<bool>(Mt5CommandType.ObjectSetInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "Name", name }, { "PropId", (int)propId }, { "PropValue", propValue} };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ObjectSetInteger, cmdParams);
         }
 
         ///<summary>
@@ -2383,10 +2339,10 @@ namespace MtApi5
         ///<param name="propId">ID of the object property. The value can be one of the values of the ENUM_OBJECT_PROPERTY_STRING enumeration.</param>
         ///<param name="propValue">The value of the property.</param>
         public bool ObjectSetString(long chartId, string name, ENUM_OBJECT_PROPERTY_STRING propId, string propValue)
-
         {
-            var commandParameters = new ArrayList { chartId, name, (int)propId, propValue };
-            return SendCommand<bool>(Mt5CommandType.ObjectSetString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "Name", name }, { "PropId", (int)propId }, { "PropValue", propValue} };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ObjectSetString, cmdParams);
         }
 
         ///<summary>
@@ -2397,8 +2353,9 @@ namespace MtApi5
         ///<param name="propId">ID of the object property. The value can be one of the values of the ENUM_OBJECT_PROPERTY_DOUBLE enumeration.</param>
         public double ObjectGetDouble(long chartId, string name, ENUM_OBJECT_PROPERTY_DOUBLE propId)
         {
-            var commandParameters = new ArrayList { chartId, name, (int)propId };
-            return SendCommand<double>(Mt5CommandType.ObjectGetDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "Name", name }, { "PropId", (int)propId } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.ObjectGetDouble, cmdParams);
         }
 
         ///<summary>
@@ -2409,8 +2366,9 @@ namespace MtApi5
         ///<param name="propId">ID of the object property. The value can be one of the values of the ENUM_OBJECT_PROPERTY_INTEGER enumeration.</param>
         public long ObjectGetInteger(long chartId, string name, ENUM_OBJECT_PROPERTY_INTEGER propId)
         {
-            var commandParameters = new ArrayList { chartId, name, (int)propId };
-            return SendCommand<long>(Mt5CommandType.ObjectGetInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "Name", name }, { "PropId", (int)propId } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.ObjectGetInteger, cmdParams);
         }
 
         ///<summary>
@@ -2419,10 +2377,11 @@ namespace MtApi5
         ///<param name="chartId">Chart identifier. 0 means the current chart.</param>
         ///<param name="name">Name of the object.</param>
         ///<param name="propId">ID of the object property. The value can be one of the values of the ENUM_OBJECT_PROPERTY_STRING enumeration.</param>
-        public string ObjectGetString(long chartId, string name, ENUM_OBJECT_PROPERTY_STRING propId)
+        public string? ObjectGetString(long chartId, string name, ENUM_OBJECT_PROPERTY_STRING propId)
         {
-            var commandParameters = new ArrayList { chartId, name, (int)propId };
-            return SendCommand<string>(Mt5CommandType.ObjectGetString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "Name", name }, { "PropId", (int)propId } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.ObjectGetString, cmdParams);
         }
 
         #endregion //Object Functions
@@ -2436,8 +2395,8 @@ namespace MtApi5
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         public int iAC(string symbol, ENUM_TIMEFRAMES period)
         {
-            var commandParameters = new ArrayList { symbol, (int)period };
-            return SendCommand<int>(Mt5CommandType.iAC, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iAC, cmdParams);
         }
 
         ///<summary>
@@ -2448,8 +2407,9 @@ namespace MtApi5
         ///<param name="appliedVolume">The volume used. Can be any of ENUM_APPLIED_VOLUME values.</param>
         public int iAD(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, (int)appliedVolume };
-            return SendCommand<int>(Mt5CommandType.iAD, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "AppliedVolume", appliedVolume } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iAD, cmdParams);
         }
 
         ///<summary>
@@ -2460,8 +2420,9 @@ namespace MtApi5
         ///<param name="adxPeriod">Period to calculate the index.</param>
         public int iADX(string symbol, ENUM_TIMEFRAMES period, int adxPeriod)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, adxPeriod };
-            return SendCommand<int>(Mt5CommandType.iADX, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "AdxPeriod", adxPeriod } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iADX, cmdParams);
         }
 
         ///<summary>
@@ -2472,8 +2433,9 @@ namespace MtApi5
         ///<param name="adxPeriod">Period to calculate the index.</param>
         public int iADXWilder(string symbol, ENUM_TIMEFRAMES period, int adxPeriod)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, adxPeriod };
-            return SendCommand<int>(Mt5CommandType.iADXWilder, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "AdxPeriod", adxPeriod } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iADXWilder, cmdParams);
         }
 
         ///<summary>
@@ -2492,8 +2454,11 @@ namespace MtApi5
         public int iAlligator(string symbol, ENUM_TIMEFRAMES period, int jawPeriod, int jawShift, int teethPeriod, 
             int teethShift, int lipsPeriod, int lipsShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, jawPeriod, jawShift, teethPeriod, teethShift, lipsPeriod, lipsShift, (int)maMethod, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iAlligator, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "JawPeriod", jawPeriod }, { "JawShift", jawShift }, { "TeethPeriod", teethPeriod },
+                { "TeethShift", teethShift }, { "LipsPeriod", lipsPeriod }, { "LipsShift", lipsShift },
+                { "MaMethod", maMethod}, { "AppliedPrice", appliedPrice } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iAlligator, cmdParams);
         }
 
         ///<summary>
@@ -2508,8 +2473,10 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iAMA(string symbol, ENUM_TIMEFRAMES period, int amaPeriod, int fastMaPeriod, int slowMaPeriod, int amaShift, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, amaPeriod, fastMaPeriod, slowMaPeriod, amaShift, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iAMA, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "AmaPeriod", amaPeriod }, { "FastMaPeriod", fastMaPeriod }, { "SlowMaPeriod", slowMaPeriod },
+                { "AmaShift", amaShift }, { "AppliedPrice", appliedPrice} };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iAMA, cmdParams);
         }
 
         ///<summary>
@@ -2519,8 +2486,8 @@ namespace MtApi5
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         public int iAO(string symbol, ENUM_TIMEFRAMES period)
         {
-            var commandParameters = new ArrayList { symbol, (int)period };
-            return SendCommand<int>(Mt5CommandType.iAO, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iAO, cmdParams);
         }
 
         ///<summary>
@@ -2531,8 +2498,9 @@ namespace MtApi5
         ///<param name="maPeriod">The value of the averaging period for the indicator calculation.</param>
         public int iATR(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
-            return SendCommand<int>(Mt5CommandType.iATR, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iATR, cmdParams);
         }
 
         ///<summary>
@@ -2543,8 +2511,9 @@ namespace MtApi5
         ///<param name="maPeriod">The value of the averaging period for the indicator calculation.</param>
         public int iBearsPower(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
-            return SendCommand<int>(Mt5CommandType.iBearsPower, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iBearsPower, cmdParams);
         }
 
         ///<summary>
@@ -2558,8 +2527,10 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iBands(string symbol, ENUM_TIMEFRAMES period, int bandsPeriod, int bandsShift, double deviation, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, bandsPeriod, bandsShift, deviation, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iBands, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "BandsPeriod", bandsPeriod }, { "BandsShift", bandsShift }, { "Deviation", deviation},
+                { "AppliedPrice", (int)appliedPrice } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iBands, cmdParams);
         }
 
         ///<summary>
@@ -2570,8 +2541,9 @@ namespace MtApi5
         ///<param name="maPeriod">The averaging period for the indicator calculation.</param>
         public int iBullsPower(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
-            return SendCommand<int>(Mt5CommandType.iBullsPower, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iBullsPower, cmdParams);
         }
 
         ///<summary>
@@ -2583,8 +2555,9 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iCCI(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iCCI, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod }, { "AppliedPrice", appliedPrice } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCCI, cmdParams);
         }
 
         ///<summary>
@@ -2598,8 +2571,10 @@ namespace MtApi5
         ///<param name="appliedVolume">The volume used. Can be one of the constants of ENUM_APPLIED_VOLUME.</param>
         public int iChaikin(string symbol, ENUM_TIMEFRAMES period, int fastMaPeriod, int slowMaPeriod, ENUM_MA_METHOD maMethod, ENUM_APPLIED_VOLUME appliedVolume)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, fastMaPeriod, slowMaPeriod, (int)maMethod, (int)appliedVolume };
-            return SendCommand<int>(Mt5CommandType.iChaikin, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "FastMaPeriod", fastMaPeriod }, { "SlowMaPeriod", slowMaPeriod},
+                { "MaMethod", (int)maMethod }, { "appliedVolume", (int)appliedVolume } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iChaikin, cmdParams);
         }
 
         ///<summary>
@@ -2612,8 +2587,9 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iDEMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iDEMA, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod }, { "MaShift", maShift}, { "AppliedPrice", (int)appliedPrice } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iDEMA, cmdParams);
         }
 
         ///<summary>
@@ -2624,8 +2600,9 @@ namespace MtApi5
         ///<param name="maPeriod">Averaging period (bars count) for calculations.</param>
         public int iDeMarker(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
-            return SendCommand<int>(Mt5CommandType.iDeMarker, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iDeMarker, cmdParams);
         }
 
         ///<summary>
@@ -2640,8 +2617,10 @@ namespace MtApi5
         ///<param name="deviation">The deviation from the main line (in percents).</param>
         public int iEnvelopes(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice, double deviation)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)maMethod, (int)appliedPrice, deviation };
-            return SendCommand<int>(Mt5CommandType.iEnvelopes, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod },  { "MaShift", maShift }, { "MaMethod", (int)maMethod },
+                { "AppliedPrice", (int)appliedPrice }, { "Deviation", deviation } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iEnvelopes, cmdParams);
         }
 
         ///<summary>
@@ -2654,8 +2633,9 @@ namespace MtApi5
         ///<param name="appliedVolume">The volume used. Can be one of the values of ENUM_APPLIED_VOLUME.</param>
         public int iForce(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_MA_METHOD maMethod, ENUM_APPLIED_VOLUME appliedVolume)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)maMethod, (int)appliedVolume };
-            return SendCommand<int>(Mt5CommandType.iForce, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod }, { "MaMethod", (int)maMethod }, { "AppliedVolume", (int)appliedVolume } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iForce, cmdParams);
         }
 
         ///<summary>
@@ -2665,8 +2645,8 @@ namespace MtApi5
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
         public int iForce(string symbol, ENUM_TIMEFRAMES period)
         {
-            var commandParameters = new ArrayList { symbol, (int)period };
-            return SendCommand<int>(Mt5CommandType.iForce, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iForce, cmdParams);
         }
 
         ///<summary>
@@ -2679,8 +2659,9 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iFrAMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iFrAMA, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod }, { "MaShift", maShift }, { "AppliedPrice", (int)appliedPrice } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iFrAMA, cmdParams);
         }
 
         ///<summary>
@@ -2699,8 +2680,11 @@ namespace MtApi5
         public int iGator(string symbol, ENUM_TIMEFRAMES period, int jawPeriod, int jawShift, int teethPeriod, 
             int teethShift, int lipsPeriod, int lipsShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, jawPeriod, jawShift, teethPeriod, teethShift, lipsPeriod, lipsShift, (int)maMethod, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iGator, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "JawPeriod", jawPeriod }, { "JawShift", jawShift }, { "TeethPeriod", teethPeriod },
+                { "TeethShift", teethShift }, { "LipsPeriod", lipsPeriod }, { "LipsShift", lipsShift },
+                { "MaMethod", maMethod }, { "AppliedPrice", (int)appliedPrice } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iGator, cmdParams);
         }
 
         ///<summary>
@@ -2713,8 +2697,9 @@ namespace MtApi5
         ///<param name="senkouSpanB">Averaging period for Senkou Span B.</param>
         public int iIchimoku(string symbol, ENUM_TIMEFRAMES period, int tenkanSen, int kijunSen, int senkouSpanB)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, tenkanSen, kijunSen, senkouSpanB };
-            return SendCommand<int>(Mt5CommandType.iIchimoku, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "TenkanSen", tenkanSen }, { "KijunSen", kijunSen }, { "SenkouSpanB", senkouSpanB } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iIchimoku, cmdParams);
         }
 
         ///<summary>
@@ -2725,8 +2710,9 @@ namespace MtApi5
         ///<param name="appliedVolume">The volume used. Can be one of the constants of ENUM_APPLIED_VOLUME.</param>
         public int iBWMFI(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, (int)appliedVolume };
-            return SendCommand<int>(Mt5CommandType.iBWMFI, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "AppliedVolume", (int)appliedVolume } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iBWMFI, cmdParams);
         }
 
         ///<summary>
@@ -2738,8 +2724,9 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iMomentum(string symbol, ENUM_TIMEFRAMES period, int momPeriod, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, momPeriod, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iMomentum, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MomPeriod", momPeriod }, { "AppliedPrice", (int)appliedPrice } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iMomentum, cmdParams);
         }
 
         ///<summary>
@@ -2751,8 +2738,9 @@ namespace MtApi5
         ///<param name="appliedVolume">The volume used. Can be any of the ENUM_APPLIED_VOLUME values.</param>
         public int iMFI(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_VOLUME appliedVolume)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)appliedVolume };
-            return SendCommand<int>(Mt5CommandType.iMFI, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod }, { "AppliedVolume", (int)appliedVolume } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iMFI, cmdParams);
         }
 
         ///<summary>
@@ -2766,8 +2754,9 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)maMethod, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iMA, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod }, { "MaShift", maShift }, { "MaMethod", (int)maMethod }, { "AppliedPrice", (int)appliedPrice} };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iMA, cmdParams);
         }
 
         ///<summary>
@@ -2781,8 +2770,10 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iOsMA(string symbol, ENUM_TIMEFRAMES period, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, fastEmaPeriod, slowEmaPeriod, signalPeriod, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iOsMA, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "FastEmaPeriod", fastEmaPeriod }, { "SlowEmaPeriod", slowEmaPeriod }, { "SignalPeriod", signalPeriod },
+                { "AppliedPrice", (int)appliedPrice} };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iOsMA, cmdParams);
         }
 
         ///<summary>
@@ -2796,8 +2787,10 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iMACD(string symbol, ENUM_TIMEFRAMES period, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, fastEmaPeriod, slowEmaPeriod, signalPeriod, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iMACD, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "FastEmaPeriod", fastEmaPeriod }, { "SlowEmaPeriod", slowEmaPeriod }, { "SignalPeriod", signalPeriod },
+                { "AppliedPrice", (int)appliedPrice} };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iMACD, cmdParams);
         }
 
         ///<summary>
@@ -2808,8 +2801,9 @@ namespace MtApi5
         ///<param name="appliedVolume">The volume used. Can be any of the ENUM_APPLIED_VOLUME values.</param>
         public int iOBV(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, (int)appliedVolume };
-            return SendCommand<int>(Mt5CommandType.iOBV, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "AppliedVolume", (int)appliedVolume} };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iOBV, cmdParams);
         }
 
         ///<summary>
@@ -2821,8 +2815,9 @@ namespace MtApi5
         ///<param name="maximum">The maximum step, usually 0.2.</param>
         public int iSAR(string symbol, ENUM_TIMEFRAMES period, double step, double maximum)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, step, maximum };
-            return SendCommand<int>(Mt5CommandType.iSAR, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "Step", (int)step}, { "Maximum", maximum } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iSAR, cmdParams);
         }
 
         ///<summary>
@@ -2834,8 +2829,9 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iRSI(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iRSI, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod }, { "AppliedPrice", (int)appliedPrice } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iRSI, cmdParams);
         }
 
         ///<summary>
@@ -2846,8 +2842,9 @@ namespace MtApi5
         ///<param name="maPeriod">Averaging period for the RVI calculation.</param>
         public int iRVI(string symbol, ENUM_TIMEFRAMES period, int maPeriod)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod };
-            return SendCommand<int>(Mt5CommandType.iRVI, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iRVI, cmdParams);
         }
 
         ///<summary>
@@ -2861,8 +2858,10 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iStdDev(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_MA_METHOD maMethod, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)maMethod, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iStdDev, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod }, { "MaShift", maShift }, { "MaMethod", (int)maMethod },
+                { "AppliedPrice", (int)appliedPrice } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iStdDev, cmdParams);
         }
 
         ///<summary>
@@ -2877,8 +2876,10 @@ namespace MtApi5
         ///<param name="priceField">Parameter of price selection for calculations. Can be one of the ENUM_STO_PRICE values.</param>
         public int iStochastic(string symbol, ENUM_TIMEFRAMES period, int Kperiod, int Dperiod, int slowing, ENUM_MA_METHOD maMethod, ENUM_STO_PRICE priceField)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, Kperiod, Dperiod, slowing, (int)maMethod, (int)priceField };
-            return SendCommand<int>(Mt5CommandType.iStochastic, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "Kperiod", Kperiod }, { "Dperiod", Dperiod }, { "Slowing", slowing },
+                { "MaMethod", (int)maMethod }, { "priceField", (int)priceField } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iStochastic, cmdParams);
         }
 
         ///<summary>
@@ -2891,8 +2892,9 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iTEMA(string symbol, ENUM_TIMEFRAMES period, int maPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, maShift, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iTEMA, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod }, { "MaShift", maShift }, { "AppliedPrice", (int)appliedPrice } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iTEMA, cmdParams);
         }
 
         ///<summary>
@@ -2904,8 +2906,9 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iTriX(string symbol, ENUM_TIMEFRAMES period, int maPeriod, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, maPeriod, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iTriX, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "MaPeriod", maPeriod }, { "AppliedPrice", (int)appliedPrice } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iTriX, cmdParams);
         }
 
         ///<summary>
@@ -2916,8 +2919,9 @@ namespace MtApi5
         ///<param name="calcPeriod">Period (bars count) for the indicator calculation.</param>
         public int iWPR(string symbol, ENUM_TIMEFRAMES period, int calcPeriod)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, calcPeriod };
-            return SendCommand<int>(Mt5CommandType.iWPR, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "CalcPeriod", calcPeriod } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iWPR, cmdParams);
         }
 
         ///<summary>
@@ -2931,8 +2935,10 @@ namespace MtApi5
         ///<param name="appliedPrice">The price used. Can be any of the price constants ENUM_APPLIED_PRICE or a handle of another indicator.</param>
         public int iVIDyA(string symbol, ENUM_TIMEFRAMES period, int cmoPeriod, int emaPeriod, int maShift, ENUM_APPLIED_PRICE appliedPrice)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, cmoPeriod, emaPeriod, maShift, (int)appliedPrice };
-            return SendCommand<int>(Mt5CommandType.iVIDyA, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "CmoPeriod", cmoPeriod }, { "EmaPeriod", emaPeriod }, { "MaShift", maShift },
+                { "AppliedPrice", (int)appliedPrice } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iVIDyA, cmdParams);
         }
 
         ///<summary>
@@ -2943,8 +2949,9 @@ namespace MtApi5
         ///<param name="appliedVolume">The volume used. Can be any of the ENUM_APPLIED_VOLUME values.</param>
         public int iVolumes(string symbol, ENUM_TIMEFRAMES period, ENUM_APPLIED_VOLUME appliedVolume)
         {
-            var commandParameters = new ArrayList { symbol, (int)period, (int)appliedVolume };
-            return SendCommand<int>(Mt5CommandType.iVolumes, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
+                { "AppliedVolume", (int)appliedVolume } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iVolumes, cmdParams);
         }
 
         ///<summary>
@@ -2957,11 +2964,9 @@ namespace MtApi5
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, double[] parameters)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
-                { "Name", name }, { "Parameters", parameters } };
-            cmdParams["ParamsType"] = ICustomRequest.ParametersType.Double;
-
-            var response = SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
-            return response;
+                { "Name", name }, { "Parameters", parameters },
+                { "ParamsType", ICustomRequest.ParametersType.Double} };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
         ///<summary>
@@ -2974,11 +2979,9 @@ namespace MtApi5
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, int[] parameters)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
-                { "Name", name }, { "Parameters", parameters } };
-            cmdParams["ParamsType"] = ICustomRequest.ParametersType.Int;
-
-            var response = SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
-            return response;
+                { "Name", name }, { "Parameters", parameters },
+                { "ParamsType", ICustomRequest.ParametersType.Int } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
         ///<summary>
@@ -2991,11 +2994,9 @@ namespace MtApi5
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, string[] parameters)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
-                { "Name", name }, { "Parameters", parameters } };
-            cmdParams["ParamsType"] = ICustomRequest.ParametersType.String;
-
-            var response = SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
-            return response;
+                { "Name", name }, { "Parameters", parameters },
+                { "ParamsType", ICustomRequest.ParametersType.String } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
         ///<summary>
@@ -3008,11 +3009,9 @@ namespace MtApi5
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, bool[] parameters)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
-                { "Name", name }, { "Parameters", parameters } };
-            cmdParams["ParamsType"] = ICustomRequest.ParametersType.Boolean;
-
-            var response = SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
-            return response;
+                { "Name", name }, { "Parameters", parameters },
+                { "ParamsType", ICustomRequest.ParametersType.Boolean } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
         #endregion //Technical Indicators
@@ -3024,9 +3023,7 @@ namespace MtApi5
         ///</summary>
         public DateTime TimeCurrent()
         {
-            Log?.Debug("TimeCurrent: called.");
-            var response = SendCommand<long>(Mt5CommandType.TimeCurrent, null);
-            Log?.Debug($"TimeCurrent: response = {response}.");
+            var response = SendCommand<long>(ExecutorHandle, Mt5CommandType.TimeCurrent);
             return Mt5TimeConverter.ConvertFromMtTime(response);
         }
 
@@ -3035,9 +3032,7 @@ namespace MtApi5
         ///</summary>
         public DateTime TimeTradeServer()
         {
-            Log?.Debug("TimeTradeServer: called.");
-            var response = SendCommand<long>(Mt5CommandType.TimeTradeServer, null);
-            Log?.Debug($"TimeTradeServer: response = {response}.");
+            var response = SendCommand<long>(ExecutorHandle, Mt5CommandType.TimeTradeServer);
             return Mt5TimeConverter.ConvertFromMtTime(response);
         }
 
@@ -3046,9 +3041,7 @@ namespace MtApi5
         ///</summary>
         public DateTime TimeLocal()
         {
-            Log?.Debug("TimeLocal: called.");
-            var response = SendCommand<long>(Mt5CommandType.TimeLocal, null);
-            Log?.Debug($"TimeLocal: response = {response}.");
+            var response = SendCommand<long>(ExecutorHandle, Mt5CommandType.TimeLocal);
             return Mt5TimeConverter.ConvertFromMtTime(response);
         }
 
@@ -3057,9 +3050,7 @@ namespace MtApi5
         ///</summary>
         public DateTime TimeGMT()
         {
-            Log?.Debug("TimeGMT: called.");
-            var response = SendCommand<long>(Mt5CommandType.TimeGMT, null);
-            Log?.Debug($"TimeGMT: response = {response}.");
+            var response = SendCommand<long>(ExecutorHandle, Mt5CommandType.TimeGMT);
             return Mt5TimeConverter.ConvertFromMtTime(response);
         }
 
@@ -3072,7 +3063,7 @@ namespace MtApi5
         ///</summary>
         public int GetLastError()
         {
-            return SendCommand<int>(Mt5CommandType.GetLastError, null);
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.GetLastError);
         }
 
         ///<summary>
@@ -3080,7 +3071,7 @@ namespace MtApi5
         ///</summary>
         public void ResetLastError()
         {
-            SendCommand<object>(Mt5CommandType.ResetLastError, null);
+            SendCommand<object>(ExecutorHandle, Mt5CommandType.ResetLastError);
         }
 
         #endregion
@@ -3093,8 +3084,8 @@ namespace MtApi5
         ///<param name="name">Global variable name.</param>
         public bool GlobalVariableCheck(string name)
         {
-            var commandParameters = new ArrayList { name };
-            return SendCommand<bool>(Mt5CommandType.GlobalVariableCheck, commandParameters);
+            Dictionary<string, string> cmdParams = new() { { "Name", name } }; 
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.GlobalVariableCheck, cmdParams);
         }
 
         ///<summary>
@@ -3103,8 +3094,8 @@ namespace MtApi5
         ///<param name="name">Name of the global variable.</param>
         public DateTime GlobalVariableTime(string name)
         {
-            var commandParameters = new ArrayList { name };
-            var res = SendCommand<int>(Mt5CommandType.GlobalVariableTime, commandParameters);
+            Dictionary<string, string> cmdParams = new() { { "Name", name } };
+            var res = SendCommand<int>(ExecutorHandle, Mt5CommandType.GlobalVariableTime, cmdParams);
             return Mt5TimeConverter.ConvertFromMtTime(res);
         }
 
@@ -3114,8 +3105,8 @@ namespace MtApi5
         ///<param name="name">Name of the global variable.</param>
         public bool GlobalVariableDel(string name)
         {
-            var commandParameters = new ArrayList { name };
-            return SendCommand<bool>(Mt5CommandType.GlobalVariableDel, commandParameters);
+            Dictionary<string, string> cmdParams = new() { { "Name", name } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.GlobalVariableDel, cmdParams);
         }
 
         ///<summary>
@@ -3124,18 +3115,18 @@ namespace MtApi5
         ///<param name="name">Global variable name.</param>
         public double GlobalVariableGet(string name)
         {
-            var commandParameters = new ArrayList { name };
-            return SendCommand<double>(Mt5CommandType.GlobalVariableGet, commandParameters);
+            Dictionary<string, string> cmdParams = new() { { "Name", name } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.GlobalVariableGet, cmdParams);
         }
 
         ///<summary>
         ///Returns the name of a global variable by its ordinal number.
         ///</summary>
         ///<param name="index">Sequence number in the list of global variables. It should be greater than or equal to 0 and less than GlobalVariablesTotal().</param>
-        public string GlobalVariableName(int index)
+        public string? GlobalVariableName(int index)
         {
-            var commandParameters = new ArrayList { index };
-            return SendCommand<string>(Mt5CommandType.GlobalVariableName, commandParameters);
+            Dictionary<string, int> cmdParams = new() { { "Index", index } };
+            return SendCommand<string>(ExecutorHandle, Mt5CommandType.GlobalVariableName, cmdParams);
         }
 
         ///<summary>
@@ -3145,8 +3136,8 @@ namespace MtApi5
         ///<param name="value">The new numerical value.</param>
         public DateTime GlobalVariableSet(string name, double value)
         {
-            var commandParameters = new ArrayList { name, value };
-            var res = SendCommand<int>(Mt5CommandType.GlobalVariableSet, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Name", name }, { "Value", value } };
+            var res = SendCommand<int>(ExecutorHandle, Mt5CommandType.GlobalVariableSet, cmdParams);
             return Mt5TimeConverter.ConvertFromMtTime(res);
         }
 
@@ -3155,7 +3146,7 @@ namespace MtApi5
         ///</summary>
         public void GlobalVariablesFlush()
         {
-            SendCommand<object>(Mt5CommandType.GlobalVariablesFlush, null);
+            SendCommand<object>(ExecutorHandle, Mt5CommandType.GlobalVariablesFlush);
         }
 
         ///<summary>
@@ -3165,7 +3156,7 @@ namespace MtApi5
         public bool GlobalVariableTemp(string name)
         {
             var commandParameters = new ArrayList { name };
-            return SendCommand<bool>(Mt5CommandType.GlobalVariableTemp, commandParameters);
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.GlobalVariableTemp, commandParameters);
         }
 
         ///<summary>
@@ -3176,8 +3167,8 @@ namespace MtApi5
         ///<param name="checkValue">The value to check the current value of the global variable.</param>
         public bool GlobalVariableSetOnCondition(string name, double value, double checkValue)
         {
-            var commandParameters = new ArrayList { name, value, checkValue };
-            return SendCommand<bool>(Mt5CommandType.GlobalVariableSetOnCondition, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Name", name }, { "Value", value }, { "CheckValue", checkValue } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.GlobalVariableSetOnCondition, cmdParams);
         }
 
         ///<summary>
@@ -3189,8 +3180,9 @@ namespace MtApi5
         {
             if (prefixName == null)
                 prefixName = "";
-            var commandParameters = new ArrayList { prefixName, Mt5TimeConverter.ConvertToMtTime(limitData) };
-            return SendCommand<int>(Mt5CommandType.GlobalVariablesDeleteAll, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PrefixName", prefixName },
+                { "LimitData", Mt5TimeConverter.ConvertToMtTime(limitData) } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.GlobalVariablesDeleteAll, cmdParams);
         }
 
         ///<summary>
@@ -3198,7 +3190,7 @@ namespace MtApi5
         ///</summary>
         public int GlobalVariablesTotal()
         {
-            return SendCommand<int>(Mt5CommandType.GlobalVariablesTotal, null);
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.GlobalVariablesTotal);
         }
         #endregion
 
@@ -3209,7 +3201,7 @@ namespace MtApi5
         ///</summary>
         public void UnlockTicks()
         {
-            SendCommand<object>(Mt5CommandType.UnlockTicks, null);
+            SendCommand<object>(ExecutorHandle, Mt5CommandType.UnlockTicks);
         }
 
         #endregion
@@ -3592,75 +3584,6 @@ namespace MtApi5
             return (response.Value == null) ? default : response.Value;
         }
 
-        private T SendCommand<T>(Mt5CommandType commandType, ArrayList? commandParameters, Dictionary<string, object>? namedParams = null, int? executor = null)
-        {
-            T r;
-            //MtResponse response;
-
-            //var client = Client;
-            //if (client == null)
-            //{
-            //    Log?.Warn("SendCommand: No connection");
-            //    throw new Exception("No connection");
-            //}
-
-            //try
-            //{
-            //    response = client.SendCommand((int)commandType, commandParameters, namedParams, executor ?? ExecutorHandle);
-            //}
-            //catch (CommunicationException ex)
-            //{
-            //    Log?.Warn($"SendCommand: {ex.Message}");
-            //    throw new Exception(ex.Message, ex);
-            //}
-
-            //if (response == null)
-            //{
-            //    Log?.Warn("SendCommand: Response from MetaTrader is null");
-            //    throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
-            //}
-
-            //if (response.ErrorCode != 0)
-            //{
-            //    Log?.Warn($"SendCommand: ErrorCode = {response.ErrorCode}. {response}");
-            //    throw new ExecutionException((ErrorCode)response.ErrorCode, response.ToString());
-            //}
-
-            //var responseValue = response.GetValue();
-            //return (T) responseValue;
-            return default(T);
-        }
-
-        //private T SendRequest<T>(RequestBase request)
-        //{
-        //    if (request == null)
-        //        return default(T);
-
-        //    var serializer = JsonConvert.SerializeObject(request, Formatting.None,
-        //                    new JsonSerializerSettings
-        //                    {
-        //                        NullValueHandling = NullValueHandling.Ignore
-        //                    });
-        //    var commandParameters = new ArrayList { serializer };
-
-        //    var res = SendCommand<string>(Mt5CommandType.MtRequest, commandParameters);
-
-        //    if (res == null)
-        //    {
-        //        Log?.Warn("SendRequest: Response from MetaTrader is null");
-        //        throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
-        //    }
-
-        //    var response = JsonConvert.DeserializeObject<Response<T>>(res) ?? throw new Exception("Failed to deserialize response");
-        //    if (response.ErrorCode != 0)
-        //    {
-        //        Log?.Warn($"SendRequest: ErrorCode = {response.ErrorCode}. {response}");
-        //        throw new ExecutionException((ErrorCode)response.ErrorCode, response.ErrorMessage);
-        //    }
-
-        //    return response.Value;
-        //}
-
         private void OnConnected()
         {
             Log?.Debug("OnConnected: begin");
@@ -3679,7 +3602,7 @@ namespace MtApi5
 
         private void BacktestingReady()
         {
-            SendCommand<object>(Mt5CommandType.BacktestingReady, null);
+            SendCommand<object>(ExecutorHandle, Mt5CommandType.BacktestingReady);
         }
         #endregion
     }
