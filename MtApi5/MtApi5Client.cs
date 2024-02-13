@@ -3386,6 +3386,8 @@ namespace MtApi5
             lock (_locker)
             {
                 added = _experts.Add(handle);
+                if (_executorHandle == 0)
+                    _executorHandle = (_experts.Count > 0) ? _experts.ElementAt(0) : 0;
             }
 
             if (added)
