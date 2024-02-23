@@ -1,8 +1,8 @@
 ﻿using System.Collections;
-using MtApi5.Requests;
 using Newtonsoft.Json;
 using MtClient;
 using MtApi5.MtProtocol;
+using MtApi5.MtProtocol.ICustomRequest;
 
 namespace MtApi5
 {
@@ -2965,7 +2965,7 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
                 { "Name", name }, { "Parameters", parameters },
-                { "ParamsType", ICustomRequest.ParametersType.Double} };
+                { "ParamsType", ParametersType.Double} };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
@@ -2980,7 +2980,7 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
                 { "Name", name }, { "Parameters", parameters },
-                { "ParamsType", ICustomRequest.ParametersType.Int } };
+                { "ParamsType", ParametersType.Int } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
@@ -2995,7 +2995,7 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
                 { "Name", name }, { "Parameters", parameters },
-                { "ParamsType", ICustomRequest.ParametersType.String } };
+                { "ParamsType", ParametersType.String } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
@@ -3010,7 +3010,7 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Period", (int)period },
                 { "Name", name }, { "Parameters", parameters },
-                { "ParamsType", ICustomRequest.ParametersType.Boolean } };
+                { "ParamsType", ParametersType.Boolean } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
