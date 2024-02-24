@@ -2,7 +2,7 @@
 {
     public class Mt5Quote
     {
-        public string? Instrument { get; set; }
+        public string Instrument { get; set; } = string.Empty;
         public double Bid { get; set; }
         public double Ask { get; set; }
         public int ExpertHandle { get; set; }

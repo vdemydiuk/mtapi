@@ -1,4 +1,6 @@
-﻿namespace MtApi5
+﻿using MtApi5.MtProtocol;
+
+namespace MtApi5
 {
     public class MqlTick
     {
@@ -13,6 +15,19 @@
 
         public MqlTick()
         {
+        }
+
+        internal MqlTick(MtTick? tick)
+        {
+            if (tick != null)
+            {
+                MtTime = tick.Time;
+                bid = tick.Bid;
+                ask = tick.Ask;
+                last = tick.Last;
+                volume = tick.Volume;
+                volume_real = tick.VolumeReal;
+            }
         }
 
         public long MtTime { get; set; }          // Time of the last prices update
