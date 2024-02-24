@@ -1093,7 +1093,7 @@ string Execute_CopyTime()
 
    JSONArray* jaresult = new JSONArray();
    for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(time_array[i]));
+      jaresult.put(i, new JSONNumber((long)time_array[i]));
       
    return CreateSuccessResponse(jaresult);
 }
@@ -1111,7 +1111,7 @@ string Execute_CopyTime1()
 
    JSONArray* jaresult = new JSONArray();
    for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(time_array[i]));
+      jaresult.put(i, new JSONNumber((long)time_array[i]));
       
    return CreateSuccessResponse(jaresult);
 }
@@ -1129,7 +1129,7 @@ string Execute_CopyTime2()
    
    JSONArray* jaresult = new JSONArray();
    for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(time_array[i]));
+      jaresult.put(i, new JSONNumber((long)time_array[i]));
       
    return CreateSuccessResponse(jaresult);
 }
@@ -1535,7 +1535,7 @@ string Execute_SymbolSelect()
 {
    GET_JSON_PAYLOAD(jo);
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_BOOL_JSON_VALUE(jo, "Select", select);
+   GET_BOOL_JSON_VALUE(jo, "Selected", select);
    
    bool result = SymbolSelect(symbol, select);
    return CreateSuccessResponse(new JSONBool(result));
@@ -1618,8 +1618,8 @@ string Execute_SymbolInfoSessionQuote()
    JSONObject* result_value_jo = new JSONObject();
    result_value_jo.put("RetVal", new JSONBool(ok));
    JSONObject* info_jo = new JSONObject();
-   info_jo.put("From", new JSONNumber(from));
-   info_jo.put("To", new JSONNumber(to));
+   info_jo.put("From", new JSONNumber((long)from));
+   info_jo.put("To", new JSONNumber((long)to));
    result_value_jo.put("Result", info_jo);
    
    return CreateSuccessResponse(result_value_jo);
@@ -1639,8 +1639,8 @@ string Execute_SymbolInfoSessionTrade()
    JSONObject* result_value_jo = new JSONObject();
    result_value_jo.put("RetVal", new JSONBool(ok));
    JSONObject* info_jo = new JSONObject();
-   info_jo.put("From", new JSONNumber(from));
-   info_jo.put("To", new JSONNumber(to));
+   info_jo.put("From", new JSONNumber((long)from));
+   info_jo.put("To", new JSONNumber((long)to));
    result_value_jo.put("Result", info_jo);
    
    return CreateSuccessResponse(result_value_jo);
@@ -2565,7 +2565,7 @@ string Execute_GlobalVariableTime()
    GET_STRING_JSON_VALUE(jo, "Name", name);
    
    datetime result = GlobalVariableTime(name);
-   return CreateSuccessResponse(new JSONNumber(result));
+   return CreateSuccessResponse(new JSONNumber((long)result));
 }
 
 string Execute_GlobalVariableDel()
@@ -2602,7 +2602,7 @@ string Execute_GlobalVariableSet()
    GET_DOUBLE_JSON_VALUE(jo, "Value", value);
 
    datetime result = GlobalVariableSet(name, value);
-   return CreateSuccessResponse(new JSONNumber((int)result));
+   return CreateSuccessResponse(new JSONNumber((long)result));
 }
 
 string Execute_GlobalVariablesFlush()
@@ -2704,7 +2704,7 @@ string Execute_ChartGetDouble()
    GET_INT_JSON_VALUE(jo, "SubWindow", sub_window);
 
    double result = ChartGetDouble(chart_id, (ENUM_CHART_PROPERTY_DOUBLE)prop_id, sub_window);
-   return CreateSuccessResponse(new JSONBool(result));
+   return CreateSuccessResponse(new JSONNumber(result));
 }
 
 string Execute_ChartGetInteger()
@@ -2804,7 +2804,7 @@ string Execute_ChartPriceOnDropped()
 string Execute_ChartTimeOnDropped()
 {
    datetime result = ChartTimeOnDropped();
-   return CreateSuccessResponse(new JSONNumber((int)result));
+   return CreateSuccessResponse(new JSONNumber((long)result));
 }
 
 string Execute_ChartXOnDropped()
@@ -3105,7 +3105,7 @@ string Execute_OrderSend()
    GET_JSON_PAYLOAD(jo);
    CHECK_JSON_VALUE(jo, "TradeRequest");
    JSONObject* trade_request_jo = jo.p.getObject("TradeRequest");
-      
+
    MqlTradeRequest trade_request;
    bool converted = JsonToMqlTradeRequest(trade_request_jo, trade_request);
    if (converted == false)
@@ -3317,7 +3317,7 @@ string Execute_ChartXYToTimePrice()
    result_value_jo.put("RetVal", new JSONBool(ok));
    JSONObject* time_price_jo = new JSONObject();
    time_price_jo.put("SubWindow", new JSONNumber(sub_window));
-   time_price_jo.put("Time", new JSONNumber((int)time));
+   time_price_jo.put("Time", new JSONNumber((long)time));
    time_price_jo.put("Price", new JSONNumber(price));
    result_value_jo.put("Result", time_price_jo);
    
@@ -3446,27 +3446,24 @@ string Execute_Sell()
    return CreateSuccessResponse(result_value_jo); 
 }
 
-bool OrderCloseAll()
-{
-   CTrade trade;
-   int i = PositionsTotal()-1;
-   while (i >= 0)
-   {
-      if (trade.PositionClose(PositionGetSymbol(i))) i--;
-   }
-   return true;
-}
-
 int PositionCloseAll()
 {
    CTrade trade;
    int total = PositionsTotal();
-   int i = total -1;
-   while (i >= 0)
+   int count = 0;
+   for(int i = 0; i < total; i++)
    {
-      if (trade.PositionClose(PositionGetSymbol(i))) i--;
+      if (trade.PositionClose(PositionGetSymbol(i)))
+         count++;
+      Sleep(50); // Relax for 50 ms
    }
    return total;
+}
+
+bool OrderCloseAll()
+{
+   int count = PositionCloseAll();
+   return count > 0;
 }
 
 string CreateErrorResponse(int code, string message_er)
@@ -3705,11 +3702,11 @@ bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
    //Magic
    if (jo.getValue("Magic") == NULL) return false;
    request.magic = jo.getLong("Magic");
-   
+
    //Order
    if (jo.getValue("Order") == NULL) return false;
    request.order = jo.getLong("Order");
-   
+
    //Symbol
    if (jo.getValue("Symbol") != NULL)
    {
@@ -3778,7 +3775,7 @@ bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
 JSONObject* MqlTickToJson(const MqlTick& tick)
 {
     JSONObject *jo = new JSONObject();
-    jo.put("Time", new JSONNumber(tick.time));
+    jo.put("Time", new JSONNumber((long)tick.time));
     jo.put("Bid", new JSONNumber(tick.bid));
     jo.put("Ask", new JSONNumber(tick.ask));
     jo.put("Last", new JSONNumber(tick.last));
