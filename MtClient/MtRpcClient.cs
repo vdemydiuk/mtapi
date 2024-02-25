@@ -3,12 +3,21 @@ using System.Text;
 
 namespace MtClient
 {
+    public interface IRpcLogger
+    {
+        public void Debug(string message);
+        public void Info(string message);
+        public void Warn(string message);
+        public void Error(string message);
+    }
+
     public class MtRpcClient
     {
-        public MtRpcClient(string host, int port)
+        public MtRpcClient(string host, int port, IRpcLogger? logger = null)
         {
             host_ = host;
             port_ = port;
+            logger_ = logger ?? new StubLogger();
 
             receiveThread_ = new Thread(new ThreadStart(DoReceive));
             sendThread_ = new Thread(new ThreadStart(DoWrite));
@@ -16,7 +25,7 @@ namespace MtClient
 
         public async Task Connect()
         {
-            Log($"Connect: started to {host_}:{port_}");
+            logger_.Debug($"MtRpcClient.Connect: started to {host_}:{port_}");
 
             try
             {
@@ -24,19 +33,19 @@ namespace MtClient
             }
             catch (Exception ex)
             {
-                Log($"Connect failed: {ex.Message}");
+                logger_.Error($"MtRpcClient.Connect failed: {ex.Message}");
                 throw new Exception($"Failed connection to {host_}:{port_}");
             }
 
             receiveThread_.Start();
             sendThread_.Start();
 
-            Log($"Connect: success.");
+            logger_.Debug($"MtRpcClient.Connect: success.");
         }
 
         public async void Disconnect()
         {
-            Log($"Disconnect: {host_}:{port_}");
+            logger_.Debug($"MtRpcClient.Disconnect: {host_}:{port_}");
 
             try
             {
@@ -46,33 +55,33 @@ namespace MtClient
             }
             catch (Exception ex)
             {
-                Log($"Disconnect: {ex.Message}");
+                logger_.Warn($"MtRpcClient.Disconnect: {ex.Message}");
             }
 
             sendWaiter_.Set();
             sendThread_.Join();
             receiveThread_.Join();
 
-            Log($"Disconnect: success");
+            logger_.Debug($"MtRpcClient.Disconnect: success");
         }
 
         public string? SendCommand(int expertHandle, int commandType, string payload)
         {
             CommandTask commandTask = new();
             int commandId;
-            lock (_tasks)
+            lock (tasks_)
             {
                 commandId = nextCommandId++;
-                _tasks[commandId] = commandTask;
+                tasks_[commandId] = commandTask;
             }
 
             MtCommand command = new(expertHandle, commandType, commandId, payload);
             Send(command);
 
             var response = commandTask.WaitResponse(10000); // 10 sec
-            lock (_tasks)
+            lock (tasks_)
             {
-                _tasks.Remove(commandId);
+                tasks_.Remove(commandId);
             }
 
             return response;
@@ -113,13 +122,13 @@ namespace MtClient
                 try
                 {
                     string msgStr = message.Serialize();
-                    Log($"DoWrite: sending message: {msgStr}");
+                    logger_.Debug($"MtRpcClient.DoWrite: sending message: {msgStr}");
                     byte[] bytes = Encoding.ASCII.GetBytes(msgStr);
                     await ws_.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
                 }
                 catch (Exception e)
                 {
-                    Log($"DoWrite: {e.Message}");
+                    logger_.Error($"MtRpcClient.DoWrite: {e.Message}");
                 }
             }
         }
@@ -134,8 +143,7 @@ namespace MtClient
                     var result = await ws_.ReceiveAsync(new ArraySegment<byte>(recvBuffer), CancellationToken.None);
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
-                        Log($"DoReceive: close signal {result.CloseStatusDescription}");
-                        await ws_.CloseAsync(WebSocketCloseStatus.NormalClosure, null, CancellationToken.None);
+                        logger_.Info($"MtRpcClient.DoReceive: close signal {result.CloseStatusDescription}");
                         Disconnected?.Invoke(this, EventArgs.Empty);
                         break;
                     }
@@ -148,18 +156,18 @@ namespace MtClient
             }
             catch (Exception ex)
             {
-                Log($"Exception in receive - {ex.Message}");
+                logger_.Warn($"MtRpcClient.DoReceive: Exception in receive - {ex.Message}");
                 ConnectionFailed?.Invoke(this, EventArgs.Empty);
             }
         }
 
         private void OnReceive(string msg)
         {
-            Log($"OnReceive: {msg}");
+            logger_.Debug($"MtRpcClient.OnReceive: {msg}");
 
             if (string.IsNullOrEmpty(msg))
             {
-                Log("OnReceive: Invalid message (null or empty)");
+                logger_.Warn("MtRpcClient.OnReceive: Invalid message (null or empty)");
                 return;
             }
 
@@ -169,7 +177,7 @@ namespace MtClient
                 || string.IsNullOrEmpty(pieces[0])
                 || string.IsNullOrEmpty(pieces[1]))
             {
-                Log("OnReceive: Invalid message format.");
+                logger_.Warn("MtRpcClient.OnReceive: Invalid message format.");
                 return;
             }                
 
@@ -182,14 +190,14 @@ namespace MtClient
             }
             catch (Exception e)
             {
-                Log($"OnReceive: Parse MessageType failed. {e.Message}");
+                logger_.Error($"MtRpcClient.OnReceive: Parse MessageType failed. {e.Message}");
                 return;
             }
 
             var message = MtMessageParser.Parse(msgType, (pieces[1]));
             if (message == null)
             {
-                Log("OnReceive: Failed parse message payload");
+                logger_.Error("MtRpcClient.OnReceive: Failed parse message payload");
                 return;
             }
 
@@ -224,18 +232,13 @@ namespace MtClient
             var commandId = msg.CommandId;
             var payload = msg.Payload;
 
-            Log($"ProcessResponse: {handle}, {commandId}, [{payload}]");
+            logger_.Debug($"MtRpcClient.ProcessResponse: {handle}, {commandId}, [{payload}]");
 
-            lock (_tasks)
+            lock (tasks_)
             {
-                if (_tasks.TryGetValue(commandId, out CommandTask? value))
+                if (tasks_.TryGetValue(commandId, out CommandTask? value))
                     value.SetResponse(payload);
             }
-        }
-
-        private void Log(string msg)
-        {
-            Console.WriteLine($"[{Environment.CurrentManagedThreadId}] {msg}");
         }
 
         public event EventHandler<EventArgs>? ConnectionFailed;
@@ -256,7 +259,9 @@ namespace MtClient
         private readonly EventWaitHandle sendWaiter_ = new AutoResetEvent(false);
 
         private int nextCommandId = 0;
-        private readonly Dictionary<int, CommandTask> _tasks = [];
+        private readonly Dictionary<int, CommandTask> tasks_ = [];
+
+        private readonly IRpcLogger logger_;
     }
 
     internal class CommandTask
@@ -299,5 +304,24 @@ namespace MtClient
     public class MtExpertEventArgs(int expert) : EventArgs
     {
         public int Expert { get;  }= expert;
+    }
+
+    internal class StubLogger : IRpcLogger
+    {
+        public void Debug(string message)
+        {
+        }
+
+        public void Error(string message)
+        {
+        }
+
+        public void Info(string message)
+        {
+        }
+
+        public void Warn(string message)
+        {
+        }
     }
 }

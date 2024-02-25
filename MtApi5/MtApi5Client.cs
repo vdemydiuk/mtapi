@@ -41,7 +41,7 @@ namespace MtApi5
         #endregion
 
         #region Public Methods
-        private IMtLogger? Log { get; }
+        private IMtLogger Log { get; }
 
         public MtApi5Client(IMtLogger? log = null)
         {
@@ -51,7 +51,7 @@ namespace MtApi5
             _mtEventHandlers[Mt5EventTypes.OnLastTimeBar] = ReceivedOnLastTimeBarEvent;
             _mtEventHandlers[Mt5EventTypes.OnLockTicks] = ReceivedOnLockTicksEvent;
 
-            Log = log;
+            Log = log ?? new StubMtLogger();
         }
 
         ///<summary>
@@ -61,7 +61,7 @@ namespace MtApi5
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(string host, int port)
         {
-            Log?.Info($"BeginConnect: host = {host}, port = {port}");
+            Log.Info($"BeginConnect: host = {host}, port = {port}");
             Task.Factory.StartNew(() => Connect(host, port));
         }
 
@@ -71,8 +71,61 @@ namespace MtApi5
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(int port)
         {
-            Log?.Info($"BeginConnect: port = localhost:{port}");
+            Log.Info($"BeginConnect: port = localhost:{port}");
             Task.Factory.StartNew(() => Connect("localhost", port));
+        }
+
+        public async void Connect(string host, int port)
+        {
+            lock (_locker)
+            {
+                if (_connectionState == Mt5ConnectionState.Connected
+                    || _connectionState == Mt5ConnectionState.Connecting)
+                {
+                    return;
+                }
+
+                _connectionState = Mt5ConnectionState.Connecting;
+            }
+
+            string message = $"Connect: connecting to {host}:{port}";
+            ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Connecting, message));
+
+            var client = new MtRpcClient(host, port, new RpcClientLogger(Log));
+            client.ExpertList += Client_ExpertList;
+            client.ExpertAdded += Client_ExpertAdded;
+            client.ExpertRemoved += Client_ExpertRemoved;
+            client.MtEventReceived += Client_MtEventReceived;
+            client.ConnectionFailed += Client_OnConnectionFailed;
+            client.Disconnected += Client_Disconnected;
+
+            var state = Mt5ConnectionState.Failed;
+            try
+            {
+                await client.Connect();
+                state = Mt5ConnectionState.Connected;
+            }
+            catch (Exception e)
+            {
+                Log.Warn($"Connect: Failed connection to {host}:{port}. {e.Message}");
+            }
+
+            Log.Info($"Connect: connection to {host}:{port} is {state}");
+
+            lock (_locker)
+            {
+                if (state == Mt5ConnectionState.Connected)
+                {
+                    _client = client;
+                }
+
+                _connectionState = state;
+            }
+
+            if (state == Mt5ConnectionState.Connected)
+                OnConnected();
+
+            ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
         }
 
         ///<summary>
@@ -80,7 +133,7 @@ namespace MtApi5
         ///</summary>
         public void BeginDisconnect()
         {
-            Log?.Info("BeginDisconnect called.");
+            Log.Info("BeginDisconnect called.");
             Task.Factory.StartNew(() => Disconnect(false));
         }
 
@@ -121,11 +174,11 @@ namespace MtApi5
         /// </returns>
         public bool OrderSend(MqlTradeRequest request, out MqlTradeResult? result)
         {
-            Log?.Debug($"OrderSend: request = {request}");
+            Log.Debug($"OrderSend: request = {request}");
 
             if (request == null)
             {
-                Log?.Warn("OrderSend: request is not defined!");
+                Log.Warn("OrderSend: request is not defined!");
                 result = null;
                 return false;
             }
@@ -150,11 +203,11 @@ namespace MtApi5
         /// </returns>
         public bool OrderSendAsync(MqlTradeRequest request, out MqlTradeResult? result)
         {
-            Log?.Debug($"OrderSend: request = {request}");
+            Log.Debug($"OrderSend: request = {request}");
 
             if (request == null)
             {
-                Log?.Warn("OrderSend: request is not defined!");
+                Log.Warn("OrderSend: request is not defined!");
                 result = null;
                 return false;
             }
@@ -230,11 +283,11 @@ namespace MtApi5
         /// </returns>
         public bool OrderCheck(MqlTradeRequest request, out MqlTradeCheckResult? result)
         {
-            Log?.Debug($"OrderCheck: request = {request}");
+            Log.Debug($"OrderCheck: request = {request}");
 
             if (request == null)
             {
-                Log?.Warn("OrderCheck: request is not defined!");
+                Log.Warn("OrderCheck: request is not defined!");
                 result = null;
                 return false;
             }
@@ -3272,59 +3325,6 @@ namespace MtApi5
             }
         }
 
-        public async void Connect(string host, int port)
-        {
-            lock (_locker)
-            {
-                if (_connectionState == Mt5ConnectionState.Connected
-                    || _connectionState == Mt5ConnectionState.Connecting)
-                {
-                    return;
-                }
-
-                _connectionState = Mt5ConnectionState.Connecting;
-            }
-
-            string message = $"Connect: connecting to {host}:{port}";
-            ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Connecting, message));
-
-            var client = new MtRpcClient(host, port);
-            client.ExpertList += Client_ExpertList;
-            client.ExpertAdded += Client_ExpertAdded;
-            client.ExpertRemoved += Client_ExpertRemoved;
-            client.MtEventReceived += Client_MtEventReceived;
-            client.ConnectionFailed += Client_OnConnectionFailed;
-            client.Disconnected += Client_Disconnected;
-
-            var state = Mt5ConnectionState.Failed;
-            try
-            {
-                await client.Connect();
-                state = Mt5ConnectionState.Connected;
-            }
-            catch (Exception e)
-            {
-                Log?.Warn($"Connect: Failed connection to {host}:{port}. {e.Message}");
-            }
-
-            Log?.Info($"Connect: connection to {host}:{port} is {state}");
-
-            lock (_locker)
-            {
-                if (state == Mt5ConnectionState.Connected)
-                {
-                    _client = client;
-                }
-
-                _connectionState = state;
-            }
-
-            if (state == Mt5ConnectionState.Connected)
-                OnConnected();
-
-            ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
-        }
-
         private void Client_MtEventReceived(object? sender, MtEventArgs e)
         {
             Task.Run(() => _mtEventHandlers[(Mt5EventTypes)e.EventType](e.ExpertHandle, e.Payload));
@@ -3349,7 +3349,7 @@ namespace MtApi5
         {
             if (experts == null || experts.Count == 0)
             {
-                Log?.Warn("ProcessExpertList: expert list invalid or empty");
+                Log.Warn("ProcessExpertList: expert list invalid or empty");
                 return;
             }
   
@@ -3382,7 +3382,7 @@ namespace MtApi5
 
         private void ProcessExpertAdded(int handle)
         {
-            Log?.Debug($"ProcessExpertAdded: {handle}");
+            Log.Debug($"ProcessExpertAdded: {handle}");
 
             bool added;
             lock (_locker)
@@ -3405,16 +3405,16 @@ namespace MtApi5
                     QuoteAdded?.Invoke(this, new Mt5QuoteEventArgs(quote));
                 }
                 else
-                    Log?.Warn($"ProcessExpertAdded: failed to get quote for expert {handle}");
+                    Log.Warn($"ProcessExpertAdded: failed to get quote for expert {handle}");
                     
             }
             else
-                Log?.Warn($"ProcessExpertAdded: expert handle {handle} is already exist");
+                Log.Warn($"ProcessExpertAdded: expert handle {handle} is already exist");
         }
 
         private void ProcessExpertRemoved(int handle)
         {
-            Log?.Debug($"ProcessExpertRemoved: {handle}");
+            Log.Debug($"ProcessExpertRemoved: {handle}");
 
             Mt5Quote? quote = null;
             lock (_locker)
@@ -3433,7 +3433,7 @@ namespace MtApi5
 
         private Mt5Quote? GetQuote(int expertHandle)
         {
-            Log?.Debug($"GetQuote: expertHandle = {expertHandle}");
+            Log.Debug($"GetQuote: expertHandle = {expertHandle}");
 
             var e = SendCommand<MtQuote>(expertHandle, Mt5CommandType.GetQuote);
             if (e == null || string.IsNullOrEmpty(e.Instrument) || e.Tick == null)
@@ -3455,13 +3455,13 @@ namespace MtApi5
 
         private void Client_OnConnectionFailed(object? sender, EventArgs e)
         {
-            Log?.Info("Received connection failed");
+            Log.Info("Received connection failed");
             Disconnect(true);
         }
 
         private void Client_Disconnected(object? sender, EventArgs e)
         {
-            Log?.Info("Received normal disconnection");
+            Log.Info("Received normal disconnection");
             Disconnect(false);
         }
 
@@ -3552,7 +3552,7 @@ namespace MtApi5
 
             client?.Disconnect();
 
-            Log?.Info(message);
+            Log.Info(message);
 
             ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
         }
@@ -3562,33 +3562,33 @@ namespace MtApi5
             var client = Client;
             if (client == null)
             {
-                Log?.Warn("SendCommand: No connection");
+                Log.Warn("SendCommand: No connection");
                 throw new Exception("No connection");
             }
 
             var payloadJson = payload == null ? string.Empty : JsonConvert.SerializeObject(payload);
-            Log?.Debug($"SendCommand: sending '{payloadJson}' ...");
+            Log.Debug($"SendCommand: sending '{payloadJson}' ...");
 
             var responseJson = client.SendCommand(expertHandle, (int)commandType, payloadJson);
 
-            Log?.Debug($"SendCommand: received response JSON [{responseJson}]");
+            Log.Debug($"SendCommand: received response JSON [{responseJson}]");
 
             if (string.IsNullOrEmpty(responseJson))
             {
-                Log?.Warn("SendCommand: Response JSON from MetaTrader is null or empty");
+                Log.Warn("SendCommand: Response JSON from MetaTrader is null or empty");
                 throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
             }
 
             var response = JsonConvert.DeserializeObject<Response<T>>(responseJson);
             if (response == null)
             {
-                Log?.Warn("SendCommand: Failed to deserialize response from JSON");
+                Log.Warn("SendCommand: Failed to deserialize response from JSON");
                 throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
             }
 
             if (response.ErrorCode != 0)
             {
-                Log?.Warn($"SendCommand: ErrorCode = {response.ErrorCode}. {response.ErrorMessage}");
+                Log.Warn($"SendCommand: ErrorCode = {response.ErrorCode}. {response.ErrorMessage}");
                 throw new ExecutionException((ErrorCode)response.ErrorCode, response.ErrorMessage);
             }
 
@@ -3597,11 +3597,11 @@ namespace MtApi5
 
         private void OnConnected()
         {
-            Log?.Debug("OnConnected: begin");
+            Log.Debug("OnConnected: begin");
 
             Client?.NotifyClientReady();
 
-            Log?.Debug("OnConnected: finished");
+            Log.Debug("OnConnected: finished");
         }
 
         private void BacktestingReady()
@@ -3609,5 +3609,53 @@ namespace MtApi5
             SendCommand<object>(ExecutorHandle, Mt5CommandType.BacktestingReady);
         }
         #endregion
+    }
+
+    internal class RpcClientLogger(IMtLogger logger) : IRpcLogger
+    {
+        public void Debug(string message)
+        {
+            logger_.Debug(message);
+        }
+
+        public void Error(string message)
+        {
+            logger_.Debug(message);
+        }
+
+        public void Info(string message)
+        {
+            logger_.Debug(message);
+        }
+
+        public void Warn(string message)
+        {
+            logger_.Debug(message);
+        }
+
+        private readonly IMtLogger logger_ = logger;
+    }
+
+    internal class StubMtLogger : IMtLogger
+    {
+        public void Debug(object message)
+        {
+        }
+
+        public void Error(object message)
+        {
+        }
+
+        public void Fatal(object message)
+        {
+        }
+
+        public void Info(object message)
+        {
+        }
+
+        public void Warn(object message)
+        {
+        }
     }
 }
