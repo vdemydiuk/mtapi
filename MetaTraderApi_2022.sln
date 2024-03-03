@@ -9,11 +9,17 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MtService", "MtService\MtSe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MT5Connector", "MT5Connector\MT5Connector.vcxproj", "{CB6D4A3E-2F2E-4C67-929D-3C2A8FD1C556}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtApi5", "MtApi5\MtApi5.csproj", "{AC8B5010-DA75-477E-9CA5-547C649E12D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MtApi5", "MtApi5\MtApi5.csproj", "{AC8B5010-DA75-477E-9CA5-547C649E12D8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestClients", "TestClients", "{0C166554-D20F-4996-AA33-436997058FA1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtApi5TestClient", "TestClients\MtApi5TestClient\MtApi5TestClient.csproj", "{38B9C657-BC2F-44F0-8824-54B31F2A64F5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MtApi5TestClient", "TestClients\MtApi5TestClient\MtApi5TestClient.csproj", "{38B9C657-BC2F-44F0-8824-54B31F2A64F5}"
+EndProject
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "MtApi5Installer", "MtApi5Installer\MtApi5Installer.wixproj", "{A9ED070F-AB4D-4380-9DDE-5D931AC71333}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AC8B5010-DA75-477E-9CA5-547C649E12D8} = {AC8B5010-DA75-477E-9CA5-547C649E12D8}
+		{CB6D4A3E-2F2E-4C67-929D-3C2A8FD1C556} = {CB6D4A3E-2F2E-4C67-929D-3C2A8FD1C556}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,6 +91,18 @@ Global
 		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Release|x64.Build.0 = Release|Any CPU
 		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Release|x86.ActiveCfg = Release|x86
 		{38B9C657-BC2F-44F0-8824-54B31F2A64F5}.Release|x86.Build.0 = Release|x86
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Debug|Any CPU.Build.0 = Debug|x64
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Debug|x64.ActiveCfg = Debug|x64
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Debug|x64.Build.0 = Debug|x64
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Debug|x86.ActiveCfg = Debug|x86
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Debug|x86.Build.0 = Debug|x86
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Release|Any CPU.ActiveCfg = Release|x64
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Release|Any CPU.Build.0 = Release|x64
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Release|x64.ActiveCfg = Release|x64
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Release|x64.Build.0 = Release|x64
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Release|x86.ActiveCfg = Release|x86
+		{A9ED070F-AB4D-4380-9DDE-5D931AC71333}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

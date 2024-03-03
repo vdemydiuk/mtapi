@@ -14,7 +14,7 @@
 
     <?define ProductVersion=!(bind.FileVersion.MtApi5.dll) ?>
     <?define Manufacturer="DW"?>
-    <?define ProductPath="..\build\products\$(var.Configuration)\"?>
+	<?define ProductPath="..\build\products\$(var.Configuration)\net8.0\"?>
     
   <Product Id="*" 
             Name="$(var.ProductName) $(var.ProductVersion)" 
@@ -49,9 +49,6 @@
                     <Directory Id="ExpertFolder" Name="Experts">
                     </Directory>
 
-                    <Directory Id="GAC" Name="GAC">
-                    </Directory>
-
                 </Directory>
             </Directory>
 
@@ -80,17 +77,12 @@
                 </RegistryKey>
 
             </Component>
-          
-            <Component Id="NewtonsoftJsondll" Directory="INSTALLFOLDER">
-                <File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" KeyPath="yes"
-                    src="$(var.ProductPath)Newtonsoft.Json.dll"/>
-            </Component>
 
-            <Component Id="MTApiServiceDll" Directory="INSTALLFOLDER">
-                <File Id="GAC_MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
-                    src="$(var.ProductPath)MTApiService.dll"/>
+			<Component Id="MtClientDll" Directory="INSTALLFOLDER">
+                <File Id="MtClient.dll" Name="MtClient.dll" KeyPath="yes"
+                    src="$(var.ProductPath)MtClient.dll"/>
             </Component>
-
+			
             <Component Id="MtApi5Expert" Directory="ExpertFolder">
                 <File Id="MtApi5.ex5" Name="MtApi5.ex5" KeyPath="yes"
                       Source="..\mq5\MtApi5.ex5" />
@@ -112,12 +104,6 @@
                     <RegistryValue Type="string" Name="Host" Value=""/>
                     <RegistryValue Type="integer" Name="Port" Value="8222" KeyPath="yes"/>
                 </RegistryKey>
-            </Component>
-
-            <Component Id="MTApiServiceDllGAC" Guid="6CD24D64-7DA1-4015-A5B3-B17C2488998C" Directory="GAC">
-                <File Id="MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
-                    src="$(var.ProductPath)MTApiService.dll" Checksum="yes"
-                    Assembly=".net" AssemblyManifest="MTApiService.dll" Vital="yes" />
             </Component>
 
             <Component Id="MT5ConnectorDll" Directory="$(var.PlatformSystemFolder)">
