@@ -28,7 +28,6 @@ namespace MtApi5
         #region Private Fields
         private MtRpcClient? _client;
         private readonly object _locker = new();
-        private volatile bool _isBacktestingMode;
         private Mt5ConnectionState _connectionState = Mt5ConnectionState.Disconnected;
         private int _executorHandle;
         private readonly Dictionary<Mt5EventTypes, Action<int, string>> _mtEventHandlers = [];
@@ -55,12 +54,21 @@ namespace MtApi5
         ///<summary>
         ///Connect with MetaTrader API. Async method.
         ///</summary>
-        ///<param name="host">Address of MetaTrader host (ex. 192.168.1.2)</param>
+        ///<param name="host">Address of MetaTrader host (ex. 192.168.1.2, localhost)</param>
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(string host, int port)
         {
             Log.Info($"BeginConnect: host = {host}, port = {port}");
-            Task.Factory.StartNew(() => Connect(host, port));
+            Task.Factory.StartNew(async () =>
+            {
+                try
+                {
+                    await Connect(host, port);
+                }
+                catch (Exception)
+                {
+                }
+            });
         }
 
         ///<summary>
@@ -69,12 +77,22 @@ namespace MtApi5
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(int port)
         {
-            Log.Info($"BeginConnect: port = localhost:{port}");
-            Task.Factory.StartNew(() => Connect("localhost", port));
+            BeginConnect("localhost", port);
         }
 
-        public async void Connect(string host, int port)
+        ///<summary>
+        ///Connect with MetaTrader API.
+        ///</summary>
+        ///<param name="host">Address of MetaTrader host (ex. 192.168.1.2, localhost)</param>
+        ///<param name="port">Port of host connection (default 8222) </param>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown when host is null or empty.
+        /// </exception>
+        public async Task Connect(string host, int port)
         {
+            if (string.IsNullOrEmpty(host))
+                throw new ArgumentNullException(nameof(host));
+
             lock (_locker)
             {
                 if (_connectionState == Mt5ConnectionState.Connected
@@ -86,8 +104,7 @@ namespace MtApi5
                 _connectionState = Mt5ConnectionState.Connecting;
             }
 
-            string message = $"Connect: connecting to {host}:{port}";
-            ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Connecting, message));
+            ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Connecting, $"Connecting to {host}:{port}"));
 
             var client = new MtRpcClient(host, port, new RpcClientLogger(Log));
             client.ExpertList += Client_ExpertList;
@@ -97,33 +114,28 @@ namespace MtApi5
             client.ConnectionFailed += Client_OnConnectionFailed;
             client.Disconnected += Client_Disconnected;
 
-            var state = Mt5ConnectionState.Failed;
             try
             {
                 await client.Connect();
-                state = Mt5ConnectionState.Connected;
+                Log.Info($"Connected to {host}:{port}");
+                lock (_locker)
+                {
+                    _client = client;
+                    _connectionState = Mt5ConnectionState.Connected;
+                }
+                client.NotifyClientReady();
+                ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Connected, $"Connected to {host}:{port}"));
             }
             catch (Exception e)
             {
-                Log.Warn($"Connect: Failed connection to {host}:{port}. {e.Message}");
-            }
-
-            Log.Info($"Connect: connection to {host}:{port} is {state}");
-
-            lock (_locker)
-            {
-                if (state == Mt5ConnectionState.Connected)
+                Log.Error($"Connect: Failed connection to {host}:{port}. Error: {e.Message}");
+                lock (_locker)
                 {
-                    _client = client;
+                    _connectionState = Mt5ConnectionState.Failed;
                 }
-
-                _connectionState = state;
+                ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Failed, e.Message));
+                throw new Exception($"Connection to {host}:{port} failed. Error: {e.Message}");
             }
-
-            if (state == Mt5ConnectionState.Connected)
-                OnConnected();
-
-            ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(state, message));
         }
 
         ///<summary>
@@ -133,6 +145,15 @@ namespace MtApi5
         {
             Log.Info("BeginDisconnect called.");
             Task.Factory.StartNew(() => Disconnect(false));
+        }
+
+        ///<summary>
+        ///Disconnect from MetaTrader API.
+        ///</summary>
+        public void Disconnect()
+        {
+            Log.Info("Disconnect called.");
+            Disconnect(false);
         }
 
         ///<summary>
@@ -3370,9 +3391,7 @@ namespace MtApi5
 
             QuoteList?.Invoke(this, new(quotes.Values.ToList()));
 
-            _isBacktestingMode = IsTesting();
-
-            if (_isBacktestingMode)
+            if (IsTesting())
             {
                 BacktestingReady();
             }
@@ -3591,15 +3610,6 @@ namespace MtApi5
             }
 
             return (response.Value == null) ? default : response.Value;
-        }
-
-        private void OnConnected()
-        {
-            Log.Debug("OnConnected: begin");
-
-            Client?.NotifyClientReady();
-
-            Log.Debug("OnConnected: finished");
         }
 
         private void BacktestingReady()
