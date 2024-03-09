@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MtApi5
+﻿namespace MtApi5
 {
     public class Mt5TradeTransactionEventArgs : EventArgs
     {

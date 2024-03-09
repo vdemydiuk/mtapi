@@ -82,6 +82,11 @@
                 <File Id="MtClient.dll" Name="MtClient.dll" KeyPath="yes"
                     src="$(var.ProductPath)MtClient.dll"/>
             </Component>
+
+			<Component Id="NewtonsoftJsondll" Directory="INSTALLFOLDER">
+				<File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" KeyPath="yes"
+					   src="$(var.ProductPath)Newtonsoft.Json.dll"/>
+			</Component>
 			
             <Component Id="MtApi5Expert" Directory="ExpertFolder">
                 <File Id="MtApi5.ex5" Name="MtApi5.ex5" KeyPath="yes"

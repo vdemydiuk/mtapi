@@ -1,9 +1,7 @@
-﻿using System.Collections;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using MtClient;
 using MtApi5.MtProtocol;
 using MtApi5.MtProtocol.ICustomRequest;
-using System.Xml.Linq;
 
 namespace MtApi5
 {
