@@ -19,9 +19,6 @@ namespace MtApi5
 
         #endregion
 
-        private const char ParamSeparator = ';';
-        private const string LogProfileName = "MtApi5Client";
-
         public delegate void QuoteHandler(object sender, string symbol, double bid, double ask);
 
 
@@ -1776,7 +1773,6 @@ namespace MtApi5
             Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "SubWindow", subWindow },
                 { "Time", Mt5TimeConverter.ConvertToMtTime(time) }, { "Price", price } };
 
-            Dictionary<string, int> XY = [];
             var response = SendCommand<FuncResult<Dictionary<string,int>>>(ExecutorHandle, Mt5CommandType.ChartTimePriceToXY, cmdParams);
             if (response != null && response.Result != null
                 && response.Result.TryGetValue("X", out x)
@@ -2247,9 +2243,9 @@ namespace MtApi5
         public bool ObjectCreate(long chartId, string name, ENUM_OBJECT type, int nwin, DateTime time, double price, List<Tuple<DateTime, double>>? listOfCoordinates = null)
         {
             //Count the additional coordinates
-            int iAdditionalCoordinates = (listOfCoordinates != null) ? listOfCoordinates.Count() : 0;
+            int iAdditionalCoordinates = (listOfCoordinates != null) ? listOfCoordinates.Count : 0;
             if(iAdditionalCoordinates > 29)
-                throw new ArgumentOutOfRangeException("listOfCoordinates", "The maximum amount of coordinates in 30.");
+                throw new ArgumentOutOfRangeException(nameof(listOfCoordinates), "The maximum amount of coordinates in 30.");
 
             Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "Name", name ?? string.Empty },
                 { "Type", (int)type }, { "Nwin", nwin } };
