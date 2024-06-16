@@ -11,7 +11,7 @@ public:
     MT5Handler(int handle)
         : handle_(handle)
     {
-        msgId = WM_TIMER;
+        msg_id_ = WM_TIMER;
     }
 
     ~MT5Handler() override = default;
@@ -19,9 +19,9 @@ public:
 private:
     void SendTickToMetaTrader() override
     {
-        PostMessage((HWND)handle_, msgId, 0, 0);
+        PostMessage((HWND)handle_, msg_id_, 0, 0);
     }
 
     int handle_;
-    unsigned int msgId;
+    unsigned int msg_id_;
 };
