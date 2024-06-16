@@ -1,23 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using MtApi.Monitors.Triggers;
+﻿using MtApi.Monitors.Triggers;
 
 namespace MtApi.Monitors
 {
     public class TradeMonitor : MtMonitorBase
     {
         #region Fields
-        private List<MtOrder> _prevOrders;
-        private readonly object _locker = new object();
+        private List<MtOrder>? _prevOrders;
+        private readonly object _locker = new();
         #endregion
 
         #region Events
         //
         // Summary:
         //     Occurs when orders are opened or closed.
-        public event EventHandler<AvailabilityOrdersEventArgs> AvailabilityOrdersChanged;
+        public event EventHandler<AvailabilityOrdersEventArgs>? AvailabilityOrdersChanged;
         #endregion
 
         #region ctor
@@ -73,10 +69,10 @@ namespace MtApi.Monitors
         {
             var openedOrders = new List<MtOrder>();
             var closedOrders = new List<MtOrder>();
-            List<MtOrder> prevOrders;
+            List<MtOrder>? prevOrders;
 
             // get current orders from MetaTrader
-            var tradesOrders = ApiClient.GetOrders(OrderSelectSource.MODE_TRADES);
+            var tradesOrders = ApiClient.GetOrders(OrderSelectSource.MODE_TRADES) ?? [];
 
             lock (_locker)
                 prevOrders = _prevOrders;
@@ -92,7 +88,7 @@ namespace MtApi.Monitors
                 if (closeOrdersTemp.Count > 0)
                 {
                     //get closed orders from history with actual values
-                    var historyOrders = ApiClient.GetOrders(OrderSelectSource.MODE_HISTORY);
+                    var historyOrders = ApiClient.GetOrders(OrderSelectSource.MODE_HISTORY) ?? [];
                     closedOrders = closeOrdersTemp.Where(cot => historyOrders.Find(a => a.Ticket == cot.Ticket) != null).ToList();
                 }
             }

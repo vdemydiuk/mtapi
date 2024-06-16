@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Windows.Forms;
-using Microsoft.Deployment.WindowsInstaller;
+﻿using WixToolset.Dtf.WindowsInstaller;
 
 namespace MtApiSetupActions
 {
@@ -20,38 +15,40 @@ namespace MtApiSetupActions
         {
             session.Log("Begin action InstallEx4File...");
 
-            var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            //Directory.CreateDirectory("c:\\dw");
 
-            var metaquotesFolder = appDataFolder + TerminalFolder;
+            //var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-            if (Directory.Exists(metaquotesFolder))
-            {
-                var foldersFound = Directory.GetDirectories(metaquotesFolder, Mql4Folder, SearchOption.AllDirectories);
-                Console.WriteLine(string.Join("\n", foldersFound));
+            //var metaquotesFolder = appDataFolder + TerminalFolder;
 
-                foreach (var folder in foldersFound)
-                {
-                    var srcFile = session[InstalledExpertFolderProperty] + MtApiFile;
-                    var destFile = folder + DestinationExpertFolder + MtApiFile;
+            //if (Directory.Exists(metaquotesFolder))
+            //{
+            //    var foldersFound = Directory.GetDirectories(metaquotesFolder, Mql4Folder, SearchOption.AllDirectories);
+            //    Console.WriteLine(string.Join("\n", foldersFound));
 
-                    session.Log(string.Format("Try to copy from {0} to {1}", srcFile, destFile));
+            //    foreach (var folder in foldersFound)
+            //    {
+            //        var srcFile = session[InstalledExpertFolderProperty] + MtApiFile;
+            //        var destFile = folder + DestinationExpertFolder + MtApiFile;
 
-                    try
-                    {
-                        File.Copy(srcFile, destFile, true);
-                    }
-                    catch (Exception e)
-                    {
-                        session.Log(string.Format("Failed to copy MtApi4.ex4. {0}", e.Message));
-                    }
+            //        session.Log(string.Format("Try to copy from {0} to {1}", srcFile, destFile));
 
-                    session.Log(string.Format("MtApi.ex4 has been coppied to {0}", destFile));
-                }
-            }
-            else
-            {
-                session.Log("MetaTrader is not installed");
-            }
+            //        try
+            //        {
+            //            File.Copy(srcFile, destFile, true);
+            //        }
+            //        catch (Exception e)
+            //        {
+            //            session.Log(string.Format("Failed to copy MtApi4.ex4. {0}", e.Message));
+            //        }
+
+            //        session.Log(string.Format("MtApi.ex4 has been coppied to {0}", destFile));
+            //    }
+            //}
+            //else
+            //{
+            //    session.Log("MetaTrader is not installed");
+            //}
 
             return ActionResult.Success;
         }

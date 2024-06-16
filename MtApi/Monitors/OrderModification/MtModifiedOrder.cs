@@ -1,21 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MtApi.Monitors
+﻿namespace MtApi.Monitors
 {
     public class MtModifiedOrder
     {
         /// <summary>
         /// The order in its old state (before the changes)
         /// </summary>
-        public MtOrder OldOrder { get; }
+        public MtOrder? OldOrder { get; }
         /// <summary>
         /// The order in its new state (after the changes)
         /// </summary>
-        public MtOrder NewOrder { get; }
+        public MtOrder? NewOrder { get; }
         /// <summary>
         /// The changes found by this instance
         /// </summary>
@@ -25,7 +19,7 @@ namespace MtApi.Monitors
         /// </summary>
         /// <param name="oldOrder">The order in its old state (before the changes)</param>
         /// <param name="newOrder">The order in its new state (after the changes)</param>
-        public MtModifiedOrder(MtOrder oldOrder, MtOrder newOrder)
+        public MtModifiedOrder(MtOrder? oldOrder, MtOrder ?newOrder)
         {
             if (oldOrder != null && newOrder != null && oldOrder.Ticket != newOrder.Ticket)
                 throw new ArgumentException(nameof(oldOrder) + " and " + nameof(newOrder) + " need to have the same ticket id");

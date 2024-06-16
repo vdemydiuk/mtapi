@@ -1,5 +1,4 @@
-﻿using System;
-using MtApi.Monitors.Triggers;
+﻿using MtApi.Monitors.Triggers;
 
 namespace MtApi.Monitors
 {

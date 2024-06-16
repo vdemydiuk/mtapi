@@ -1,13 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<?define ProductPath="..\build\products\$(var.Configuration)\net8.0\"?>
 	<Fragment Id="CustomActions">
-        <CustomAction Id="CopyEx4" Script="vbscript">
-            <![CDATA[
-                MsgBox("Test")
-            ]]>
-        </CustomAction>
-
-        <Binary Id="InstallEx4File" SourceFile="$(var.MtApiSetupActions.TargetDir)$(var.MtApiSetupActions.TargetName).CA.dll"/>
-        <CustomAction Id="InstallEx4FileAction" BinaryKey="InstallEx4File" DllEntry="InstallEx4File" Execute="immediate" Return="check"/>
+        <!--<Binary Id="InstallEx4File" SourceFile="$(var.MtApiSetupActions.TargetDir)$(var.MtApiSetupActions.TargetName).dll" />
+        <CustomAction Id="InstallEx4FileAction" DllEntry="InstallEx4File" Execute="immediate" Return="check" BinaryRef="InstallEx4File" />-->
     </Fragment>
 </Wix>

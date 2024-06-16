@@ -2,10 +2,10 @@
 {
     public class MtQuote
     {
-        public string Instrument { get; private set; }
-        public double Bid { get; private set; }
-        public double Ask { get; private set; }
-        public int ExpertHandle { get; private set; }
+        public string Instrument { get; set; } = string.Empty;
+        public double Bid { get; set; }
+        public double Ask { get; set; }
+        public int ExpertHandle { get; set; }
 
         public MtQuote(string instrument, double bid, double ask)
         {
@@ -14,12 +14,9 @@
             Ask = ask;
         }
 
-        internal MtQuote(MTApiService.MtQuote quote)
+        public MtQuote()
         {
-            Instrument = quote.Instrument;
-            Bid = quote.Bid;
-            Ask = quote.Ask;
-            ExpertHandle = quote.ExpertHandle;
+
         }
     }
 }

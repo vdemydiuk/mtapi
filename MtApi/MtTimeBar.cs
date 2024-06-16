@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace MtApi
+﻿namespace MtApi
 {
     public class MtTimeBar
     {
-        public string Symbol { get; set; }
+        public string Symbol { get; set; } = string.Empty;
         public int MtOpenTime { get; set; }
         public int MtCloseTime { get; set; }
         public double Open { get; set; }

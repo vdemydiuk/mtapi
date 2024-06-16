@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using MTApiService;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Collections;
-using System.ServiceModel;
-using MtApi.Requests;
-using MtApi.Responses;
 using Newtonsoft.Json;
-using System.Threading.Tasks;
 using MtApi.Events;
+using MtApi.MtProtocol;
+using MtClient;
 
 namespace MtApi
 {
@@ -22,30 +16,34 @@ namespace MtApi
         //Special constant
         public const int NULL = 0;
         public const int EMPTY = -1;
-
-        private const string LogProfileName = "MtApiClient";
         #endregion
 
         #region Private Fields
-        private static readonly MtLog Log = LogConfigurator.GetLogger(typeof(MtApiClient));
+        private IMtLogger Log { get; }
 
-        private MtClient _client;
-        private readonly object _locker = new object();
+        private MtRpcClient? _client;
+        private readonly object _locker = new();
+
+        private readonly Dictionary<MtEventTypes, Action<int, string>> _mtEventHandlers = [];
+        private HashSet<int> _experts = [];
+        private Dictionary<int, MtQuote> _quotes = [];
+        private readonly EventWaitHandle _quotesWaiter = new AutoResetEvent(false);
+
         private MtConnectionState _connectionState = MtConnectionState.Disconnected;
-        private volatile bool _isBacktestingMode;
         private int _executorHandle;
         #endregion
 
         #region ctor
 
-        public MtApiClient()
+
+        public MtApiClient(IMtLogger? log = null)
         {
-#if (DEBUG)
-            const LogLevel logLevel = LogLevel.Debug;
-#else
-            const LogLevel logLevel = LogLevel.Info;
-#endif
-            LogConfigurator.Setup(LogProfileName, logLevel);
+            _mtEventHandlers[MtEventTypes.ChartEvent] = ReceiveOnChartEvent;
+            _mtEventHandlers[MtEventTypes.LastTimeBar] = ReceivedOnLastTimeBarEvent;
+            _mtEventHandlers[MtEventTypes.OnLockTicks] = ReceivedOnLockTicksEvent;
+            _mtEventHandlers[MtEventTypes.OnTick] = ReceivedOnTickEvent;
+
+            Log = log ?? new StubMtLogger();
         }
         #endregion
 
@@ -67,8 +65,8 @@ namespace MtApi
         ///<param name="port">Port of host connection (default 8222) </param>
         public void BeginConnect(int port)
         {
-            Log.Info($"BeginConnect: port = {port}");
-            Task.Factory.StartNew(() => Connect(port));
+            Log.Info($"BeginConnect: localhost, port = {port}");
+            Task.Factory.StartNew(() => Connect("localhost", port));
         }
 
         ///<summary>
@@ -85,9 +83,11 @@ namespace MtApi
         ///</summary>
         public List<MtQuote> GetQuotes()
         {
-            var client = Client;
-            var quotes = client != null ? client.GetQuotes() : null;
-            return quotes?.Select(q => new MtQuote(q)).ToList();
+            _quotesWaiter.WaitOne(10000); // wait 10 sec for loading all quotes from MetaTrader
+            lock (_locker)
+            {
+                return _quotes.Values.ToList();
+            }
         }
         #endregion
 
@@ -140,120 +140,114 @@ namespace MtApi
         [Obsolete("OrderClosePrice is deprecated, please use GetOrder instead.")]
         public double OrderClosePrice()
         {
-            return SendCommand<double>(MtCommandType.OrderClosePrice, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.OrderClosePrice);
         }
 
         [Obsolete("OrderClosePrice is deprecated, please use GetOrder instead.")]
         public double OrderClosePrice(int ticket)
         {
-            var commandParameters = new ArrayList { ticket };
-            double retVal = SendCommand<double>(MtCommandType.OrderClosePriceByTicket, commandParameters);
-
-            return retVal;
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.OrderClosePriceByTicket, cmdParams);
         }
 
         [Obsolete("OrderCloseTime is deprecated, please use GetOrder instead.")]
         public DateTime OrderCloseTime()
         {
-            var commandResponse = SendCommand<int>(MtCommandType.OrderCloseTime, null);
+            var commandResponse = SendCommand<int>(ExecutorHandle, MtCommandType.OrderCloseTime);
             return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
         }
 
         [Obsolete("OrderComment is deprecated, please use GetOrder instead.")]
-        public string OrderComment()
+        public string? OrderComment()
         {
-            return SendCommand<string>(MtCommandType.OrderComment, null);
+            return SendCommand<string>(ExecutorHandle, MtCommandType.OrderComment);
         }
 
         [Obsolete("OrderCommission is deprecated, please use GetOrder instead.")]
         public double OrderCommission()
         {
-            return SendCommand<double>(MtCommandType.OrderCommission, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.OrderCommission);
         }
 
         [Obsolete("OrderExpiration is deprecated, please use GetOrder instead.")]
         public DateTime OrderExpiration()
         {
-            var commandResponse = SendCommand<int>(MtCommandType.OrderExpiration, null);
+            var commandResponse = SendCommand<int>(ExecutorHandle, MtCommandType.OrderExpiration);
             return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
         }
 
         [Obsolete("OrderLots is deprecated, please use GetOrder instead.")]
         public double OrderLots()
         {
-            return SendCommand<double>(MtCommandType.OrderLots, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.OrderLots);
         }
 
         [Obsolete("OrderMagicNumber is deprecated, please use GetOrder instead.")]
         public int OrderMagicNumber()
         {
-            return SendCommand<int>(MtCommandType.OrderMagicNumber, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.OrderMagicNumber);
         }
 
         [Obsolete("OrderOpenPrice is deprecated, please use GetOrder instead.")]
         public double OrderOpenPrice()
         {
-            return SendCommand<double>(MtCommandType.OrderOpenPrice, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.OrderOpenPrice);
         }
 
         [Obsolete("OrderOpenPrice is deprecated, please use GetOrder instead.")]
         public double OrderOpenPrice(int ticket)
         {
-            var commandParameters = new ArrayList { ticket };
-            var retVal = SendCommand<double>(MtCommandType.OrderOpenPriceByTicket, commandParameters);
-
-            return retVal;
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.OrderOpenPriceByTicket, cmdParams);
         }
 
         [Obsolete("OrderOpenTime is deprecated, please use GetOrder instead.")]
         public DateTime OrderOpenTime()
         {
-            var commandResponse = SendCommand<int>(MtCommandType.OrderOpenTime, null);
+            var commandResponse = SendCommand<int>(ExecutorHandle, MtCommandType.OrderOpenTime);
             return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
         }
 
         [Obsolete("OrderProfit is deprecated, please use GetOrder instead.")]
         public double OrderProfit()
         {
-            return SendCommand<double>(MtCommandType.OrderProfit, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.OrderProfit);
         }
 
         [Obsolete("OrderStopLoss is deprecated, please use GetOrder instead.")]
         public double OrderStopLoss()
         {
-            return SendCommand<double>(MtCommandType.OrderStopLoss, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.OrderStopLoss);
         }
 
         [Obsolete("OrderSymbol is deprecated, please use GetOrder instead.")]
-        public string OrderSymbol()
+        public string? OrderSymbol()
         {
-            return SendCommand<string>(MtCommandType.OrderSymbol, null);
+            return SendCommand<string>(ExecutorHandle, MtCommandType.OrderSymbol);
         }
 
         [Obsolete("OrderTakeProfit is deprecated, please use GetOrder instead.")]
         public double OrderTakeProfit()
         {
-            return SendCommand<double>(MtCommandType.OrderTakeProfit, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.OrderTakeProfit);
         }
 
         [Obsolete("OrderTicket is deprecated, please use GetOrder instead.")]
         public int OrderTicket()
         {
-            return SendCommand<int>(MtCommandType.OrderTicket, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.OrderTicket);
         }
 
         [Obsolete("OrderType is deprecated, please use GetOrder instead.")]
         public TradeOperation OrderType()
         {
-            var retVal = SendCommand<int>(MtCommandType.OrderType, null);
-
-            return (TradeOperation)retVal;
+            return (TradeOperation) SendCommand<int>(ExecutorHandle, MtCommandType.OrderType);
         }
 
         [Obsolete("OrderSwap is deprecated, please use GetOrder instead.")]
         public double OrderSwap()
         {
-            return SendCommand<double>(MtCommandType.OrderSwap, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.OrderSwap);
         }
         #endregion
 
@@ -264,21 +258,12 @@ namespace MtApi
         {
             Log.Debug($"OrderSend: symbol = {symbol}, cmd = {cmd}, volume = {volume}, price = {price}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}, comment = {comment}, magic = {magic}, expiration = {expiration}, arrowColor = {arrowColor}");
 
-            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
-            {
-                Symbol = symbol,
-                Cmd = (int)cmd,
-                Volume = volume,
-                Price = price,
-                Slippage = slippage,
-                Stoploss = stoploss,
-                Takeprofit = takeprofit,
-                Comment = comment,
-                Magic = magic,
-                Expiration = MtApiTimeConverter.ConvertToMtTime(expiration),
-                ArrowColor = MtApiColorConverter.ConvertToMtColor(arrowColor)
-            });
-            return response?.Ticket ?? -1;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Cmd", cmd },
+                { "Volume", volume }, { "Price", price }, { "Slippage", slippage }, { "Stoploss", stoploss},
+                { "Takeprofit", takeprofit }, { "Comment", comment }, { "Magic", magic },
+                { "Expiration",  MtApiTimeConverter.ConvertToMtTime(expiration) }, { "ArrowColor", MtApiColorConverter.ConvertToMtColor(arrowColor) } };
+
+            return SendCommand<int>(ExecutorHandle, MtCommandType.OrderSend, cmdParams);
         }
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
@@ -286,20 +271,12 @@ namespace MtApi
         {
             Log.Debug($"OrderSend: symbol = {symbol}, cmd = {cmd}, volume = {volume}, price = {price}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}, comment = {comment}, magic = {magic}, expiration = {expiration}");
 
-            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
-            {
-                Symbol = symbol,
-                Cmd = (int)cmd,
-                Volume = volume,
-                Price = price,
-                Slippage = slippage,
-                Stoploss = stoploss,
-                Takeprofit = takeprofit,
-                Comment = comment,
-                Magic = magic,
-                Expiration = MtApiTimeConverter.ConvertToMtTime(expiration)
-            });
-            return response?.Ticket ?? -1;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Cmd", cmd },
+                { "Volume", volume }, { "Price", price }, { "Slippage", slippage }, { "Stoploss", stoploss},
+                { "Takeprofit", takeprofit }, { "Comment", comment }, { "Magic", magic },
+                { "Expiration",  MtApiTimeConverter.ConvertToMtTime(expiration) } };
+
+            return SendCommand<int>(ExecutorHandle, MtCommandType.OrderSend, cmdParams);
         }
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
@@ -307,19 +284,11 @@ namespace MtApi
         {
             Log.Debug($"OrderSend: symbol = {symbol}, cmd = {cmd}, volume = {volume}, price = {price}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}, comment = {comment}, magic = {magic}");
 
-            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
-            {
-                Symbol = symbol,
-                Cmd = (int)cmd,
-                Volume = volume,
-                Price = price,
-                Slippage = slippage,
-                Stoploss = stoploss,
-                Takeprofit = takeprofit,
-                Comment = comment,
-                Magic = magic
-            });
-            return response?.Ticket ?? -1;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Cmd", cmd },
+                { "Volume", volume }, { "Price", price }, { "Slippage", slippage }, { "Stoploss", stoploss},
+                { "Takeprofit", takeprofit }, { "Comment", comment }, { "Magic", magic } };
+
+            return SendCommand<int>(ExecutorHandle, MtCommandType.OrderSend, cmdParams);
         }
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit
@@ -327,43 +296,29 @@ namespace MtApi
         {
             Log.Debug($"OrderSend: symbol = {symbol}, cmd = {cmd}, volume = {volume}, price = {price}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}, comment = {comment}");
 
-            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
-            {
-                Symbol = symbol,
-                Cmd = (int)cmd,
-                Volume = volume,
-                Price = price,
-                Slippage = slippage,
-                Stoploss = stoploss,
-                Takeprofit = takeprofit,
-                Comment = comment
-            });
-            return response?.Ticket ?? -1;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Cmd", cmd },
+                { "Volume", volume }, { "Price", price }, { "Slippage", slippage }, { "Stoploss", stoploss},
+                { "Takeprofit", takeprofit }, { "Comment", comment } };
+
+            return SendCommand<int>(ExecutorHandle, MtCommandType.OrderSend, cmdParams);
         }
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, double price, int slippage, double stoploss, double takeprofit)
         {
             Log.Debug($"OrderSend: symbol = {symbol}, cmd = {cmd}, volume = {volume}, price = {price}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}");
 
-            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
-            {
-                Symbol = symbol,
-                Cmd = (int)cmd,
-                Volume = volume,
-                Price = price,
-                Slippage = slippage,
-                Stoploss = stoploss,
-                Takeprofit = takeprofit,
-            });
-            return response?.Ticket ?? -1;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Cmd", cmd },
+                { "Volume", volume }, { "Price", price }, { "Slippage", slippage }, { "Stoploss", stoploss},
+                { "Takeprofit", takeprofit } };
+
+            return SendCommand<int>(ExecutorHandle, MtCommandType.OrderSend, cmdParams);
         }
 
         public int OrderSend(string symbol, TradeOperation cmd, double volume, string price, int slippage, double stoploss, double takeprofit)
         {
             Log.Debug($"OrderSend: symbol = {symbol}, cmd = {cmd}, volume = {volume}, price = {price}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}");
 
-            double dPrice;
-            return double.TryParse(price, out dPrice) ? 
+            return double.TryParse(price, out double dPrice) ?
                 OrderSend(symbol, cmd, volume, dPrice, slippage, stoploss, takeprofit) : 0;
         }
 
@@ -389,186 +344,132 @@ namespace MtApi
             return OrderSendSell(symbol, volume, slippage, stoploss, takeprofit, null, 0);
         }
 
-        public int OrderSendBuy(string symbol, double volume, int slippage, double stoploss, double takeprofit, string comment, int magic)
+        public int OrderSendBuy(string symbol, double volume, int slippage, double stoploss, double takeprofit, string? comment, int magic)
         {
             Log.Debug($"OrderSendBuy: symbol = {symbol}, volume = {volume}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}, comment = {comment}, magic = {magic}");
 
-            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
-            {
-                Symbol = symbol,
-                Cmd = (int)TradeOperation.OP_BUY,
-                Volume = volume,
-                Slippage = slippage,
-                Stoploss = stoploss,
-                Takeprofit = takeprofit,
-                Comment = comment,
-                Magic = magic,
-            });
-            return response?.Ticket ?? -1;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Cmd", (int)TradeOperation.OP_BUY },
+                { "Volume", volume }, { "Slippage", slippage }, { "Stoploss", stoploss},
+                { "Takeprofit", takeprofit }, { "Magic", magic } };
+            if (string.IsNullOrEmpty(comment) == false)
+                cmdParams["Comment"] = comment;
+            return SendCommand<int>(ExecutorHandle, MtCommandType.OrderSend, cmdParams);
         }
 
-        public int OrderSendSell(string symbol, double volume, int slippage, double stoploss, double takeprofit, string comment, int magic)
+        public int OrderSendSell(string symbol, double volume, int slippage, double stoploss, double takeprofit, string? comment, int magic)
         {
             Log.Debug($"OrderSendSell: symbol = {symbol}, volume = {volume}, slippage = {slippage}, stoploss = {stoploss}, takeprofit = {takeprofit}, comment = {comment}, magic = {magic}");
 
-            var response = SendRequest<OrderSendResponse>(new OrderSendRequest
-            {
-                Symbol = symbol,
-                Cmd = (int)TradeOperation.OP_SELL,
-                Volume = volume,
-                Slippage = slippage,
-                Stoploss = stoploss,
-                Takeprofit = takeprofit,
-                Comment = comment,
-                Magic = magic,
-            });
-            return response?.Ticket ?? -1;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol }, { "Cmd", (int)TradeOperation.OP_SELL },
+                { "Volume", volume }, { "Slippage", slippage }, { "Stoploss", stoploss},
+                { "Takeprofit", takeprofit }, { "Magic", magic } };
+            if (string.IsNullOrEmpty(comment) == false)
+                cmdParams["Comment"] = comment;
+            return SendCommand<int>(ExecutorHandle, MtCommandType.OrderSend, cmdParams);
         }
 
         public bool OrderClose(int ticket, double lots, double price, int slippage, Color color)
         {
             Log.Debug($"OrderClose: ticket = {ticket}, lots = {lots}, price = {price}, slippage = {slippage}, color = {color}");
 
-            var response = SendRequest<ResponseBase>(new OrderCloseRequest
-            {
-                Ticket = ticket,
-                Lots = lots,
-                Price = price,
-                Slippage = slippage,
-                ArrowColor = MtApiColorConverter.ConvertToMtColor(color)
-            });
-            return response != null;
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket }, { "Lots", lots },
+                { "Price", price }, { "Slippage", slippage }, { "ArrowColor", color} };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.OrderClose, cmdParams);
         }
 
         public bool OrderClose(int ticket, double lots, double price, int slippage)
         {
             Log.Debug($"OrderClose: ticket = {ticket}, lots = {lots}, price = {price}, slippage = {slippage}");
 
-            var response = SendRequest<ResponseBase>(new OrderCloseRequest
-            {
-                Ticket = ticket,
-                Lots = lots,
-                Price = price,
-                Slippage = slippage,
-            });
-            return response != null;
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket }, { "Lots", lots },
+                { "Price", price }, { "Slippage", slippage } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.OrderClose, cmdParams);
         }
 
         public bool OrderClose(int ticket, double lots, int slippage)
         {
             Log.Debug($"OrderClose: ticket = {ticket}, lots = {lots}, slippage = {slippage}");
 
-            var response = SendRequest<ResponseBase>(new OrderCloseRequest
-            {
-                Ticket = ticket,
-                Lots = lots,
-                Slippage = slippage,
-            });
-            return response != null;
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket }, { "Lots", lots },
+                { "Slippage", slippage } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.OrderClose, cmdParams);
         }
 
         public bool OrderClose(int ticket, int slippage)
         {
             Log.Debug($"OrderClose: ticket = {ticket}, slippage = {slippage}");
 
-            var response = SendRequest<ResponseBase>(new OrderCloseRequest
-            {
-                Ticket = ticket,
-                Slippage = slippage,
-            });
-            return response != null;
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket }, { "Slippage", slippage } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.OrderClose, cmdParams);
         }
 
         public bool OrderCloseBy(int ticket, int opposite, Color color)
         {
             Log.Debug($"OrderCloseBy: ticket = {ticket}, opposite = {opposite}, color = {color}");
 
-            var response = SendRequest<ResponseBase>(new OrderCloseByRequest
-            {
-                Ticket = ticket,
-                Opposite = opposite,
-                ArrowColor = MtApiColorConverter.ConvertToMtColor(color)
-            });
-            return response != null;
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket }, { "Opposite", opposite },
+                { "ColorValue",  MtApiColorConverter.ConvertToMtColor(color) } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.OrderCloseBy, cmdParams);
         }
 
         public bool OrderCloseBy(int ticket, int opposite)
         {
             Log.Debug($"OrderCloseBy: ticket = {ticket}, opposite = {opposite}");
 
-            var response = SendRequest<ResponseBase>(new OrderCloseByRequest
-            {
-                Ticket = ticket,
-                Opposite = opposite,
-            });
-            return response != null;
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket }, { "Opposite", opposite } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.OrderCloseBy, cmdParams);
         }
 
         public bool OrderDelete(int ticket, Color color)
         {
             Log.Debug($"OrderDelete: ticket = {ticket}, color = {color}");
 
-            var response = SendRequest<ResponseBase>(new OrderDeleteRequest
-            {
-                Ticket = ticket,
-                ArrowColor = MtApiColorConverter.ConvertToMtColor(color),
-            });
-            return response != null;
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket }, 
+                { "ArrowColor", MtApiColorConverter.ConvertToMtColor(color) } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.OrderDelete, cmdParams);
         }
 
         public bool OrderDelete(int ticket)
         {
             Log.Debug($"OrderDelete: ticket = {ticket}");
 
-            var response = SendRequest<ResponseBase>(new OrderDeleteRequest
-            {
-                Ticket = ticket,
-            });
-            return response != null;
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.OrderDelete, cmdParams);
         }
 
         public bool OrderModify(int ticket, double price, double stoploss, double takeprofit, DateTime expiration, Color arrowColor)
         {
             Log.Debug($"OrderModify: ticket = {ticket}, price = {price}, stoploss = {stoploss}, takeprofit = {takeprofit}, expiration = {expiration}, arrowColor = {arrowColor}");
 
-            var response = SendRequest<ResponseBase>(new OrderModifyRequest
-            {
-                Ticket = ticket,
-                Price = price,
-                Stoploss = stoploss,
-                Takeprofit = takeprofit,
-                Expiration = MtApiTimeConverter.ConvertToMtTime(expiration),
-                ArrowColor = MtApiColorConverter.ConvertToMtColor(arrowColor)
-            });
-            return response != null;
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket }, 
+                { "Price", price }, { "Stoploss", stoploss}, { "Takeprofit", takeprofit },
+                { "Expiration", MtApiTimeConverter.ConvertToMtTime(expiration) },
+                { "ArrowColor", MtApiColorConverter.ConvertToMtColor(arrowColor) } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.OrderModify, cmdParams);
         }
 
         public bool OrderModify(int ticket, double price, double stoploss, double takeprofit, DateTime expiration)
         {
             Log.Debug($"OrderModify: ticket = {ticket}, price = {price}, stoploss = {stoploss}, takeprofit = {takeprofit}, expiration = {expiration}");
 
-            var response = SendRequest<ResponseBase>(new OrderModifyRequest
-            {
-                Ticket = ticket,
-                Price = price,
-                Stoploss = stoploss,
-                Takeprofit = takeprofit,
-                Expiration = MtApiTimeConverter.ConvertToMtTime(expiration),
-            });
-            return response != null;
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket },
+                { "Price", price }, { "Stoploss", stoploss}, { "Takeprofit", takeprofit },
+                { "Expiration", MtApiTimeConverter.ConvertToMtTime(expiration) } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.OrderModify, cmdParams);
         }
 
         public void OrderPrint()
         {
-            SendCommand<object>(MtCommandType.OrderPrint, null);
+            SendCommand<object>(ExecutorHandle, MtCommandType.OrderPrint);
         }
 
         public bool OrderSelect(int index, OrderSelectMode select, OrderSelectSource pool)
         {
             Log.Debug($"OrderSelect: index = {index}, select = {select}, pool = {pool}");
 
-            var commandParameters = new ArrayList { index, (int)select, (int)pool };
-            return SendCommand<bool>(MtCommandType.OrderSelect, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Index", index },
+                { "Select", (int)select }, { "Pool", (int)pool} };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.OrderSelect, cmdParams);
         }
 
         public bool OrderSelect(int index, OrderSelectMode select)
@@ -578,29 +479,30 @@ namespace MtApi
 
         public int OrdersHistoryTotal()
         {
-            return SendCommand<int>(MtCommandType.OrdersHistoryTotal, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.OrdersHistoryTotal);
         }
 
         public int OrdersTotal()
         {
-            return SendCommand<int>(MtCommandType.OrdersTotal, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.OrdersTotal);
         }
 
         public bool OrderCloseAll()
         {
-            return SendCommand<bool>(MtCommandType.OrderCloseAll, null);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.OrderCloseAll);
         }
 
-        public MtOrder GetOrder(int index, OrderSelectMode select, OrderSelectSource pool)
+        public MtOrder? GetOrder(int index, OrderSelectMode select, OrderSelectSource pool)
         {
-            var response = SendRequest<GetOrderResponse>(new GetOrderRequest { Index = index, Select = (int) select, Pool = (int) pool});
-            return response?.Order;
+            Dictionary<string, object> cmdParams = new() { { "Index", index },
+                { "Select", (int)select }, { "Pool", (int)pool} };
+            return SendCommand<MtOrder>(ExecutorHandle, MtCommandType.GetOrder, cmdParams);
         }
 
-        public List<MtOrder> GetOrders(OrderSelectSource pool)
+        public List<MtOrder>? GetOrders(OrderSelectSource pool)
         {
-            var response = SendRequest<GetOrdersResponse>(new GetOrdersRequest { Pool = (int)pool });
-            return response != null ? response.Orders : new List<MtOrder>();
+            Dictionary<string, object> cmdParams = new() { { "Pool", (int)pool} };
+            return SendCommand<List<MtOrder>>(ExecutorHandle, MtCommandType.GetOrders, cmdParams);
         }
         #endregion
 
@@ -615,7 +517,7 @@ namespace MtApi
         ///</returns>
         public int GetLastError()
         {
-            return SendCommand<int>(MtCommandType.GetLastError, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.GetLastError);
         }
 
         ///<summary>
@@ -626,7 +528,7 @@ namespace MtApi
         ///</returns>
         public bool IsConnected()
         {
-            return SendCommand<bool>(MtCommandType.IsConnected, null);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.IsConnected);
         }
 
         ///<summary>
@@ -637,7 +539,7 @@ namespace MtApi
         ///</returns>
         public bool IsDemo()
         {
-            return SendCommand<bool>(MtCommandType.IsDemo, null);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.IsDemo);
         }
 
         ///<summary>
@@ -648,7 +550,7 @@ namespace MtApi
         ///</returns>
         public bool IsDllsAllowed()
         {
-            return SendCommand<bool>(MtCommandType.IsDllsAllowed, null);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.IsDllsAllowed);
         }
 
         ///<summary>
@@ -659,7 +561,7 @@ namespace MtApi
         ///</returns>
         public bool IsExpertEnabled()
         {
-            return SendCommand<bool>(MtCommandType.IsExpertEnabled, null);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.IsExpertEnabled);
         }
 
         ///<summary>
@@ -670,7 +572,7 @@ namespace MtApi
         ///</returns>
         public bool IsLibrariesAllowed()
         {
-            return SendCommand<bool>(MtCommandType.IsLibrariesAllowed, null);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.IsLibrariesAllowed);
         }
 
         ///<summary>
@@ -681,7 +583,7 @@ namespace MtApi
         ///</returns>
         public bool IsOptimization()
         {
-            return SendCommand<bool>(MtCommandType.IsOptimization, null);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.IsOptimization);
         }
 
         ///<summary>
@@ -695,7 +597,7 @@ namespace MtApi
         ///</returns>
         public bool IsStopped()
         {
-            return SendCommand<bool>(MtCommandType.IsStopped, null);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.IsStopped);
         }
 
         ///<summary>
@@ -706,7 +608,7 @@ namespace MtApi
         ///</returns>
         public bool IsTesting()
         {
-            return SendCommand<bool>(MtCommandType.IsTesting, null);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.IsTesting);
         }
 
         ///<summary>
@@ -717,7 +619,7 @@ namespace MtApi
         ///</returns>
         public bool IsTradeAllowed()
         {
-            return SendCommand<bool>(MtCommandType.IsTradeAllowed, null);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.IsTradeAllowed);
         }
 
         ///<summary>
@@ -728,7 +630,7 @@ namespace MtApi
         ///</returns>
         public bool IsTradeContextBusy()
         {
-            return SendCommand<bool>(MtCommandType.IsTradeContextBusy, null);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.IsTradeContextBusy);
         }
 
         ///<summary>
@@ -739,7 +641,7 @@ namespace MtApi
         ///</returns>
         public bool IsVisualMode()
         {
-            return SendCommand<bool>(MtCommandType.IsVisualMode, null);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.IsVisualMode);
         }
 
         ///<summary>
@@ -751,16 +653,16 @@ namespace MtApi
         ///</returns>
         public int UninitializeReason()
         {
-            return SendCommand<int>(MtCommandType.UninitializeReason, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.UninitializeReason);
         }
 
         ///<summary>
         ///Print the error description.
         ///</summary>
-        public string ErrorDescription(int errorCode)
+        public string? ErrorDescription(int errorCode)
         {
-            var commandParameters = new ArrayList { errorCode };
-            return SendCommand<string>(MtCommandType.ErrorDescription, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ErrorCode", errorCode } };
+            return SendCommand<string>(ExecutorHandle, MtCommandType.ErrorDescription, cmdParams);
         }
 
         ///<summary>
@@ -770,10 +672,10 @@ namespace MtApi
         ///<returns>
         ///Value of string type.
         ///</returns>
-        public string TerminalInfoString(ENUM_TERMINAL_INFO_STRING propertyId)
+        public string? TerminalInfoString(ENUM_TERMINAL_INFO_STRING propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-            return SendCommand<string>(MtCommandType.TerminalInfoString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", (int)propertyId } };
+            return SendCommand<string>(ExecutorHandle, MtCommandType.TerminalInfoString, cmdParams);
         }
 
         ///<summary>
@@ -785,8 +687,8 @@ namespace MtApi
         ///</returns>
         public int TerminalInfoInteger(EnumTerminalInfoInteger propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-            return SendCommand<int>(MtCommandType.TerminalInfoInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", (int)propertyId } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.TerminalInfoInteger, cmdParams);
         }
 
         ///<summary>
@@ -798,8 +700,8 @@ namespace MtApi
         ///</returns>
         public double TerminalInfoDouble(EnumTerminalInfoDouble propertyId)
         {
-            var commandParameters = new ArrayList { (int)propertyId };
-            return SendCommand<double>(MtCommandType.TerminalInfoDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", (int)propertyId } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.TerminalInfoDouble, cmdParams);
         }
 
         ///<summary>
@@ -808,9 +710,9 @@ namespace MtApi
         ///<returns>
         ///The name of company owning the client terminal.
         ///</returns>
-        public string TerminalCompany()
+        public string? TerminalCompany()
         {
-            return SendCommand<string>(MtCommandType.TerminalCompany, null);
+            return SendCommand<string>(ExecutorHandle, MtCommandType.TerminalCompany);
         }
 
         ///<summary>
@@ -819,9 +721,9 @@ namespace MtApi
         ///<returns>
         ///Client terminal name.
         ///</returns>
-        public string TerminalName()
+        public string? TerminalName()
         {
-            return SendCommand<string>(MtCommandType.TerminalName, null);
+            return SendCommand<string>(ExecutorHandle, MtCommandType.TerminalName);
         }
 
         ///<summary>
@@ -830,9 +732,9 @@ namespace MtApi
         ///<returns>
         ///The directory, from which the client terminal was launched.
         ///</returns>
-        public string TerminalPath()
+        public string? TerminalPath()
         {
-            return SendCommand<string>(MtCommandType.TerminalPath, null);
+            return SendCommand<string>(ExecutorHandle, MtCommandType.TerminalPath);
         }
 
         #endregion
@@ -841,89 +743,91 @@ namespace MtApi
 
         public double AccountBalance()
         {
-            return SendCommand<double>(MtCommandType.AccountBalance, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.AccountBalance);
         }
 
         public double AccountCredit()
         {
-            return SendCommand<double>(MtCommandType.AccountCredit, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.AccountCredit);
         }
 
-        public string AccountCompany()
+        public string? AccountCompany()
         {
-            return SendCommand<string>(MtCommandType.AccountCompany, null);
+            return SendCommand<string>(ExecutorHandle, MtCommandType.AccountCompany);
         }
 
-        public string AccountCurrency()
+        public string? AccountCurrency()
         {
-            return SendCommand<string>(MtCommandType.AccountCurrency, null);
+            return SendCommand<string>(ExecutorHandle, MtCommandType.AccountCurrency);
         }
 
         public double AccountEquity()
         {
-            return SendCommand<double>(MtCommandType.AccountEquity, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.AccountEquity);
         }
 
         public double AccountFreeMargin()
         {
-            return SendCommand<double>(MtCommandType.AccountFreeMargin, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.AccountFreeMargin);
         }
 
         public double AccountFreeMarginCheck(string symbol, TradeOperation cmd, double volume)
         {
-            var commandParameters = new ArrayList { symbol, (int)cmd, volume };
-            return SendCommand<double>(MtCommandType.AccountFreeMarginCheck, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Cmd", cmd }, { "Volume", volume } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.AccountFreeMarginCheck, cmdParams);
         }
 
         public double AccountFreeMarginMode()
         {
-            return SendCommand<double>(MtCommandType.AccountFreeMarginMode, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.AccountFreeMarginMode);
         }
 
         public int AccountLeverage()
         {
-            return SendCommand<int>(MtCommandType.AccountLeverage, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.AccountLeverage);
         }
 
         public double AccountMargin()
         {
-            return SendCommand<double>(MtCommandType.AccountMargin, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.AccountMargin);
         }
 
-        public string AccountName()
+        public string? AccountName()
         {
-            return SendCommand<string>(MtCommandType.AccountName, null);
+            return SendCommand<string>(ExecutorHandle, MtCommandType.AccountName);
         }
 
         public int AccountNumber()
         {
-            return SendCommand<int>(MtCommandType.AccountNumber, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.AccountNumber);
         }
 
         public double AccountProfit()
         {
-            return SendCommand<double>(MtCommandType.AccountProfit, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.AccountProfit);
         }
 
-        public string AccountServer()
+        public string? AccountServer()
         {
-            return SendCommand<string>(MtCommandType.AccountServer, null);
+            return SendCommand<string>(ExecutorHandle, MtCommandType.AccountServer);
         }
 
         public int AccountStopoutLevel()
         {
-            return SendCommand<int>(MtCommandType.AccountStopoutLevel, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.AccountStopoutLevel);
         }
 
         public int AccountStopoutMode()
         {
-            return SendCommand<int>(MtCommandType.AccountStopoutMode, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.AccountStopoutMode);
         }
 
         public bool ChangeAccount(string login, string password, string host)
         {
-            var commandParameters = new ArrayList { login, password, host};
-            return SendCommand<bool>(MtCommandType.ChangeAccount, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Login", login },
+                { "Password", password }, { "Host", host } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ChangeAccount, cmdParams);
         }
 
         #endregion
@@ -932,25 +836,26 @@ namespace MtApi
 
         public void Alert(string msg)
         {
-            var commandParameters = new ArrayList { msg };
-            SendCommand<object>(MtCommandType.Alert, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Msg", msg } };
+            SendCommand<object>(ExecutorHandle, MtCommandType.Alert, cmdParams);
         }
 
         public void Comment(string msg)
         {
-            var commandParameters = new ArrayList { msg };
-            SendCommand<object>(MtCommandType.Comment, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Msg", msg } };
+            SendCommand<object>(ExecutorHandle, MtCommandType.Comment, cmdParams);
         }
 
         public int GetTickCount()
         {
-            return SendCommand<int>(MtCommandType.GetTickCount, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.GetTickCount);
         }
 
         public int MessageBox(string text, string caption, int flag)
         {
-            var commandParameters = new ArrayList { text, caption, flag };
-            return SendCommand<int>(MtCommandType.MessageBoxA, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Text", text },
+                { "Caption", caption }, { "Flag", flag } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.MessageBoxA, cmdParams);
         }
 
         public int MessageBox(string text, string caption)
@@ -960,44 +865,46 @@ namespace MtApi
 
         public int MessageBox(string text)
         {
-            var commandParameters = new ArrayList { text };
-            return SendCommand<int>(MtCommandType.MessageBox, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Text", text } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.MessageBox, cmdParams);
         }
 
         public bool PlaySound(string filename)
         {
-            var commandParameters = new ArrayList { filename };
-            return SendCommand<bool>(MtCommandType.PlaySound, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Filename", filename } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.PlaySound, cmdParams);
         }
 
         public void Print(string msg)
         {
-            var commandParameters = new ArrayList { msg };
-            SendCommand<object>(MtCommandType.Print, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Msg", msg } };
+            SendCommand<object>(ExecutorHandle, MtCommandType.Print, cmdParams);
         }
 
         public bool SendFTP(string filename)
         {
-            var commandParameters = new ArrayList { filename };
-            return SendCommand<bool>(MtCommandType.SendFTP, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Filename", filename } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.SendFTP, cmdParams);
         }
 
         public bool SendFTP(string filename, string ftpPath)
         {
-            var commandParameters = new ArrayList { filename, ftpPath };
-            return SendCommand<bool>(MtCommandType.SendFTPA, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Filename", filename },
+                { "FtpPath", ftpPath } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.SendFTPA, cmdParams);
         }
 
         public bool SendMail(string subject, string someText)
         {
-            var commandParameters = new ArrayList { subject, someText };
-            return SendCommand<bool>(MtCommandType.SendMail, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Subject", subject },
+                { "SomeText", someText } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.SendMail, cmdParams);
         }
 
         public void Sleep(int milliseconds)
         {
-            var commandParameters = new ArrayList { milliseconds };
-            SendCommand<object>(MtCommandType.Sleep, commandParameters);
+            Dictionary<string, object> cmdParams = new() { {  "Milliseconds", milliseconds } };
+            SendCommand<object>(ExecutorHandle, MtCommandType.Sleep, cmdParams);
         }
 
         #endregion
@@ -1006,109 +913,109 @@ namespace MtApi
 
         public int Day()
         {
-            return SendCommand<int>(MtCommandType.Day, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.Day);
         }
 
         public int DayOfWeek()
         {
-            return SendCommand<int>(MtCommandType.DayOfWeek, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.DayOfWeek);
         }
 
         public int DayOfYear()
         {
-            return SendCommand<int>(MtCommandType.DayOfYear, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.DayOfYear);
         }
 
         public int Hour()
         {
-            return SendCommand<int>(MtCommandType.Hour, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.Hour);
         }
 
         public int Minute()
         {
-            return SendCommand<int>(MtCommandType.Minute, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.Minute);
         }
 
         public int Month()
         {
-            return SendCommand<int>(MtCommandType.Month, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.Month);
         }
 
         public int Seconds()
         {
-            return SendCommand<int>(MtCommandType.Seconds, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.Seconds);
         }
 
         public DateTime TimeCurrent()
         {
-            var commandResponse = SendCommand<int>(MtCommandType.TimeCurrent, null);
+            var commandResponse = SendCommand<int>(ExecutorHandle, MtCommandType.TimeCurrent);
             return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
         }
 
         public DateTime TimeGMT()
         {
-            var commandResponse = SendCommand<int>(MtCommandType.TimeGMT, null);
+            var commandResponse = SendCommand<int>(ExecutorHandle, MtCommandType.TimeGMT);
             return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
         }
 
         public int TimeDay(DateTime date)
         {
-            var commandParameters = new ArrayList { MtApiTimeConverter.ConvertToMtTime(date) };
-            return SendCommand<int>(MtCommandType.TimeDay, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Date", MtApiTimeConverter.ConvertToMtTime(date) } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.TimeDay, cmdParams);
         }
 
         public int TimeDayOfWeek(DateTime date)
         {
-            var commandParameters = new ArrayList { MtApiTimeConverter.ConvertToMtTime(date) };
-            return SendCommand<int>(MtCommandType.TimeDayOfWeek, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Date", MtApiTimeConverter.ConvertToMtTime(date) } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.TimeDayOfWeek, cmdParams);
         }
 
         public int TimeDayOfYear(DateTime date)
         {
-            var commandParameters = new ArrayList { MtApiTimeConverter.ConvertToMtTime(date) };
-            return SendCommand<int>(MtCommandType.TimeDayOfYear, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Date", MtApiTimeConverter.ConvertToMtTime(date) } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.TimeDayOfYear, cmdParams);
         }
 
         public int TimeHour(DateTime time)
         {
-            var commandParameters = new ArrayList { MtApiTimeConverter.ConvertToMtTime(time) };
-            return SendCommand<int>(MtCommandType.TimeHour, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "TIme", MtApiTimeConverter.ConvertToMtTime(time) } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.TimeHour, cmdParams);
         }
 
         public DateTime TimeLocal()
         {
-            var commandResponse = SendCommand<int>(MtCommandType.TimeLocal, null);
+            var commandResponse = SendCommand<int>(ExecutorHandle, MtCommandType.TimeLocal);
             return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
         }
 
         public int TimeMinute(DateTime time)
-        {
-            var commandParameters = new ArrayList { MtApiTimeConverter.ConvertToMtTime(time) };
-            return SendCommand<int>(MtCommandType.TimeMinute, commandParameters);
+        {;
+            Dictionary<string, object> cmdParams = new() { { "TIme", MtApiTimeConverter.ConvertToMtTime(time) } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.TimeMinute, cmdParams);
         }
 
         public int TimeMonth(DateTime time)
         {
-            var commandParameters = new ArrayList { MtApiTimeConverter.ConvertToMtTime(time) };
-            return SendCommand<int>(MtCommandType.TimeMonth, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "TIme", MtApiTimeConverter.ConvertToMtTime(time) } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.TimeMonth, cmdParams);
         }
 
         public int TimeSeconds(DateTime time)
         {
-            var commandParameters = new ArrayList { MtApiTimeConverter.ConvertToMtTime(time) };
-            return SendCommand<int>(MtCommandType.TimeSeconds, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "TIme", MtApiTimeConverter.ConvertToMtTime(time) } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.TimeSeconds, cmdParams);
         }
 
         public int TimeYear(DateTime time)
         {
-            var commandParameters = new ArrayList { MtApiTimeConverter.ConvertToMtTime(time) };
-            return SendCommand<int>(MtCommandType.TimeYear, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "TIme", MtApiTimeConverter.ConvertToMtTime(time) } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.TimeYear, cmdParams);
         }
 
         public int Year(DateTime time)
         {
-            var commandParameters = new ArrayList { MtApiTimeConverter.ConvertToMtTime(time) };
-            return SendCommand<int>(MtCommandType.Year, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "TIme", MtApiTimeConverter.ConvertToMtTime(time) } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.Year, cmdParams);
         }
 
         #endregion
@@ -1116,50 +1023,51 @@ namespace MtApi
         #region Global Variables Functions
         public bool GlobalVariableCheck(string name)
         {
-            var commandParameters = new ArrayList { name };
-            return SendCommand<bool>(MtCommandType.GlobalVariableCheck, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Name", name } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.GlobalVariableCheck, cmdParams);
         }
 
         public bool GlobalVariableDel(string name)
         {
-            var commandParameters = new ArrayList { name };
-            return SendCommand<bool>(MtCommandType.GlobalVariableDel, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Name", name } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.GlobalVariableDel, cmdParams);
         }
 
         public double GlobalVariableGet(string name)
         {
-            var commandParameters = new ArrayList { name };
-            return SendCommand<double>(MtCommandType.GlobalVariableGet, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Name", name } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.GlobalVariableGet, cmdParams);
         }
 
-        public string GlobalVariableName(int index)
+        public string? GlobalVariableName(int index)
         {
-            var commandParameters = new ArrayList { index };
-            return SendCommand<string>(MtCommandType.GlobalVariableName, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Index", index } };
+            return SendCommand<string>(ExecutorHandle, MtCommandType.GlobalVariableName, cmdParams);
         }
 
         public DateTime GlobalVariableSet(string name, double value)
         {
-            var commandParameters = new ArrayList { name, value };
-            var commandResponse = SendCommand<int>(MtCommandType.GlobalVariableSet, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Name", name }, { "Value", value } };
+            var commandResponse = SendCommand<int>(ExecutorHandle, MtCommandType.GlobalVariableSet, cmdParams);
             return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
         }
 
         public bool GlobalVariableSetOnCondition(string name, double value, double checkValue)
         {
-            var commandParameters = new ArrayList { name, value, checkValue };
-            return SendCommand<bool>(MtCommandType.GlobalVariableSetOnCondition, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Name", name }, { "Value", value },
+                { "CheckValue", checkValue } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.GlobalVariableSetOnCondition, cmdParams);
         }
 
         public int GlobalVariablesDeleteAll(string prefixName)
         {
-            var commandParameters = new ArrayList { prefixName };
-            return SendCommand<int>(MtCommandType.GlobalVariableSetOnCondition, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "PrefixName", prefixName } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.GlobalVariableSetOnCondition, cmdParams);
         }
 
         public int GlobalVariablesTotal()
         {
-            return SendCommand<int>(MtCommandType.GlobalVariablesTotal, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.GlobalVariablesTotal, null);
         }
 
         #endregion
@@ -1167,497 +1075,545 @@ namespace MtApi
         #region Technical Indicators
         public double iAC(string symbol, ChartPeriod timeframe, int shift)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
-            return SendCommand<double>(MtCommandType.iAC, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe }, { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iAC, cmdParams);
         }
 
         public double iAD(string symbol, int timeframe, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, shift };
-            return SendCommand<double>(MtCommandType.iAD, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iAD, cmdParams);
         }
 
         public double iAlligator(string symbol, int timeframe, int jawPeriod, int jawShift, int teethPeriod, int teethShift, int lipsPeriod, int lipsShift, int maMethod, int appliedPrice, int mode, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, jawPeriod, jawShift, teethPeriod, teethShift, lipsPeriod, lipsShift, maMethod, appliedPrice, mode, shift };
-            return SendCommand<double>(MtCommandType.iAlligator, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "JawPeriod", jawPeriod },
+                { "JawShift", jawShift }, { "TeethPeriod", teethPeriod },
+                { "TeethShift", teethShift }, { "LipsPeriod", lipsPeriod },
+                { "LipsShift", lipsShift }, { "MaMethod", maMethod },
+                { "AppliedPrice", appliedPrice }, { "Mode", mode },
+                { "Shift", shift } };
+
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iAlligator, cmdParams);
         }
 
         public double iADX(string symbol, int timeframe, int period, int appliedPrice, int mode, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, appliedPrice, mode, shift };
-            return SendCommand<double>(MtCommandType.iADX, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Period", period },
+                { "AppliedPrice", appliedPrice }, { "Mode", mode },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iADX, cmdParams);
         }
 
         public double iATR(string symbol, int timeframe, int period, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, shift };
-            return SendCommand<double>(MtCommandType.iATR, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe },  { "Period", period },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iATR, cmdParams);
         }
 
         public double iAO(string symbol, int timeframe, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, shift };
-            return SendCommand<double>(MtCommandType.iAO, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iAO, cmdParams);
         }
 
         public double iBearsPower(string symbol, int timeframe, int period, int appliedPrice, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, appliedPrice, shift };
-            return SendCommand<double>(MtCommandType.iBearsPower, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Period", period },
+                { "AppliedPrice", appliedPrice },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iBearsPower, cmdParams);
         }
 
         public double iBands(string symbol, int timeframe, int period, int deviation, int bandsShift, int appliedPrice, int mode, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, deviation, bandsShift, appliedPrice, mode, shift };
-            return SendCommand<double>(MtCommandType.iBands, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Period", period },
+                { "Deviation", deviation }, { "BandsShift", bandsShift },
+                { "AppliedPrice", appliedPrice }, { "Mode", mode },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iBands, cmdParams);
         }
 
         public double iBandsOnArray(double[] array, int total, int period, int deviation, int bandsShift, int mode, int shift)
         {
-            var arraySize = array?.Length ?? 0;
-            var commandParameters = new ArrayList { arraySize };
-            commandParameters.AddRange(array ?? new double[] {});
-            commandParameters.Add(total);
-            commandParameters.Add(period);
-            commandParameters.Add(deviation);
-            commandParameters.Add(bandsShift);
-            commandParameters.Add(mode);
-            commandParameters.Add(shift);
-
-            return SendCommand<double>(MtCommandType.iBandsOnArray, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Total", total },
+                { "Period", period }, { "Deviation", deviation },
+                { "BandsShift", bandsShift }, { "Mode", mode },
+                { "Data", array ?? [] },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iBandsOnArray, cmdParams);
         }
 
         public double iBullsPower(string symbol, int timeframe, int period, int appliedPrice, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, appliedPrice, shift };
-            return SendCommand<double>(MtCommandType.iBullsPower, commandParameters);
+            Dictionary<string, object> cmdParams = new() { {  "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Period", period },
+                { "AppliedPrice", appliedPrice },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iBullsPower, cmdParams);
         }
 
         public double iCCI(string symbol, int timeframe, int period, int appliedPrice, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, appliedPrice, shift };
-            return SendCommand<double>(MtCommandType.iCCI, commandParameters);
+            Dictionary<string, object> cmdParams = new() { {  "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Period", period },
+                { "AppliedPrice", appliedPrice },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iCCI, cmdParams);
         }
 
         public double iCCIOnArray(double[] array, int total, int period, int shift)
         {
-            var arraySize = array?.Length ?? 0;
-            var commandParameters = new ArrayList { arraySize };
-            commandParameters.AddRange(array ?? new double[] { });
-            commandParameters.Add(total);
-            commandParameters.Add(period);
-            commandParameters.Add(shift);
-
-            return SendCommand<double>(MtCommandType.iCCIOnArray, commandParameters);
+            Dictionary<string, object> cmdParams = new() { {  "Total", total },
+                { "Period", period },
+                { "Data", array ?? [] },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iCCIOnArray, cmdParams);
         }
 
         public double iCustom(string symbol, int timeframe, string name, int[] parameters, int mode, int shift)
         {
-            var response = SendRequest<ICustomResponse>(new ICustomRequest
-            {
-                Symbol = symbol,
-                Timeframe = timeframe,
-                Name = name,
-                Mode = mode,
-                Shift = shift,
-                Params = new ArrayList(parameters),
-                ParamsType = ICustomRequest.ParametersType.Int
-            });
-            return response?.Value ?? double.NaN;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Name", name }, { "Mode", mode },
+                { "Shift", shift }, { "ParamsType", (int)ParametersType.Int },
+                { "Params", new ArrayList(parameters) } };
+
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iCustom, cmdParams);
         }
 
         public double iCustom(string symbol, int timeframe, string name, double[] parameters, int mode, int shift)
         {
-            var response = SendRequest<ICustomResponse>(new ICustomRequest
-            {
-                Symbol = symbol,
-                Timeframe = timeframe,
-                Name = name,
-                Mode = mode,
-                Shift = shift,
-                Params = new ArrayList(parameters),
-                ParamsType = ICustomRequest.ParametersType.Double
-            });
-            return response?.Value ?? double.NaN;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Name", name }, { "Mode", mode },
+                { "Shift", shift }, { "ParamsType", (int)ParametersType.Double },
+                { "Params", new ArrayList(parameters) } };
+
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iCustom, cmdParams);
         }
 
         public double iCustom(string symbol, int timeframe, string name, int mode, int shift)
         {
-            var response = SendRequest<ICustomResponse>(new ICustomRequest
-            {
-                Symbol = symbol,
-                Timeframe = timeframe,
-                Name = name,
-                Mode = mode,
-                Shift = shift
-            });
-            return response?.Value ?? double.NaN;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Name", name }, { "Mode", mode },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iCustom, cmdParams);
         }
 
         public double iDeMarker(string symbol, int timeframe, int period, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, shift };
-            return SendCommand<double>(MtCommandType.iDeMarker, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Period", period },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iDeMarker, cmdParams);
         }
 
         public double iEnvelopes(string symbol, int timeframe, int maPeriod, int maMethod, int maShift, int appliedPrice, double deviation, int mode, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, maPeriod, maMethod, maShift, appliedPrice, deviation, mode, shift };
-            return SendCommand<double>(MtCommandType.iEnvelopes, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "MaPeriod", maPeriod },
+                { "MaMethod", maMethod }, { "MaShift", maShift },
+                { "AppliedPrice", appliedPrice }, { "Deviation", deviation },
+                { "Mode", mode }, { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iEnvelopes, cmdParams);
         }
 
         public double iEnvelopesOnArray(double[] array, int total, int maPeriod, int maMethod, int maShift, double deviation, int mode, int shift)
         {
-            var arraySize = array?.Length ?? 0;
-            var commandParameters = new ArrayList { arraySize };
-            commandParameters.AddRange(array ?? new double[] {});
-            commandParameters.Add(total);
-            commandParameters.Add(maPeriod);
-            commandParameters.Add(maMethod);
-            commandParameters.Add(maShift);
-            commandParameters.Add(deviation);
-            commandParameters.Add(mode);
-            commandParameters.Add(shift);
-
-            return SendCommand<double>(MtCommandType.iEnvelopesOnArray, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Total", total },
+                { "MaPeriod", maPeriod }, { "MaMethod", maMethod },
+                { "MaShift", maShift }, { "Deviation", deviation },
+                { "Mode", mode }, { "Shift", shift },
+                { "Data", array ?? [] } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iEnvelopesOnArray, cmdParams);
         }
 
         public double iForce(string symbol, int timeframe, int period, int maMethod, int appliedPrice, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, maMethod, appliedPrice, shift };
-            return SendCommand<double>(MtCommandType.iForce, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Period", period },
+                { "MaMethod", maMethod }, { "AppliedPrice", appliedPrice },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iForce, cmdParams);
         }
 
         public double iFractals(string symbol, int timeframe, int mode, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, mode, shift };
-            return SendCommand<double>(MtCommandType.iFractals, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Mode", mode },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iFractals, cmdParams);
         }
 
         public double iGator(string symbol, int timeframe, int jawPeriod, int jawShift, int teethPeriod, int teethShift, int lipsPeriod, int lipsShift, int maMethod, int appliedPrice, int mode, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, jawPeriod, jawShift, teethPeriod, teethShift, lipsPeriod, lipsShift, maMethod, appliedPrice, mode, shift };
-            return SendCommand<double>(MtCommandType.iGator, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "JawPeriod", jawPeriod },
+                { "JawShift", jawShift }, { "TeethPeriod", teethPeriod },
+                { "TeethShift", teethShift }, { "LipsPeriod", lipsPeriod },
+                { "LipsShift", lipsShift }, { "MaMethod", maMethod },
+                { "AppliedPrice", appliedPrice },
+                { "Mode", mode }, { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iGator, cmdParams);
         }
 
         public double iIchimoku(string symbol, int timeframe, int tenkanSen, int kijunSen, int senkouSpanB, int mode, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, tenkanSen, kijunSen, senkouSpanB, mode, shift };
-            return SendCommand<double>(MtCommandType.iIchimoku, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe },
+                { "TenkanSen", tenkanSen },
+                { "KijunSen", kijunSen },
+                { "SenkouSpanB", senkouSpanB },
+                { "Mode", mode }, { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iIchimoku, cmdParams);
         }
 
         public double iBWMFI(string symbol, int timeframe, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, shift };
-            return SendCommand<double>(MtCommandType.iBWMFI, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iBWMFI, cmdParams);
         }
 
         public double iMomentum(string symbol, int timeframe, int period, int appliedPrice, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, appliedPrice, shift };
-            return SendCommand<double>(MtCommandType.iMomentum, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Period", period },
+                { "AppliedPrice", appliedPrice }, { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iMomentum, cmdParams);
         }
 
         public double iMomentumOnArray(double[] array, int total, int period, int shift)
         {
-            var arraySize = array?.Length ?? 0;
-            var commandParameters = new ArrayList { arraySize };
-            commandParameters.AddRange(array ?? new double[] {});
-            commandParameters.Add(total);
-            commandParameters.Add(period);
-            commandParameters.Add(shift);
-
-            return SendCommand<double>(MtCommandType.iMomentumOnArray, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Total", total },
+                { "Period", period },
+                { "Shift", shift }, { "Data", array ?? [] } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iMomentumOnArray, cmdParams);
         }
 
         public double iMFI(string symbol, int timeframe, int period, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, shift };
-            return SendCommand<double>(MtCommandType.iMFI, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Period", period },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iMFI, cmdParams);
         }
 
         public double iMA(string symbol, int timeframe, int period, int maShift, int maMethod, int appliedPrice, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, maShift, maMethod, appliedPrice, shift };
-            return SendCommand<double>(MtCommandType.iMA, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe }, { "Period", period },
+                { "MaShift", maShift },
+                { "MaMethod", maMethod },
+                {  "AppliedPrice", appliedPrice },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iMA, cmdParams);
         }
 
         public double iMAOnArray(double[] array, int total, int period, int maShift, int maMethod, int shift)
         {
-            var arraySize = array?.Length ?? 0;
-            var commandParameters = new ArrayList { arraySize };
-            commandParameters.AddRange(array ?? new double[] {});
-            commandParameters.Add(total);
-            commandParameters.Add(period);
-            commandParameters.Add(maShift);
-            commandParameters.Add(maMethod);
-            commandParameters.Add(shift);
-
-            return SendCommand<double>(MtCommandType.iMAOnArray, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Total", total },
+                { "Period", period },
+                { "MaShift", maShift },
+                { "MaMethod", maMethod },
+                { "Shift", shift },
+                { "Data", array ?? [] } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iMAOnArray, cmdParams);
         }
 
         public double iOsMA(string symbol, int timeframe, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, int appliedPrice, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, fastEmaPeriod, slowEmaPeriod, signalPeriod, appliedPrice, shift };
-            return SendCommand<double>(MtCommandType.iOsMA, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe },
+                { "FastEmaPeriod", fastEmaPeriod },
+                { "SlowEmaPeriod", slowEmaPeriod },
+                { "SignalPeriod", signalPeriod },
+                {  "AppliedPrice", appliedPrice },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iOsMA, cmdParams);
         }
 
         public double iMACD(string symbol, int timeframe, int fastEmaPeriod, int slowEmaPeriod, int signalPeriod, int appliedPrice, int mode, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, fastEmaPeriod, slowEmaPeriod, signalPeriod, appliedPrice, mode, shift };
-            return SendCommand<double>(MtCommandType.iMACD, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe },
+                { "FastEmaPeriod", fastEmaPeriod },
+                { "SlowEmaPeriod", slowEmaPeriod },
+                { "SignalPeriod", signalPeriod },
+                { "AppliedPrice", appliedPrice },
+                { "Mode", mode },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iMACD, cmdParams);
         }
 
         public double iOBV(string symbol, int timeframe, int appliedPrice, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, appliedPrice, shift };
-            return SendCommand<double>(MtCommandType.iOBV, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe },
+                { "AppliedPrice", appliedPrice },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iOBV, cmdParams);
         }
 
         public double iSAR(string symbol, int timeframe, double step, double maximum, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, step, maximum, shift };
-            return SendCommand<double>(MtCommandType.iSAR, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe },
+                { "Step", step },
+                { "Maximum", maximum },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iSAR, cmdParams);
         }
 
         public double iRSI( string symbol, int timeframe, int period, int appliedPrice, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, appliedPrice, shift };
-            return SendCommand<double>(MtCommandType.iRSI, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe },
+                { "Period", period },
+                { "AppliedPrice", appliedPrice },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iRSI, cmdParams);
         }
 
         public double iRSIOnArray(double[] array, int total, int period, int shift)
         {
-            var arraySize = array?.Length ?? 0;
-            var commandParameters = new ArrayList { arraySize };
-            commandParameters.AddRange(array ?? new double[] {});
-            commandParameters.Add(total);
-            commandParameters.Add(period);
-            commandParameters.Add(shift);
-
-            return SendCommand<double>(MtCommandType.iMomentumOnArray, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Total", total },
+                { "Period", period },
+                { "Shift", shift },
+                { "Data", array ?? [] } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iMomentumOnArray, cmdParams);
         }
 
         public double iRVI(string symbol, int timeframe, int period, int mode, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, mode, shift };
-            return SendCommand<double>(MtCommandType.iRVI, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe },
+                { "Period", period },
+                { "Mode", mode },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iRVI, cmdParams);
         }
 
         public double iStdDev(string symbol, int timeframe, int maPeriod, int maShift, int maMethod, int appliedPrice, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, maPeriod, maShift, maMethod, appliedPrice, shift };
-            return SendCommand<double>(MtCommandType.iStdDev, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe },
+                { "MaPeriod", maPeriod },
+                { "MaShift", maShift },
+                { "MaMethod", maMethod },
+                { "AppliedPrice", appliedPrice },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iStdDev, cmdParams);
         }
 
         public double iStdDevOnArray(double[] array, int total, int maPeriod, int maShift, int maMethod, int shift)
         {
-            var arraySize = array?.Length ?? 0;
-            var commandParameters = new ArrayList { arraySize };
-            commandParameters.AddRange(array ?? new double[] {});
-            commandParameters.Add(total);
-            commandParameters.Add(maPeriod);
-            commandParameters.Add(maShift);
-            commandParameters.Add(maMethod);
-            commandParameters.Add(shift);
-
-            return SendCommand<double>(MtCommandType.iStdDevOnArray, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Total", total },
+                { "MaPeriod", maPeriod },
+                { "MaShift", maShift },
+                { "MaMethod", maMethod },
+                { "Shift", shift },
+                { "Data", array ?? [] } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iStdDevOnArray, cmdParams);
         }
 
         public double iStochastic(string symbol, int timeframe, int pKperiod, int pDperiod, int slowing, int method, int priceField, int mode, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, pKperiod, pDperiod, slowing, method, priceField, mode, shift };
-            return SendCommand<double>(MtCommandType.iStochastic, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe },
+                { "Kperiod", pKperiod },
+                { "Dperiod", pDperiod },
+                { "Slowing", slowing },
+                { "Method", method },
+                { "PriceField", priceField },
+                { "Mode", mode },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iStochastic, cmdParams);
         }
 
         public double iWPR(string symbol, int timeframe, int period, int shift)
         {
-            var commandParameters = new ArrayList { symbol, timeframe, period, shift };
-            return SendCommand<double>(MtCommandType.iWPR, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe },
+                { "Period", period },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iWPR, cmdParams);
         }
         #endregion
 
         #region Timeseries access
         public int iBars(string symbol, ChartPeriod timeframe)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe };
-            return SendCommand<int>(MtCommandType.iBars, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.iBars, cmdParams);
         }
 
         public int iBarShift(string symbol, ChartPeriod timeframe, DateTime time, bool exact)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe, MtApiTimeConverter.ConvertToMtTime(time), exact };
-            return SendCommand<int>(MtCommandType.iBarShift, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe },
+                { "Time", MtApiTimeConverter.ConvertToMtTime(time) },
+                { "Exact", exact } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.iBarShift, cmdParams);
         }
 
         public double iClose(string symbol, ChartPeriod timeframe, int shift)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
-            return SendCommand<double>(MtCommandType.iClose, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iClose, cmdParams);
         }
 
         public double iHigh(string symbol, ChartPeriod timeframe, int shift)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
-            return SendCommand<double>(MtCommandType.iHigh, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iHigh, cmdParams);
         }
 
         public int iHighest(string symbol, ChartPeriod timeframe, SeriesIdentifier type, int count, int start)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe, (int)type, count, start };
-            return SendCommand<int>(MtCommandType.iHighest, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe },
+                { "Type", (int)type },
+                { "Count", count },
+                { "StartValue", start } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.iHighest, cmdParams);
         }
 
         public double iLow(string symbol, ChartPeriod timeframe, int shift)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
-            return SendCommand<double>(MtCommandType.iLow, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iLow, cmdParams);
         }
 
         public int iLowest(string symbol, ChartPeriod timeframe, SeriesIdentifier type, int count, int start)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe, (int)type, count, start };
-            return SendCommand<int>(MtCommandType.iLowest, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe },
+                { "Type", type },
+                { "Count", count },
+                { "Start", start } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.iLowest, cmdParams);
         }
 
         public double iOpen(string symbol, ChartPeriod timeframe, int shift)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
-            return SendCommand<double>(MtCommandType.iOpen, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iOpen, cmdParams);
         }
 
         public DateTime iTime(string symbol, ChartPeriod timeframe, int shift)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
-            var commandResponse = SendCommand<int>(MtCommandType.iTime, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            var commandResponse = SendCommand<int>(ExecutorHandle, MtCommandType.iTime, cmdParams);
             return MtApiTimeConverter.ConvertFromMtTime(commandResponse);
         }
 
         public double iVolume(string symbol, ChartPeriod timeframe, int shift)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe, shift };
-            return SendCommand<double>(MtCommandType.iVolume, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.iVolume, cmdParams);
         }
 
-        //public double[] iCloseArray(string symbol, ChartPeriod timeframe, int shift, int valueCount)
-        //{
-        //    int doubleArraySendLimit = DoubleArrayLimit;
-        //    int limitCount = valueCount / doubleArraySendLimit;
-        //    int valueCountModulo = valueCount - limitCount * doubleArraySendLimit;
-
-        //    var resultArray = new double[valueCount];
-        //    for (int i = 0; i < limitCount; i++)
-        //    {
-        //        var commandParameters = new ArrayList { symbol, (int)timeframe, i * doubleArraySendLimit, doubleArraySendLimit };
-        //        var result = SendCommand<double[]>(MtCommandType.iCloseArray, commandParameters);
-        //        if (result != null)
-        //            Array.Copy(result, 0, resultArray, i * doubleArraySendLimit, doubleArraySendLimit);
-        //    }
-
-        //    if (valueCountModulo > 0)
-        //    {
-        //        var commandParameters = new ArrayList { symbol, (int)timeframe, limitCount * doubleArraySendLimit, valueCountModulo };
-        //        var result = SendCommand<double[]>(MtCommandType.iCloseArray, commandParameters);
-        //        if (result != null)
-        //            Array.Copy(result, 0, resultArray, limitCount * doubleArraySendLimit, valueCountModulo);
-        //    }
-        //    return resultArray;
-
-        //    var commandParameters = new ArrayList { symbol, (int)timeframe, shift, valueCount };
-        //    return SendCommand<double[]>(MtCommandType.iCloseArray, commandParameters);
-        //}
-
-        public double[] iCloseArray(string symbol, ChartPeriod timeframe)
+        public double[]? iCloseArray(string symbol, ChartPeriod timeframe)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe };
-            return SendCommand<double[]>(MtCommandType.iCloseArray, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe } };
+            return SendCommand<double[]>(ExecutorHandle, MtCommandType.iCloseArray, cmdParams);
         }
 
-        public double[] iHighArray(string symbol, ChartPeriod timeframe)
+        public double[]? iHighArray(string symbol, ChartPeriod timeframe)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe };
-            return SendCommand<double[]>(MtCommandType.iHighArray, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe } };
+            return SendCommand<double[]>(ExecutorHandle, MtCommandType.iHighArray, cmdParams);
         }
 
-        public double[] iLowArray(string symbol, ChartPeriod timeframe)
+        public double[]? iLowArray(string symbol, ChartPeriod timeframe)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe };
-            return SendCommand<double[]>(MtCommandType.iLowArray, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe } };
+            return SendCommand<double[]>(ExecutorHandle, MtCommandType.iLowArray, cmdParams);
         }
 
-        public double[] iOpenArray(string symbol, ChartPeriod timeframe)
+        public double[]? iOpenArray(string symbol, ChartPeriod timeframe)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe };
-            return SendCommand<double[]>(MtCommandType.iOpenArray, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe } };
+            return SendCommand<double[]>(ExecutorHandle, MtCommandType.iOpenArray, cmdParams);
         }
 
-        public double[] iVolumeArray(string symbol, ChartPeriod timeframe)
+        public double[]? iVolumeArray(string symbol, ChartPeriod timeframe)
         {
-            var commandParameters = new ArrayList { symbol, (int)timeframe };
-            return SendCommand<double[]>(MtCommandType.iVolumeArray, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe } };
+            return SendCommand<double[]>(ExecutorHandle, MtCommandType.iVolumeArray, cmdParams);
         }
 
-        public DateTime[] iTimeArray(string symbol, ChartPeriod timeframe)
+        public DateTime[]? iTimeArray(string symbol, ChartPeriod timeframe)
         {
-            DateTime[] result = null;
-
-            var commandParameters = new ArrayList { symbol, (int)timeframe };
-            
-            var response = SendCommand<int[]>(MtCommandType.iTimeArray, commandParameters);
-
+            DateTime[]? result = null;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", (int)timeframe } };
+            var response = SendCommand<int[]>(ExecutorHandle, MtCommandType.iTimeArray, cmdParams);
             if (response != null)
             {
                 result = new DateTime[response.Length];
-
                 for(var i = 0; i < response.Length; i++)
-                {
                     result[i] = MtApiTimeConverter.ConvertFromMtTime(response[i]);
-                }
             }
-
             return result;
         }
 
         public bool RefreshRates()
         {
-            return SendCommand<bool>(MtCommandType.RefreshRates, null);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.RefreshRates, null);
         }
 
-        public List<MqlRates> CopyRates(string symbolName, ENUM_TIMEFRAMES timeframe, int startPos, int count)
+        public List<MqlRates>? CopyRates(string symbolName, ENUM_TIMEFRAMES timeframe, int startPos, int count)
         {
-            var response = SendRequest<CopyRatesResponse>(new CopyRates1Request
-            {
-                SymbolName = symbolName,
-                Timeframe = timeframe,
-                StartPos = startPos,
-                Count = count
-            });
-            return response?.Rates;
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName },
+                { "Timeframe", (int)timeframe }, { "StartPos", startPos }, { "Count", count },
+                { "CopyRatesType", 1 } };
+            return SendCommand<List<MqlRates>>(ExecutorHandle, MtCommandType.CopyRates, cmdParams);
         }
 
-        public List<MqlRates> CopyRates(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, int count)
+        public List<MqlRates>? CopyRates(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, int count)
         {
-            var response = SendRequest<CopyRatesResponse>(new CopyRates2Request
-            {
-                SymbolName = symbolName,
-                Timeframe = timeframe,
-                StartTime = MtApiTimeConverter.ConvertToMtTime(startTime),
-                Count = count
-            });
-            return response?.Rates;
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName },
+                { "Timeframe", (int)timeframe }, { "StartTime", MtApiTimeConverter.ConvertToMtTime(startTime) },{ "Count", count },
+                { "CopyRatesType", 2 } };
+            return SendCommand<List<MqlRates>>(ExecutorHandle, MtCommandType.CopyRates, cmdParams);
         }
 
-        public List<MqlRates> CopyRates(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, DateTime stopTime)
+        public List<MqlRates>? CopyRates(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, DateTime stopTime)
         {
-            var response = SendRequest<CopyRatesResponse>(new CopyRates3Request
-            {
-                SymbolName = symbolName,
-                Timeframe = timeframe,
-                StartTime = MtApiTimeConverter.ConvertToMtTime(startTime),
-                StopTime = MtApiTimeConverter.ConvertToMtTime(stopTime)
-            });
-            return response?.Rates;
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName },
+                { "Timeframe", (int)timeframe }, { "StartTime", MtApiTimeConverter.ConvertToMtTime(startTime) },
+                { "StopTime", MtApiTimeConverter.ConvertToMtTime(stopTime) },
+                { "CopyRatesType", 3 } };
+            return SendCommand<List<MqlRates>>(ExecutorHandle, MtCommandType.CopyRates, cmdParams);
         }
 
         ///<summary>
@@ -1671,14 +1627,9 @@ namespace MtApi
         ///</returns>
         public long SeriesInfoInteger(string symbolName, ENUM_TIMEFRAMES timeframe, EnumSeriesInfoInteger propId)
         {
-            var response = SendRequest<SeriesInfoIntegerResponse>(new SeriesInfoIntegerRequest
-            {
-                SymbolName = symbolName,
-                Timeframe = (int)timeframe,
-                PropId = (int)propId
-            });
-
-            return response?.Value ?? 0;
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName },
+                { "Timeframe", (int)timeframe }, { "PropId", (int)propId } };
+            return SendCommand<long>(ExecutorHandle, MtCommandType.SeriesInfoInteger, cmdParams);
         }
 
         #endregion
@@ -1695,8 +1646,9 @@ namespace MtApi
         ///</returns>
         public double MarketInfo(string symbol, MarketInfoModeType type)
         {
-            var commandParameters = new ArrayList { symbol, (int)type };
-            return SendCommand<double>(MtCommandType.MarketInfo, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Type", (int)type } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.MarketInfo, cmdParams);
         }
 
         ///<summary>
@@ -1708,8 +1660,8 @@ namespace MtApi
         ///</returns>
         public int SymbolsTotal(bool selected)
         {
-            var commandParameters = new ArrayList { selected };
-            return SendCommand<int>(MtCommandType.SymbolsTotal, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Selected", selected } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.SymbolsTotal, cmdParams);
         }
 
         ///<summary>
@@ -1720,10 +1672,11 @@ namespace MtApi
         ///<returns>
         ///Value of string type with the symbol name.
         ///</returns>
-        public string SymbolName(int pos, bool selected)
+        public string? SymbolName(int pos, bool selected)
         {
-            var commandParameters = new ArrayList { pos, selected };
-            return SendCommand<string>(MtCommandType.SymbolName, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Pos", pos },
+                { "Selected", selected } };
+            return SendCommand<string>(ExecutorHandle, MtCommandType.SymbolName, cmdParams);
         }
 
         ///<summary>
@@ -1736,8 +1689,9 @@ namespace MtApi
         ///</returns>
         public bool SymbolSelect(string name, bool select)
         {
-            var commandParameters = new ArrayList { name, select };
-            return SendCommand<bool>(MtCommandType.SymbolSelect, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Name", name },
+                { "Select", select } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.SymbolSelect, cmdParams);
         }
 
         ///<summary>
@@ -1750,8 +1704,9 @@ namespace MtApi
         ///</returns>
         public long SymbolInfoInteger(string name, EnumSymbolInfoInteger propId)
         {
-            var commandParameters = new ArrayList { name, (int)propId };
-            return SendCommand<long>(MtCommandType.SymbolInfoInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Name", name },
+                { "PropId", (int)propId } };
+            return SendCommand<long>(ExecutorHandle, MtCommandType.SymbolInfoInteger, cmdParams);
         }
 
         ///<summary>
@@ -1762,10 +1717,11 @@ namespace MtApi
         ///<returns>
         ///The value of string type.
         ///</returns>
-        public string SymbolInfoString(string name, ENUM_SYMBOL_INFO_STRING propId)
+        public string? SymbolInfoString(string name, ENUM_SYMBOL_INFO_STRING propId)
         {
-            var commandParameters = new ArrayList { name, (int)propId };
-            return SendCommand<string>(MtCommandType.SymbolInfoString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Name", name },
+                { "PropId", (int)propId } };
+            return SendCommand<string>(ExecutorHandle, MtCommandType.SymbolInfoString, cmdParams);
         }
 
         ///<summary>
@@ -1779,10 +1735,11 @@ namespace MtApi
         ///<returns>
         ///The value session.
         ///</returns>
-        public MtSession SymbolInfoSession(string symbol, DayOfWeek dayOfWeek, uint index, SessionType type)
+        public MtSession? SymbolInfoSession(string symbol, DayOfWeek dayOfWeek, uint index, SessionType type)
         {
-            var responce = SendRequest<SessionResponse>(new SessionRequest { Symbol = symbol, DayOfWeek = dayOfWeek, SessionIndex = (int)index, SessionType = type });
-            return responce?.Session;
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbol },
+                { "DayOfWeek", (int)dayOfWeek }, { "SessionIndex", (int)index }, { "SessionType", type } };
+            return SendCommand<MtSession>(ExecutorHandle, MtCommandType.Session, cmdParams);
         }
 
         ///<summary>
@@ -1795,13 +1752,9 @@ namespace MtApi
         ///</returns>
         public double SymbolInfoDouble(string symbolName, EnumSymbolInfoDouble propId)
         {
-            var response = SendRequest<SymbolInfoDoubleResponse>(new SymbolInfoDoubleRequest
-            {
-                SymbolName = symbolName,
-                PropId = (int)propId
-            });
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName }, { "PropId", (int)propId } };
 
-            return response?.Value ?? 0;
+            return SendCommand<double>(ExecutorHandle, MtCommandType.SymbolInfoDouble, cmdParams);
         }
 
         ///<summary>
@@ -1811,14 +1764,10 @@ namespace MtApi
         ///<returns>
         /// MqlTick object, to which the current prices and time of the last price update will be placed.
         ///</returns>
-        public MqlTick SymbolInfoTick(string symbol)
+        public MqlTick? SymbolInfoTick(string symbol)
         {
-            var response = SendRequest<SymbolInfoTickResponse>(new SymbolInfoTickRequest
-            {
-                Symbol = symbol
-            });
-
-            return response?.Tick;
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol } };
+            return SendCommand<MqlTick>(ExecutorHandle, MtCommandType.SymbolInfoTick, cmdParams);
         }
         #endregion
 
@@ -1832,7 +1781,7 @@ namespace MtApi
         ///</returns>
         public long ChartId()
         {
-            return SendCommand<long>(MtCommandType.ChartId, null);
+            return SendCommand<long>(ExecutorHandle, MtCommandType.ChartId);
         }
 
         ///<summary>
@@ -1840,8 +1789,8 @@ namespace MtApi
         ///</summary>
         public void ChartRedraw(long chartId = 0)
         {
-            var commandParameters = new ArrayList { chartId };
-            SendCommand<object>(MtCommandType.ChartRedraw, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId } };
+            SendCommand<object>(ExecutorHandle, MtCommandType.ChartRedraw, cmdParams);
         }
 
         ///<summary>
@@ -1854,8 +1803,9 @@ namespace MtApi
         ///</returns>
         public bool ChartApplyTemplate(long chartId, string filename)
         {
-            var commandParameters = new ArrayList { chartId, filename };
-            return SendCommand<bool>(MtCommandType.ChartApplyTemplate, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "Filename", filename } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ChartApplyTemplate, cmdParams);
         }
 
         ///<summary>
@@ -1868,8 +1818,9 @@ namespace MtApi
         ///</returns>
         public bool ChartSaveTemplate(long chartId, string filename)
         {
-            var commandParameters = new ArrayList { chartId, filename };
-            return SendCommand<bool>(MtCommandType.ChartSaveTemplate, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "Filename", filename } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ChartSaveTemplate, cmdParams);
         }
 
         ///<summary>
@@ -1882,8 +1833,9 @@ namespace MtApi
         ///</returns>
         public int ChartWindowFind(long chartId, string indicatorShortname)
         {
-            var commandParameters = new ArrayList { chartId, indicatorShortname };
-            return SendCommand<int>(MtCommandType.ChartWindowFind, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "IndicatorShortname", indicatorShortname } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.ChartWindowFind, cmdParams);
         }
 
         ///<summary>
@@ -1900,22 +1852,17 @@ namespace MtApi
         ///</returns>
         public bool ChartTimePriceToXY(long chartId, int subWindow, DateTime? time, double price, out int x, out int y)
         {
-            var commandParameters = new ArrayList { chartId, subWindow, MtApiTimeConverter.ConvertToMtTime(time), price };
-            var str = SendCommand<string>(MtCommandType.ChartTimePriceToXY, commandParameters);
-            var res = false;
-            x = 0;
-            y = 0;
-            if (!string.IsNullOrEmpty(str) && str.Contains(";"))
-            {
-                var values = str.Split(';');
-                if (values.Length > 1)
-                {
-                    int.TryParse(values[0], out x);
-                    int.TryParse(values[1], out y);
-                    res = true;
-                }
-            }
-            return res;
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "SubWindow", subWindow },
+                { "Time", MtApiTimeConverter.ConvertToMtTime(time) },
+                { "Price", price } };
+            var response = SendCommand<FuncResult<Dictionary<string, int>>>(ExecutorHandle, MtCommandType.ChartTimePriceToXY, cmdParams);
+            if (response != null && response.Result != null
+                && response.Result.TryGetValue("X", out x)
+                && response.Result.TryGetValue("Y", out y))
+                return response.RetVal;
+            x = 0; y = 0;
+            return false;
         }
 
         ///<summary>
@@ -1932,26 +1879,24 @@ namespace MtApi
         ///</returns>
         public bool ChartXYToTimePrice(long chartId, int x, int y, out int subWindow, out DateTime? time, out double price)
         {
-            var commandParameters = new ArrayList { chartId, x, y };
-            var str = SendCommand<string>(MtCommandType.ChartXYToTimePrice, commandParameters);
-            var res = false;
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "X", x },
+                { "Y", y } };
+            var response = SendCommand<FuncResult<Dictionary<string, object>>>(ExecutorHandle, MtCommandType.ChartXYToTimePrice, cmdParams);
+            if (response != null && response.Result != null
+                && response.Result.TryGetValue("SubWindow", out object? mtSubWindow)
+                && response.Result.TryGetValue("Time", out object? mtTime)
+                && response.Result.TryGetValue("Price", out object? mtPrice))
+            {
+                subWindow = Convert.ToInt32(mtSubWindow);
+                time = MtApiTimeConverter.ConvertFromMtTime(Convert.ToInt32(mtTime));
+                price = Convert.ToDouble(mtPrice);
+                return response.RetVal;
+            }
             subWindow = 0;
             time = null;
             price = double.NaN;
-            if (!string.IsNullOrEmpty(str) && str.Contains(";"))
-            {
-                var values = str.Split(';');
-                if (values.Length > 2)
-                {
-                    int.TryParse(values[0], out subWindow);
-                    int mt4Time;
-                    int.TryParse(values[1], out mt4Time);
-                    time = MtApiTimeConverter.ConvertFromMtTime(mt4Time);
-                    double.TryParse(values[2], out price);
-                    res = true;
-                }
-            }
-            return res;
+            return false;
         }
 
         ///<summary>
@@ -1964,8 +1909,9 @@ namespace MtApi
         ///</returns>
         public long ChartOpen(string symbol, ENUM_TIMEFRAMES period)
         {
-            var commandParameters = new ArrayList { symbol, (int)period };
-            return SendCommand<long>(MtCommandType.ChartOpen, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Period", period } };
+            return SendCommand<long>(ExecutorHandle, MtCommandType.ChartOpen, cmdParams);
         }
 
         ///<summary>
@@ -1973,7 +1919,7 @@ namespace MtApi
         ///</summary>
         public long ChartFirst()
         {
-            return SendCommand<long>(MtCommandType.ChartFirst, null);
+            return SendCommand<long>(ExecutorHandle, MtCommandType.ChartFirst);
         }
 
         ///<summary>
@@ -1985,8 +1931,8 @@ namespace MtApi
         ///</returns>
         public long ChartNext(long chartId)
         {
-            var commandParameters = new ArrayList { chartId };
-            return SendCommand<long>(MtCommandType.ChartNext, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId } };
+            return SendCommand<long>(ExecutorHandle, MtCommandType.ChartNext, cmdParams);
         }
 
         ///<summary>
@@ -1998,8 +1944,8 @@ namespace MtApi
         ///</returns>
         public bool ChartClose(long chartId)
         {
-            var commandParameters = new ArrayList { chartId };
-            return SendCommand<bool>(MtCommandType.ChartClose, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ChartClose, cmdParams);
         }
 
         ///<summary>
@@ -2009,10 +1955,10 @@ namespace MtApi
         ///<returns>
         ///If chart does not exist, the result will be an empty string.
         ///</returns>
-        public string ChartSymbol(long chartId)
+        public string? ChartSymbol(long chartId)
         {
-            var commandParameters = new ArrayList { chartId };
-            return SendCommand<string>(MtCommandType.ChartSymbol, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId } };
+            return SendCommand<string>(ExecutorHandle, MtCommandType.ChartSymbol, cmdParams);
         }
 
         ///<summary>
@@ -2024,8 +1970,8 @@ namespace MtApi
         ///</returns>
         public ENUM_TIMEFRAMES ChartPeriod(long chartId)
         {
-            var commandParameters = new ArrayList { chartId };
-            return (ENUM_TIMEFRAMES) SendCommand<int>(MtCommandType.ChartPeriod, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId } };
+            return (ENUM_TIMEFRAMES) SendCommand<int>(ExecutorHandle, MtCommandType.ChartPeriod, cmdParams);
         }
 
         ///<summary>
@@ -2039,8 +1985,10 @@ namespace MtApi
         ///</returns>
         public bool ChartSetDouble(long chartId, EnumChartPropertyDouble propId, double value)
         {
-            var commandParameters = new ArrayList { chartId, (int)propId, value };
-            return SendCommand<bool>(MtCommandType.ChartSetDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "PropId", (int)propId },
+                { "Value", value } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ChartSetDouble, cmdParams);
         }
 
         ///<summary>
@@ -2054,8 +2002,10 @@ namespace MtApi
         ///</returns>
         public bool ChartSetInteger(long chartId, EnumChartPropertyInteger propId, long value)
         {
-            var commandParameters = new ArrayList { chartId, (int)propId, value };
-            return SendCommand<bool>(MtCommandType.ChartSetInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "PropId", (int)propId },
+                { "Value", value } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ChartSetInteger, cmdParams);
         }
 
         ///<summary>
@@ -2069,8 +2019,10 @@ namespace MtApi
         ///</returns>
         public bool ChartSetString(long chartId, EnumChartPropertyString propId, string value)
         {
-            var commandParameters = new ArrayList { chartId, (int)propId, value };
-            return SendCommand<bool>(MtCommandType.ChartSetString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "PropId", (int)propId },
+                { "Value", value } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ChartSetString, cmdParams);
         }
 
         ///<summary>
@@ -2084,8 +2036,10 @@ namespace MtApi
         ///</returns>
         public double ChartGetDouble(long chartId, EnumChartPropertyDouble propId, int subWindow = 0)
         {
-            var commandParameters = new ArrayList { chartId, (int)propId, subWindow };
-            return SendCommand<double>(MtCommandType.ChartGetDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "PropId", (int)propId },
+                { "SubWindow", subWindow } };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.ChartGetDouble, cmdParams);
         }
 
         ///<summary>
@@ -2099,8 +2053,10 @@ namespace MtApi
         ///</returns>
         public long ChartGetInteger(long chartId, EnumChartPropertyInteger propId, int subWindow = 0)
         {
-            var commandParameters = new ArrayList { chartId, (int)propId, subWindow };
-            return SendCommand<long>(MtCommandType.ChartGetInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "PropId", (int)propId },
+                { "SubWindow", subWindow } };
+            return SendCommand<long>(ExecutorHandle, MtCommandType.ChartGetInteger, cmdParams);
         }
 
         ///<summary>
@@ -2111,10 +2067,11 @@ namespace MtApi
         ///<returns>
         ///The value of string type.
         ///</returns>
-        public string ChartGetString(long chartId, EnumChartPropertyString propId)
+        public string? ChartGetString(long chartId, EnumChartPropertyString propId)
         {
-            var commandParameters = new ArrayList { chartId, (int)propId };
-            return SendCommand<string>(MtCommandType.ChartGetString, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "PropId", (int)propId } };
+            return SendCommand<string>(ExecutorHandle, MtCommandType.ChartGetString, cmdParams);
         }
 
         ///<summary>
@@ -2128,8 +2085,10 @@ namespace MtApi
         ///</returns>
         public bool ChartNavigate(long chartId, int position, int shift = 0)
         {
-            var commandParameters = new ArrayList { chartId, position, shift };
-            return SendCommand<bool>(MtCommandType.ChartNavigate, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "Position",  position },
+                { "Shift", shift } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ChartNavigate, cmdParams);
         }
 
         ///<summary>
@@ -2143,8 +2102,10 @@ namespace MtApi
         ///</returns>
         public bool ChartIndicatorDelete(long chartId, int subWindow, string indicatorShortname)
         {
-            var commandParameters = new ArrayList { chartId, subWindow, indicatorShortname };
-            return SendCommand<bool>(MtCommandType.ChartIndicatorDelete, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "SubWindow", subWindow },
+                { "IndicatorShortname", indicatorShortname } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ChartIndicatorDelete, cmdParams);
         }
 
         ///<summary>
@@ -2156,10 +2117,12 @@ namespace MtApi
         ///<returns>
         ///The short name of the indicator which is set in the INDICATOR_SHORTNAME property with the IndicatorSetString() function.
         ///</returns>
-        public string ChartIndicatorName(long chartId, int subWindow, int index)
+        public string? ChartIndicatorName(long chartId, int subWindow, int index)
         {
-            var commandParameters = new ArrayList { chartId, subWindow, index };
-            return SendCommand<string>(MtCommandType.ChartIndicatorName, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "SubWindow", subWindow },
+                { "Index", index } };
+            return SendCommand<string>(ExecutorHandle, MtCommandType.ChartIndicatorName, cmdParams);
         }
 
         ///<summary>
@@ -2172,8 +2135,9 @@ namespace MtApi
         ///</returns>
         public int ChartIndicatorsTotal(long chartId, int subWindow)
         {
-            var commandParameters = new ArrayList { chartId, subWindow };
-            return SendCommand<int>(MtCommandType.ChartIndicatorsTotal, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "SubWindow", subWindow } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.ChartIndicatorsTotal, cmdParams);
         }
 
         ///<summary>
@@ -2181,7 +2145,7 @@ namespace MtApi
         ///</summary>
         public int ChartWindowOnDropped()
         {
-            return SendCommand<int>(MtCommandType.ChartWindowOnDropped, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.ChartWindowOnDropped);
         }
 
         ///<summary>
@@ -2189,7 +2153,7 @@ namespace MtApi
         ///</summary>
         public double ChartPriceOnDropped()
         {
-            return SendCommand<double>(MtCommandType.ChartPriceOnDropped, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.ChartPriceOnDropped);
         }
 
         ///<summary>
@@ -2197,7 +2161,7 @@ namespace MtApi
         ///</summary>
         public DateTime ChartTimeOnDropped()
         {
-            var res = SendCommand<int>(MtCommandType.ChartTimeOnDropped, null);
+            var res = SendCommand<int>(ExecutorHandle, MtCommandType.ChartTimeOnDropped);
             return MtApiTimeConverter.ConvertFromMtTime(res);
         }
 
@@ -2206,7 +2170,7 @@ namespace MtApi
         ///</summary>
         public int ChartXOnDropped()
         {
-            return SendCommand<int>(MtCommandType.ChartXOnDropped, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.ChartXOnDropped);
         }
 
         ///<summary>
@@ -2214,7 +2178,7 @@ namespace MtApi
         ///</summary>
         public int ChartYOnDropped()
         {
-            return SendCommand<int>(MtCommandType.ChartYOnDropped, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.ChartYOnDropped);
         }
 
         ///<summary>
@@ -2228,8 +2192,10 @@ namespace MtApi
         ///</returns>
         public bool ChartSetSymbolPeriod(long chartId, string symbol, ENUM_TIMEFRAMES period)
         {
-            var commandParameters = new ArrayList { chartId, symbol, (int)period };
-            return SendCommand<bool>(MtCommandType.ChartSetSymbolPeriod, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "Symbol", symbol },
+                { "Period", period } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ChartSetSymbolPeriod, cmdParams);
         }
 
         ///<summary>
@@ -2245,8 +2211,12 @@ namespace MtApi
         ///</returns>
         public bool ChartScreenShot(long chartId, string filename, int width, int height, EnumAlignMode alignMode = EnumAlignMode.ALIGN_RIGHT)
         {
-            var commandParameters = new ArrayList { chartId, filename, width, height, (int)alignMode };
-            return SendCommand<bool>(MtCommandType.ChartScreenShot, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId },
+                { "Filename", filename },
+                { "Width", width },
+                { "Height", height },
+                { "AlignMode", (int)alignMode } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ChartScreenShot, cmdParams);
         }
 
         ///<summary>
@@ -2257,7 +2227,7 @@ namespace MtApi
         ///</returns>
         public int WindowBarsPerChart()
         {
-            return SendCommand<int>(MtCommandType.WindowBarsPerChart, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.WindowBarsPerChart);
         }
 
         ///<summary>
@@ -2266,9 +2236,9 @@ namespace MtApi
         ///<returns>
         ///The name of the executed Expert Advisor, script, custom indicator, or library, depending on the MQL4 program, from which this function has been called.
         ///</returns>
-        public string WindowExpertName()
+        public string? WindowExpertName()
         {
-            return SendCommand<string>(MtCommandType.WindowExpertName, null);
+            return SendCommand<string>(ExecutorHandle, MtCommandType.WindowExpertName);
         }
 
         ///<summary>
@@ -2280,8 +2250,8 @@ namespace MtApi
         ///</returns>
         public int WindowFind(string name)
         {
-            var commandParameters = new ArrayList { name };
-            return SendCommand<int>(MtCommandType.WindowFind, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Name", name } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.WindowFind, cmdParams);
         }
 
         ///<summary>
@@ -2292,7 +2262,7 @@ namespace MtApi
         ///</returns>
         public int WindowFirstVisibleBar()
         {
-            return SendCommand<int>(MtCommandType.WindowFirstVisibleBar, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.WindowFirstVisibleBar);
         }
 
         ///<summary>
@@ -2305,8 +2275,9 @@ namespace MtApi
         ///</returns>
         public int WindowHandle(string symbol, int timeframe)
         {
-            var commandParameters = new ArrayList { symbol, timeframe };
-            return SendCommand<int>(MtCommandType.WindowHandle, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
+                { "Timeframe", timeframe } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.WindowHandle, cmdParams);
         }
 
         ///<summary>
@@ -2318,8 +2289,8 @@ namespace MtApi
         ///</returns>
         public bool WindowIsVisible(int index)
         {
-            var commandParameters = new ArrayList { index };
-            return SendCommand<bool>(MtCommandType.WindowIsVisible, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Index", index } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.WindowIsVisible, cmdParams);
         }
 
         ///<summary>
@@ -2330,7 +2301,7 @@ namespace MtApi
         ///</returns>
         public int WindowOnDropped()
         {
-            return SendCommand<int>(MtCommandType.WindowOnDropped, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.WindowOnDropped);
         }
 
         ///<summary>
@@ -2342,8 +2313,8 @@ namespace MtApi
         ///</returns>
         public int WindowPriceMax(int index = 0)
         {
-            var commandParameters = new ArrayList { index };
-            return SendCommand<int>(MtCommandType.WindowPriceMax, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Index", index } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.WindowPriceMax, cmdParams);
         }
 
         ///<summary>
@@ -2355,8 +2326,8 @@ namespace MtApi
         ///</returns>
         public int WindowPriceMin(int index = 0)
         {
-            var commandParameters = new ArrayList { index };
-            return SendCommand<int>(MtCommandType.WindowPriceMin, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Index", index } };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.WindowPriceMin, cmdParams);
         }
 
         ///<summary>
@@ -2367,7 +2338,7 @@ namespace MtApi
         ///</returns>
         public double WindowPriceOnDropped()
         {
-            return SendCommand<double>(MtCommandType.WindowPriceOnDropped, null);
+            return SendCommand<double>(ExecutorHandle, MtCommandType.WindowPriceOnDropped);
         }
 
         ///<summary>
@@ -2378,7 +2349,7 @@ namespace MtApi
         ///</returns>
         public void WindowRedraw()
         {
-            SendCommand<object>(MtCommandType.WindowRedraw, null);
+            SendCommand<object>(ExecutorHandle, MtCommandType.WindowRedraw);
         }
 
         ///<summary>
@@ -2395,8 +2366,13 @@ namespace MtApi
         ///</returns>
         public bool WindowScreenShot(string filename, int sizeX, int sizeY, int startBar = -1, int chartScale = -1, int chartMode = -1)
         {
-            var commandParameters = new ArrayList { filename, sizeX, sizeY, startBar, chartScale, chartMode };
-            return SendCommand<bool>(MtCommandType.WindowScreenShot, commandParameters);
+            Dictionary<string, object> cmdParams = new() { { "Filename", filename },
+                { "SizeX", sizeX },
+                { "SizeY", sizeY },
+                { "StartBar", startBar },
+                { "ChartScale", chartScale },
+                { "ChartMode", chartMode } };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.WindowScreenShot, cmdParams);
         }
 
         ///<summary>
@@ -2407,7 +2383,7 @@ namespace MtApi
         ///</returns>
         public DateTime WindowTimeOnDropped()
         {
-            var res = SendCommand<int>(MtCommandType.WindowTimeOnDropped, null);
+            var res = SendCommand<int>(ExecutorHandle, MtCommandType.WindowTimeOnDropped);
             return MtApiTimeConverter.ConvertFromMtTime(res);
         }
 
@@ -2419,7 +2395,7 @@ namespace MtApi
         ///</returns>
         public int WindowsTotal()
         {
-            return SendCommand<int>(MtCommandType.WindowsTotal, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.WindowsTotal);
         }
 
         ///<summary>
@@ -2430,7 +2406,7 @@ namespace MtApi
         ///</returns>
         public int WindowXOnDropped()
         {
-            return SendCommand<int>(MtCommandType.WindowXOnDropped, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.WindowXOnDropped);
         }
 
         ///<summary>
@@ -2441,7 +2417,7 @@ namespace MtApi
         ///</returns>
         public int WindowYOnDropped()
         {
-            return SendCommand<int>(MtCommandType.WindowYOnDropped, null);
+            return SendCommand<int>(ExecutorHandle, MtCommandType.WindowYOnDropped);
         }
         #endregion
 
@@ -2466,26 +2442,20 @@ namespace MtApi
         public bool ObjectCreate(long chartId, string objectName, EnumObject objectType, int subWindow, 
             DateTime? time1, double price1, DateTime? time2 = null, double? price2 = null, DateTime? time3 = null, double? price3 = null)
         {
-            var namedParams = new Dictionary<string, object>
+            Dictionary<string, object> cmdParams = new()
             {
-                {nameof(chartId), chartId},
-                {nameof(objectName), objectName},
-                {nameof(objectType), (int) objectType},
-                {nameof(subWindow), subWindow},
-                {nameof(time1), MtApiTimeConverter.ConvertToMtTime(time1)},
-                {nameof(price1), price1}
+                { "ChartId", chartId },
+                { "ObjectName", objectName },
+                { "ObjectType", (int)objectType },
+                { "SubWindow", subWindow },
+                { "Time1", MtApiTimeConverter.ConvertToMtTime(time1) },
+                { "Price1", price1 },
+                { "Time2", time2 != null ? MtApiTimeConverter.ConvertToMtTime(time2.Value) : 0 },
+                { "Price2", price2 != null ? price2.Value : 0.0 },
+                { "Time3", time3 != null ? MtApiTimeConverter.ConvertToMtTime(time3.Value) : 0 },
+                { "Price3", price3 != null ? price3.Value : 0.0 }
             };
-
-            if (time2 != null)
-                namedParams.Add(nameof(time2), MtApiTimeConverter.ConvertToMtTime(time2.Value));
-            if (price2 != null)
-                namedParams.Add(nameof(price2), price2.Value);
-            if (time3 != null)
-                namedParams.Add(nameof(time3), MtApiTimeConverter.ConvertToMtTime(time3.Value));
-            if (price3 != null)
-                namedParams.Add(nameof(price3), price3.Value);
-
-            return SendCommand<bool>(MtCommandType.ObjectCreate, null, namedParams);
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ObjectCreate, cmdParams);
         }
 
         ///<summary>
@@ -2498,10 +2468,16 @@ namespace MtApi
         ///<returns>
         ///Name of the object is returned in case of success.
         ///</returns>
-        public string ObjectName(long chartId, int objectIndex, int subWindow = EMPTY, int objectType = EMPTY)
+        public string? ObjectName(long chartId, int objectIndex, int subWindow = EMPTY, int objectType = EMPTY)
         {
-            var commandParameters = new ArrayList { chartId, objectIndex, subWindow, objectType };
-            return SendCommand<string>(MtCommandType.ObjectName, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectIndex", objectIndex },
+                { "SubWindow", subWindow },
+                { "ObjectType", objectType }
+            };
+            return SendCommand<string>(ExecutorHandle, MtCommandType.ObjectName, cmdParams);
         }
 
         ///<summary>
@@ -2514,8 +2490,12 @@ namespace MtApi
         ///</returns>
         public bool ObjectDelete(long chartId, string objectName)
         {
-            var commandParameters = new ArrayList { chartId, objectName };
-            return SendCommand<bool>(MtCommandType.ObjectDelete, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName }
+            };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ObjectDelete, cmdParams);
         }
 
         ///<summary>
@@ -2529,8 +2509,13 @@ namespace MtApi
         ///</returns>
         public int ObjectsDeleteAll(long chartId, int subWindow = EMPTY, int objectType = EMPTY)
         {
-            var commandParameters = new ArrayList { chartId, subWindow, objectType };
-            return SendCommand<int>(MtCommandType.ObjectsDeleteAll, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "SubWindow", subWindow },
+                { "ObjectType", objectType }
+            };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.ObjectsDeleteAll, cmdParams);
         }
 
         ///<summary>
@@ -2543,8 +2528,12 @@ namespace MtApi
         ///</returns>
         public int ObjectFind(long chartId, string objectName)
         {
-            var commandParameters = new ArrayList { chartId, objectName };
-            return SendCommand<int>(MtCommandType.ObjectFind, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName }
+            };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.ObjectFind, cmdParams);
         }
 
         ///<summary>
@@ -2559,8 +2548,14 @@ namespace MtApi
         ///</returns>
         public DateTime ObjectGetTimeByValue(long chartId, string objectName, double value, int lineId = 0)
         {
-            var commandParameters = new ArrayList { chartId, objectName, value, lineId };
-            var res = SendCommand<int>(MtCommandType.ObjectGetTimeByValue, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName },
+                { "Value", value },
+                { "LineId", lineId }
+            };
+            var res = SendCommand<int>(ExecutorHandle, MtCommandType.ObjectGetTimeByValue, cmdParams);
             return MtApiTimeConverter.ConvertFromMtTime(res);
         }
 
@@ -2576,8 +2571,14 @@ namespace MtApi
         ///</returns>
         public double ObjectGetValueByTime(long chartId, string objectName, DateTime? time, int lineId = 0)
         {
-            var commandParameters = new ArrayList { chartId, objectName, time, lineId };
-            return SendCommand<double>(MtCommandType.ObjectGetValueByTime, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName },
+                { "Time", MtApiTimeConverter.ConvertToMtTime(time) },
+                { "LineId", lineId }
+            };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.ObjectGetValueByTime, cmdParams);
         }
 
         ///<summary>
@@ -2593,8 +2594,15 @@ namespace MtApi
         ///</returns>
         public bool ObjectMove(long chartId, string objectName, int pointIndex, DateTime? time, double price)
         {
-            var commandParameters = new ArrayList { chartId, objectName, pointIndex, MtApiTimeConverter.ConvertToMtTime(time), price };
-            return SendCommand<bool>(MtCommandType.ObjectMove, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName },
+                { "PointIndex", pointIndex },
+                { "Time", MtApiTimeConverter.ConvertToMtTime(time) },
+                { "Price", price }
+            };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ObjectMove, cmdParams);
         }
 
         ///<summary>
@@ -2608,8 +2616,13 @@ namespace MtApi
         ///</returns>
         public int ObjectsTotal(long chartId, int subWindow = EMPTY, int type = EMPTY)
         {
-            var commandParameters = new ArrayList { chartId, subWindow, type };
-            return SendCommand<int>(MtCommandType.ObjectsTotal, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "SubWindow", subWindow },
+                { "Type", type }
+            };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.ObjectsTotal, cmdParams);
         }
 
         ///<summary>
@@ -2624,8 +2637,14 @@ namespace MtApi
         ///</returns>
         public double ObjectGetDouble(long chartId, string objectName, EnumObjectPropertyDouble propId, int propModifier = 0)
         {
-            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propModifier };
-            return SendCommand<double>(MtCommandType.ObjectGetDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName },
+                { "PropId", (int)propId },
+                { "PropModifier", propModifier }
+            };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.ObjectGetDouble, cmdParams);
         }
 
         ///<summary>
@@ -2640,8 +2659,14 @@ namespace MtApi
         ///</returns>
         public long ObjectGetInteger(long chartId, string objectName, EnumObjectPropertyInteger propId, int propModifier = 0)
         {
-            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propModifier };
-            return SendCommand<long>(MtCommandType.ObjectGetInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName },
+                { "PropId", (int)propId },
+                { "PropModifier", propModifier }
+            };
+            return SendCommand<long>(ExecutorHandle, MtCommandType.ObjectGetInteger, cmdParams);
         }
 
         ///<summary>
@@ -2654,10 +2679,16 @@ namespace MtApi
         ///<returns>
         ///String value.
         ///</returns>
-        public string ObjectGetString(long chartId, string objectName, EnumObjectPropertyString propId, int propModifier = 0)
+        public string? ObjectGetString(long chartId, string objectName, EnumObjectPropertyString propId, int propModifier = 0)
         {
-            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propModifier };
-            return SendCommand<string>(MtCommandType.ObjectGetString, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName },
+                { "PropId", (int)propId },
+                { "PropModifier", propModifier }
+            };
+            return SendCommand<string>(ExecutorHandle, MtCommandType.ObjectGetString, cmdParams);
         }
 
         ///<summary>
@@ -2672,8 +2703,14 @@ namespace MtApi
         ///</returns>
         public bool ObjectSetDouble(long chartId, string objectName, EnumObjectPropertyDouble propId, double propValue)
         {
-            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
-            return SendCommand<bool>(MtCommandType.ObjectSetDouble, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName },
+                { "PropId", (int)propId },
+                { "PropValue", propValue }
+            };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ObjectSetDouble, cmdParams);
         }
 
         ///<summary>
@@ -2689,9 +2726,15 @@ namespace MtApi
         ///</returns>
         public bool ObjectSetDouble(long chartId, string objectName, EnumObjectPropertyDouble propId, int propModifier, double propValue)
         {
-            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
-            var namedParams = new Dictionary<string, object> {{nameof(propModifier), propModifier}};
-            return SendCommand<bool>(MtCommandType.ObjectSetDouble, commandParameters, namedParams);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName },
+                { "PropId", (int)propId },
+                { "PropModifier", propModifier },
+                { "PropValue", propValue }
+            };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ObjectSetDouble, cmdParams);
         }
 
         ///<summary>
@@ -2706,8 +2749,14 @@ namespace MtApi
         ///</returns>
         public bool ObjectSetInteger(long chartId, string objectName, EnumObjectPropertyInteger propId, long propValue)
         {
-            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
-            return SendCommand<bool>(MtCommandType.ObjectSetInteger, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName },
+                { "PropId", (int)propId },
+                { "PropValue", propValue }
+            };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ObjectSetInteger, cmdParams);
         }
 
         ///<summary>
@@ -2723,9 +2772,15 @@ namespace MtApi
         ///</returns>
         public bool ObjectSetInteger(long chartId, string objectName, EnumObjectPropertyInteger propId, int propModifier, long propValue)
         {
-            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
-            var namedParams = new Dictionary<string, object> {{nameof(propModifier), propModifier}};
-            return SendCommand<bool>(MtCommandType.ObjectSetInteger, commandParameters, namedParams);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName },
+                { "PropId", (int)propId },
+                { "PropModifier", propModifier },
+                { "PropValue", propValue }
+            };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ObjectSetInteger, cmdParams);
         }
 
         ///<summary>
@@ -2740,8 +2795,14 @@ namespace MtApi
         ///</returns>
         public bool ObjectSetString(long chartId, string objectName, EnumObjectPropertyString propId, string propValue)
         {
-            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
-            return SendCommand<bool>(MtCommandType.ObjectSetString, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName },
+                { "PropId", (int)propId },
+                { "PropValue", propValue }
+            };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ObjectSetString, cmdParams);
         }
 
         ///<summary>
@@ -2757,9 +2818,15 @@ namespace MtApi
         ///</returns>
         public bool ObjectSetString(long chartId, string objectName, EnumObjectPropertyString propId, int propModifier, string propValue)
         {
-            var commandParameters = new ArrayList { chartId, objectName, (int)propId, propValue };
-            var namedParams = new Dictionary<string, object> {{nameof(propModifier), propModifier}};
-            return SendCommand<bool>(MtCommandType.ObjectSetString, commandParameters, namedParams);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ChartId", chartId },
+                { "ObjectName", objectName },
+                { "PropId", (int)propId },
+                { "PropModifier", propModifier },
+                { "PropValue", propValue }
+            };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ObjectSetString, cmdParams);
         }
 
         ///<summary>
@@ -2774,8 +2841,14 @@ namespace MtApi
         ///</returns>
         public bool TextSetFont(string name, int size, FlagFontStyle flags = 0, int orientation = 0)
         {
-            var commandParameters = new ArrayList { name, size, (uint)flags, orientation };
-            return SendCommand<bool>(MtCommandType.TextSetFont, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "Name", name },
+                { "Size", size },
+                { "Flags", flags },
+                { "Orientation", orientation }
+            };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.TextSetFont, cmdParams);
         }
 
         ///<summary>
@@ -2785,10 +2858,13 @@ namespace MtApi
         ///<returns>
         ///Object description. For objects of OBJ_TEXT and OBJ_LABEL types, the text drawn by these objects will be returned.
         ///</returns>
-        public string ObjectDescription(string objectName)
+        public string? ObjectDescription(string objectName)
         {
-            var commandParameters = new ArrayList { objectName };
-            return SendCommand<string>(MtCommandType.ObjectDescription, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ObjectName", objectName }
+            };
+            return SendCommand<string>(ExecutorHandle, MtCommandType.ObjectDescription, cmdParams);
         }
 
         ///<summary>
@@ -2799,10 +2875,14 @@ namespace MtApi
         ///<returns>
         ///The level description of a Fibonacci object.
         ///</returns>
-        public string ObjectGetFiboDescription(string objectName, int index)
+        public string? ObjectGetFiboDescription(string objectName, int index)
         {
-            var commandParameters = new ArrayList { objectName, index };
-            return SendCommand<string>(MtCommandType.ObjectGetFiboDescription, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ObjectName", objectName },
+                { "Index", index }
+            };
+            return SendCommand<string>(ExecutorHandle, MtCommandType.ObjectGetFiboDescription, cmdParams);
         }
 
         ///<summary>
@@ -2815,8 +2895,12 @@ namespace MtApi
         ///</returns>
         public int ObjectGetShiftByValue(string objectName, double value)
         {
-            var commandParameters = new ArrayList { objectName, value };
-            return SendCommand<int>(MtCommandType.ObjectGetShiftByValue, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ObjectName", objectName },
+                { "Value", value }
+            };
+            return SendCommand<int>(ExecutorHandle, MtCommandType.ObjectGetShiftByValue, cmdParams);
         }
 
         ///<summary>
@@ -2829,8 +2913,12 @@ namespace MtApi
         ///</returns>
         public double ObjectGetValueByShift(string objectName, int shift)
         {
-            var commandParameters = new ArrayList { objectName, shift };
-            return SendCommand<double>(MtCommandType.ObjectGetValueByShift, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ObjectName", objectName },
+                { "Shift", shift }
+            };
+            return SendCommand<double>(ExecutorHandle, MtCommandType.ObjectGetValueByShift, cmdParams);
         }
 
         ///<summary>
@@ -2844,8 +2932,13 @@ namespace MtApi
         ///</returns>
         public bool ObjectSet(string objectName, int index, double value)
         {
-            var commandParameters = new ArrayList { objectName, index, value };
-            return SendCommand<bool>(MtCommandType.ObjectSet, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ObjectName", objectName },
+                { "Index", index },
+                { "Value", value }
+            };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ObjectSet, cmdParams);
         }
 
         ///<summary>
@@ -2859,8 +2952,13 @@ namespace MtApi
         ///</returns>
         public bool ObjectSetFiboDescription(string objectName, int index, string text)
         {
-            var commandParameters = new ArrayList { objectName, index, text };
-            return SendCommand<bool>(MtCommandType.ObjectSetFiboDescription, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ObjectName", objectName },
+                { "Index", index },
+                { "Text", text }
+            };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ObjectSetFiboDescription, cmdParams);
         }
 
         ///<summary>
@@ -2874,10 +2972,17 @@ namespace MtApi
         ///<returns>
         ///Changes the object description.  If the function succeeds, the returned value will be true, otherwise false.
         ///</returns>
-        public bool ObjectSetText(string objectName, string text, int fontSize = 0, string fontName = null, Color? textColor = null)
+        public bool ObjectSetText(string objectName, string text, int fontSize = 0, string? fontName = null, Color? textColor = null)
         {
-            var commandParameters = new ArrayList { objectName, text, fontSize, fontName, MtApiColorConverter.ConvertToMtColor(textColor) };
-            return SendCommand<bool>(MtCommandType.ObjectSetText, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ObjectName", objectName },
+                { "Text", text },
+                { "FontSize", fontSize },
+                { "FontName", fontName ?? string.Empty },
+                { "TextColor", MtApiColorConverter.ConvertToMtColor(textColor) }
+            };
+            return SendCommand<bool>(ExecutorHandle, MtCommandType.ObjectSetText, cmdParams);
         }
 
         ///<summary>
@@ -2889,8 +2994,11 @@ namespace MtApi
         ///</returns>
         public EnumObject ObjectType(string objectName)
         {
-            var commandParameters = new ArrayList { objectName };
-            return (EnumObject)SendCommand<int>(MtCommandType.ObjectType, commandParameters);
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "ObjectName", objectName },
+            };
+            return (EnumObject)SendCommand<int>(ExecutorHandle, MtCommandType.ObjectType, cmdParams);
         }
 
         #endregion
@@ -2899,13 +3007,13 @@ namespace MtApi
 
         public void UnlockTicks()
         {
-            SendCommand<object>(MtCommandType.UnlockTicks, null);
+            SendCommand<object>(ExecutorHandle, MtCommandType.UnlockTicks);
         }
 
         #endregion
 
         #region Private Methods
-        private MtClient Client
+        private MtRpcClient? Client
         {
             get
             {
@@ -2916,7 +3024,7 @@ namespace MtApi
             }
         }
 
-        private void Connect(MtClient client)
+        private async Task Connect(string host, int port)
         {
             lock (_locker)
             {
@@ -2929,76 +3037,46 @@ namespace MtApi
                 _connectionState = MtConnectionState.Connecting;
             }
 
-            string message = string.IsNullOrEmpty(client.Host) ? $"Connecting to localhost:{client.Port}" : $"Connecting to {client.Host}:{client.Port}";
+            string message = $"Connecting to {host}:{port}";
             ConnectionStateChanged?.Invoke(this, new MtConnectionEventArgs(MtConnectionState.Connecting, message));
 
-            var state = MtConnectionState.Failed;
+            var client = new MtRpcClient(host, port, new RpcClientLogger(Log));
+            client.ExpertList += Client_ExpertList;
+            client.ExpertAdded += Client_ExpertAdded;
+            client.ExpertRemoved += Client_ExpertRemoved;
+            client.MtEventReceived += Client_MtEventReceived;
+            client.ConnectionFailed += Client_OnConnectionFailed;
+            client.Disconnected += Client_Disconnected;
 
-            lock (_locker)
+            try
             {
-                try
-                {
-                    client.Connect();
-                    state = MtConnectionState.Connected;
-                }
-                catch (Exception e)
-                {
-                    client.Dispose();
-                    message = string.IsNullOrEmpty(client.Host) ? $"Failed connection to localhost:{client.Port}. {e.Message}" : $"Failed connection to {client.Host}:{client.Port}. {e.Message}";
-
-                    Log.Warn(message);
-                }
-
-                if (state == MtConnectionState.Connected)
+                await client.Connect();
+                Log.Info($"Connected to {host}:{port}");
+                lock (_locker)
                 {
                     _client = client;
-                    _client.QuoteAdded += _client_QuoteAdded;
-                    _client.QuoteRemoved += _client_QuoteRemoved;
-                    _client.QuoteUpdated += _client_QuoteUpdated;
-                    _client.ServerDisconnected += _client_ServerDisconnected;
-                    _client.ServerFailed += _client_ServerFailed;
-                    _client.MtEventReceived += _client_MtEventReceived;
-                    message = string.IsNullOrEmpty(client.Host) ? $"Connected to localhost:{client.Port}" : $"Connected to  { client.Host}:{client.Port}";
-
-                    Log.Info(message);
+                    _connectionState = MtConnectionState.Connected;
                 }
-
-                _connectionState = state;
+                client.NotifyClientReady();
+                ConnectionStateChanged?.Invoke(this, new MtConnectionEventArgs(MtConnectionState.Connected, $"Connected to {host}:{port}"));
             }
-
-            ConnectionStateChanged?.Invoke(this, new MtConnectionEventArgs(state, message));
-
-            if (state == MtConnectionState.Connected)
+            catch (Exception e)
             {
-                OnConnected();
-            }
-        }
-
-        private void Connect(string host, int port)
-        {
-            var client = new MtClient(host, port);
-            Connect(client);
-        }
-
-        private void Connect(int port)
-        {
-            var client = new MtClient(port);
-            Connect(client);
-        }
-
-        private void OnConnected()
-        {
-            _isBacktestingMode = IsTesting();
-            if (_isBacktestingMode)
-            {
-                BacktestingReady();
+                Log.Warn($"Failed connection to {host}:{port}. {e.Message}");
+                lock (_locker)
+                {
+                    _connectionState = MtConnectionState.Failed;
+                }
+                ConnectionStateChanged?.Invoke(this, new MtConnectionEventArgs(MtConnectionState.Failed, e.Message));
             }
         }
 
         private void Disconnect(bool failed)
         {
-            var state =  failed ? MtConnectionState.Failed : MtConnectionState.Disconnected;
+            var state = failed ? MtConnectionState.Failed : MtConnectionState.Disconnected;
             var message = failed ? "Connection Failed" : "Disconnected";
+
+            MtRpcClient? client;
 
             lock (_locker)
             {
@@ -3006,182 +3084,311 @@ namespace MtApi
                     || _connectionState == MtConnectionState.Failed)
                     return;
 
-                if (_client != null)
-                {
-                    _client.QuoteAdded -= _client_QuoteAdded;
-                    _client.QuoteRemoved -= _client_QuoteRemoved;
-                    _client.QuoteUpdated -= _client_QuoteUpdated;
-                    _client.ServerDisconnected -= _client_ServerDisconnected;
-                    _client.ServerFailed -= _client_ServerFailed;
-                    _client.MtEventReceived -= _client_MtEventReceived;
-
-                    if (!failed)
-                    {
-                        _client.Disconnect();
-                    }
-
-                    _client.Dispose();
-
-                    _client = null;
-                }
-
                 _connectionState = state;
+                client = _client;
+                _client = null;
+
+                _quotes.Clear();
+                _experts.Clear();
+                _executorHandle = 0;
             }
+
+            client?.Disconnect();
 
             Log.Info(message);
 
             ConnectionStateChanged?.Invoke(this, new MtConnectionEventArgs(state, message));
         }
 
-        private T SendCommand<T>(MtCommandType commandType, ArrayList commandParameters, Dictionary<string, object> namedParams = null)
+        private T? SendCommand<T>(int expertHandle, MtCommandType commandType, object? payload = null)
         {
-            MtResponse response;
-
             var client = Client;
             if (client == null)
             {
                 Log.Warn("SendCommand: No connection");
-                throw new MtConnectionException("No connection");
+                throw new Exception("No connection");
             }
 
-            try
+            var payloadJson = payload == null ? string.Empty : JsonConvert.SerializeObject(payload);
+            Log.Debug($"SendCommand: sending '{payloadJson}' ...");
+
+            var responseJson = client.SendCommand(expertHandle, (int)commandType, payloadJson);
+
+            Log.Debug($"SendCommand: received response JSON [{responseJson}]");
+
+            if (string.IsNullOrEmpty(responseJson))
             {
-                response = client.SendCommand((int)commandType, commandParameters, namedParams, ExecutorHandle);
-            }
-            catch (CommunicationException ex)
-            {
-                Log.Warn($"SendCommand: {ex.Message}");
-                throw new MtConnectionException(ex.Message, ex);
+                Log.Warn("SendCommand: Response JSON from MetaTrader is null or empty");
+                throw new MtExecutionException(MtErrorCode.MtApiCustomError, "Response from MetaTrader is null");
             }
 
+            var response = JsonConvert.DeserializeObject<Response<T>>(responseJson);
             if (response == null)
             {
-                Log.Warn("SendCommand: Response from MetaTrader is null");
+                Log.Warn("SendCommand: Failed to deserialize response from JSON");
                 throw new MtExecutionException(MtErrorCode.MtApiCustomError, "Response from MetaTrader is null");
             }
 
             if (response.ErrorCode != 0)
             {
-                Log.Warn($"SendCommand: ErrorCode = {response.ErrorCode}. {response}");
-                throw new MtExecutionException((MtErrorCode)response.ErrorCode, response.ToString());
-            }
-
-            var responseValue = response.GetValue();
-            return responseValue != null ? (T)responseValue : default(T);
-        }
-
-        private T SendRequest<T>(RequestBase request) where T : ResponseBase, new()
-        {
-            if (request == null)
-                return default(T);
-
-            var serializer = JsonConvert.SerializeObject(request, Formatting.None,
-                            new JsonSerializerSettings
-                            {
-                                NullValueHandling = NullValueHandling.Ignore
-                            });
-            var commandParameters = new ArrayList { serializer };
-
-            var res = SendCommand<string>(MtCommandType.MtRequest, commandParameters);
-
-            if (res == null)
-            {
-                Log.Warn("SendRequest: Response from MetaTrader is null");
-                throw new MtExecutionException(MtErrorCode.MtApiCustomError, "Response from MetaTrader is null");
-            }
-
-            var response = JsonConvert.DeserializeObject<T>(res);
-            if (response.ErrorCode != 0)
-            {
-                Log.Warn($"SendRequest: ErrorCode = {response.ErrorCode}. {response}");
+                Log.Warn($"SendCommand: ErrorCode = {response.ErrorCode}. {response.ErrorMessage}");
                 throw new MtExecutionException((MtErrorCode)response.ErrorCode, response.ErrorMessage);
             }
 
-            return response;
+            return (response.Value == null) ? default : response.Value;
         }
 
-        private void _client_QuoteUpdated(MTApiService.MtQuote quote)
+        private void Client_MtEventReceived(object? sender, MtEventArgs e)
         {
-            if (quote != null)
-            {
-                QuoteUpdate?.Invoke(this, new MtQuoteEventArgs(new MtQuote(quote)));
-                QuoteUpdated?.Invoke(this, quote.Instrument, quote.Bid, quote.Ask);
-            }
+            Task.Run(() => _mtEventHandlers[(MtEventTypes)e.EventType](e.ExpertHandle, e.Payload));
         }
 
-        private void _client_ServerDisconnected(object sender, EventArgs e)
+        private void Client_ExpertList(object? sender, MtExpertListEventArgs e)
         {
-            Disconnect(false);
+            Task.Run(() => ProcessExpertList(e.Experts));
         }
 
-        private void _client_ServerFailed(object sender, EventArgs e)
+        private void Client_ExpertAdded(object? sender, MtExpertEventArgs e)
         {
+            Task.Run(() => ProcessExpertAdded(e.Expert));
+        }
+
+        private void Client_ExpertRemoved(object? sender, MtExpertEventArgs e)
+        {
+            Task.Run(() => ProcessExpertRemoved(e.Expert));
+        }
+
+        private void Client_OnConnectionFailed(object? sender, EventArgs e)
+        {
+            Log.Info("Received connection failed");
             Disconnect(true);
         }
 
-        private void _client_QuoteRemoved(MTApiService.MtQuote quote)
+        private void Client_Disconnected(object? sender, EventArgs e)
         {
-            QuoteRemoved?.Invoke(this, new MtQuoteEventArgs(new MtQuote(quote)));
+            Log.Info("Received normal disconnection");
+            Disconnect(false);
         }
 
-        private void _client_QuoteAdded(MTApiService.MtQuote quote)
+        private void ReceivedOnTickEvent(int expertHandle, string payload)
         {
-            QuoteAdded?.Invoke(this, new MtQuoteEventArgs(new MtQuote(quote)));
-        }
+            var e = JsonConvert.DeserializeObject<MtRpcQuote>(payload);
+            if (e == null || string.IsNullOrEmpty(e.Instrument) || e.Tick == null)
+                return;
 
-        private void _client_MtEventReceived(MtEvent e)
-        {
-            var eventType = (MtEventTypes) e.EventType;
+            QuoteUpdated?.Invoke(this, e.Instrument, e.Tick.Bid, e.Tick.Ask);
 
-            switch(eventType)
+            MtQuote quote = new()
             {
-                case MtEventTypes.LastTimeBar:
-                    FireOnLastTimeBar(e.ExpertHandle, JsonConvert.DeserializeObject<MtTimeBar>(e.Payload));
-                    break;
-                case MtEventTypes.ChartEvent:
-                    FireOnChartEvent(e.ExpertHandle, JsonConvert.DeserializeObject<MtChartEvent>(e.Payload));
-                    break;
-                case MtEventTypes.OnLockTicks:
-                    FireOnLockTicks(e.ExpertHandle, JsonConvert.DeserializeObject<OnLockTicksEvent>(e.Payload));
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                Instrument = e.Instrument,
+                Bid = e.Tick.Bid,
+                Ask = e.Tick.Ask,
+                ExpertHandle = expertHandle
+            };
+            QuoteUpdate?.Invoke(this, new MtQuoteEventArgs(quote));
+        }
+
+        private void ReceivedOnLastTimeBarEvent(int expertHandle, string payload)
+        {
+            var e = JsonConvert.DeserializeObject<MtTimeBar>(payload);
+            if (e == null || string.IsNullOrEmpty(e.Symbol))
+                return;
+            OnLastTimeBar?.Invoke(this, new TimeBarArgs(expertHandle, e));
+        }
+
+        private void ReceiveOnChartEvent(int expertHandle, string payload)
+        {
+            var e = JsonConvert.DeserializeObject<MtChartEvent>(payload);
+            if (e == null)
+                return;
+
+            OnChartEvent?.Invoke(this, new ChartEventArgs(expertHandle, e));
+        }
+
+        private void ReceivedOnLockTicksEvent(int expertHandle, string payload)
+        {
+            var e = JsonConvert.DeserializeObject<OnLockTicksEvent>(payload);
+            if (e == null || string.IsNullOrEmpty(e.Instrument))
+                return;
+            OnLockTicks?.Invoke(this, new MtLockTicksEventArgs(expertHandle, e.Instrument));
+        }
+
+        private void ProcessExpertList(HashSet<int> experts)
+        {
+            if (experts == null || experts.Count == 0)
+            {
+                Log.Warn("ProcessExpertList: expert list invalid or empty");
+                return;
+            }
+
+            Dictionary<int, MtQuote> quotes = [];
+            foreach (var handle in experts)
+            {
+                var quote = GetQuote(handle);
+                if (quote != null)
+                    quotes[handle] = quote;
+            }
+
+            lock (_locker)
+            {
+                _experts = experts;
+                _quotes = quotes;
+                if (_executorHandle == 0)
+                    _executorHandle = (_experts.Count > 0) ? _experts.ElementAt(0) : 0;
+            }
+            _quotesWaiter.Set();
+
+            QuoteList?.Invoke(this, new(quotes.Values.ToList()));
+
+            if (IsTesting())
+            {
+                BacktestingReady();
             }
         }
 
-        private void FireOnLastTimeBar(int expertHandler, MtTimeBar timeBar)
+        private void ProcessExpertAdded(int handle)
         {
-            OnLastTimeBar?.Invoke(this, new TimeBarArgs(expertHandler, timeBar));
+            Log.Debug($"ProcessExpertAdded: {handle}");
+
+            bool added;
+            lock (_locker)
+            {
+                added = _experts.Add(handle);
+                if (_executorHandle == 0)
+                    _executorHandle = (_experts.Count > 0) ? _experts.ElementAt(0) : 0;
+            }
+
+            if (added)
+            {
+                var quote = GetQuote(handle);
+                if (quote != null)
+                {
+                    lock (_locker)
+                    {
+                        _quotes[handle] = quote;
+                    }
+
+                    QuoteAdded?.Invoke(this, new MtQuoteEventArgs(quote));
+                }
+                else
+                    Log.Warn($"ProcessExpertAdded: failed to get quote for expert {handle}");
+            }
+            else
+                Log.Warn($"ProcessExpertAdded: expert handle {handle} is already exist");
         }
 
-        private void FireOnChartEvent(int expertHandler, MtChartEvent chartEvent)
+        private void ProcessExpertRemoved(int handle)
         {
-            OnChartEvent?.Invoke(this, new ChartEventArgs(expertHandler, chartEvent));
+            Log.Debug($"ProcessExpertRemoved: {handle}");
+
+            MtQuote? quote = null;
+            lock (_locker)
+            {
+                _experts.Remove(handle);
+                if (_quotes.TryGetValue(handle, out quote))
+                    _quotes.Remove(handle);
+                if (_executorHandle == handle)
+                    _executorHandle = (_experts.Count > 0) ? _experts.ElementAt(0) : 0;
+            }
+
+            if (quote != null)
+                QuoteRemoved?.Invoke(this, new MtQuoteEventArgs(quote));
         }
 
-        private void FireOnLockTicks(int expertHandler, OnLockTicksEvent lockTicksEvent)
+        private MtQuote? GetQuote(int expertHandle)
         {
-            OnLockTicks?.Invoke(this, new MtLockTicksEventArgs(expertHandler, lockTicksEvent.Instrument));
+            Log.Debug($"GetQuote: expertHandle = {expertHandle}");
+
+            var e = SendCommand<MtRpcQuote>(expertHandle, MtCommandType.GetQuote);
+            if (e == null || string.IsNullOrEmpty(e.Instrument) || e.Tick == null)
+                return null;
+
+            MtQuote quote = new()
+            {
+                Instrument = e.Instrument,
+                Bid = e.Tick.Bid,
+                Ask = e.Tick.Ask,
+                ExpertHandle = expertHandle,
+            };
+
+            return quote;
         }
 
         private void BacktestingReady()
         {
-            SendCommand<object>(MtCommandType.BacktestingReady, null);
+            SendCommand<object>(ExecutorHandle, MtCommandType.BacktestingReady);
         }
 
         #endregion
 
         #region Events
 
-        public event MtApiQuoteHandler QuoteUpdated;
-        public event EventHandler<MtQuoteEventArgs> QuoteUpdate;
-        public event EventHandler<MtQuoteEventArgs> QuoteAdded;
-        public event EventHandler<MtQuoteEventArgs> QuoteRemoved;
-        public event EventHandler<MtConnectionEventArgs> ConnectionStateChanged;
-        public event EventHandler<TimeBarArgs> OnLastTimeBar;
-        public event EventHandler<ChartEventArgs> OnChartEvent;
-        public event EventHandler<MtLockTicksEventArgs> OnLockTicks;
+        public event MtApiQuoteHandler? QuoteUpdated;
+        public event EventHandler<MtQuoteEventArgs>? QuoteUpdate;
+        public event EventHandler<MtQuoteEventArgs>? QuoteAdded;
+        public event EventHandler<MtQuoteEventArgs>? QuoteRemoved;
+        public event EventHandler<MtConnectionEventArgs>? ConnectionStateChanged;
+        public event EventHandler<TimeBarArgs>? OnLastTimeBar;
+        public event EventHandler<ChartEventArgs>? OnChartEvent;
+        public event EventHandler<MtLockTicksEventArgs>? OnLockTicks;
+        public event EventHandler<MtQuotesEventArgs>? QuoteList;
 
         #endregion
+    }
+
+    internal enum ParametersType
+    {
+        Int = 0,
+        Double = 1,
+        String = 2,
+        Boolean = 3
+    }
+
+    internal class RpcClientLogger(IMtLogger logger) : IRpcLogger
+    {
+        public void Debug(string message)
+        {
+            logger_.Debug(message);
+        }
+
+        public void Error(string message)
+        {
+            logger_.Debug(message);
+        }
+
+        public void Info(string message)
+        {
+            logger_.Debug(message);
+        }
+
+        public void Warn(string message)
+        {
+            logger_.Debug(message);
+        }
+
+        private readonly IMtLogger logger_ = logger;
+    }
+
+    internal class StubMtLogger : IMtLogger
+    {
+        public void Debug(object message)
+        {
+        }
+
+        public void Error(object message)
+        {
+        }
+
+        public void Fatal(object message)
+        {
+        }
+
+        public void Info(object message)
+        {
+        }
+
+        public void Warn(object message)
+        {
+        }
     }
 }

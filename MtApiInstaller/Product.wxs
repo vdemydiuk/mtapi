@@ -1,17 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
     <?define ProductName="MtApi" ?>
     <?define ProductVersion=!(bind.FileVersion.MtApi.dll) ?>
     <?define Manufacturer="DW"?>
-    <?define ProductPath="..\build\products\$(var.Configuration)\"?>
+    <?define ProductPath="..\build\products\$(var.Configuration)\net8.0\"?>
+	<?define ProductPathNative="..\build\products\$(var.Configuration)\$(var.Platform)\"?>
   
-	<Product Id="*" 
-           Name="$(var.ProductName) $(var.ProductVersion)" 
-           Language="1033" 
-           Version="$(var.ProductVersion)" 
-           Manufacturer="$(var.Manufacturer)" 
-           UpgradeCode="4107F5F4-7300-4B45-88CE-63929AF228FA">
-    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+	<Package Name="$(var.ProductName) $(var.ProductVersion)" Language="1033" Version="$(var.ProductVersion)" Manufacturer="$(var.Manufacturer)" UpgradeCode="4107F5F4-7300-4B45-88CE-63929AF228FA" InstallerVersion="200">
+    
 
     <WixVariable Id="WixUILicenseRtf" Value="..\LICENSE.rtf" />
 
@@ -19,105 +14,86 @@
     <MediaTemplate EmbedCab="yes" />
 
         <Feature Id="MtApi" Title="$(var.ProductName)" Level="1">
-          <ComponentGroupRef Id="MtApiComponents"/>
+          <ComponentGroupRef Id="MtApiComponents" />
         </Feature>
 
         <Feature Id="MTConnector" Title="MT Connector" Level="1">
-          <ComponentGroupRef Id="MTConnectorComponents"/>
+          <ComponentGroupRef Id="MTConnectorComponents" />
         </Feature>
 
-        <Property Id="WIXUI_INSTALLDIR">INSTALLFOLDER</Property>
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
 
         <UI>
-            <UIRef Id="WixUI_Mondo" />
+            <ui:WixUI Id="WixUI_Mondo" />
         </UI>
 
         <InstallExecuteSequence>
-            <Custom Action="InstallEx4FileAction" After="InstallFinalize">NOT Installed</Custom>
+            <!--<Custom Action="InstallEx4FileAction" After="InstallFinalize" Condition="NOT Installed" />-->
+			<!--<Custom Action="CopyEx4" After="InstallFinalize" Condition="NOT Installed" />-->
         </InstallExecuteSequence>
-    </Product>
+    </Package>
 
   <Fragment>
-    <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFilesFolder">
+      <StandardDirectory Id="ProgramFilesFolder">
         <Directory Id="INSTALLFOLDER" Name="$(var.ProductName)">
 
           <Directory Id="ExpertFolder" Name="Experts">
           </Directory>
-          
-          <Directory Id="GAC" Name="GAC">
-          </Directory>
 
          </Directory>
-      </Directory>
+      </StandardDirectory>
 
-      <Directory Id="SystemFolder">
-      </Directory>
+      <StandardDirectory Id="SystemFolder">
+      </StandardDirectory>
 
-      <Directory Id="ProgramMenuFolder">
+      <StandardDirectory Id="ProgramMenuFolder">
         <Directory Id="ApplicationProgramsFolder" Name="$(var.ProductName)">
         </Directory>
-      </Directory>
+      </StandardDirectory>
 
-    </Directory>
-  </Fragment>
+    </Fragment>
 
     <Fragment>
         <ComponentGroup Id="MtApiComponents">
 
             <Component Id="MtApiDll" Directory="INSTALLFOLDER">
-                <File Id="MtApi.dll" Name="MtApi.dll" KeyPath="yes"
-                    Source="$(var.ProductPath)MtApi.dll" />
+                <File Id="MtApi.dll" Name="MtApi.dll" KeyPath="yes" Source="$(var.ProductPath)MtApi.dll" />
 
-                <RegistryKey Root="HKLM"
-                    Key="Software\Microsoft\.NetFramework\v4.0.30319\AssemblyFoldersEx\$(var.ProductName)"
-                    Action="createAndRemoveOnUninstall">
-                  <RegistryValue Type="string" Value="[INSTALLFOLDER]"/>
+                <RegistryKey Root="HKLM" Key="Software\Microsoft\.NetFramework\v4.0.30319\AssemblyFoldersEx\$(var.ProductName)" ForceCreateOnInstall="yes" ForceDeleteOnUninstall="yes">
+                  <RegistryValue Type="string" Value="[INSTALLFOLDER]" />
                 </RegistryKey>
             </Component>
 
-            <!--<Component Id="MTApiServiceDll" Directory="INSTALLFOLDER">
-                <File Id="GAC_MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
-                    src="$(var.ProductPath)MTApiService.dll"/>
-            </Component>-->
+			<Component Id="MtClientDll" Directory="INSTALLFOLDER">
+				<File Id="MtClient.dll" Name="MtClient.dll" KeyPath="yes" Source="$(var.ProductPath)MtClient.dll" />
+			</Component>
 
             <Component Id="NewtonsoftJsondll" Directory="INSTALLFOLDER">
-                <File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" KeyPath="yes"
-                    src="$(var.ProductPath)Newtonsoft.Json.dll"/>
+                <File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" KeyPath="yes" Source="$(var.ProductPath)Newtonsoft.Json.dll" />
             </Component>
           
             <Component Id="MtApiExpert" Directory="ExpertFolder">
-                <File Id="MtApi.ex4" Name="MtApi.ex4" KeyPath="yes"
-                    Source="..\mq4\MtApi.ex4" />
+                <File Id="MtApi.ex4" Name="MtApi.ex4" KeyPath="yes" Source="..\mq4\MtApi.ex4" />
             </Component>
 
-            <Component Id="AppShortcutConnMgr" Guid="*" Directory="ApplicationProgramsFolder">
-                <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
-                <RegistryValue Root="HKCU" Key="Software\$(var.ProductName)" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+            <Component Id="AppShortcutConnMgr" Directory="ApplicationProgramsFolder">
+                <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+                <RegistryValue Root="HKCU" Key="Software\$(var.ProductName)" Name="installed" Type="integer" Value="1" KeyPath="yes" />
             </Component>
 
         </ComponentGroup>
 
         <ComponentGroup Id="MTConnectorComponents">
 
-          <Component Id="ConnectionProfileRegistryKey" Guid="*" Directory="INSTALLFOLDER">
-            <RegistryKey Root="HKCU"
-                         Key="Software\MtApi\ConnectionProfiles\Local"
-                  Action="createAndRemoveOnUninstall">
-              <RegistryValue Type="string" Name="Host" Value=""/>
-              <RegistryValue Type="integer" Name="Port" Value="8222" KeyPath="yes"/>
+          <Component Id="ConnectionProfileRegistryKey" Directory="INSTALLFOLDER">
+            <RegistryKey Root="HKCU" Key="Software\MtApi\ConnectionProfiles\Local" ForceCreateOnInstall="yes" ForceDeleteOnUninstall="yes">
+              <RegistryValue Type="string" Name="Host" Value="" />
+              <RegistryValue Type="integer" Name="Port" Value="8222" KeyPath="yes" />
             </RegistryKey>
           </Component>
 
-          <Component Id="MTApiServiceDllGAC" Guid="7285AE3C-D4A9-482A-BC7E-8F5B2A0FE97E" Directory="GAC">
-            <File Id="MTApiService.dll" Name="MTApiService.dll" KeyPath="yes"
-                src="$(var.ProductPath)MTApiService.dll" Checksum="yes"
-                Assembly=".net" AssemblyManifest="MTApiService.dll" Vital="yes" />
-          </Component>
-
           <Component Id="MTConnectorDll" Directory="SystemFolder">
-            <File Id="MTConnector.dll" Name="MTConnector.dll" KeyPath="yes"
-                  Source="$(var.ProductPath)MTConnector.dll" />
+            <File Id="MTConnector.dll" Name="MTConnector.dll" KeyPath="yes" Source="$(var.ProductPathNative)MTConnector.dll" />
           </Component>
 
         </ComponentGroup>

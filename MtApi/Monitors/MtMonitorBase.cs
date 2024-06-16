@@ -80,8 +80,8 @@ namespace MtApi.Monitors
                     MonitorTrigger.Stop();
             }
         }
-        private void MonitorTriggerRaised(object sender, EventArgs e) => OnTriggerRaised();
-        private void ApiClientConnectionStateChanged(object sender, MtConnectionEventArgs e)
+        private void MonitorTriggerRaised(object? sender, EventArgs e) => OnTriggerRaised();
+        private void ApiClientConnectionStateChanged(object? sender, MtConnectionEventArgs e)
         {
             if (e.Status == MtConnectionState.Connected)
                 OnMtConnected();

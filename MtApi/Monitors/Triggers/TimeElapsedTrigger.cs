@@ -1,12 +1,11 @@
-﻿using System;
-using System.Timers;
+﻿using System.Timers;
 
 namespace MtApi.Monitors.Triggers
 {
     public class TimeElapsedTrigger : IMonitorTrigger
     {
         #region Fields
-        readonly Timer _timer;
+        readonly System.Timers.Timer _timer;
         #endregion
 
         #region Properties
@@ -34,7 +33,7 @@ namespace MtApi.Monitors.Triggers
         /// <summary>
         /// Returns true if the trigger is started, otherwise false
         /// </summary>
-        public event EventHandler Raised;
+        public event EventHandler? Raised;
         #endregion
 
         #region ctor
@@ -45,7 +44,7 @@ namespace MtApi.Monitors.Triggers
         /// <param name="autoReset">If true, the trigger will raise continuosly after elapsed <see cref="Interval"/>, otherwise the trigger will raise only once after elapsed <see cref="Interval"/>.</param>
         public TimeElapsedTrigger(TimeSpan time, bool autoReset = true)
         {
-            _timer = new Timer(time.TotalMilliseconds);
+            _timer = new System.Timers.Timer(time.TotalMilliseconds);
             _timer.Elapsed += _timer_Elapsed;
             AutoReset = autoReset;
         }
@@ -63,7 +62,7 @@ namespace MtApi.Monitors.Triggers
         #endregion
 
         #region private methods
-        private void _timer_Elapsed(object sender, ElapsedEventArgs e)
+        private void _timer_Elapsed(object? sender, ElapsedEventArgs e)
         {
             _timer.Elapsed -= _timer_Elapsed;
             Raised?.Invoke(this, EventArgs.Empty);

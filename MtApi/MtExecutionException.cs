@@ -1,15 +1,7 @@
-﻿using System;
-
-namespace MtApi
+﻿namespace MtApi
 {
-    public class MtExecutionException: Exception
+    public class MtExecutionException(MtErrorCode errorCode, string? message) : Exception(message)
     {
-        public MtExecutionException(MtErrorCode errorCode, string message)
-            :base(message)
-        {
-            ErrorCode = errorCode;
-        }
-
-        public MtErrorCode ErrorCode { get; private set; }
+        public MtErrorCode ErrorCode { get; private set; } = errorCode;
     }
 }

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MtApi
+﻿namespace MtApi
 {
     public class TimeBarArgs: EventArgs
     {

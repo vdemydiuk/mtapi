@@ -4,6 +4,7 @@
     {
         LastTimeBar = 1,
         ChartEvent  = 2,
-        OnLockTicks = 3
+        OnLockTicks = 3,
+        OnTick      = 4
     }
 }

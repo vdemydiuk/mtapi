@@ -1,14 +1,7 @@
-﻿using System;
-
-namespace MtApi
+﻿namespace MtApi
 {
-    public class MtQuoteEventArgs : EventArgs
+    public class MtQuoteEventArgs(MtQuote quote) : EventArgs
     {
-        public MtQuote Quote { get; private set; }
-
-        public MtQuoteEventArgs(MtQuote quote)
-        {
-            Quote = quote;
-        }
+        public MtQuote Quote { get; private set; } = quote;
     }
 }

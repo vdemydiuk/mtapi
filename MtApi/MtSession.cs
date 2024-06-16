@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace MtApi
+﻿namespace MtApi
 {
     public class MtSession
     {
-        public string Symbol { get; set; }
+        public string? Symbol { get; set; }
         public DayOfWeek DayOfWeek { get; set; }
         public uint Index { get; set; }
         public int MtFromTime { get; set; }

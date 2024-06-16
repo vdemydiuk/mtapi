@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MtApi.Monitors.Triggers
+﻿namespace MtApi.Monitors.Triggers
 {
     /// <summary>
     /// Interface for triggers which can be used to trigger a <see cref="MtMonitorBase"/>.

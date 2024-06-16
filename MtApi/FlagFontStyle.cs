@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MtApi
+﻿namespace MtApi
 {
     [Flags]
     public enum FlagFontStyle

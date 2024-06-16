@@ -1,4 +1,5 @@
-﻿using System.Net.WebSockets;
+﻿using System.Diagnostics;
+using System.Net.WebSockets;
 using System.Text;
 
 namespace MtClient
@@ -137,22 +138,58 @@ namespace MtClient
         {
             try
             {
-                byte[] recvBuffer = new byte[64 * 1024];
-                while (ws_.State == WebSocketState.Open)
+                using (var ms = new MemoryStream())
                 {
-                    var result = await ws_.ReceiveAsync(new ArraySegment<byte>(recvBuffer), CancellationToken.None);
-                    if (result.MessageType == WebSocketMessageType.Close)
+                    var messageBuffer = WebSocket.CreateClientBuffer(1024, 64);
+                    while (ws_.State == WebSocketState.Open)
                     {
-                        logger_.Info($"MtRpcClient.DoReceive: close signal {result.CloseStatusDescription}");
-                        Disconnected?.Invoke(this, EventArgs.Empty);
-                        break;
-                    }
-                    else
-                    {
-                        var msg = Encoding.ASCII.GetString(recvBuffer, 0, result.Count);
-                        OnReceive(msg);
+                        int recvCount = 0;
+                        WebSocketReceiveResult result;
+                        do
+                        {
+                            result = await ws_.ReceiveAsync(messageBuffer, CancellationToken.None);
+                            var byteArray = messageBuffer.Array;
+                            if (byteArray != null)
+                            {
+                                ms.Write(byteArray, messageBuffer.Offset, result.Count);
+                                recvCount += result.Count;
+                            }
+                        }
+                        while (!result.EndOfMessage);
+
+                        if (result.MessageType == WebSocketMessageType.Close)
+                        {
+                            logger_.Info($"MtRpcClient.DoReceive: close signal {result.CloseStatusDescription}");
+                            Disconnected?.Invoke(this, EventArgs.Empty);
+                            break;
+                        }
+                        else if (result.MessageType == WebSocketMessageType.Text)
+                        {
+                            var msg = Encoding.UTF8.GetString(ms.ToArray(), 0, recvCount);
+                            //var msg = Encoding.ASCII.GetString(recvBuffer, 0, result.Count);
+                            OnReceive(msg);
+                        }
+                        ms.Seek(0, SeekOrigin.Begin);
+                        ms.Position = 0;
                     }
                 }
+
+                //byte[] recvBuffer = new byte[64 * 1024];
+                //while (ws_.State == WebSocketState.Open)
+                //{
+                //    var result = await ws_.ReceiveAsync(new ArraySegment<byte>(recvBuffer), CancellationToken.None);
+                //    if (result.MessageType == WebSocketMessageType.Close)
+                //    {
+                //        logger_.Info($"MtRpcClient.DoReceive: close signal {result.CloseStatusDescription}");
+                //        Disconnected?.Invoke(this, EventArgs.Empty);
+                //        break;
+                //    }
+                //    else
+                //    {
+                //        var msg = Encoding.ASCII.GetString(recvBuffer, 0, result.Count);
+                //        OnReceive(msg);
+                //    }
+                //}
             }
             catch (Exception ex)
             {

@@ -2,20 +2,50 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
-using System.Windows.Forms;
 using MtApi;
-using System.Threading.Tasks;
-using System.Linq;
 using MtApi.Monitors;
+using System.Runtime.InteropServices;
 
 namespace TestApiClientUI
 {
+    class MtLogger : IMtLogger
+    {
+        public void Debug(object message)
+        {
+            Write("DEBUG", message);
+        }
+
+        public void Error(object message)
+        {
+            Write("ERROR", message);
+        }
+
+        public void Fatal(object message)
+        {
+            Write("FATAL", message);
+        }
+
+        public void Info(object message)
+        {
+            Write("INFO", message);
+        }
+
+        public void Warn(object message)
+        {
+            Write("WARN", message);
+        }
+        private void Write(string level, object message)
+        {
+            Console.WriteLine($"[{Environment.CurrentManagedThreadId}] [{level}] {message}");
+        }
+    }
+
     public partial class Form1 : Form
     {
         #region Fields
 
-        private readonly List<Action> _groupOrderCommands = new List<Action>();
-        private readonly MtApiClient _apiClient = new MtApiClient();
+        private readonly List<Action> _groupOrderCommands = [];
+        private readonly MtApiClient _apiClient = new (new MtLogger());
         private readonly TimerTradeMonitor _timerTradeMonitor;
         private readonly TimeframeTradeMonitor _timeframeTradeMonitor;
 
@@ -61,7 +91,13 @@ namespace TestApiClientUI
 
             _timeframeTradeMonitor = new TimeframeTradeMonitor(_apiClient);
             _timeframeTradeMonitor.AvailabilityOrdersChanged += _tradeMonitor_AvailabilityOrdersChanged;
+
+            AllocConsole();
         }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool AllocConsole();
 
         private void InitOrderCommandsGroup()
         {

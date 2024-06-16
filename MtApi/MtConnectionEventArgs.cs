@@ -1,16 +1,8 @@
-﻿using System;
-
-namespace MtApi
+﻿namespace MtApi
 {
-    public class MtConnectionEventArgs: EventArgs
+    public class MtConnectionEventArgs(MtConnectionState status, string message) : EventArgs
     {
-        public MtConnectionState Status { get; private set; }
-        public string ConnectionMessage { get; private set; }
-
-        public MtConnectionEventArgs(MtConnectionState status, string message)
-        {
-            Status = status;
-            ConnectionMessage = message;
-        }
+        public MtConnectionState Status { get; private set; } = status;
+        public string ConnectionMessage { get; private set; } = message;
     }
 }

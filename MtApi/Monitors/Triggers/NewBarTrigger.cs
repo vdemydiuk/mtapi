@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MtApi.Monitors.Triggers
+﻿namespace MtApi.Monitors.Triggers
 {
     /// <summary>
     /// Raises the <see cref="Raised"/> event if a bar is closed and a new one started.
@@ -23,7 +21,7 @@ namespace MtApi.Monitors.Triggers
         /// <summary>
         /// Event will be called if the trigger raised.
         /// </summary>
-        public event EventHandler Raised;
+        public event EventHandler? Raised;
         #endregion
 
         #region ctor
@@ -46,7 +44,7 @@ namespace MtApi.Monitors.Triggers
         #endregion
 
         #region Private methods
-        private void _apiClient_OnLastTimeBar(object sender, TimeBarArgs e)
+        private void _apiClient_OnLastTimeBar(object? sender, TimeBarArgs e)
         {
             if (_isStarted)
                 Raised?.Invoke(this, EventArgs.Empty);

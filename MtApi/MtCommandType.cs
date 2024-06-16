@@ -5,13 +5,11 @@
         //NoCommand = 0
 
         //trade operations
-//        OrderSend                           = 1,
-//        OrderSendBuy                        = 1001,
-//        OrderSendSell                       = 1002,
-//        OrderClose                          = 2,
+        OrderSend                           = 1,
+        OrderClose                          = 2,
 //        OrderCloseByCurrentPrice            = 152,
 
-//        OrderCloseBy                        = 3,
+        OrderCloseBy                        = 3,
         OrderClosePrice                     = 4,
         OrderClosePriceByTicket             = 1004,
         OrderCloseTime                      = 5,
@@ -136,7 +134,7 @@
         iBullsPower                         = 106,
         iCCI                                = 107,
         iCCIOnArray                         = 108,
-        //iCustom                             = 109,
+        iCustom                             = 109,
         //iCustom_d                           = 10109,
         iDeMarker                           = 110,
         iEnvelopes                          = 111,
@@ -278,6 +276,17 @@
         WindowXOnDropped                    = 278,
         WindowYOnDropped                    = 279,
 
-        ChangeAccount                       = 280
+        ChangeAccount                       = 280,
+
+        GetOrder                            = 282,
+        GetOrders                           = 283,
+        CopyRates                           = 284,
+        Session                             = 285,
+        SeriesInfoInteger                   = 286,
+        SeriesInfoString                    = 287,
+        SymbolInfoTick                      = 288,
+        SymbolInfoDouble                    = 289,
+
+        GetQuote                            = 290
     }
 }

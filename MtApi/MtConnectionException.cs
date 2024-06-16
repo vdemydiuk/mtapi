@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MtApi
+﻿namespace MtApi
 {
     public class MtConnectionException: Exception        
     {
@@ -9,12 +7,12 @@ namespace MtApi
         {            
         }
 
-        public MtConnectionException(string message)
+        public MtConnectionException(string? message)
             : this(message, null)
         {            
         }
 
-        public MtConnectionException(string message, Exception exception)
+        public MtConnectionException(string? message, Exception? exception)
             : base(message, exception)
         {
         }
