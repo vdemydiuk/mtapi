@@ -29,9 +29,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AssemblyInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

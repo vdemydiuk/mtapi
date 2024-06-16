@@ -4,4 +4,4 @@
 
 #pragma once
 
-
+#define _DLLAPI extern "C" __declspec(dllexport)
