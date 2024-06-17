@@ -55,7 +55,7 @@ The common engine communication  project of the API. It contains the implementat
 * `MtClient`: **`(C#, .dll)`**  
 The client side communication  project of the API (based on WebSocket).
 
-* `MTConnector, MT5Connector`: **`(C++/CLI, .dll)`**   
+* `MTConnector, MT5Connector`: **`(C++, .dll)`**   
 The libraries  that are working as proxy between MQL and C# layers. They provides the API interfaces for working with MQL experts.
 
 * `MtApi, MtApi5`: **`(C#, .dll)`**  
