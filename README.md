@@ -6,7 +6,7 @@ Most of the API's functions duplicates MQL interface.
 The project was designed using [WCF](https://docs.microsoft.com/en-us/dotnet/framework/wcf/whats-wcf) framework with the intention of using flexibility to setup connections.
 
 ## Build environment
-The project is supported by Visual Studio 2022.  
+The project is supported by Visual Studio 2022 and based on .NetCore (.Net 8).
 It requires HeatWave for VS2022 - set of tools for creating WiX installation packages (https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17).
 Just install the VS extensions.
 
@@ -50,12 +50,15 @@ C:\Users\<username>\AppData\Roaming\MetaQuotes\Terminal\<terminal-hash>\MQL5\Inc
 ## Project Structure
 
 * `MtService`: **`(C++, .dll)`**  
-The common engine communication  project of the API. It contains the implementations of client and server sides. It uses WebSocket for communication.
+The common engine communication  project of the API. It contains the implementations of server sides based on WebSocket (from Boost library).
+
+* `MtClient`: **`(C#, .dll)`**  
+The client side communication  project of the API (based on WebSocket).
 
 * `MTConnector, MT5Connector`: **`(C++/CLI, .dll)`**   
-The libraries  that are working as proxy between MQL and C# layers. They provides the interfaces.
+The libraries  that are working as proxy between MQL and C# layers. They provides the API interfaces for working with MQL experts.
 
-* `MtApi, MtApi5, MtClient`: **`(C#, .dll)`**  
+* `MtApi, MtApi5`: **`(C#, .dll)`**  
 The client side libraries that are using in user's projects.  
 
 * **`(MQL4/MQL5, .ex4)`**  
