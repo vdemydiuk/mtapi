@@ -3,7 +3,7 @@ MtApi provides a .NET API for working with famous trading platfrom [MetaTrader(M
 It is not API for connection to MT servers directly. MtApi is just a bridge between MT terminal and .NET applications designed by developers.  
 MtApi executes MQL commands and functions by MtApi's expert linked to chart of MetaTrader.  
 Most of the API's functions duplicates MQL interface.  
-The project was designed using [WCF](https://docs.microsoft.com/en-us/dotnet/framework/wcf/whats-wcf) framework with the intention of using flexibility to setup connections.
+The project was designed using WebSocket framework with the intention of using flexibility to setup connections.
 
 ## Build environment
 The project is supported by Visual Studio 2022 and based on .NetCore (.Net 8).
