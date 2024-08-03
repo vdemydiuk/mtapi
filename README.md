@@ -79,6 +79,12 @@ Use the installers to setup all libraries automatically.
 
 To quickly navigate to the trading platform *data folder*, click:  **`File >> "Open data folder"`** in your *MetaTrader* Terminal.
 
+## Additional packets
+VCRedist packet must be installed for correct working MtApi connectors (MTCOnnector or MT5Connector).
+Use Microsoft website to download required installers:
+https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170
+
+
 ## Using
 MtApi provides two types of connection to MetaTrader terminal: local and remote (via TCP).  
 The port of connection is defined by MtApi expert.
