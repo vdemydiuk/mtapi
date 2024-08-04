@@ -61,7 +61,7 @@ The libraries  that are working as proxy between MQL and C# layers. They provide
 * `MtApi, MtApi5`: **`(C#, .dll)`**  
 The client side libraries that are using in user's projects.  
 
-* **`(MQL4/MQL5, .ex4)`**  
+* **`(MQL4/MQL5, .ex4/.ex5)`**  
 MT4 and MT5 *Expert Advisors* linked to terminal's charts.  They executes API's functions and provides trading events.  
 
 * `MtApiInstaller, MtApi5Installer` **`(WIX, .msi)`**  
@@ -80,7 +80,7 @@ Use the installers to setup all libraries automatically.
 To quickly navigate to the trading platform *data folder*, click:  **`File >> "Open data folder"`** in your *MetaTrader* Terminal.
 
 ## Additional packets
-VCRedist packet must be installed for correct working MtApi connectors (MTCOnnector or MT5Connector).
+VCRedist packet must be installed for correct working MtApi connectors (MTConnector or MT5Connector).
 Use Microsoft website to download required installers:
 https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170
 
