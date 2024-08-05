@@ -1441,7 +1441,7 @@ namespace MtApi5
                 { "From", from }, { "Count", count }  };
             var response = SendCommand<List<MtTick>>(ExecutorHandle, Mt5CommandType.CopyTicks, cmdParams);
             List<MqlTick>? ticks = response?.Select(t => new MqlTick(t)).ToList();
-            return null;
+            return ticks;
         }
 
         ///<summary>
