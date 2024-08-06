@@ -259,7 +259,22 @@ void MtServer::ProcessMessage(const std::string& msg, std::weak_ptr<MtConnection
         if (command)
         {
             auto expert_handle = command->getExpertHandle();
-            if (experts_.count(expert_handle) > 0)
+            if (experts_.size() == 0)
+            {
+                log_.Error("%s: Expert list is empty. There is no any command executor.", __FUNCTION__);
+            }
+            else if (expert_handle == 0)
+            {
+                // use default expert
+                auto expert = experts_.begin();
+                log_.Debug("%s: using default expert for executing command - %d" , __FUNCTION__, expert->first);
+                expert->second->expert->Process(std::move(command), [con = con, this](const MtResponse& response) {
+                    auto connection = con.lock();
+                    if (connection)
+                        connection->Send(response.Serialize());
+                    });
+            }
+            else if (experts_.count(expert_handle) > 0)
             {
                 experts_[expert_handle]->expert->Process(std::move(command), [con = con, this](const MtResponse& response) {
                     auto connection = con.lock();
