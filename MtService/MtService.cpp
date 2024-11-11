@@ -75,7 +75,7 @@ MtServiceImpl::~MtServiceImpl()
 
 void MtServiceImpl::InitExpert(int port, int handle, std::unique_ptr<MetaTraderHandler> mt_handler)
 {
-    log_.Debug("%s: port = %d, handle = %d", __FUNCTION__, port, handle);
+    log_.Info("%s: port = %d, handle = %d", __FUNCTION__, port, handle);
 
     boost::asio::post(context_, [port, handle, mt_h = std::move(mt_handler), this]() mutable {
         auto expert = std::make_unique<MtExpert>(handle, std::move(mt_h));
@@ -93,7 +93,7 @@ void MtServiceImpl::InitExpert(int port, int handle, std::unique_ptr<MetaTraderH
 
 void MtServiceImpl::DeinitExpert(int handle)
 {
-    log_.Debug("%s: handle = %d", __FUNCTION__, handle);
+    log_.Info("%s: handle = %d", __FUNCTION__, handle);
 
     boost::asio::post(context_, [handle, this]() {
         if (experts_.count(handle) > 0)
@@ -182,7 +182,15 @@ void MtServiceImpl::ThreadProc()
 
 MtService::MtService()
 {
-    LogConfigurator::Setup(LogLevel::Trace, OutputType::Console | OutputType::File, "MtApiService");
+#ifdef NDEBUG
+    // nondebug
+    auto log_level = LogLevel::Info;
+#else
+    // debug code
+    auto log_level = LogLevel::Trace;
+#endif
+
+    LogConfigurator::Setup(log_level, OutputType::Console | OutputType::File, "MtApiService");
     impl_ = std::make_unique<MtServiceImpl>();
 }
 
