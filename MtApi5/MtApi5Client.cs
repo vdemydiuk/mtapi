@@ -31,7 +31,6 @@ namespace MtApi5
         
         private HashSet<int> _experts = [];
         private Dictionary<int, Mt5Quote> _quotes = [];
-        private readonly EventWaitHandle _quotesWaiter = new AutoResetEvent(false);
         #endregion
 
         #region Public Methods
@@ -94,17 +93,13 @@ namespace MtApi5
             {
                 if (_connectionState == Mt5ConnectionState.Connected
                     || _connectionState == Mt5ConnectionState.Connecting)
-                {
                     return;
-                }
-
                 _connectionState = Mt5ConnectionState.Connecting;
             }
 
             ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Connecting, $"Connecting to {host}:{port}"));
 
             var client = new MtRpcClient(host, port, new RpcClientLogger(Log));
-            client.ExpertList += Client_ExpertList;
             client.ExpertAdded += Client_ExpertAdded;
             client.ExpertRemoved += Client_ExpertRemoved;
             client.MtEventReceived += Client_MtEventReceived;
@@ -115,13 +110,42 @@ namespace MtApi5
             {
                 await client.Connect();
                 Log.Info($"Connected to {host}:{port}");
+
+                var experts = client.RequestExpertsList();
+                if (experts == null || experts.Count == 0)
+                {
+                    var errorMessage = "Failed to load expert list";
+                    Log.Error(errorMessage);
+                    client.Disconnect();
+
+                    ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Failed, errorMessage));
+                    throw new Exception($"Connection to {host}:{port} failed. Error: {errorMessage}");
+                }
+
+                // Load quotes
+                Dictionary<int, Mt5Quote> quotes = [];
+                foreach (var handle in experts)
+                {
+                    var quote = GetQuote(client, handle);
+                    if (quote != null)
+                        quotes[handle] = quote;
+                }
+
                 lock (_locker)
                 {
                     _client = client;
+                    _experts = experts;
+                    _quotes = quotes;
+                    if (_executorHandle == 0)
+                        _executorHandle = (_experts.Count > 0) ? _experts.ElementAt(0) : 0;
                     _connectionState = Mt5ConnectionState.Connected;
                 }
-                client.NotifyClientReady();
+
+                if (IsTesting())
+                    BacktestingReady();
+
                 ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Connected, $"Connected to {host}:{port}"));
+                QuoteList?.Invoke(this, new(quotes.Values.ToList()));
             }
             catch (Exception e)
             {
@@ -154,14 +178,10 @@ namespace MtApi5
         }
 
         ///<summary>
-        ///Load quotes connected into MetaTrader API (deprecated)
+        ///Load quotes connected into MetaTrader API
         ///</summary>
         public IEnumerable<Mt5Quote> GetQuotes()
         {
-            // this function is deprecated.
-            // should be used event OnQuoteList
-
-            _quotesWaiter.WaitOne(10000); // wait 10 sec for loading all quotes from MetaTrader
             lock (_locker)
             {
                 return _quotes.Values.ToList();
@@ -3345,11 +3365,6 @@ namespace MtApi5
             Task.Run(() => _mtEventHandlers[(Mt5EventTypes)e.EventType](e.ExpertHandle, e.Payload));
         }
 
-        private void Client_ExpertList(object? sender, MtExpertListEventArgs e)
-        {
-            Task.Run(()=>ProcessExpertList(e.Experts));
-        }
-
         private void Client_ExpertAdded(object? sender, MtExpertEventArgs e)
         {
             Task.Run(() => ProcessExpertAdded(e.Expert));
@@ -3358,39 +3373,6 @@ namespace MtApi5
         private void Client_ExpertRemoved(object? sender, MtExpertEventArgs e)
         {
             Task.Run(() => ProcessExpertRemoved(e.Expert));
-        }
-
-        private void ProcessExpertList(HashSet<int> experts)
-        {
-            if (experts == null || experts.Count == 0)
-            {
-                Log.Warn("ProcessExpertList: expert list invalid or empty");
-                return;
-            }
-  
-            Dictionary<int, Mt5Quote> quotes = [];
-            foreach (var handle in experts)
-            {
-                var quote = GetQuote(handle);
-                if (quote != null)
-                    quotes[handle] = quote;
-            }
-
-            lock (_locker)
-            {
-                _experts = experts;
-                _quotes = quotes;
-                if (_executorHandle == 0)
-                    _executorHandle = (_experts.Count > 0) ? _experts.ElementAt(0) : 0;
-            }
-            _quotesWaiter.Set();
-
-            QuoteList?.Invoke(this, new(quotes.Values.ToList()));
-
-            if (IsTesting())
-            {
-                BacktestingReady();
-            }
         }
 
         private void ProcessExpertAdded(int handle)
@@ -3407,7 +3389,7 @@ namespace MtApi5
 
             if (added)
             {
-                var quote = GetQuote(handle);
+                var quote = GetQuote(Client, handle);
                 if (quote != null)
                 {
                     lock (_locker)
@@ -3444,23 +3426,23 @@ namespace MtApi5
                 QuoteRemoved?.Invoke(this, new Mt5QuoteEventArgs(quote));
         }
 
-        private Mt5Quote? GetQuote(int expertHandle)
+        private Mt5Quote? GetQuote(MtRpcClient? client, int expertHandle)
         {
             Log.Debug($"GetQuote: expertHandle = {expertHandle}");
 
-            var e = SendCommand<MtQuote>(expertHandle, Mt5CommandType.GetQuote);
-            if (e == null || string.IsNullOrEmpty(e.Instrument) || e.Tick == null)
+            var q = SendCommand<MtQuote>(client, expertHandle, Mt5CommandType.GetQuote);
+            if (q == null || string.IsNullOrEmpty(q.Instrument) || q.Tick == null)
                 return null;
 
             Mt5Quote quote = new()
             {
-                Instrument = e.Instrument,
-                Bid = e.Tick.Bid,
-                Ask = e.Tick.Ask,
+                Instrument = q.Instrument,
+                Bid = q.Tick.Bid,
+                Ask = q.Tick.Ask,
                 ExpertHandle = expertHandle,
-                Volume = e.Tick.Volume,
-                Time = Mt5TimeConverter.ConvertFromMtTime(e.Tick.Time),
-                Last = e.Tick.Last
+                Volume = q.Tick.Volume,
+                Time = Mt5TimeConverter.ConvertFromMtTime(q.Tick.Time),
+                Last = q.Tick.Last
             };
 
             return quote;
@@ -3572,7 +3554,11 @@ namespace MtApi5
 
         private T? SendCommand<T>(int expertHandle, Mt5CommandType commandType, object? payload = null)
         {
-            var client = Client;
+            return SendCommand<T>(Client, expertHandle, commandType, payload);
+        }
+
+        private T? SendCommand<T>(MtRpcClient? client, int expertHandle, Mt5CommandType commandType, object? payload = null)
+        {
             if (client == null)
             {
                 Log.Warn("SendCommand: No connection");

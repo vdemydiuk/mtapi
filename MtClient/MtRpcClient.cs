@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net.WebSockets;
+﻿using System.Net.WebSockets;
 using System.Text;
 
 namespace MtClient
@@ -68,7 +67,7 @@ namespace MtClient
 
         public string? SendCommand(int expertHandle, int commandType, string payload)
         {
-            CommandTask commandTask = new();
+            CommandTask<string> commandTask = new();
             int commandId;
             lock (tasks_)
             {
@@ -88,10 +87,24 @@ namespace MtClient
             return response;
         }
 
-        public void NotifyClientReady()
+        public HashSet<int>? RequestExpertsList()
         {
+            CommandTask<object> notificationTask = new();
+            lock (notification_tasks_)
+            {
+                notification_tasks_[MtNotificationType.ClientReady] = notificationTask;
+            }
+
             MtNotification notification = new(MtNotificationType.ClientReady);
             Send(notification);
+
+            var response = notificationTask.WaitResponse(10000); // 10 sec
+            lock (notification_tasks_)
+            {
+                notification_tasks_.Remove(MtNotificationType.ClientReady);
+            }
+
+            return response as HashSet<int>;
         }
 
         private void Send(MtMessage message)
@@ -118,7 +131,7 @@ namespace MtClient
                 {
                     sendWaiter_.WaitOne();
                     continue;
-                }                   
+                }
 
                 try
                 {
@@ -166,30 +179,12 @@ namespace MtClient
                         else if (result.MessageType == WebSocketMessageType.Text)
                         {
                             var msg = Encoding.UTF8.GetString(ms.ToArray(), 0, recvCount);
-                            //var msg = Encoding.ASCII.GetString(recvBuffer, 0, result.Count);
                             OnReceive(msg);
                         }
                         ms.Seek(0, SeekOrigin.Begin);
                         ms.Position = 0;
                     }
                 }
-
-                //byte[] recvBuffer = new byte[64 * 1024];
-                //while (ws_.State == WebSocketState.Open)
-                //{
-                //    var result = await ws_.ReceiveAsync(new ArraySegment<byte>(recvBuffer), CancellationToken.None);
-                //    if (result.MessageType == WebSocketMessageType.Close)
-                //    {
-                //        logger_.Info($"MtRpcClient.DoReceive: close signal {result.CloseStatusDescription}");
-                //        Disconnected?.Invoke(this, EventArgs.Empty);
-                //        break;
-                //    }
-                //    else
-                //    {
-                //        var msg = Encoding.ASCII.GetString(recvBuffer, 0, result.Count);
-                //        OnReceive(msg);
-                //    }
-                //}
             }
             catch (Exception ex)
             {
@@ -216,7 +211,7 @@ namespace MtClient
             {
                 logger_.Warn("MtRpcClient.OnReceive: Invalid message format.");
                 return;
-            }                
+            }
 
             MessageType msgType;
             try
@@ -250,7 +245,7 @@ namespace MtClient
                     break;
                 case MessageType.ExpertList:
                     if (message is MtExpertListMsg expertListMsg)
-                        ExpertList?.Invoke(this, new(expertListMsg.Experts));
+                        ProcessExpertList(expertListMsg.Experts);
                     break;
                 case MessageType.ExpertAdded:
                     if (message is MtExpertAddedMsg expertAddedMsg)
@@ -273,14 +268,24 @@ namespace MtClient
 
             lock (tasks_)
             {
-                if (tasks_.TryGetValue(commandId, out CommandTask? value))
+                if (tasks_.TryGetValue(commandId, out CommandTask<string>? value))
                     value.SetResponse(payload);
+            }
+        }
+
+        private void ProcessExpertList(HashSet<int> experts)
+        {
+            logger_.Debug($"MtRpcClient.ProcessExpertList: experts count - {experts.Count}");
+
+            lock (notification_tasks_)
+            {
+                if (notification_tasks_.TryGetValue(MtNotificationType.ClientReady, out CommandTask<object>? value))
+                    value.SetResponse(experts);
             }
         }
 
         public event EventHandler<EventArgs>? ConnectionFailed;
         public event EventHandler<EventArgs>? Disconnected;
-        public event EventHandler<MtExpertListEventArgs>? ExpertList;
         public event EventHandler<MtExpertEventArgs>? ExpertAdded;
         public event EventHandler<MtExpertEventArgs>? ExpertRemoved;
         public event EventHandler<MtEventArgs>? MtEventReceived;
@@ -288,7 +293,6 @@ namespace MtClient
         private readonly ClientWebSocket ws_ = new();
         private readonly string host_;
         private readonly int port_;
-        private readonly byte[] buf_ = new byte[10000];
         private readonly Queue<MtMessage> pendingMessages_ = [];
 
         private readonly Thread receiveThread_;
@@ -296,18 +300,19 @@ namespace MtClient
         private readonly EventWaitHandle sendWaiter_ = new AutoResetEvent(false);
 
         private int nextCommandId = 0;
-        private readonly Dictionary<int, CommandTask> tasks_ = [];
+        private readonly Dictionary<int, CommandTask<string>> tasks_ = [];
+        private readonly Dictionary<MtNotificationType, CommandTask<object>> notification_tasks_ = [];
 
         private readonly IRpcLogger logger_;
     }
 
-    internal class CommandTask
+    internal class CommandTask<T>
     {
         private readonly EventWaitHandle responseWaiter_ = new AutoResetEvent(false);
-        private string? response_;
+        private T? response_;
         private readonly object locker_ = new();
 
-        public string? WaitResponse(int time)
+        public T? WaitResponse(int time)
         {
             responseWaiter_.WaitOne(time);
             lock (locker_)
@@ -316,7 +321,7 @@ namespace MtClient
             }
         }
 
-        public void SetResponse(string result)
+        public void SetResponse(T result)
         {
             lock (locker_)
             {

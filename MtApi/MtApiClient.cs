@@ -27,7 +27,6 @@ namespace MtApi
         private readonly Dictionary<MtEventTypes, Action<int, string>> _mtEventHandlers = [];
         private HashSet<int> _experts = [];
         private Dictionary<int, MtQuote> _quotes = [];
-        private readonly EventWaitHandle _quotesWaiter = new AutoResetEvent(false);
 
         private MtConnectionState _connectionState = MtConnectionState.Disconnected;
         private int _executorHandle;
@@ -83,7 +82,6 @@ namespace MtApi
         ///</summary>
         public List<MtQuote> GetQuotes()
         {
-            _quotesWaiter.WaitOne(10000); // wait 10 sec for loading all quotes from MetaTrader
             lock (_locker)
             {
                 return _quotes.Values.ToList();
@@ -3041,7 +3039,6 @@ namespace MtApi
             ConnectionStateChanged?.Invoke(this, new MtConnectionEventArgs(MtConnectionState.Connecting, message));
 
             var client = new MtRpcClient(host, port, new RpcClientLogger(Log));
-            client.ExpertList += Client_ExpertList;
             client.ExpertAdded += Client_ExpertAdded;
             client.ExpertRemoved += Client_ExpertRemoved;
             client.MtEventReceived += Client_MtEventReceived;
@@ -3052,13 +3049,44 @@ namespace MtApi
             {
                 await client.Connect();
                 Log.Info($"Connected to {host}:{port}");
+
+                var experts = client.RequestExpertsList();
+                if (experts == null || experts.Count == 0)
+                {
+                    var errorMessage = "Failed to load expert list";
+                    Log.Error(errorMessage);
+                    client.Disconnect();
+
+                    ConnectionStateChanged?.Invoke(this, new MtConnectionEventArgs(MtConnectionState.Failed, errorMessage));
+                    throw new Exception($"Connection to {host}:{port} failed. Error: {errorMessage}");
+                }
+
+                // Load quotes
+                Dictionary<int, MtQuote> quotes = [];
+                foreach (var handle in experts)
+                {
+                    var quote = GetQuote(client, handle);
+                    if (quote != null)
+                        quotes[handle] = quote;
+                }
+
                 lock (_locker)
                 {
                     _client = client;
+                    _experts = experts;
+                    _quotes = quotes;
+                    if (_executorHandle == 0)
+                        _executorHandle = (_experts.Count > 0) ? _experts.ElementAt(0) : 0;
                     _connectionState = MtConnectionState.Connected;
                 }
-                client.NotifyClientReady();
+
+                if (IsTesting())
+                {
+                    BacktestingReady();
+                }
+
                 ConnectionStateChanged?.Invoke(this, new MtConnectionEventArgs(MtConnectionState.Connected, $"Connected to {host}:{port}"));
+                QuoteList?.Invoke(this, new(quotes.Values.ToList()));
             }
             catch (Exception e)
             {
@@ -3102,7 +3130,11 @@ namespace MtApi
 
         private T? SendCommand<T>(int expertHandle, MtCommandType commandType, object? payload = null)
         {
-            var client = Client;
+            return SendCommand<T>(Client, expertHandle, commandType, payload);
+        }
+
+        private T? SendCommand<T>(MtRpcClient? client, int expertHandle, MtCommandType commandType, object? payload = null)
+        {
             if (client == null)
             {
                 Log.Warn("SendCommand: No connection");
@@ -3141,11 +3173,6 @@ namespace MtApi
         private void Client_MtEventReceived(object? sender, MtEventArgs e)
         {
             Task.Run(() => _mtEventHandlers[(MtEventTypes)e.EventType](e.ExpertHandle, e.Payload));
-        }
-
-        private void Client_ExpertList(object? sender, MtExpertListEventArgs e)
-        {
-            Task.Run(() => ProcessExpertList(e.Experts));
         }
 
         private void Client_ExpertAdded(object? sender, MtExpertEventArgs e)
@@ -3213,39 +3240,6 @@ namespace MtApi
             OnLockTicks?.Invoke(this, new MtLockTicksEventArgs(expertHandle, e.Instrument));
         }
 
-        private void ProcessExpertList(HashSet<int> experts)
-        {
-            if (experts == null || experts.Count == 0)
-            {
-                Log.Warn("ProcessExpertList: expert list invalid or empty");
-                return;
-            }
-
-            Dictionary<int, MtQuote> quotes = [];
-            foreach (var handle in experts)
-            {
-                var quote = GetQuote(handle);
-                if (quote != null)
-                    quotes[handle] = quote;
-            }
-
-            lock (_locker)
-            {
-                _experts = experts;
-                _quotes = quotes;
-                if (_executorHandle == 0)
-                    _executorHandle = (_experts.Count > 0) ? _experts.ElementAt(0) : 0;
-            }
-            _quotesWaiter.Set();
-
-            QuoteList?.Invoke(this, new(quotes.Values.ToList()));
-
-            if (IsTesting())
-            {
-                BacktestingReady();
-            }
-        }
-
         private void ProcessExpertAdded(int handle)
         {
             Log.Debug($"ProcessExpertAdded: {handle}");
@@ -3260,7 +3254,7 @@ namespace MtApi
 
             if (added)
             {
-                var quote = GetQuote(handle);
+                var quote = GetQuote(Client, handle);
                 if (quote != null)
                 {
                     lock (_locker)
@@ -3295,19 +3289,19 @@ namespace MtApi
                 QuoteRemoved?.Invoke(this, new MtQuoteEventArgs(quote));
         }
 
-        private MtQuote? GetQuote(int expertHandle)
+        private MtQuote? GetQuote(MtRpcClient? client, int expertHandle)
         {
             Log.Debug($"GetQuote: expertHandle = {expertHandle}");
 
-            var e = SendCommand<MtRpcQuote>(expertHandle, MtCommandType.GetQuote);
-            if (e == null || string.IsNullOrEmpty(e.Instrument) || e.Tick == null)
+            var q = SendCommand<MtRpcQuote>(client, expertHandle, MtCommandType.GetQuote);
+            if (q == null || string.IsNullOrEmpty(q.Instrument) || q.Tick == null)
                 return null;
 
             MtQuote quote = new()
             {
-                Instrument = e.Instrument,
-                Bid = e.Tick.Bid,
-                Ask = e.Tick.Ask,
+                Instrument = q.Instrument,
+                Bid = q.Tick.Bid,
+                Ask = q.Tick.Ask,
                 ExpertHandle = expertHandle,
             };
 
