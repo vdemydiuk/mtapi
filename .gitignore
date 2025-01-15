@@ -188,3 +188,6 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
+
+# Python cache
+__pycache__/
