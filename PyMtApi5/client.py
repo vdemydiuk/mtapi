@@ -76,6 +76,8 @@ class Mt5ApiApp:
             self.process_symbols_total(mtapi, pieces[1])
         elif pieces[0] == "SymbolName":
             self.process_symbol_name(mtapi, pieces[1])
+        elif pieces[0] == "SymbolSelect":
+            self.process_symbol_select(mtapi, pieces[1])
         else:
             print(f"! Unknown command: {pieces[0]}")
 
@@ -154,8 +156,7 @@ class Mt5ApiApp:
         if not parameters or len(parameters) == 0:
             print(f"! Invalid parameters for command SymbolsTotal: {parameters}")
             return
-        parameters = parameters[:len(parameters) - 1]
-        selected = parameters == "True"
+        selected = parameters[:len(parameters) - 1] == "True"
         result = mtpapi.symbols_total(selected)
         print(f"> SymbolsTotal: response = {result}") 
 
@@ -168,6 +169,15 @@ class Mt5ApiApp:
         selected = pieces[1][:len(pieces[1]) - 1] == "True"
         result = mtpapi.symbol_name(pos, selected)
         print(f"> SymbolName: response = {result}") 
+
+    def process_symbol_select(self, mtpapi, parameters):
+        pieces = parameters.split(' ', 1)
+        if len(pieces) != 2 or not pieces[0] or not pieces[1] or len(pieces[1]) == 0:
+            print(f"! Invalid parameters for command SymbolSelect: {parameters}")
+            return
+        selected = pieces[1][:len(pieces[1]) - 1] == "True"
+        result = mtpapi.symbol_select(pieces[0], selected)
+        print(f"> SymbolSelect: response = {result}") 
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():

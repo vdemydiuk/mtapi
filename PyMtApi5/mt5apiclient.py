@@ -304,10 +304,17 @@ class Mt5ApiClient:
         return self.__send_command(
             self.__get_default_expert(), Mt5CommandType.SymbolsTotal, cmd_params)
 
+    # SymbolName
     def symbol_name(self, pos: int, selected: bool):
         cmd_params = {"Pos": pos, "Selected" : selected}
         return self.__send_command(
             self.__get_default_expert(), Mt5CommandType.SymbolName, cmd_params)
+
+    # SymbolSelect
+    def symbol_select(self, symbol_name: str, selected: bool):
+        cmd_params = {"Symbol": symbol_name, "Selected": selected}
+        return self.__send_command(
+            self.__get_default_expert(), Mt5CommandType.SymbolSelect, cmd_params)
 
     # Private methods
 
