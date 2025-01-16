@@ -54,32 +54,35 @@ class Mt5ApiApp:
         if len(pieces) != 2 or not pieces[0] or not pieces[1]:
             print(f"! Invalid command format: {command}")
             return
+        params = pieces[1].rstrip()
         if pieces[0] == "AccountInfoDouble":
-            self.process_account_info_double(mtapi, pieces[1])
+            self.process_account_info_double(mtapi, params)
         elif pieces[0] == "AccountInfoInteger":
-            self.process_account_info_integer(mtapi, pieces[1])
+            self.process_account_info_integer(mtapi, params)
         elif pieces[0] == "AccountInfoString":
-            self.process_account_info_string(mtapi, pieces[1])
+            self.process_account_info_string(mtapi, params)
         elif pieces[0] == "SeriesInfoInteger":
-            self.process_series_info_integer(mtapi, pieces[1])
+            self.process_series_info_integer(mtapi, params)
         elif pieces[0] == "Bars":
-            self.process_bars(mtapi, pieces[1])
+            self.process_bars(mtapi, params)
         elif pieces[0] == "BarsPeriod":
-            self.process_bars_period(mtapi, pieces[1])
+            self.process_bars_period(mtapi, params)
         elif pieces[0] == "BarsCalculated":
-            self.process_bars_calculated(mtapi, pieces[1])
+            self.process_bars_calculated(mtapi, params)
         elif pieces[0] == "IndicatorCreate":
-            self.process_indicator_create(mtapi, pieces[1])
+            self.process_indicator_create(mtapi, params)
         elif pieces[0] == "IndicatorRelease":
-            self.process_indicator_release(mtapi, pieces[1])
+            self.process_indicator_release(mtapi, params)
         elif pieces[0] == "SymbolsTotal":
-            self.process_symbols_total(mtapi, pieces[1])
+            self.process_symbols_total(mtapi, params)
         elif pieces[0] == "SymbolName":
-            self.process_symbol_name(mtapi, pieces[1])
+            self.process_symbol_name(mtapi, params)
         elif pieces[0] == "SymbolSelect":
-            self.process_symbol_select(mtapi, pieces[1])
+            self.process_symbol_select(mtapi, params)
         elif pieces[0] == "SymbolIsSynchronized":
-            self.process_symbol_is_synchronized(mtapi, pieces[1])
+            self.process_symbol_is_synchronized(mtapi, params)
+        elif pieces[0] == "SymbolInfoDouble":
+            self.process_symbol_info_double(mtapi, params)
         else:
             print(f"! Unknown command: {pieces[0]}")
 
@@ -152,15 +155,15 @@ class Mt5ApiApp:
             return
         indicator_handle = int(parameters)
         result = mtpapi.indicator_release(indicator_handle)
-        print(f"> IndicatorRelease: response = {result}") 
+        print(f"> IndicatorRelease: response = {result}")
 
     def process_symbols_total(self, mtpapi, parameters):
         if not parameters or len(parameters) == 0:
             print(f"! Invalid parameters for command SymbolsTotal: {parameters}")
             return
-        selected = parameters.rstrip() == "True"
+        selected = parameters == "True"
         result = mtpapi.symbols_total(selected)
-        print(f"> SymbolsTotal: response = {result}") 
+        print(f"> SymbolsTotal: response = {result}")
 
     def process_symbol_name(self, mtpapi, parameters):
         pieces = parameters.split(' ', 1)
@@ -168,27 +171,36 @@ class Mt5ApiApp:
             print(f"! Invalid parameters for command SymbolName: {parameters}")
             return
         pos = int(pieces[0])
-        selected = pieces[1].rstrip() == "True"
+        selected = pieces[1] == "True"
         result = mtpapi.symbol_name(pos, selected)
-        print(f"> SymbolName: response = {result}") 
+        print(f"> SymbolName: response = {result}")
 
     def process_symbol_select(self, mtpapi, parameters):
         pieces = parameters.split(' ', 1)
         if len(pieces) != 2 or not pieces[0] or not pieces[1] or len(pieces[1]) == 0:
             print(f"! Invalid parameters for command SymbolSelect: {parameters}")
             return
-        
-        selected = pieces[1].rstrip() == "True"
+        selected = pieces[1] == "True"
         result = mtpapi.symbol_select(pieces[0], selected)
-        print(f"> SymbolSelect: response = {result}") 
+        print(f"> SymbolSelect: response = {result}")
 
     def process_symbol_is_synchronized(self, mtpapi, parameters):
         if not parameters or len(parameters) == 0:
             print(f"! Invalid parameters for command SymbolIsSynchronized: {parameters}")
             return
-        symbol = parameters.rstrip()
+        symbol = parameters
         result = mtpapi.symbol_is_synchronized(symbol)
-        print(f"> SymbolIsSynchronized: response = {result}") 
+        print(f"> SymbolIsSynchronized: response = {result}")
+
+    def process_symbol_info_double(self, mtapi, parameters):
+        pieces = parameters.split(' ', 1)
+        if len(pieces) != 2 or not pieces[0] or not pieces[1]:
+            print(f"! Invalid parameters for command SymbolInfoDouble: {parameters}")
+            return
+        symbol = pieces[0]
+        prop_id = mt5enums.ENUM_SYMBOL_INFO_DOUBLE(int(pieces[1]))
+        result = mtapi.symbol_info_double(symbol, prop_id)
+        print(f"> SymbolInfoDouble: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():

@@ -322,6 +322,12 @@ class Mt5ApiClient:
         return self.__send_command(
             self.__get_default_expert(), Mt5CommandType.SymbolIsSynchronized, cmd_params)
 
+    # SymbolInfoDouble
+    def symbol_info_double(self, symbol_name: str, prop_id: ENUM_SYMBOL_INFO_DOUBLE):
+        cmd_params = {"Symbol": symbol_name, "PropId": prop_id}
+        return self.__send_command(
+            self.__get_default_expert(), Mt5CommandType.SymbolInfoDouble, cmd_params)
+
     # Private methods
 
     def __event_thread_func(self):
