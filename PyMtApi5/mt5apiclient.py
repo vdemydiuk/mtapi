@@ -316,6 +316,12 @@ class Mt5ApiClient:
         return self.__send_command(
             self.__get_default_expert(), Mt5CommandType.SymbolSelect, cmd_params)
 
+    # SymbolIsSynchronized
+    def symbol_is_synchronized(self, symbol_name: str):
+        cmd_params = {"Symbol": symbol_name}
+        return self.__send_command(
+            self.__get_default_expert(), Mt5CommandType.SymbolIsSynchronized, cmd_params)
+
     # Private methods
 
     def __event_thread_func(self):

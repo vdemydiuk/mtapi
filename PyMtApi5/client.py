@@ -78,6 +78,8 @@ class Mt5ApiApp:
             self.process_symbol_name(mtapi, pieces[1])
         elif pieces[0] == "SymbolSelect":
             self.process_symbol_select(mtapi, pieces[1])
+        elif pieces[0] == "SymbolIsSynchronized":
+            self.process_symbol_is_synchronized(mtapi, pieces[1])
         else:
             print(f"! Unknown command: {pieces[0]}")
 
@@ -156,7 +158,7 @@ class Mt5ApiApp:
         if not parameters or len(parameters) == 0:
             print(f"! Invalid parameters for command SymbolsTotal: {parameters}")
             return
-        selected = parameters[:len(parameters) - 1] == "True"
+        selected = parameters.rstrip() == "True"
         result = mtpapi.symbols_total(selected)
         print(f"> SymbolsTotal: response = {result}") 
 
@@ -166,7 +168,7 @@ class Mt5ApiApp:
             print(f"! Invalid parameters for command SymbolName: {parameters}")
             return
         pos = int(pieces[0])
-        selected = pieces[1][:len(pieces[1]) - 1] == "True"
+        selected = pieces[1].rstrip() == "True"
         result = mtpapi.symbol_name(pos, selected)
         print(f"> SymbolName: response = {result}") 
 
@@ -175,9 +177,18 @@ class Mt5ApiApp:
         if len(pieces) != 2 or not pieces[0] or not pieces[1] or len(pieces[1]) == 0:
             print(f"! Invalid parameters for command SymbolSelect: {parameters}")
             return
-        selected = pieces[1][:len(pieces[1]) - 1] == "True"
+        
+        selected = pieces[1].rstrip() == "True"
         result = mtpapi.symbol_select(pieces[0], selected)
         print(f"> SymbolSelect: response = {result}") 
+
+    def process_symbol_is_synchronized(self, mtpapi, parameters):
+        if not parameters or len(parameters) == 0:
+            print(f"! Invalid parameters for command SymbolIsSynchronized: {parameters}")
+            return
+        symbol = parameters.rstrip()
+        result = mtpapi.symbol_is_synchronized(symbol)
+        print(f"> SymbolIsSynchronized: response = {result}") 
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():
