@@ -83,6 +83,8 @@ class Mt5ApiApp:
             self.process_symbol_is_synchronized(mtapi, params)
         elif pieces[0] == "SymbolInfoDouble":
             self.process_symbol_info_double(mtapi, params)
+        elif pieces[0] == "SymbolInfoInteger":
+            self.process_symbol_info_integer(mtapi, params)
         else:
             print(f"! Unknown command: {pieces[0]}")
 
@@ -201,6 +203,16 @@ class Mt5ApiApp:
         prop_id = mt5enums.ENUM_SYMBOL_INFO_DOUBLE(int(pieces[1]))
         result = mtapi.symbol_info_double(symbol, prop_id)
         print(f"> SymbolInfoDouble: response = {result}")
+
+    def process_symbol_info_integer(self, mtapi, parameters):
+        pieces = parameters.split(' ', 1)
+        if len(pieces) != 2 or not pieces[0] or not pieces[1]:
+            print(f"! Invalid parameters for command SymbolInfoInteger: {parameters}")
+            return
+        symbol = pieces[0]
+        prop_id = mt5enums.ENUM_SYMBOL_INFO_INTEGER(int(pieces[1]))
+        result = mtapi.symbol_info_integer(symbol, prop_id)
+        print(f"> SymbolInfoInteger: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():
