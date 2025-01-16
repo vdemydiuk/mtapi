@@ -304,6 +304,11 @@ class Mt5ApiClient:
         return self.__send_command(
             self.__get_default_expert(), Mt5CommandType.SymbolsTotal, cmd_params)
 
+    def symbol_name(self, pos: int, selected: bool):
+        cmd_params = {"Pos": pos, "Selected" : selected}
+        return self.__send_command(
+            self.__get_default_expert(), Mt5CommandType.SymbolName, cmd_params)
+
     # Private methods
 
     def __event_thread_func(self):
