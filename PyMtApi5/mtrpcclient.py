@@ -1,8 +1,10 @@
-import websockets
-from websockets.sync.client import connect as ws_connect
-from threading import Thread, Lock, Condition
 import logging
 from enum import IntEnum
+from threading import Condition, Lock, Thread
+
+import websockets
+from websockets.sync.client import connect as ws_connect
+
 
 class MtNotification(IntEnum):
     ClientReady = 0

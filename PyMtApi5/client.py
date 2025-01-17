@@ -1,13 +1,14 @@
 import logging
+import os
+import os.path
 import signal
 import sys
 import time
-import os
-import os.path
-import mt5enums
 from functools import partial
-from mt5apiclient import Mt5ApiClient
 from threading import Thread
+
+import mt5enums
+from mt5apiclient import Mt5ApiClient
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,23 @@ class Mt5ApiApp:
     def __init__(self, address, port):
         self.__address = address
         self.__port = port
+        self.cmd_functions = {
+            "AccountInfoDouble": self.process_account_info_double,
+            "AccountInfoInteger": self.process_account_info_integer,
+            "AccountInfoString": self.process_account_info_string,
+            "SeriesInfoInteger": self.process_series_info_integer,
+            "Bars": self.process_bars,
+            "BarsPeriod": self.process_bars_period,
+            "BarsCalculated": self.process_bars_calculated,
+            "IndicatorCreate": self.process_indicator_create,
+            "IndicatorRelease": self.process_indicator_release,
+            "SymbolsTotal": self.process_symbols_total,
+            "SymbolName": self.process_symbol_name,
+            "SymbolSelect": self.process_symbol_select,
+            "SymbolIsSynchronized": self.process_symbol_is_synchronized,
+            "SymbolInfoDouble": self.process_symbol_info_double,
+            "SymbolInfoInteger": self.process_symbol_info_integer,
+        }
 
     def on_disconnect(self, error_msg=None):
         if error_msg is not None:
@@ -42,51 +60,23 @@ class Mt5ApiApp:
         print(f"> received book event: {expert_handle} - {symbol}")
 
     def on_last_time_bar(self, expert_handle, instrument, rates):
-        print(
-            f"> received last time bar event: {expert_handle} - {instrument}, {rates}")
+        print(f"> received last time bar event: {expert_handle} - {instrument}, {rates}")
 
     def on_trade_transaction(self, expert_handle, trade_transaction, trade_request, trade_result):
         print(
-            f"> received trade transaction event: {expert_handle} - {trade_transaction}, {trade_request}, {trade_result}")
+            f"> received trade transaction event: {expert_handle} - {trade_transaction}, {trade_request}, {trade_result}"
+        )
 
     def process_command(self, mtapi, command):
-        pieces = command.split(' ', 1)
+        pieces = command.split(" ", 1)
         if len(pieces) != 2 or not pieces[0] or not pieces[1]:
             print(f"! Invalid command format: {command}")
             return
-        params = pieces[1].rstrip()
-        if pieces[0] == "AccountInfoDouble":
-            self.process_account_info_double(mtapi, params)
-        elif pieces[0] == "AccountInfoInteger":
-            self.process_account_info_integer(mtapi, params)
-        elif pieces[0] == "AccountInfoString":
-            self.process_account_info_string(mtapi, params)
-        elif pieces[0] == "SeriesInfoInteger":
-            self.process_series_info_integer(mtapi, params)
-        elif pieces[0] == "Bars":
-            self.process_bars(mtapi, params)
-        elif pieces[0] == "BarsPeriod":
-            self.process_bars_period(mtapi, params)
-        elif pieces[0] == "BarsCalculated":
-            self.process_bars_calculated(mtapi, params)
-        elif pieces[0] == "IndicatorCreate":
-            self.process_indicator_create(mtapi, params)
-        elif pieces[0] == "IndicatorRelease":
-            self.process_indicator_release(mtapi, params)
-        elif pieces[0] == "SymbolsTotal":
-            self.process_symbols_total(mtapi, params)
-        elif pieces[0] == "SymbolName":
-            self.process_symbol_name(mtapi, params)
-        elif pieces[0] == "SymbolSelect":
-            self.process_symbol_select(mtapi, params)
-        elif pieces[0] == "SymbolIsSynchronized":
-            self.process_symbol_is_synchronized(mtapi, params)
-        elif pieces[0] == "SymbolInfoDouble":
-            self.process_symbol_info_double(mtapi, params)
-        elif pieces[0] == "SymbolInfoInteger":
-            self.process_symbol_info_integer(mtapi, params)
-        else:
+        if pieces[0] not in self.cmd_functions:
             print(f"! Unknown command: {pieces[0]}")
+            return
+        params = pieces[1].rstrip()
+        self.cmd_functions[pieces[0]](mtapi, params)
 
     def process_account_info_double(self, mtapi, parameters):
         property_id = mt5enums.ENUM_ACCOUNT_INFO_DOUBLE(int(parameters))
@@ -104,7 +94,7 @@ class Mt5ApiApp:
         print(f"> AccountInfoString {property_id}: result = {result}")
 
     def process_series_info_integer(self, mtpapi, parameters):
-        pieces = parameters.split(' ', 2)
+        pieces = parameters.split(" ", 2)
         if len(pieces) != 3 or not pieces[0] or not pieces[1] or not pieces[2]:
             print(f"! Invalid parameters for command SeriesInfoInteger: {parameters}")
             return
@@ -114,7 +104,7 @@ class Mt5ApiApp:
         print(f"> SeriesInfoInteger: result = {result}")
 
     def process_bars(self, mtpapi, parameters):
-        pieces = parameters.split(' ', 1)
+        pieces = parameters.split(" ", 1)
         if len(pieces) != 2 or not pieces[0] or not pieces[1]:
             print(f"! Invalid parameters for command Bars: {parameters}")
             return
@@ -123,7 +113,7 @@ class Mt5ApiApp:
         print(f"> Bars: result = {result}")
 
     def process_bars_period(self, mtpapi, parameters):
-        pieces = parameters.split(' ', 3)
+        pieces = parameters.split(" ", 3)
         if len(pieces) != 4 or not pieces[0] or not pieces[1] or not pieces[2] or not pieces[3]:
             print(f"! Invalid parameters for command BarsPeriod: {parameters}")
             return
@@ -142,7 +132,7 @@ class Mt5ApiApp:
         print(f"> BarsCalculated: result = {result}")
 
     def process_indicator_create(self, mtpapi, parameters):
-        pieces = parameters.split(' ')
+        pieces = parameters.split(" ")
         if len(pieces) != 3 or not pieces[0] or not pieces[1] or not pieces[2]:
             print(f"! Invalid parameters for command IndicatorCreate: {parameters}")
             return
@@ -168,7 +158,7 @@ class Mt5ApiApp:
         print(f"> SymbolsTotal: response = {result}")
 
     def process_symbol_name(self, mtpapi, parameters):
-        pieces = parameters.split(' ', 1)
+        pieces = parameters.split(" ", 1)
         if len(pieces) != 2 or not pieces[0] or not pieces[1] or len(pieces[1]) == 0:
             print(f"! Invalid parameters for command SymbolName: {parameters}")
             return
@@ -178,7 +168,7 @@ class Mt5ApiApp:
         print(f"> SymbolName: response = {result}")
 
     def process_symbol_select(self, mtpapi, parameters):
-        pieces = parameters.split(' ', 1)
+        pieces = parameters.split(" ", 1)
         if len(pieces) != 2 or not pieces[0] or not pieces[1] or len(pieces[1]) == 0:
             print(f"! Invalid parameters for command SymbolSelect: {parameters}")
             return
@@ -195,7 +185,7 @@ class Mt5ApiApp:
         print(f"> SymbolIsSynchronized: response = {result}")
 
     def process_symbol_info_double(self, mtapi, parameters):
-        pieces = parameters.split(' ', 1)
+        pieces = parameters.split(" ", 1)
         if len(pieces) != 2 or not pieces[0] or not pieces[1]:
             print(f"! Invalid parameters for command SymbolInfoDouble: {parameters}")
             return
@@ -205,7 +195,7 @@ class Mt5ApiApp:
         print(f"> SymbolInfoDouble: response = {result}")
 
     def process_symbol_info_integer(self, mtapi, parameters):
-        pieces = parameters.split(' ', 1)
+        pieces = parameters.split(" ", 1)
         if len(pieces) != 2 or not pieces[0] or not pieces[1]:
             print(f"! Invalid parameters for command SymbolInfoInteger: {parameters}")
             return
@@ -231,8 +221,7 @@ class Mt5ApiApp:
             signal.signal(signal.SIGINT, partial(signal_handler, mtapi))
             quotes = mtapi.get_quotes()
             print(f"> quotes: {quotes}")
-            command_thread = Thread(
-                target=self.mtapi_command_thread, args=(mtapi,))
+            command_thread = Thread(target=self.mtapi_command_thread, args=(mtapi,))
             command_thread.start()
             while mtapi.is_connected():
                 signal.pause()
@@ -240,9 +229,8 @@ class Mt5ApiApp:
 
 
 def main():
-    logging.basicConfig(filename='client.log',
-                        filemode='w', level=logging.DEBUG)
-    logger.info('Started')
+    logging.basicConfig(filename="client.log", filemode="w", level=logging.DEBUG)
+    logger.info("Started")
 
     args_num = len(sys.argv)
     if args_num != 3:
