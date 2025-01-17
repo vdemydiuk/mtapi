@@ -9,6 +9,7 @@ from websockets.sync.client import connect as ws_connect
 class MtNotification(IntEnum):
     ClientReady = 0
 
+
 class MtMessageType(IntEnum):
     Command = 0
     Response = 1
@@ -17,6 +18,7 @@ class MtMessageType(IntEnum):
     ExpertAdded = 4
     ExpertRemoved = 5
     Notification = 6
+
 
 class CommandTask:
     def __init__(self):
@@ -36,6 +38,7 @@ class CommandTask:
         with self.waiter:
             self.waiter.notify()
 
+
 class MtRpcClient:
     def __init__(self, callback=None):
         self.__logger = logging.getLogger(__name__)
@@ -47,8 +50,8 @@ class MtRpcClient:
 
     def connect(self, url):
         self.__logger.debug(f"connecting to {url}")
-        self.__ws = ws_connect(url);
-        self.__receive_thread = Thread(target = self.__receive_messages_thread)
+        self.__ws = ws_connect(url)
+        self.__receive_thread = Thread(target=self.__receive_messages_thread)
         self.__receive_thread.start()
 
     def disconnect(self):
@@ -66,7 +69,7 @@ class MtRpcClient:
             self.__notification_tasks.pop(MtNotification.ClientReady)
         return response
 
-    def send_command(self, expert_handle, command_type, payload = None):
+    def send_command(self, expert_handle, command_type, payload=None):
         command_id = self.__next_command_id
         self.__next_command_id += 1
         task = CommandTask()
@@ -82,9 +85,9 @@ class MtRpcClient:
 
     def __process_message(self, message):
         self.__logger.debug(f"process_message: {message}")
-        pieces = message.split(';', 1)
+        pieces = message.split(";", 1)
         if len(pieces) != 2 or not pieces[0] or not pieces[1]:
-            self.__logger.warning("process_message: Invalid message format");
+            self.__logger.warning("process_message: Invalid message format")
             return
         message_type = MtMessageType(int(pieces[0]))
         if message_type == MtMessageType.ExpertList:
@@ -101,7 +104,7 @@ class MtRpcClient:
             self.__logger.warning(f"received unknown message type: {message_type}")
 
     def __process_expert_list(self, payload):
-        pieces = payload.split(',')
+        pieces = payload.split(",")
         experts = list()
         for p in pieces:
             experts.append(int(p))
@@ -111,17 +114,17 @@ class MtRpcClient:
                 task.set_response(experts)
 
     def __process_event(self, payload):
-        pieces = payload.split(';', 2)
+        pieces = payload.split(";", 2)
         if len(pieces) != 3 or not pieces[0] or not pieces[1] or not pieces[2]:
-            self.__logger.warning("process_event: Invalid message format");
+            self.__logger.warning("process_event: Invalid message format")
             return
         if self.__callback is not None:
             self.__callback.mt_rpc_on_event(int(pieces[0]), int(pieces[1]), pieces[2])
 
     def __process_response(self, payload):
-        pieces = payload.split(';', 2)
+        pieces = payload.split(";", 2)
         if len(pieces) != 3 or not pieces[0] or not pieces[1] or not pieces[2]:
-            self.__logger.warning("process_response: Invalid message format");
+            self.__logger.warning("process_response: Invalid message format")
             return
         command_id = int(pieces[1])
         with self.__lock:
@@ -159,6 +162,6 @@ class MtRpcClient:
         return f"{int(MtMessageType.Notification)};{notification_type}"
 
     def __create_mt_command(self, expert_handle, command_id, command_type, payload):
-        if (payload is None):
-            return f"{MtMessageType.Command};{expert_handle};{command_id};{command_type}";
-        return f"{MtMessageType.Command};{expert_handle};{command_id};{command_type};{payload}";
+        if payload is None:
+            return f"{MtMessageType.Command};{expert_handle};{command_id};{command_type}"
+        return f"{MtMessageType.Command};{expert_handle};{command_id};{command_type};{payload}"

@@ -1,11 +1,12 @@
+import asyncio
 import json
 import logging
-import asyncio
-from mt5enums import *
 from enum import IntEnum
 from threading import Lock, Thread
-from mtrpcclient import MtRpcClient
+
 from mt5commandtype import Mt5CommandType
+from mt5enums import *
+from mtrpcclient import MtRpcClient
 
 
 class Mt5EventType(IntEnum):
@@ -63,10 +64,12 @@ class MqlTradeTransaction:
         self.time_expiration = mql_trade_transaction_json["MtTimeExpiration"]
 
     def __repr__(self):
-        return (f"deal = {self.deal}, order = {self.order}, symbol = {self.symbol}, transaction_type = {self.transaction_type}, "
-                f"order_type = {self.order_type}, order_state = {self.order_state}, deal_type = {self.deal_type}, time_type = {self.time_type}, "
-                f"price = {self.price}, price_trigger = {self.price_trigger}, price_sl = {self.price_sl}, price_tp = {self.price_tp}, volume = {self.volume}, "
-                f"position = {self.position}, position_by = {self.position_by}, time_expiration = {self.time_expiration}")
+        return (
+            f"deal = {self.deal}, order = {self.order}, symbol = {self.symbol}, transaction_type = {self.transaction_type}, "
+            f"order_type = {self.order_type}, order_state = {self.order_state}, deal_type = {self.deal_type}, time_type = {self.time_type}, "
+            f"price = {self.price}, price_trigger = {self.price_trigger}, price_sl = {self.price_sl}, price_tp = {self.price_tp}, volume = {self.volume}, "
+            f"position = {self.position}, position_by = {self.position_by}, time_expiration = {self.time_expiration}"
+        )
 
 
 class MqlTradeRequest:
@@ -90,10 +93,12 @@ class MqlTradeRequest:
         # self.position_by = mql_trade_request_json["PositionBy"]
 
     def __repr__(self):
-        return (f"action = {self.action}, magic = {self.magic}, order = {self.order}, symbol = {self.symbol}, volume = {self.volume}, "
-                f"price = {self.price}, stop_limit = {self.stop_limit}, sl = {self.sl}, tp = {self.tp}, deviation = {self.deviation}, "
-                f"order_type = {self.order_type}, type_filling = {self.type_filling}, type_time = {self.type_time}, expiration = {self.expiration}, "
-                f"comment = {self.comment}")
+        return (
+            f"action = {self.action}, magic = {self.magic}, order = {self.order}, symbol = {self.symbol}, volume = {self.volume}, "
+            f"price = {self.price}, stop_limit = {self.stop_limit}, sl = {self.sl}, tp = {self.tp}, deviation = {self.deviation}, "
+            f"order_type = {self.order_type}, type_filling = {self.type_filling}, type_time = {self.type_time}, expiration = {self.expiration}, "
+            f"comment = {self.comment}"
+        )
 
 
 class MqlTradeResult:
@@ -109,8 +114,10 @@ class MqlTradeResult:
         self.request_id = mql_trade_result_json["Request_id"]
 
     def __repr__(self):
-        return (f"retcode = {self.retcode}, deal = {self.deal}, order = {self.order}, volume = {self.volume}, price = {self.price}, "
-                f"bid = {self.bid}, ask = {self.ask}, comment = {self.comment}, request_id = {self.request_id}")
+        return (
+            f"retcode = {self.retcode}, deal = {self.deal}, order = {self.order}, volume = {self.volume}, price = {self.price}, "
+            f"bid = {self.bid}, ask = {self.ask}, comment = {self.comment}, request_id = {self.request_id}"
+        )
 
 
 class Mt5ApiClient:
@@ -176,20 +183,17 @@ class Mt5ApiClient:
     # AccountInfoDouble
     def account_info_double(self, property_id: ENUM_ACCOUNT_INFO_DOUBLE):
         cmd_params = {"PropertyId": property_id}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.AccountInfoDouble, cmd_params)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.AccountInfoDouble, cmd_params)
 
     # AccountInfoInteger
     def account_info_integer(self, property_id: ENUM_ACCOUNT_INFO_INTEGER):
         cmd_params = {"PropertyId": property_id}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.AccountInfoInteger, cmd_params)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.AccountInfoInteger, cmd_params)
 
     # AccountInfoString
     def account_info_string(self, property_id: ENUM_ACCOUNT_INFO_STRING):
         cmd_params = {"PropertyId": property_id}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.AccountInfoString, cmd_params)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.AccountInfoString, cmd_params)
 
     # Timeseries and Indicators Access
 
@@ -197,33 +201,27 @@ class Mt5ApiClient:
     def series_info_integer(self, symbol_name, timeframe: ENUM_TIMEFRAMES, prop_id: ENUM_SERIES_INFO_INTEGER):
         if symbol_name is None:
             symbol_name = ""
-        cmd_params = {"Symbol": symbol_name,
-                      "Timeframe": timeframe, "PropId": prop_id}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.SeriesInfoInteger, cmd_params)
+        cmd_params = {"Symbol": symbol_name, "Timeframe": timeframe, "PropId": prop_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.SeriesInfoInteger, cmd_params)
 
     # Bars
     def bars(self, symbol_name, timeframe: ENUM_TIMEFRAMES):
         if symbol_name is None:
             symbol_name = ""
         cmd_params = {"Symbol": symbol_name, "Timeframe": timeframe}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.Bars, cmd_params)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.Bars, cmd_params)
 
     # Bars (for a specified period)
     def bars_period(self, symbol_name, timeframe: ENUM_TIMEFRAMES, start_time: int, stop_time: int):
         if symbol_name is None:
             symbol_name = ""
-        cmd_params = {"Symbol": symbol_name, "Timeframe": timeframe,
-                      "StartTime": start_time, "StopTime": stop_time}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.Bars2, cmd_params)
+        cmd_params = {"Symbol": symbol_name, "Timeframe": timeframe, "StartTime": start_time, "StopTime": stop_time}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.Bars2, cmd_params)
 
     # BarsCalculated
     def bars_calculated(self, indicator_handle: int):
         cmd_params = {"IndicatorHandle": indicator_handle}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.BarsCalculated, cmd_params)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.BarsCalculated, cmd_params)
 
     # CopyBuffer
     def copy_buffer(self):
@@ -281,58 +279,57 @@ class Mt5ApiClient:
         pass
 
     # IndicatorCreate
-    def indicator_create(self, symbol: str, period: ENUM_TIMEFRAMES, indicator_type: ENUM_INDICATOR, parameters: list = []):
+    def indicator_create(
+        self, symbol: str, period: ENUM_TIMEFRAMES, indicator_type: ENUM_INDICATOR, parameters: list = []
+    ):
         cmd_params = {"Period": period, "IndicatorType": indicator_type}
         if symbol is not None:
             cmd_params["Symbol"] = symbol
         if len(parameters) != 0:
             cmd_params["Parameters"] = parameters
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.IndicatorCreate, cmd_params)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.IndicatorCreate, cmd_params)
 
     # IndicatorRelease
     def indicator_release(self, indicator_handle: int):
         cmd_params = {"IndicatorHandle": indicator_handle}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.IndicatorRelease, cmd_params)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.IndicatorRelease, cmd_params)
 
     # Market Info
 
     # SymbolsTotal
     def symbols_total(self, selected: bool):
         cmd_params = {"Selected": selected}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.SymbolsTotal, cmd_params)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolsTotal, cmd_params)
 
     # SymbolName
     def symbol_name(self, pos: int, selected: bool):
-        cmd_params = {"Pos": pos, "Selected" : selected}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.SymbolName, cmd_params)
+        cmd_params = {"Pos": pos, "Selected": selected}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolName, cmd_params)
 
     # SymbolSelect
     def symbol_select(self, symbol_name: str, selected: bool):
         cmd_params = {"Symbol": symbol_name, "Selected": selected}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.SymbolSelect, cmd_params)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolSelect, cmd_params)
 
     # SymbolIsSynchronized
     def symbol_is_synchronized(self, symbol_name: str):
         cmd_params = {"Symbol": symbol_name}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.SymbolIsSynchronized, cmd_params)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolIsSynchronized, cmd_params)
 
     # SymbolInfoDouble
     def symbol_info_double(self, symbol_name: str, prop_id: ENUM_SYMBOL_INFO_DOUBLE):
         cmd_params = {"Symbol": symbol_name, "PropId": prop_id}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.SymbolInfoDouble, cmd_params)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolInfoDouble, cmd_params)
 
     # SymbolInfoInteger
     def symbol_info_integer(self, symbol_name: str, prop_id: ENUM_SYMBOL_INFO_INTEGER):
         cmd_params = {"Symbol": symbol_name, "PropId": prop_id}
-        return self.__send_command(
-            self.__get_default_expert(), Mt5CommandType.SymbolInfoInteger, cmd_params)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolInfoInteger, cmd_params)
+
+    # SymbolInfoString
+    def symbol_info_string(self, symbol_name: str, prop_id: ENUM_SYMBOL_INFO_STRING):
+        cmd_params = {"Symbol": symbol_name, "PropId": prop_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolInfoString, cmd_params)
 
     # Private methods
 
@@ -355,18 +352,15 @@ class Mt5ApiClient:
 
     def __send_command(self, expert_handle, command_type, payload=None):
         payload_json = None if payload is None else json.dumps(payload)
-        response = self.__rpcclient.send_command(
-            expert_handle, command_type, payload_json)
+        response = self.__rpcclient.send_command(expert_handle, command_type, payload_json)
         if response is None:
             self.__logger.warning("Failed to send commad. Result is None")
             raise Exception("Failed to send commad. Result is None")
         response_json = json.loads(response)
         error_code = int(response_json["ErrorCode"])
         if error_code != 0:
-            self.__logger.warning(
-                f"send_command: ErrorCode = {response.ErrorCode}. {response.ErrorMessage}")
-            raise Exception(
-                f"Failed to send command: ErrorCode = {response.ErrorCode}. {response.ErrorMessage} ")
+            self.__logger.warning(f"send_command: ErrorCode = {response.ErrorCode}. {response.ErrorMessage}")
+            raise Exception(f"Failed to send command: ErrorCode = {response.ErrorCode}. {response.ErrorMessage} ")
         return response_json["Value"]
 
     def __process_tick_event(self, payload):
@@ -423,40 +417,31 @@ class Mt5ApiClient:
 
     def __process_on_lock_tick(self, expert_handle, payload):
         # TODO: must be implemented
-        self.__logger.warning(
-            f"event type OnLockTicks is not supported. {expert_handle} - {payload}")
+        self.__logger.warning(f"event type OnLockTicks is not supported. {expert_handle} - {payload}")
 
     def __process_on_trade_transaction(self, expert_handle, payload):
         trade_transaction_json = json.loads(payload)
-        trade_transaction = MqlTradeTransaction(
-            trade_transaction_json["Trans"])
+        trade_transaction = MqlTradeTransaction(trade_transaction_json["Trans"])
         trade_request = MqlTradeRequest(trade_transaction_json["Request"])
         trade_result = MqlTradeResult(trade_transaction_json["Result"])
         if self.__callback is not None:
-            self.__callback.on_trade_transaction(
-                expert_handle, trade_transaction, trade_request, trade_result)
+            self.__callback.on_trade_transaction(expert_handle, trade_transaction, trade_request, trade_result)
 
     # RPC event handlers
 
     def mt_rpc_on_event(self, expert_handle, event_type, payload):
-        self.__logger.debug(
-            f"received event from {expert_handle}: {event_type}, {payload}")
+        self.__logger.debug(f"received event from {expert_handle}: {event_type}, {payload}")
         mt_event_type = Mt5EventType(int(event_type))
         if mt_event_type == Mt5EventType.OnTick:
-            self.__event_loop.call_soon_threadsafe(
-                self.__process_tick_event, payload)
+            self.__event_loop.call_soon_threadsafe(self.__process_tick_event, payload)
         elif mt_event_type == Mt5EventType.OnBookEvent:
-            self.__event_loop.call_soon_threadsafe(
-                self.__process_on_book_event, expert_handle, payload)
+            self.__event_loop.call_soon_threadsafe(self.__process_on_book_event, expert_handle, payload)
         elif mt_event_type == Mt5EventType.OnLastTimeBar:
-            self.__event_loop.call_soon_threadsafe(
-                self.__process_on_last_time_bar, expert_handle, payload)
+            self.__event_loop.call_soon_threadsafe(self.__process_on_last_time_bar, expert_handle, payload)
         elif mt_event_type == Mt5EventType.OnLockTicks:
-            self.__event_loop.call_soon_threadsafe(
-                self.__process_on_lock_tick, expert_handle, payload)
+            self.__event_loop.call_soon_threadsafe(self.__process_on_lock_tick, expert_handle, payload)
         elif mt_event_type == Mt5EventType.OnTradeTransaction:
-            self.__event_loop.call_soon_threadsafe(
-                self.__process_on_trade_transaction, expert_handle, payload)
+            self.__event_loop.call_soon_threadsafe(self.__process_on_trade_transaction, expert_handle, payload)
         else:
             self.__logger.warning(f"received unsupported event {event_type}")
 
@@ -466,15 +451,12 @@ class Mt5ApiClient:
 
     def mt_rpc_on_connection_failed(self, error_msg=None):
         self.__logger.info(f"connection failed: {error_msg}")
-        self.__event_loop.call_soon_threadsafe(
-            self.__process_event_disconnect, error_msg)
+        self.__event_loop.call_soon_threadsafe(self.__process_event_disconnect, error_msg)
 
     def mt_rpc_on_expert_added(self, expert_handle):
         self.__logger.info(f"expert added: {expert_handle}")
-        self.__event_loop.call_soon_threadsafe(
-            self.__process_expert_added, expert_handle)
+        self.__event_loop.call_soon_threadsafe(self.__process_expert_added, expert_handle)
 
     def mt_rpc_on_expert_removed(self, expert_handle):
         self.__logger.info(f"expert removed: {expert_handle}")
-        self.__event_loop.call_soon_threadsafe(
-            self.__process_expert_removed, expert_handle)
+        self.__event_loop.call_soon_threadsafe(self.__process_expert_removed, expert_handle)
