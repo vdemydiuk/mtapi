@@ -29,6 +29,16 @@ class Mt5Quote:
         return f"{self.expert_handle}-{self.instrument}: Bid = {self.bid}, Ask = {self.ask}, Volume = {self.volume}"
 
 
+class Mql5Tick:
+    def __init__(self, tick_json):
+        self.bid = tick_json["Bid"]
+        self.ask = tick_json["Ask"]
+        self.last = tick_json["Last"]
+        self.volume = tick_json["Volume"]
+
+    def __repr__(self):
+        return f"Bid = {self.bid}, Ask = {self.ask}, Last = {self.last}, Volume = {self.volume}"
+
 class MqlRates:
     def __init__(self, mql_rates_json):
         self.time = mql_rates_json["mt_time"]
@@ -330,6 +340,14 @@ class Mt5ApiClient:
     def symbol_info_string(self, symbol_name: str, prop_id: ENUM_SYMBOL_INFO_STRING):
         cmd_params = {"Symbol": symbol_name, "PropId": prop_id}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolInfoString, cmd_params)
+
+    # SymbolInoTick
+    def symbol_info_tick(self, symbol_name: str):
+        cmd_params = {"Symbol": symbol_name}
+        res =  self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolInfoTick, cmd_params)
+        if res is not None and res["RetVal"] == True:
+            return Mql5Tick(res["Result"])
+        return None
 
     # Private methods
 

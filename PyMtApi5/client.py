@@ -39,6 +39,7 @@ class Mt5ApiApp:
             "SymbolInfoDouble": self.process_symbol_info_double,
             "SymbolInfoInteger": self.process_symbol_info_integer,
             "SymbolInfoString": self.process_symbol_info_string,
+            "SymbolInfoTick": self.process_symbol_info_tick,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -214,6 +215,14 @@ class Mt5ApiApp:
         prop_id = mt5enums.ENUM_SYMBOL_INFO_STRING(int(pieces[1]))
         result = mtapi.symbol_info_string(symbol, prop_id)
         print(f"> SymbolInfoString: response = {result}")
+
+    def process_symbol_info_tick(self, mtapi, parameters):
+        if len(parameters) == 0:
+            print(f"! Invalid parameters for command SymbolInfoTick: {parameters} - {len(parameters)}")
+            return
+        symbol = parameters
+        result = mtapi.symbol_info_tick(symbol)
+        print(f"> SymbolInfoTick: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():
