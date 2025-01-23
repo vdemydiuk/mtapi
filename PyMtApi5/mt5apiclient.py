@@ -39,6 +39,7 @@ class Mql5Tick:
     def __repr__(self):
         return f"Bid = {self.bid}, Ask = {self.ask}, Last = {self.last}, Volume = {self.volume}"
 
+
 class MqlRates:
     def __init__(self, mql_rates_json):
         self.time = mql_rates_json["mt_time"]
@@ -344,9 +345,17 @@ class Mt5ApiClient:
     # SymbolInoTick
     def symbol_info_tick(self, symbol_name: str):
         cmd_params = {"Symbol": symbol_name}
-        res =  self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolInfoTick, cmd_params)
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolInfoTick, cmd_params)
         if res is not None and res["RetVal"] == True:
             return Mql5Tick(res["Result"])
+        return None
+
+    # SymbolInfoSessionQuote
+    def symbol_info_session_quote(self, name: str, day_of_week: ENUM_DAY_OF_WEEK, session_index: int):
+        cmd_params = {"Symbol": name, "DayOfWeek": day_of_week, "SessionIndex": session_index}
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolInfoSessionQuote, cmd_params)
+        if res is not None and res["RetVal"] == True:
+            return (res["Result"]["From"], res["Result"]["To"])
         return None
 
     # Private methods
@@ -374,6 +383,7 @@ class Mt5ApiClient:
         if response is None:
             self.__logger.warning("Failed to send commad. Result is None")
             raise Exception("Failed to send commad. Result is None")
+        print(f"response = {response}")
         response_json = json.loads(response)
         error_code = int(response_json["ErrorCode"])
         if error_code != 0:
