@@ -366,6 +366,16 @@ class Mt5ApiClient:
             return (res["Result"]["From"], res["Result"]["To"])
         return None
 
+    # MarketBookAdd
+    def market_book_add(self, symbol: str):
+        cmd_params = {"Symbol": symbol}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.MarketBookAdd, cmd_params)
+
+    # MarketBookRelease
+    def market_book_release(self, symbol: str):
+        cmd_params = {"Symbol": symbol}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.MarketBookRelease, cmd_params)
+
     # Private methods
 
     def __event_thread_func(self):

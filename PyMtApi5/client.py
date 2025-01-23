@@ -42,6 +42,8 @@ class Mt5ApiApp:
             "SymbolInfoTick": self.process_symbol_info_tick,
             "SymbolInfoSessionQuote": self.process_symbol_info_session_quote,
             "SymbolInfoSessionTrade": self.process_symbol_info_session_trade,
+            "MarketBookAdd": self.process_market_book_add,
+            "MarketBookRelease": self.process_market_book_release,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -247,6 +249,22 @@ class Mt5ApiApp:
         session_index = int(pieces[2])
         result = mtapi.symbol_info_session_trade(symbol, day_of_week, session_index)
         print(f"> SymbolInfoSessionTrade: response = {result}")
+
+    def process_market_book_add(self, mtapi, parameters):
+        if len(parameters) == 0:
+            print(f"! Invalid parameters for command MarketBookAdd: {parameters} - {len(parameters)}")
+            return
+        symbol = parameters
+        result = mtapi.market_book_add(symbol)
+        print(f"> MarketBookAdd: response = {result}")
+
+    def process_market_book_release(self, mtapi, parameters):
+        if len(parameters) == 0:
+            print(f"! Invalid parameters for command MarketBookRelease: {parameters} - {len(parameters)}")
+            return
+        symbol = parameters
+        result = mtapi.market_book_release(symbol)
+        print(f"> MarketBookRelease: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():
