@@ -41,6 +41,7 @@ class Mt5ApiApp:
             "SymbolInfoString": self.process_symbol_info_string,
             "SymbolInfoTick": self.process_symbol_info_tick,
             "SymbolInfoSessionQuote": self.process_symbol_info_session_quote,
+            "SymbolInfoSessionTrade": self.process_symbol_info_session_trade,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -235,6 +236,17 @@ class Mt5ApiApp:
         session_index = int(pieces[2])
         result = mtapi.symbol_info_session_quote(symbol, day_of_week, session_index)
         print(f"> SymbolInfoSessionQuote: response = {result}")
+
+    def process_symbol_info_session_trade(self, mtapi, parameters):
+        pieces = parameters.split(" ", 2)
+        if len(pieces) != 3 or not pieces[0] or not pieces[1] or not pieces[2]:
+            print(f"! Invalid parameters for command SymbolInfoSessionTrade: {parameters}")
+            return
+        symbol = pieces[0]
+        day_of_week = mt5enums.ENUM_DAY_OF_WEEK(int(pieces[1]))
+        session_index = int(pieces[2])
+        result = mtapi.symbol_info_session_trade(symbol, day_of_week, session_index)
+        print(f"> SymbolInfoSessionTrade: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():

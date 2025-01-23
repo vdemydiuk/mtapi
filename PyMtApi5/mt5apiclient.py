@@ -358,6 +358,14 @@ class Mt5ApiClient:
             return (res["Result"]["From"], res["Result"]["To"])
         return None
 
+    # SymbolInfoSessionTrade
+    def symbol_info_session_trade(self, name: str, day_of_week: ENUM_DAY_OF_WEEK, session_index: int):
+        cmd_params = {"Symbol": name, "DayOfWeek": day_of_week, "SessionIndex": session_index}
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolInfoSessionTrade, cmd_params)
+        if res is not None and res["RetVal"] == True:
+            return (res["Result"]["From"], res["Result"]["To"])
+        return None
+
     # Private methods
 
     def __event_thread_func(self):
@@ -383,7 +391,6 @@ class Mt5ApiClient:
         if response is None:
             self.__logger.warning("Failed to send commad. Result is None")
             raise Exception("Failed to send commad. Result is None")
-        print(f"response = {response}")
         response_json = json.loads(response)
         error_code = int(response_json["ErrorCode"])
         if error_code != 0:
