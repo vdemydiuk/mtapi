@@ -44,6 +44,7 @@ class Mt5ApiApp:
             "SymbolInfoSessionTrade": self.process_symbol_info_session_trade,
             "MarketBookAdd": self.process_market_book_add,
             "MarketBookRelease": self.process_market_book_release,
+            "MarketBookGet": self.process_market_book_get,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -76,13 +77,16 @@ class Mt5ApiApp:
     def process_command(self, mtapi, command):
         pieces = command.split(" ", 1)
         if len(pieces) != 2 or not pieces[0] or not pieces[1]:
-            print(f"! Invalid command format: {command}")
+            print(f"! Invalid command format: {command.rstrip()}")
             return
         if pieces[0] not in self.cmd_functions:
             print(f"! Unknown command: {pieces[0]}")
             return
         params = pieces[1].rstrip()
-        self.cmd_functions[pieces[0]](mtapi, params)
+        try:
+            self.cmd_functions[pieces[0]](mtapi, params)
+        except Exception as e:
+            print(f"Failed to process command {command.rstrip()}: {e}")
 
     def process_account_info_double(self, mtapi, parameters):
         property_id = mt5enums.ENUM_ACCOUNT_INFO_DOUBLE(int(parameters))
@@ -265,6 +269,14 @@ class Mt5ApiApp:
         symbol = parameters
         result = mtapi.market_book_release(symbol)
         print(f"> MarketBookRelease: response = {result}")
+
+    def process_market_book_get(self, mtapi, parameters):
+        if len(parameters) == 0:
+            print(f"! Invalid parameters for command MarketBookGet: {parameters} - {len(parameters)}")
+            return
+        symbol = parameters
+        result = mtapi.market_book_get(symbol)
+        print(f"> MarketBookGet: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():

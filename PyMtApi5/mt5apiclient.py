@@ -130,6 +130,15 @@ class MqlTradeResult:
             f"bid = {self.bid}, ask = {self.ask}, comment = {self.comment}, request_id = {self.request_id}"
         )
 
+class MqlBookInfo:
+    def __init__(self, mql_book_info):
+        self.book_type = ENUM_BOOK_TYPE(mql_book_info["type"])
+        self.price = mql_book_info["price"]
+        self.volume = mql_book_info["volume"]
+        self.volume_real = mql_book_info["volume_real"]
+
+    def __repr__(self):
+        return ( f"book_type = {self.book_type}, price = {self.price}, volume = {self.volume}, volume_real = {self.volume_real}" )
 
 class Mt5ApiClient:
     def __init__(self, address, port, callback=None):
@@ -376,6 +385,11 @@ class Mt5ApiClient:
         cmd_params = {"Symbol": symbol}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.MarketBookRelease, cmd_params)
 
+    # MarketBookGet
+    def market_book_get(self, symbol: str):
+        cmd_params = {"Symbol": symbol}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.MarketBookGet, cmd_params)
+
     # Private methods
 
     def __event_thread_func(self):
@@ -404,8 +418,9 @@ class Mt5ApiClient:
         response_json = json.loads(response)
         error_code = int(response_json["ErrorCode"])
         if error_code != 0:
-            self.__logger.warning(f"send_command: ErrorCode = {response.ErrorCode}. {response.ErrorMessage}")
-            raise Exception(f"Failed to send command: ErrorCode = {response.ErrorCode}. {response.ErrorMessage} ")
+            error_message = response_json["ErrorMessage"]
+            self.__logger.warning(f"send_command: ErrorCode = {error_code}. {error_message}")
+            raise Exception(f"Failed to send command: ErrorCode = {error_code}. {error_message} ")
         return response_json["Value"]
 
     def __process_tick_event(self, payload):
