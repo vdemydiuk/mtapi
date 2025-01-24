@@ -45,6 +45,7 @@ class Mt5ApiApp:
             "MarketBookAdd": self.process_market_book_add,
             "MarketBookRelease": self.process_market_book_release,
             "MarketBookGet": self.process_market_book_get,
+            "CopyBuffer": self.process_copy_buffer,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -277,6 +278,18 @@ class Mt5ApiApp:
         symbol = parameters
         result = mtapi.market_book_get(symbol)
         print(f"> MarketBookGet: response = {result}")
+
+    def process_copy_buffer(self, mtapi, parameters):
+        pieces = parameters.split(" ", 3)
+        if len(pieces) != 4 or not pieces[0] or not pieces[1] or not pieces[2] or not pieces[3]:
+            print(f"! Invalid parameters for command CopyBuffer: {parameters}")
+            return
+        indicator_handle = int(pieces[0])
+        buffer_num = int(pieces[1])
+        start_pos = int(pieces[2])
+        count = int(pieces[3])
+        result = mtapi.copy_buffer(indicator_handle, buffer_num, start_pos, count)
+        print(f"> CopyBuffer: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():

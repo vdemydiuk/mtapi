@@ -244,9 +244,9 @@ class Mt5ApiClient:
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.BarsCalculated, cmd_params)
 
     # CopyBuffer
-    def copy_buffer(self):
-        # TODO
-        pass
+    def copy_buffer(self, indicator_handle: int, buffer_num: int, start_pos: int, count: int):
+        cmdParams = {"IndicatorHandle": indicator_handle , "BufferNum": buffer_num, "StartPos": start_pos , "Count": count};
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyBuffer, cmdParams)
 
     # CopyRates
     def copy_rates(self):
