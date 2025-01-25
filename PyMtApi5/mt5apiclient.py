@@ -285,9 +285,14 @@ class Mt5ApiClient:
         return rates
 
     # CopyTime
-    def copy_time(self):
-        # TODO
-        pass
+    def copy_time(self, symbol_name: str, timeframe: ENUM_TIMEFRAMES, start_pos: int, count: int):
+        cmdParams = {
+            "Symbol": symbol_name,
+            "Timeframe": timeframe,
+            "StartPos": start_pos,
+            "Count": count,
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyTime, cmdParams)
 
     # Copy Open
     def copy_open(self):
