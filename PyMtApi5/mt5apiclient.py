@@ -29,15 +29,16 @@ class Mt5Quote:
         return f"{self.expert_handle}-{self.instrument}: Bid = {self.bid}, Ask = {self.ask}, Volume = {self.volume}"
 
 
-class Mql5Tick:
+class MqlTick:
     def __init__(self, tick_json):
         self.bid = tick_json["Bid"]
         self.ask = tick_json["Ask"]
         self.last = tick_json["Last"]
         self.volume = tick_json["Volume"]
+        self.time = tick_json["Time"]
 
     def __repr__(self):
-        return f"Bid = {self.bid}, Ask = {self.ask}, Last = {self.last}, Volume = {self.volume}"
+        return f"Bid = {self.bid}, Ask = {self.ask}, Last = {self.last}, Volume = {self.volume}, Time = {self.time}"
 
 
 class MqlRates:
@@ -140,23 +141,6 @@ class MqlBookInfo:
 
     def __repr__(self):
         return f"book_type = {self.book_type}, price = {self.price}, volume = {self.volume}, volume_real = {self.volume_real}"
-
-
-class MqlRates:
-    def __init__(self, mql_rates_json):
-        self.open = mql_rates_json["open"]
-        self.high = mql_rates_json["high"]
-        self.low = mql_rates_json["low"]
-        self.close = mql_rates_json["close"]
-        self.tick_volume = mql_rates_json["tick_volume"]
-        self.spread = mql_rates_json["spread"]
-        self.real_volume = mql_rates_json["real_volume"]
-
-    def __repr__(self):
-        return (
-            f"open = {self.open}, high = {self.high}, low = {self.low}, close = {self.close}, tick_volume = {self.tick_volume}, "
-            f"spread = {self.spread}, real_volume = {self.real_volume}"
-        )
 
 
 class Mt5ApiClient:
@@ -264,75 +248,117 @@ class Mt5ApiClient:
 
     # CopyBuffer
     def copy_buffer(self, indicator_handle: int, buffer_num: int, start_pos: int, count: int):
-        cmdParams = {
+        cmd_params = {
             "IndicatorHandle": indicator_handle,
             "BufferNum": buffer_num,
             "StartPos": start_pos,
             "Count": count,
         }
-        return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyBuffer, cmdParams)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyBuffer, cmd_params)
 
     # CopyRates
     def copy_rates(self, symbol_name: str, timeframe: ENUM_TIMEFRAMES, start_pos: int, count: int):
-        cmdParams = {
+        cmd_params = {
             "Symbol": symbol_name,
             "Timeframe": timeframe,
             "StartPos": start_pos,
             "Count": count,
         }
-        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyRates, cmdParams)
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyRates, cmd_params)
         rates = [MqlRates(obj) for obj in res]
         return rates
 
     # CopyTime
     def copy_time(self, symbol_name: str, timeframe: ENUM_TIMEFRAMES, start_pos: int, count: int):
-        cmdParams = {
+        cmd_params = {
             "Symbol": symbol_name,
             "Timeframe": timeframe,
             "StartPos": start_pos,
             "Count": count,
         }
-        return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyTime, cmdParams)
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyTime, cmd_params)
 
-    # Copy Open
-    def copy_open(self):
-        # TODO
-        pass
+    # CopyOpen
+    def copy_open(self, symbol_name: str, timeframe: ENUM_TIMEFRAMES, start_pos: int, count: int):
+        cmd_params = {
+            "Symbol": symbol_name,
+            "Timeframe": timeframe,
+            "StartPos": start_pos,
+            "Count": count,
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyOpen, cmd_params)
 
-    # Copy High
-    def copy_high(self):
-        # TODO
-        pass
+    # CopyHigh
+    def copy_high(self, symbol_name: str, timeframe: ENUM_TIMEFRAMES, start_pos: int, count: int):
+        cmd_params = {
+            "Symbol": symbol_name,
+            "Timeframe": timeframe,
+            "StartPos": start_pos,
+            "Count": count,
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyHigh, cmd_params)
 
     # CopyLow
-    def copy_low(self):
-        # TODO
-        pass
+    def copy_low(self, symbol_name: str, timeframe: ENUM_TIMEFRAMES, start_pos: int, count: int):
+        cmd_params = {
+            "Symbol": symbol_name,
+            "Timeframe": timeframe,
+            "StartPos": start_pos,
+            "Count": count,
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyLow, cmd_params)
 
     # CopyClose
-    def copy_close(self):
-        # TODO
-        pass
+    def copy_close(self, symbol_name: str, timeframe: ENUM_TIMEFRAMES, start_pos: int, count: int):
+        cmd_params = {
+            "Symbol": symbol_name,
+            "Timeframe": timeframe,
+            "StartPos": start_pos,
+            "Count": count,
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyClose, cmd_params)
 
     # CopyTickVolume
-    def copy_tick_volume(self):
-        # TODO
-        pass
+    def copy_tick_volume(self, symbol_name: str, timeframe: ENUM_TIMEFRAMES, start_pos: int, count: int):
+        cmd_params = {
+            "Symbol": symbol_name,
+            "Timeframe": timeframe,
+            "StartPos": start_pos,
+            "Count": count,
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyTickVolume, cmd_params)
 
     # CopyRealVolume
-    def copy_real_volume(self):
-        # TODO
-        pass
+    def copy_real_volume(self, symbol_name: str, timeframe: ENUM_TIMEFRAMES, start_pos: int, count: int):
+        cmd_params = {
+            "Symbol": symbol_name,
+            "Timeframe": timeframe,
+            "StartPos": start_pos,
+            "Count": count,
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyRealVolume, cmd_params)
 
     # CopySpread
-    def copy_spread(self):
-        # TODO
-        pass
+    def copy_spread(self, symbol_name: str, timeframe: ENUM_TIMEFRAMES, start_pos: int, count: int):
+        cmd_params = {
+            "Symbol": symbol_name,
+            "Timeframe": timeframe,
+            "StartPos": start_pos,
+            "Count": count,
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopySpread, cmd_params)
 
     # CopyTicks
-    def copy_ticks(self):
-        # TODO
-        pass
+    def copy_ticks(self, symbol_name: str, flags: CopyTicksFlag, from_date: int, count: int):
+        cmd_params = {
+            "Symbol": symbol_name,
+            "Flags": flags,
+            "From": from_date,
+            "Count": count,
+        }
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyTicks, cmd_params)
+        ticks = [MqlTick(obj) for obj in res]
+        return ticks
 
     # IndicatorCreate
     def indicator_create(
@@ -392,7 +418,7 @@ class Mt5ApiClient:
         cmd_params = {"Symbol": symbol_name}
         res = self.__send_command(self.__get_default_expert(), Mt5CommandType.SymbolInfoTick, cmd_params)
         if res is not None and res["RetVal"] == True:
-            return Mql5Tick(res["Result"])
+            return MqlTick(res["Result"])
         return None
 
     # SymbolInfoSessionQuote

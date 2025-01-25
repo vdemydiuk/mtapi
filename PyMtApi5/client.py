@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def signal_handler(mtapi, _, __):
+    del __
     if mtapi.is_connected():
         mtapi.disconnect()
 
@@ -48,6 +49,14 @@ class Mt5ApiApp:
             "CopyBuffer": self.process_copy_buffer,
             "CopyRates": self.process_copy_rates,
             "CopyTime": self.process_copy_time,
+            "CopyOpen": self.process_copy_open,
+            "CopyHigh": self.process_copy_high,
+            "CopyLow": self.process_copy_low,
+            "CopyClose": self.process_copy_close,
+            "CopyTickVolume": self.process_copy_tick_volume,
+            "CopyRealVolume": self.process_copy_real_volume,
+            "CopySpread": self.process_copy_spread,
+            "CopyTicks": self.process_copy_ticks,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -316,6 +325,102 @@ class Mt5ApiApp:
         count = int(pieces[3])
         result = mtapi.copy_time(symbol_name, timeframe, start_pos, count)
         print(f"> CopyTime: response = {result}")
+
+    def process_copy_open(self, mtapi, parameters):
+        pieces = parameters.split(" ", 3)
+        if len(pieces) != 4 or not pieces[0] or not pieces[1] or not pieces[2] or not pieces[3]:
+            print(f"! Invalid parameters for command CopyOpen: {parameters}")
+            return
+        symbol_name = pieces[0]
+        timeframe = mt5enums.ENUM_TIMEFRAMES(int(pieces[1]))
+        start_pos = int(pieces[2])
+        count = int(pieces[3])
+        result = mtapi.copy_open(symbol_name, timeframe, start_pos, count)
+        print(f"> CopyOpen: response = {result}")
+
+    def process_copy_high(self, mtapi, parameters):
+        pieces = parameters.split(" ", 3)
+        if len(pieces) != 4 or not pieces[0] or not pieces[1] or not pieces[2] or not pieces[3]:
+            print(f"! Invalid parameters for command CopyHigh: {parameters}")
+            return
+        symbol_name = pieces[0]
+        timeframe = mt5enums.ENUM_TIMEFRAMES(int(pieces[1]))
+        start_pos = int(pieces[2])
+        count = int(pieces[3])
+        result = mtapi.copy_high(symbol_name, timeframe, start_pos, count)
+        print(f"> CopyHigh: response = {result}")
+
+    def process_copy_low(self, mtapi, parameters):
+        pieces = parameters.split(" ", 3)
+        if len(pieces) != 4 or not pieces[0] or not pieces[1] or not pieces[2] or not pieces[3]:
+            print(f"! Invalid parameters for command CopyLow: {parameters}")
+            return
+        symbol_name = pieces[0]
+        timeframe = mt5enums.ENUM_TIMEFRAMES(int(pieces[1]))
+        start_pos = int(pieces[2])
+        count = int(pieces[3])
+        result = mtapi.copy_low(symbol_name, timeframe, start_pos, count)
+        print(f"> CopyLow: response = {result}")
+
+    def process_copy_close(self, mtapi, parameters):
+        pieces = parameters.split(" ", 3)
+        if len(pieces) != 4 or not pieces[0] or not pieces[1] or not pieces[2] or not pieces[3]:
+            print(f"! Invalid parameters for command CopyClose: {parameters}")
+            return
+        symbol_name = pieces[0]
+        timeframe = mt5enums.ENUM_TIMEFRAMES(int(pieces[1]))
+        start_pos = int(pieces[2])
+        count = int(pieces[3])
+        result = mtapi.copy_close(symbol_name, timeframe, start_pos, count)
+        print(f"> CopyClose: response = {result}")
+
+    def process_copy_tick_volume(self, mtapi, parameters):
+        pieces = parameters.split(" ", 3)
+        if len(pieces) != 4 or not pieces[0] or not pieces[1] or not pieces[2] or not pieces[3]:
+            print(f"! Invalid parameters for command CopyTickVolume: {parameters}")
+            return
+        symbol_name = pieces[0]
+        timeframe = mt5enums.ENUM_TIMEFRAMES(int(pieces[1]))
+        start_pos = int(pieces[2])
+        count = int(pieces[3])
+        result = mtapi.copy_tick_volume(symbol_name, timeframe, start_pos, count)
+        print(f"> CopyTickVolume: response = {result}")
+
+    def process_copy_real_volume(self, mtapi, parameters):
+        pieces = parameters.split(" ", 3)
+        if len(pieces) != 4 or not pieces[0] or not pieces[1] or not pieces[2] or not pieces[3]:
+            print(f"! Invalid parameters for command CopyRealVolume: {parameters}")
+            return
+        symbol_name = pieces[0]
+        timeframe = mt5enums.ENUM_TIMEFRAMES(int(pieces[1]))
+        start_pos = int(pieces[2])
+        count = int(pieces[3])
+        result = mtapi.copy_real_volume(symbol_name, timeframe, start_pos, count)
+        print(f"> CopyRealVolume: response = {result}")
+
+    def process_copy_spread(self, mtapi, parameters):
+        pieces = parameters.split(" ", 3)
+        if len(pieces) != 4 or not pieces[0] or not pieces[1] or not pieces[2] or not pieces[3]:
+            print(f"! Invalid parameters for command CopySpread: {parameters}")
+            return
+        symbol_name = pieces[0]
+        timeframe = mt5enums.ENUM_TIMEFRAMES(int(pieces[1]))
+        start_pos = int(pieces[2])
+        count = int(pieces[3])
+        result = mtapi.copy_spread(symbol_name, timeframe, start_pos, count)
+        print(f"> CopySpread: response = {result}")
+
+    def process_copy_ticks(self, mtapi, parameters):
+        pieces = parameters.split(" ", 3)
+        if len(pieces) != 4 or not pieces[0] or not pieces[1] or not pieces[2] or not pieces[3]:
+            print(f"! Invalid parameters for command CopyTicks: {parameters}")
+            return
+        symbol_name = pieces[0]
+        timeframe = mt5enums.CopyTicksFlag(int(pieces[1]))
+        from_date = int(pieces[2])
+        count = int(pieces[3])
+        result = mtapi.copy_ticks(symbol_name, timeframe, from_date, count)
+        print(f"> CopyTicks: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():

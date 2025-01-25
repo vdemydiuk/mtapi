@@ -894,3 +894,8 @@ class ENUM_DATATYPE(IntEnum):
     TYPE_FLOAT = 12
     TYPE_DOUBLE = 13
     TYPE_STRING = 14
+
+class CopyTicksFlag(IntEnum):
+    Info    = 1    # ticks with Bid and/or Ask changes
+    Trade   = 2    # ticks with changes in Last and Volume
+    All     = -1   # all ticks
