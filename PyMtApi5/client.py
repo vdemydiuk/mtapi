@@ -46,6 +46,7 @@ class Mt5ApiApp:
             "MarketBookRelease": self.process_market_book_release,
             "MarketBookGet": self.process_market_book_get,
             "CopyBuffer": self.process_copy_buffer,
+            "CopyRates": self.process_copy_rates,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -290,6 +291,18 @@ class Mt5ApiApp:
         count = int(pieces[3])
         result = mtapi.copy_buffer(indicator_handle, buffer_num, start_pos, count)
         print(f"> CopyBuffer: response = {result}")
+
+    def process_copy_rates(self, mtapi, parameters):
+        pieces = parameters.split(" ", 3)
+        if len(pieces) != 4 or not pieces[0] or not pieces[1] or not pieces[2] or not pieces[3]:
+            print(f"! Invalid parameters for command CopyRates: {parameters}")
+            return
+        symbol_name = pieces[0]
+        timeframe = mt5enums.ENUM_TIMEFRAMES(int(pieces[1]))
+        start_pos = int(pieces[2])
+        count = int(pieces[3])
+        result = mtapi.copy_rates(symbol_name, timeframe, start_pos, count)
+        print(f"> CopyRates: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():

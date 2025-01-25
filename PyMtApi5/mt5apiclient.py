@@ -130,6 +130,7 @@ class MqlTradeResult:
             f"bid = {self.bid}, ask = {self.ask}, comment = {self.comment}, request_id = {self.request_id}"
         )
 
+
 class MqlBookInfo:
     def __init__(self, mql_book_info):
         self.book_type = ENUM_BOOK_TYPE(mql_book_info["type"])
@@ -138,7 +139,25 @@ class MqlBookInfo:
         self.volume_real = mql_book_info["volume_real"]
 
     def __repr__(self):
-        return ( f"book_type = {self.book_type}, price = {self.price}, volume = {self.volume}, volume_real = {self.volume_real}" )
+        return f"book_type = {self.book_type}, price = {self.price}, volume = {self.volume}, volume_real = {self.volume_real}"
+
+
+class MqlRates:
+    def __init__(self, mql_rates_json):
+        self.open = mql_rates_json["open"]
+        self.high = mql_rates_json["high"]
+        self.low = mql_rates_json["low"]
+        self.close = mql_rates_json["close"]
+        self.tick_volume = mql_rates_json["tick_volume"]
+        self.spread = mql_rates_json["spread"]
+        self.real_volume = mql_rates_json["real_volume"]
+
+    def __repr__(self):
+        return (
+            f"open = {self.open}, high = {self.high}, low = {self.low}, close = {self.close}, tick_volume = {self.tick_volume}, "
+            f"spread = {self.spread}, real_volume = {self.real_volume}"
+        )
+
 
 class Mt5ApiClient:
     def __init__(self, address, port, callback=None):
@@ -245,13 +264,25 @@ class Mt5ApiClient:
 
     # CopyBuffer
     def copy_buffer(self, indicator_handle: int, buffer_num: int, start_pos: int, count: int):
-        cmdParams = {"IndicatorHandle": indicator_handle , "BufferNum": buffer_num, "StartPos": start_pos , "Count": count};
+        cmdParams = {
+            "IndicatorHandle": indicator_handle,
+            "BufferNum": buffer_num,
+            "StartPos": start_pos,
+            "Count": count,
+        }
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyBuffer, cmdParams)
 
     # CopyRates
-    def copy_rates(self):
-        # TODO
-        pass
+    def copy_rates(self, symbol_name: str, timeframe: ENUM_TIMEFRAMES, start_pos: int, count: int):
+        cmdParams = {
+            "Symbol": symbol_name,
+            "Timeframe": timeframe,
+            "StartPos": start_pos,
+            "Count": count,
+        }
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyRates, cmdParams)
+        rates = [MqlRates(obj) for obj in res]
+        return rates
 
     # CopyTime
     def copy_time(self):
