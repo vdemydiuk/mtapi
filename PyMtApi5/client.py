@@ -57,6 +57,7 @@ class Mt5ApiApp:
             "CopyRealVolume": self.process_copy_real_volume,
             "CopySpread": self.process_copy_spread,
             "CopyTicks": self.process_copy_ticks,
+            "ChartId": self.process_chart_id,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -421,6 +422,10 @@ class Mt5ApiApp:
         count = int(pieces[3])
         result = mtapi.copy_ticks(symbol_name, timeframe, from_date, count)
         print(f"> CopyTicks: response = {result}")
+
+    def process_chart_id(self, mtapi, parameters):
+        result = mtapi.chart_id(int(parameters))
+        print(f"> ChatId: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():
