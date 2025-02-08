@@ -59,6 +59,7 @@ class Mt5ApiApp:
             "CopyTicks": self.process_copy_ticks,
             "ChartId": self.process_chart_id,
             "ChartRedraw": self.process_chart_redraw,
+            "ChartApplyTemplate": self.process_chart_apply_template,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -431,6 +432,14 @@ class Mt5ApiApp:
     def process_chart_redraw(self, mtapi, parameters):
         mtapi.chart_redraw(int(parameters))
         print(f"> ChartRedraw: success")
+
+    def process_chart_apply_template(self, mtapi, parameters):
+        pieces = parameters.split(" ", 1)
+        if len(pieces) != 2 or not pieces[0] or not pieces[1]:
+            print(f"! Invalid parameters for command ChartApplyTemplate: {parameters}")
+            return
+        result = mtapi.chart_apply_template(int(pieces[0]), pieces[1])
+        print(f"> ChartApplyTemplate: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():
