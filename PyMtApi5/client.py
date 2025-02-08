@@ -58,6 +58,7 @@ class Mt5ApiApp:
             "CopySpread": self.process_copy_spread,
             "CopyTicks": self.process_copy_ticks,
             "ChartId": self.process_chart_id,
+            "ChartRedraw": self.process_chart_redraw,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -426,6 +427,10 @@ class Mt5ApiApp:
     def process_chart_id(self, mtapi, parameters):
         result = mtapi.chart_id(int(parameters))
         print(f"> ChatId: response = {result}")
+
+    def process_chart_redraw(self, mtapi, parameters):
+        mtapi.chart_redraw(int(parameters))
+        print(f"> ChartRedraw: success")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():

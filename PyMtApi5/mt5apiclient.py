@@ -458,6 +458,10 @@ class Mt5ApiClient:
         else:
             return self.__send_command(expert_handle, Mt5CommandType.ChartId)
 
+    def chart_redraw(self, chart_id = 0):
+        cmd_params = {"ChartId": chart_id}
+        self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartRedraw, cmd_params) 
+
     # Private methods
 
     def __event_thread_func(self):
@@ -489,7 +493,9 @@ class Mt5ApiClient:
             error_message = response_json["ErrorMessage"]
             self.__logger.warning(f"send_command: ErrorCode = {error_code}. {error_message}")
             raise Exception(f"Failed to send command: ErrorCode = {error_code}. {error_message} ")
-        return response_json["Value"]
+        if "Value" in response_json:
+            return response_json["Value"]
+        return None
 
     def __process_tick_event(self, payload):
         quote_json = json.loads(payload)
