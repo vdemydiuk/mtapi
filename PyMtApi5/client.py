@@ -63,6 +63,7 @@ class Mt5ApiApp:
             "ChartSaveTemplate": self.process_chart_save_template,
             "ChartWindowFind": self.process_chart_window_find,
             "ChartTimePriceToXY": self.process_chart_time_price_to_xy,
+            "ChartXYToTimePrice": self.process_chart_xy_to_time_price,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -467,6 +468,14 @@ class Mt5ApiApp:
             return
         result = mtapi.chart_time_price_to_xy(int(pieces[0]), int(pieces[1]), int(pieces[2]), float(pieces[3]))
         print(f"> ChartTimePriceToXY: response = {result}")
+
+    def process_chart_xy_to_time_price(self, mtapi, parameters):
+        pieces = parameters.split(" ", 2)
+        if len(pieces) != 3 or not pieces[0] or not pieces[1] or not pieces[2]:
+            print(f"! Invalid parameters for command ChartXYToTimePrice: {parameters}")
+            return
+        result = mtapi.chart_xy_to_time_price(int(pieces[0]), int(pieces[1]), int(pieces[2]))
+        print(f"> ChartXYToTimePrice: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():

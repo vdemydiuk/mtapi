@@ -476,7 +476,7 @@ class Mt5ApiClient:
 
     # ChartWindowFind
     def chart_window_find(self, chart_id, indicator_short_name: str):
-        cmd_params = {"ChartId": chart_id, "IndicatorShortname": indicator_short_name};
+        cmd_params = {"ChartId": chart_id, "IndicatorShortname": indicator_short_name}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartWindowFind, cmd_params)
 
     # ChartTimePriceToXY
@@ -485,6 +485,14 @@ class Mt5ApiClient:
         res = self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartTimePriceToXY, cmd_params)
         if res is not None and res["RetVal"] == True:
             return (res["Result"]["X"], res["Result"]["Y"])
+        return None
+
+    # ChartXYToTimePrice
+    def chart_xy_to_time_price(self, chart_id, x, y):
+        cmd_params = {"ChartId": chart_id, "X": x, "Y": y}
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartXYToTimePrice, cmd_params)
+        if res is not None and res["RetVal"] == True:
+            return (res["Result"]["SubWindow"], res["Result"]["Time"], res["Result"]["Price"])
         return None
 
     # Private methods
