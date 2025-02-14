@@ -474,6 +474,11 @@ class Mt5ApiClient:
         cmd_params = {"ChartId": chart_id, "TemplateFileName": filename}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartSaveTemplate, cmd_params)
 
+    # ChartWindowFind
+    def chart_window_find(self, chart_id, indicator_short_name: str):
+        cmd_params = {"ChartId": chart_id, "IndicatorShortname": indicator_short_name};
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartWindowFind, cmd_params)
+
     # Private methods
 
     def __event_thread_func(self):

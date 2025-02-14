@@ -61,6 +61,7 @@ class Mt5ApiApp:
             "ChartRedraw": self.process_chart_redraw,
             "ChartApplyTemplate": self.process_chart_apply_template,
             "ChartSaveTemplate": self.process_chart_save_template,
+            "ChartWindowFind": self.process_chart_window_find,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -449,6 +450,14 @@ class Mt5ApiApp:
             return
         result = mtapi.chart_save_template(int(pieces[0]), pieces[1])
         print(f"> ChartSaveTemplate: response = {result}")
+
+    def process_chart_window_find(self, mtapi, parameters):
+        pieces = parameters.split(" ", 1)
+        if len(pieces) != 2 or not pieces[0] or not pieces[1]:
+            print(f"! Invalid parameters for command ChartWindowFind: {parameters}")
+            return
+        result = mtapi.chart_window_find(int(pieces[0]), pieces[1])
+        print(f"> ChartWindowFind: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():
