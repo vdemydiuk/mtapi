@@ -60,6 +60,7 @@ class Mt5ApiApp:
             "ChartId": self.process_chart_id,
             "ChartRedraw": self.process_chart_redraw,
             "ChartApplyTemplate": self.process_chart_apply_template,
+            "ChartSaveTemplate": self.process_chart_save_template,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -440,6 +441,14 @@ class Mt5ApiApp:
             return
         result = mtapi.chart_apply_template(int(pieces[0]), pieces[1])
         print(f"> ChartApplyTemplate: response = {result}")
+
+    def process_chart_save_template(self, mtapi, parameters):
+        pieces = parameters.split(" ", 1)
+        if len(pieces) != 2 or not pieces[0] or not pieces[1]:
+            print(f"! Invalid parameters for command ChartSaveTemplate: {parameters}")
+            return
+        result = mtapi.chart_save_template(int(pieces[0]), pieces[1])
+        print(f"> ChartSaveTemplate: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():

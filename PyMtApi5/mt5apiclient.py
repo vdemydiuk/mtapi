@@ -453,21 +453,26 @@ class Mt5ApiClient:
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.MarketBookGet, cmd_params)
 
     # ChartId
-    def chart_id(self, expert_handle = 0):
+    def chart_id(self, expert_handle=0):
         if expert_handle == 0:
             return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartId)
         else:
             return self.__send_command(expert_handle, Mt5CommandType.ChartId)
 
     # ChartRedraw
-    def chart_redraw(self, chart_id = 0):
+    def chart_redraw(self, chart_id=0):
         cmd_params = {"ChartId": chart_id}
-        self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartRedraw, cmd_params) 
+        self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartRedraw, cmd_params)
 
     # ChartApplyTemplate
     def chart_apply_template(self, chart_id, filename: str):
-        cmd_params = { "ChartId": chart_id, "TemplateFileName": filename};
+        cmd_params = {"ChartId": chart_id, "TemplateFileName": filename}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartApplyTemplate, cmd_params)
+
+    # ChartSaveTemplate
+    def chart_save_template(self, chart_id, filename: str):
+        cmd_params = {"ChartId": chart_id, "TemplateFileName": filename}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartSaveTemplate, cmd_params)
 
     # Private methods
 
