@@ -479,6 +479,14 @@ class Mt5ApiClient:
         cmd_params = {"ChartId": chart_id, "IndicatorShortname": indicator_short_name};
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartWindowFind, cmd_params)
 
+    # ChartTimePriceToXY
+    def chart_time_price_to_xy(self, chart_id, sub_window, time, price):
+        cmd_params = {"ChartId": chart_id, "SubWindow": sub_window, "Time": time, "Price": price}
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartTimePriceToXY, cmd_params)
+        if res is not None and res["RetVal"] == True:
+            return (res["Result"]["X"], res["Result"]["Y"])
+        return None
+
     # Private methods
 
     def __event_thread_func(self):
