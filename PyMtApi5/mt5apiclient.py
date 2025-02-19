@@ -495,6 +495,12 @@ class Mt5ApiClient:
             return (res["Result"]["SubWindow"], res["Result"]["Time"], res["Result"]["Price"])
         return None
 
+    # ChartOpen
+    def chart_open(self, symbol: str, period: ENUM_TIMEFRAMES):
+        cmd_params = {"Symbol": symbol, "Timeframe": period};
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartOpen, cmd_params)
+        return res
+
     # Private methods
 
     def __event_thread_func(self):

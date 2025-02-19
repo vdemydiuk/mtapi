@@ -64,6 +64,7 @@ class Mt5ApiApp:
             "ChartWindowFind": self.process_chart_window_find,
             "ChartTimePriceToXY": self.process_chart_time_price_to_xy,
             "ChartXYToTimePrice": self.process_chart_xy_to_time_price,
+            "ChartOpen": self.process_chart_open,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -476,6 +477,15 @@ class Mt5ApiApp:
             return
         result = mtapi.chart_xy_to_time_price(int(pieces[0]), int(pieces[1]), int(pieces[2]))
         print(f"> ChartXYToTimePrice: response = {result}")
+
+    def process_chart_open(self, mtapi, parameters):
+        pieces = parameters.split(" ", 1)
+        if len(pieces) != 2 or not pieces[0] or not pieces[1]:
+            print(f"! Invalid parameters for command ChartOpen: {parameters}")
+            return
+        period = mt5enums.ENUM_TIMEFRAMES(int(pieces[1]))
+        result = mtapi.chart_open(pieces[0], period)
+        print(f"> ChartOpen: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():
