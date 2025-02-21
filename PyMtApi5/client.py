@@ -65,6 +65,7 @@ class Mt5ApiApp:
             "ChartTimePriceToXY": self.process_chart_time_price_to_xy,
             "ChartXYToTimePrice": self.process_chart_xy_to_time_price,
             "ChartOpen": self.process_chart_open,
+            "ChartFirst": self.process_chart_first,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -96,15 +97,19 @@ class Mt5ApiApp:
 
     def process_command(self, mtapi, command):
         pieces = command.split(" ", 1)
-        if len(pieces) != 2 or not pieces[0] or not pieces[1]:
+        print(f"pieces count: {len(pieces)}")
+        if len(pieces) == 0 or len(pieces) > 2:
             print(f"! Invalid command format: {command.rstrip()}")
             return
-        if pieces[0] not in self.cmd_functions:
-            print(f"! Unknown command: {pieces[0]}")
+        command_name = pieces[0].rstrip()
+        if command_name not in self.cmd_functions:
+            print(f"! Unknown command: '{command_name}'")
             return
+        if len(pieces) == 1:
+            pieces.append("")
         params = pieces[1].rstrip()
         try:
-            self.cmd_functions[pieces[0]](mtapi, params)
+            self.cmd_functions[command_name](mtapi, params)
         except Exception as e:
             print(f"Failed to process command {command.rstrip()}: {e}")
 
@@ -486,6 +491,10 @@ class Mt5ApiApp:
         period = mt5enums.ENUM_TIMEFRAMES(int(pieces[1]))
         result = mtapi.chart_open(pieces[0], period)
         print(f"> ChartOpen: response = {result}")
+
+    def process_chart_first(self, mtapi, _):
+        result = mtapi.chart_first()
+        print(f"> ChartFirst: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():

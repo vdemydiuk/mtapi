@@ -498,8 +498,11 @@ class Mt5ApiClient:
     # ChartOpen
     def chart_open(self, symbol: str, period: ENUM_TIMEFRAMES):
         cmd_params = {"Symbol": symbol, "Timeframe": period};
-        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartOpen, cmd_params)
-        return res
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartOpen, cmd_params)
+
+    # ChartFirst
+    def chart_first(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartFirst)
 
     # Private methods
 
