@@ -512,6 +512,10 @@ class Mt5ApiClient:
         cmd_params = {"ChartId": chart_id}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartClose, cmd_params)
 
+    def chart_symbol(self, chart_id):
+        cmd_params = {"ChartId": chart_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartSymbol, cmd_params)
+
     # Private methods
 
     def __event_thread_func(self):
