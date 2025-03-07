@@ -66,6 +66,7 @@ class Mt5ApiApp:
             "ChartXYToTimePrice": self.process_chart_xy_to_time_price,
             "ChartOpen": self.process_chart_open,
             "ChartFirst": self.process_chart_first,
+            "ChartNext": self.process_chart_next,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -97,7 +98,6 @@ class Mt5ApiApp:
 
     def process_command(self, mtapi, command):
         pieces = command.split(" ", 1)
-        print(f"pieces count: {len(pieces)}")
         if len(pieces) == 0 or len(pieces) > 2:
             print(f"! Invalid command format: {command.rstrip()}")
             return
@@ -495,6 +495,10 @@ class Mt5ApiApp:
     def process_chart_first(self, mtapi, _):
         result = mtapi.chart_first()
         print(f"> ChartFirst: response = {result}")
+
+    def process_chart_next(self, mtapi, parameters):
+        result = mtapi.chart_next(int(parameters))
+        print(f"> ChartNext: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():

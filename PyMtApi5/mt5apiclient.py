@@ -504,6 +504,10 @@ class Mt5ApiClient:
     def chart_first(self):
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartFirst)
 
+    def chart_next(self, chart_id):
+        cmd_params = {"ChartId": chart_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartNext, cmd_params)
+
     # Private methods
 
     def __event_thread_func(self):
