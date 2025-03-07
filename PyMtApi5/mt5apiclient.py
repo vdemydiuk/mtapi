@@ -497,7 +497,7 @@ class Mt5ApiClient:
 
     # ChartOpen
     def chart_open(self, symbol: str, period: ENUM_TIMEFRAMES):
-        cmd_params = {"Symbol": symbol, "Timeframe": period};
+        cmd_params = {"Symbol": symbol, "Timeframe": period}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartOpen, cmd_params)
 
     # ChartFirst
@@ -507,6 +507,10 @@ class Mt5ApiClient:
     def chart_next(self, chart_id):
         cmd_params = {"ChartId": chart_id}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartNext, cmd_params)
+
+    def chart_close(self, chart_id):
+        cmd_params = {"ChartId": chart_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartClose, cmd_params)
 
     # Private methods
 
