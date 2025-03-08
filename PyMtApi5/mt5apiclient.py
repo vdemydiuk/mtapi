@@ -504,17 +504,25 @@ class Mt5ApiClient:
     def chart_first(self):
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartFirst)
 
+    # ChartNext
     def chart_next(self, chart_id):
         cmd_params = {"ChartId": chart_id}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartNext, cmd_params)
 
+    # ChartClose
     def chart_close(self, chart_id):
         cmd_params = {"ChartId": chart_id}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartClose, cmd_params)
 
+    # ChartSymbol
     def chart_symbol(self, chart_id):
         cmd_params = {"ChartId": chart_id}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartSymbol, cmd_params)
+
+    # ChartPeriod
+    def chart_period(self, chart_id):
+        cmd_params = {"ChartId": chart_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartPeriod, cmd_params)
 
     # Private methods
 

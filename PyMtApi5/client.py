@@ -69,6 +69,7 @@ class Mt5ApiApp:
             "ChartNext": self.process_chart_next,
             "ChartClose": self.process_chart_close,
             "ChartSymbol": self.process_chart_symbol,
+            "ChartPeriod": self.process_chart_period,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -509,6 +510,10 @@ class Mt5ApiApp:
     def process_chart_symbol(self, mtapi, parameters):
         result = mtapi.chart_symbol(int(parameters))
         print(f"> ChartSymbol: response = {result}")
+
+    def process_chart_period(self, mtapi, parameters):
+        result = mtapi.chart_period(int(parameters))
+        print(f"> ChartPeriod: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():
