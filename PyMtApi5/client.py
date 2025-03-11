@@ -71,6 +71,7 @@ class Mt5ApiApp:
             "ChartSymbol": self.process_chart_symbol,
             "ChartPeriod": self.process_chart_period,
             "ChartSetDouble": self.process_chart_set_double,
+            "ChartSetInteger": self.process_chart_set_integer,
         }
 
     def on_disconnect(self, error_msg=None):
@@ -524,6 +525,15 @@ class Mt5ApiApp:
         prop_id = mt5enums.ENUM_CHART_PROPERTY_DOUBLE(int(pieces[1]))
         result = mtapi.chart_set_double(int(pieces[0]), prop_id, float(pieces[2]))
         print(f"> ChartSetDouble: response = {result}")
+
+    def process_chart_set_integer(self, mtapi, parameters):
+        pieces = parameters.split(" ", 2)
+        if len(pieces) != 3 or not pieces[0] or not pieces[1] or not pieces[2]:
+            print(f"! Invalid parameters for command ChartSetInteger: {parameters}")
+            return
+        prop_id = mt5enums.ENUM_CHART_PROPERTY_INTEGER(int(pieces[1]))
+        result = mtapi.chart_set_integer(int(pieces[0]), prop_id, float(pieces[2]))
+        print(f"> ChartSetInteger: response = {result}")
 
     def mtapi_command_thread(self, mtapi):
         while mtapi.is_connected():

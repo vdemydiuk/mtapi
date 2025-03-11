@@ -529,6 +529,11 @@ class Mt5ApiClient:
         cmd_params = {"ChartId": chart_id, "PropId": prop_id, "Value": value}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartSetDouble, cmd_params)
 
+    # ChartSetInteger
+    def chart_set_integer(self, chart_id, prop_id: ENUM_CHART_PROPERTY_INTEGER, value):
+        cmd_params = {"ChartId": chart_id, "PropId": prop_id, "Value": value}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartSetInteger, cmd_params)
+
     # Private methods
 
     def __event_thread_func(self):
