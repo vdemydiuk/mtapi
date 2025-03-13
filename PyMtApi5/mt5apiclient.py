@@ -357,6 +357,8 @@ class Mt5ApiClient:
             "Count": count,
         }
         res = self.__send_command(self.__get_default_expert(), Mt5CommandType.CopyTicks, cmd_params)
+        if res is None:
+            return None
         ticks = [MqlTick(obj) for obj in res]
         return ticks
 
@@ -538,6 +540,11 @@ class Mt5ApiClient:
     def chart_set_string(self, chart_id, prop_id: ENUM_CHART_PROPERTY_STRING, value):
         cmd_params = {"ChartId": chart_id, "PropId": prop_id, "Value": value}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartSetString, cmd_params)
+
+    # ChartGetDouble
+    def chart_get_double(self, chart_id, prop_id: ENUM_CHART_PROPERTY_DOUBLE, sub_window=0):
+        cmd_params = {"ChartId": chart_id, "PropId": prop_id, "SubWindow": sub_window}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartGetDouble, cmd_params)
 
     # Private methods
 
