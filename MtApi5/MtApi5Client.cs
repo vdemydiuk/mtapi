@@ -3055,8 +3055,8 @@ namespace MtApi5
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, double[] parameters)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty },
-                { "Period", (int)period }, { "Name", name ?? string.Empty}, 
-                { "Parameters", parameters }, { "ParamsType", ParametersType.Double} };
+                { "Timeframe", (int)period }, { "Name", name ?? string.Empty}, 
+                { "Params", parameters }, { "ParamsType", ParametersType.Double} };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
@@ -3070,8 +3070,8 @@ namespace MtApi5
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, int[] parameters)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty },
-                { "Period", (int)period }, { "Name", name  ?? string.Empty }, { "Parameters", parameters },
-                { "ParamsType", ParametersType.Int } };
+                { "Timeframe", (int)period }, { "Name", name  ?? string.Empty }, { "Parameters", parameters },
+                { "Params", ParametersType.Int } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
@@ -3085,8 +3085,8 @@ namespace MtApi5
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, string[] parameters)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty },
-                { "Period", (int)period }, { "Name", name ?? string.Empty },
-                { "Parameters", parameters }, { "ParamsType", ParametersType.String } };
+                { "Timeframe", (int)period }, { "Name", name ?? string.Empty },
+                { "Params", parameters }, { "ParamsType", ParametersType.String } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
@@ -3100,8 +3100,8 @@ namespace MtApi5
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, bool[] parameters)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty },
-                { "Period", (int)period }, { "Name", name ?? string.Empty },
-                { "Parameters", parameters }, { "ParamsType", ParametersType.Boolean } };
+                { "Timeframe", (int)period }, { "Name", name ?? string.Empty },
+                { "Params", parameters }, { "ParamsType", ParametersType.Boolean } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
