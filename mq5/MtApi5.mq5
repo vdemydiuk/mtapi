@@ -2168,10 +2168,10 @@ string Execute_iChaikin()
    GET_INT_JSON_VALUE(jo, "Period", period);
    GET_INT_JSON_VALUE(jo, "FastMaPeriod", fast_ma_period);
    GET_INT_JSON_VALUE(jo, "SlowMaPeriod", slow_ma_period);
-   GET_INT_JSON_VALUE(jo, "MaPeriod", ma_period);
+   GET_INT_JSON_VALUE(jo, "MaMethod", ma_method);
    GET_INT_JSON_VALUE(jo, "AppliedVolume", applied_volume);
    
-   int result = iChaikin(symbol, (ENUM_TIMEFRAMES)period, fast_ma_period, slow_ma_period, (ENUM_MA_METHOD)ma_period, (ENUM_APPLIED_VOLUME) applied_volume);
+   int result = iChaikin(symbol, (ENUM_TIMEFRAMES)period, fast_ma_period, slow_ma_period, (ENUM_MA_METHOD)ma_method, (ENUM_APPLIED_VOLUME) applied_volume);
    return CreateSuccessResponse(new JSONNumber(result));
 }
 
