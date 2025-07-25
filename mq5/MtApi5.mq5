@@ -408,14 +408,14 @@ int init()
       isCrashed = true;
       return (1);
    }
-   if (MQL5InfoInteger(MQL5_DLLS_ALLOWED) == false) 
+   if (MQLInfoInteger(MQL_DLLS_ALLOWED) == false) 
    {
       MessageBox("Libraries not allowed.", "MtApi", 0);
       isCrashed = true;
       return (1);
    }
 
-   if (MQL5InfoInteger(MQL5_TRADE_ALLOWED) == false) 
+   if (MQLInfoInteger(MQL_TRADE_ALLOWED) == false) 
    {
       MessageBox("Trade not allowed.", "MtApi", 0);
       isCrashed = true;
