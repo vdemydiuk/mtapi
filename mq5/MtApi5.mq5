@@ -1829,7 +1829,7 @@ string Execute_ObjectCreate()
    
    datetime times[30];
    double prices[30];
-   ArrayInitialize(times, EMPTY_VALUE);
+   ArrayInitialize(times, 0);
    ArrayInitialize(prices, EMPTY_VALUE);
    
    JSONArray* times_jo = jo.p.getArray("Times");
