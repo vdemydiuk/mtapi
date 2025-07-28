@@ -2949,7 +2949,7 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Period", (int)period },
                 { "Kperiod", Kperiod }, { "Dperiod", Dperiod }, { "Slowing", slowing },
-                { "MaMethod", (int)maMethod }, { "priceField", (int)priceField } };
+                { "MaMethod", (int)maMethod }, { "PriceField", (int)priceField } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iStochastic, cmdParams);
         }
 
