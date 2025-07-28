@@ -2377,7 +2377,7 @@ string Execute_iSAR()
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
    GET_INT_JSON_VALUE(jo, "Period", period);
    GET_DOUBLE_JSON_VALUE(jo, "Step", step);
-   GET_DOUBLE_JSON_VALUE(jo, "Mamimum", maximum);
+   GET_DOUBLE_JSON_VALUE(jo, "Maximum", maximum);
    
    int result = iSAR(symbol, (ENUM_TIMEFRAMES)period, step, maximum);
    return CreateSuccessResponse(new JSONNumber(result));
