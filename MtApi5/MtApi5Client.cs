@@ -2644,7 +2644,7 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Period", (int)period },
                 { "FastMaPeriod", fastMaPeriod }, { "SlowMaPeriod", slowMaPeriod},
-                { "MaMethod", (int)maMethod }, { "appliedVolume", (int)appliedVolume } };
+                { "MaMethod", (int)maMethod }, { "AppliedVolume", (int)appliedVolume } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iChaikin, cmdParams);
         }
 
