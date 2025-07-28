@@ -2664,7 +2664,7 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Period", (int)period },
                 { "FastMaPeriod", fastMaPeriod }, { "SlowMaPeriod", slowMaPeriod},
-                { "MaMethod", (int)maMethod }, { "appliedVolume", (int)appliedVolume } };
+                { "MaMethod", (int)maMethod }, { "AppliedVolume", (int)appliedVolume } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iChaikin, cmdParams);
         }
 
@@ -2730,14 +2730,14 @@ namespace MtApi5
         }
 
         ///<summary>
-        ///The function returns the handle of the Force Index indicator.
+        ///The function returns the handle of the Fractals indicator.
         ///</summary>
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
-        public int iForce(string symbol, ENUM_TIMEFRAMES period)
+        public int iFractals(string symbol, ENUM_TIMEFRAMES period)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Period", (int)period } };
-            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iForce, cmdParams);
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iFractals, cmdParams);
         }
 
         ///<summary>
