@@ -5,6 +5,7 @@
 #property description "MtApi (MT5) connection expert"
 
 #include <json.mqh>
+#include <CHistoryPositionInfo.mqh>
 #include <Trade\SymbolInfo.mqh>
 #include <trade/trade.mqh>
 #include <generic/hashmap.mqh>
@@ -114,6 +115,25 @@ void OnTick()
       OnTimer();
    }
 }
+
+// Helper: chuyển datetime -> chuỗi "yyyy.mm.dd HH:MM:SS"
+string ToIsoTime(datetime dt)
+{
+   return TimeToString(dt, TIME_DATE|TIME_MINUTES|TIME_SECONDS);
+}
+
+void OnStart()
+  {
+   string json = ExportClosedPositionsToJson(0, TimeCurrent());
+   Print(json);
+  }
+
+ string _fmt_time(datetime t)
+{
+   if(t==0) return "";
+   return TimeToString(t, TIME_DATE|TIME_SECONDS);
+}  
+
 
 void  OnTradeTransaction( 
    const MqlTradeTransaction&    trans,        // trade transaction structure 
@@ -380,7 +400,9 @@ int preinit()
    ADD_EXECUTOR(303, OrderCheck);
    ADD_EXECUTOR(304, Buy);
    ADD_EXECUTOR(305, Sell);
+   ADD_EXECUTOR(401, HistoryPosition);
    
+
    return (0);
 }
 
@@ -401,7 +423,7 @@ bool IsTesting()
 int init() 
 {
    preinit();  
-
+   Print("dasdsad");
    if (TerminalInfoInteger(TERMINAL_DLLS_ALLOWED) == false) 
    {
       MessageBox("Dlls not allowed.", "MtApi", 0);
@@ -595,6 +617,75 @@ JSONObject* GetJsonPayload()
 #define GET_STRING_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); string return_value = json.p.getString(name_value)
 #define GET_BOOL_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); bool return_value = json.p.getBool(name_value)
 
+struct HistPosData {
+   string  TicketStr;
+   string  Symbol;
+   string  TypeDesc;
+   string  OpenComment;
+   datetime TimeOpen;
+   datetime TimeClose;
+   ulong   TimeOpenMsc;
+   ulong   TimeCloseMsc;
+   int     PositionType;
+   long    Magic;
+   long    Identifier;
+   int     OpenReason;
+   int     CloseReason;
+   string  DealTicket;
+   double  Volume, PriceOpen, SL, TP, PriceClose, Commission, Swap, Profit;
+};
+
+//+------------------------------------------------------------------
+// Xuất toàn bộ closed positions trong khoảng [from_time, to_time] thành JSON
+string ExportClosedPositionsToJson(datetime from_time, datetime to_time)
+{
+   CHistoryPositionInfo hist;
+   if(!hist.HistorySelect(from_time, to_time))
+   {
+
+      JSONObject *err = new JSONObject();
+      err.put("Message", new JSONString("CHistoryPositionInfo::HistorySelect() failed"));
+      return CreateSuccessResponse("Error", err);
+   }
+   
+   int total = hist.PositionsTotal();
+   JSONArray *arr = new JSONArray();
+   for(int i=0; i<total; i++)
+   {
+      if(hist.SelectByIndex(i))
+      {
+         HistPosData d;
+         d.TicketStr   = (string)hist.Ticket();
+         d.Symbol      = hist.Symbol();
+         d.TypeDesc    = hist.TypeDescription();
+         d.OpenComment = hist.OpenComment();
+         d.TimeOpen    = hist.TimeOpen();
+         d.TimeClose   = hist.TimeClose();
+         d.TimeOpenMsc = hist.TimeOpenMsc();
+         d.TimeCloseMsc= hist.TimeCloseMsc();
+         d.PositionType= (int)hist.PositionType();
+         d.Magic       = hist.Magic();
+         d.Identifier  = hist.Identifier();
+         d.OpenReason  = (int)hist.OpenReason();
+         d.CloseReason = (int)hist.CloseReason();
+         d.Volume      = hist.Volume();
+         d.PriceOpen   = hist.PriceOpen();
+         d.SL          = hist.StopLoss();
+         d.TP          = hist.TakeProfit();
+         d.PriceClose  = hist.PriceClose();
+         d.Commission  = hist.Commission();
+         d.Swap        = hist.Swap();
+         d.Profit      = hist.Profit();
+         d.DealTicket  = hist.DealTickets();
+         MtHistoryPosition item(d);
+         arr.put(i, item.CreateJson());
+      }
+   }
+
+   return CreateSuccessResponse(arr);
+}
+
+
 //--------- Executors ----------------------------------------------------
 string Execute_GetQuote()
 {
@@ -602,6 +693,7 @@ string Execute_GetQuote()
    SymbolInfoTick(Symbol(), tick);
    
    MtQuote quote(Symbol(), tick);
+   
    return CreateSuccessResponse(quote.CreateJson());
 }
 
@@ -784,6 +876,16 @@ string Execute_HistorySelect()
 
    bool result = HistorySelect((datetime)from_date, (datetime)to_date);
    return CreateSuccessResponse(new JSONBool(result));
+}
+
+string Execute_HistoryPosition()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_INT_JSON_VALUE(jo, "FromDate", from_date);
+   GET_INT_JSON_VALUE(jo, "ToDate", to_date);  
+
+   string result = ExportClosedPositionsToJson((datetime)from_date, (datetime)to_date);
+   return result;
 }
 
 string Execute_HistorySelectByPosition()
@@ -3589,6 +3691,49 @@ private:
    MqlTradeRequest _request;
    MqlTradeResult _result;
 };
+
+
+class MtHistoryPosition : public MtObject
+{
+  public: MtHistoryPosition(const HistPosData &pos) : _d(pos) {}
+
+   virtual JSONObject* CreateJson() const
+   {
+      JSONObject *jo = new JSONObject();
+      jo.put("Ticket", new JSONString(_d.TicketStr));
+      jo.put("Symbol", new JSONString(_d.Symbol));
+      jo.put("TypeDescription", new JSONString(_d.TypeDesc));
+      jo.put("OpenComment", new JSONString(_d.OpenComment));
+
+      jo.put("TimeOpen",     new JSONString(TimeToString(_d.TimeOpen,  TIME_DATE|TIME_SECONDS)));
+      jo.put("TimeClose",    new JSONString(TimeToString(_d.TimeClose, TIME_DATE|TIME_SECONDS)));
+      jo.put("TimeOpenMsc",  new JSONNumber((double)_d.TimeOpenMsc));
+      jo.put("TimeCloseMsc", new JSONNumber((double)_d.TimeCloseMsc));
+
+      jo.put("PositionType", new JSONNumber((double)_d.PositionType));
+      jo.put("Magic",        new JSONNumber((double)_d.Magic));
+      jo.put("Identifier",   new JSONNumber((double)_d.Identifier));
+      jo.put("OpenReason",   new JSONNumber((double)_d.OpenReason));
+      jo.put("CloseReason",  new JSONNumber((double)_d.CloseReason));
+
+      jo.put("Volume",     new JSONNumber(_d.Volume));
+      jo.put("PriceOpen",  new JSONNumber(_d.PriceOpen));
+      jo.put("StopLoss",   new JSONNumber(_d.SL));
+      jo.put("TakeProfit", new JSONNumber(_d.TP));
+      jo.put("PriceClose", new JSONNumber(_d.PriceClose));
+      jo.put("Commission", new JSONNumber(_d.Commission));
+      jo.put("Swap",       new JSONNumber(_d.Swap));
+      jo.put("Profit",     new JSONNumber(_d.Profit));
+      jo.put("DealTickets",new JSONString(_d.DealTicket));
+
+      return jo;
+   }
+
+private:
+   HistPosData _d;
+};
+
+
 
 class MtOnBookEvent : public MtObject
 {
