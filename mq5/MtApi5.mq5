@@ -127,78 +127,7 @@ void OnStart()
    string json = ExportClosedPositionsToJson(0, TimeCurrent());
    Print(json);
   }
-//+------------------------------------------------------------------+
-// Xuất toàn bộ closed positions trong khoảng [from_time, to_time] thành JSON
-string ExportClosedPositionsToJson(datetime from_time, datetime to_time)
-{
-   CHistoryPositionInfo hist;
-   if(!hist.HistorySelect(from_time, to_time))
-   {
-      // Có thể tạo hàm CreateErrorResponse nếu bạn có sẵn.
-//    return CreateErrorResponse("HistorySelect failed");
-      JSONObject *err = new JSONObject();
-      err.put("Message", new JSONString("CHistoryPositionInfo::HistorySelect() failed"));
-      return CreateSuccessResponse("Error", err); // Giữ đúng “khung” bạn đang dùng
-   }
-   
-   int total = hist.PositionsTotal();
-   JSONObject* result_value_jo = new JSONObject();
-   for(int i=0; i<total; i++)
-   {
-      if(hist.SelectByIndex(i))
-      {
-              ulong    ticket       = hist.Ticket();
-      string   symbol       = hist.Symbol();
-      double   volume       = hist.Volume();
-      ENUM_POSITION_TYPE pos_type = hist.PositionType();
-      string   type_desc    = hist.TypeDescription();
-      long     magic        = hist.Magic();
-      long     identifier   = hist.Identifier();
 
-      datetime t_open       = hist.TimeOpen();
-      ulong    t_open_msc   = hist.TimeOpenMsc();
-      datetime t_close      = hist.TimeClose();
-      ulong    t_close_msc  = hist.TimeCloseMsc();
-
-      double   price_open   = hist.PriceOpen();
-      double   sl           = hist.StopLoss();
-      double   tp           = hist.TakeProfit();
-      double   price_close  = hist.PriceClose();
-      double   commission   = hist.Commission();
-      double   swap         = hist.Swap();      // tránh nhầm từ khóa, đặt biến khác tên hàm
-     
-      double   profit       = hist.Profit();
-
-      ENUM_DEAL_REASON open_reason  = hist.OpenReason();
-      ENUM_DEAL_REASON close_reason = hist.CloseReason();
-      string   open_reason_desc  = hist.OpenReasonDescription();
-      string   close_reason_desc = hist.CloseReasonDescription();
-
-      string   open_comment  = hist.OpenComment();
-      string   close_comment = hist.CloseComment();
-
-      string   deals         = hist.DealTickets(" ");
-
-      // Tạo 1 dòng log đầy đủ (dễ đọc trong Journal)
-      string line = StringFormat(
-         "Idx=%d | Ticket=%I64u | Symbol=%s | Volume=%.2f | Type=%d(%s) | Magic=%d | Identifier=%d | "    // 1
-         "Open=%s (%I64u) | Close=%s (%I64u) | "                                                            // 2
-         "PriceOpen=%.5f | SL=%.5f | TP=%.5f | PriceClose=%.5f | Commission=%.2f | Swap=%.2f | Profit=%.2f | " // 3
-         "OpenReason=%d(%s) | CloseReason=%d(%s) | OpenCmt=\"%s\" | CloseCmt=\"%s\" | Deals=[%s]",          // 4
-         i,
-         ticket, symbol, volume, (int)pos_type, type_desc, (int)magic, (int)identifier,
-         _fmt_time(t_open), t_open_msc, _fmt_time(t_close), t_close_msc,
-         price_open, sl, tp, price_close, commission, swap, profit,
-         (int)open_reason, open_reason_desc, (int)close_reason, close_reason_desc,
-         open_comment, close_comment, deals
-      );
-         printf("%s", line);
-      }
- 
-   }
-
-   return CreateSuccessResponse(result_value_jo);
-}
  string _fmt_time(datetime t)
 {
    if(t==0) return "";
@@ -471,7 +400,9 @@ int preinit()
    ADD_EXECUTOR(303, OrderCheck);
    ADD_EXECUTOR(304, Buy);
    ADD_EXECUTOR(305, Sell);
+   ADD_EXECUTOR(401, HistoryPosition);
    
+
    return (0);
 }
 
@@ -492,7 +423,7 @@ bool IsTesting()
 int init() 
 {
    preinit();  
-
+   Print("dasdsad");
    if (TerminalInfoInteger(TERMINAL_DLLS_ALLOWED) == false) 
    {
       MessageBox("Dlls not allowed.", "MtApi", 0);
@@ -686,6 +617,75 @@ JSONObject* GetJsonPayload()
 #define GET_STRING_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); string return_value = json.p.getString(name_value)
 #define GET_BOOL_JSON_VALUE(json, name_value, return_value) CHECK_JSON_VALUE(json, name_value); bool return_value = json.p.getBool(name_value)
 
+struct HistPosData {
+   string  TicketStr;
+   string  Symbol;
+   string  TypeDesc;
+   string  OpenComment;
+   datetime TimeOpen;
+   datetime TimeClose;
+   ulong   TimeOpenMsc;
+   ulong   TimeCloseMsc;
+   int     PositionType;
+   long    Magic;
+   long    Identifier;
+   int     OpenReason;
+   int     CloseReason;
+   string  DealTicket;
+   double  Volume, PriceOpen, SL, TP, PriceClose, Commission, Swap, Profit;
+};
+
+//+------------------------------------------------------------------
+// Xuất toàn bộ closed positions trong khoảng [from_time, to_time] thành JSON
+string ExportClosedPositionsToJson(datetime from_time, datetime to_time)
+{
+   CHistoryPositionInfo hist;
+   if(!hist.HistorySelect(from_time, to_time))
+   {
+
+      JSONObject *err = new JSONObject();
+      err.put("Message", new JSONString("CHistoryPositionInfo::HistorySelect() failed"));
+      return CreateSuccessResponse("Error", err);
+   }
+   
+   int total = hist.PositionsTotal();
+   JSONArray *arr = new JSONArray();
+   for(int i=0; i<total; i++)
+   {
+      if(hist.SelectByIndex(i))
+      {
+         HistPosData d;
+         d.TicketStr   = (string)hist.Ticket();
+         d.Symbol      = hist.Symbol();
+         d.TypeDesc    = hist.TypeDescription();
+         d.OpenComment = hist.OpenComment();
+         d.TimeOpen    = hist.TimeOpen();
+         d.TimeClose   = hist.TimeClose();
+         d.TimeOpenMsc = hist.TimeOpenMsc();
+         d.TimeCloseMsc= hist.TimeCloseMsc();
+         d.PositionType= (int)hist.PositionType();
+         d.Magic       = hist.Magic();
+         d.Identifier  = hist.Identifier();
+         d.OpenReason  = (int)hist.OpenReason();
+         d.CloseReason = (int)hist.CloseReason();
+         d.Volume      = hist.Volume();
+         d.PriceOpen   = hist.PriceOpen();
+         d.SL          = hist.StopLoss();
+         d.TP          = hist.TakeProfit();
+         d.PriceClose  = hist.PriceClose();
+         d.Commission  = hist.Commission();
+         d.Swap        = hist.Swap();
+         d.Profit      = hist.Profit();
+         d.DealTicket  = hist.DealTickets();
+         MtHistoryPosition item(d);
+         arr.put(i, item.CreateJson());
+      }
+   }
+
+   return CreateSuccessResponse(arr);
+}
+
+
 //--------- Executors ----------------------------------------------------
 string Execute_GetQuote()
 {
@@ -693,6 +693,7 @@ string Execute_GetQuote()
    SymbolInfoTick(Symbol(), tick);
    
    MtQuote quote(Symbol(), tick);
+   
    return CreateSuccessResponse(quote.CreateJson());
 }
 
@@ -877,6 +878,16 @@ string Execute_HistorySelect()
    return CreateSuccessResponse(new JSONBool(result));
 }
 
+string Execute_HistoryPosition()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_INT_JSON_VALUE(jo, "FromDate", from_date);
+   GET_INT_JSON_VALUE(jo, "ToDate", to_date);  
+
+   string result = ExportClosedPositionsToJson((datetime)from_date, (datetime)to_date);
+   return result;
+}
+
 string Execute_HistorySelectByPosition()
 {
    GET_JSON_PAYLOAD(jo);
@@ -1014,9 +1025,6 @@ string Execute_AccountInfoInteger()
 
 string Execute_AccountInfoString()
 {
-OnStart();
-
-
    GET_JSON_PAYLOAD(jo);
    GET_INT_JSON_VALUE(jo, "PropertyId", property_id);
    
@@ -3584,6 +3592,7 @@ string CreateSuccessResponse(JSONValue* responseBody = NULL)
       
    if (responseBody != NULL)
       joResponse.put("Value", responseBody);   
+   
    return joResponse.toString();
 }
 
@@ -3682,6 +3691,49 @@ private:
    MqlTradeRequest _request;
    MqlTradeResult _result;
 };
+
+
+class MtHistoryPosition : public MtObject
+{
+  public: MtHistoryPosition(const HistPosData &pos) : _d(pos) {}
+
+   virtual JSONObject* CreateJson() const
+   {
+      JSONObject *jo = new JSONObject();
+      jo.put("Ticket", new JSONString(_d.TicketStr));
+      jo.put("Symbol", new JSONString(_d.Symbol));
+      jo.put("TypeDescription", new JSONString(_d.TypeDesc));
+      jo.put("OpenComment", new JSONString(_d.OpenComment));
+
+      jo.put("TimeOpen",     new JSONString(TimeToString(_d.TimeOpen,  TIME_DATE|TIME_SECONDS)));
+      jo.put("TimeClose",    new JSONString(TimeToString(_d.TimeClose, TIME_DATE|TIME_SECONDS)));
+      jo.put("TimeOpenMsc",  new JSONNumber((double)_d.TimeOpenMsc));
+      jo.put("TimeCloseMsc", new JSONNumber((double)_d.TimeCloseMsc));
+
+      jo.put("PositionType", new JSONNumber((double)_d.PositionType));
+      jo.put("Magic",        new JSONNumber((double)_d.Magic));
+      jo.put("Identifier",   new JSONNumber((double)_d.Identifier));
+      jo.put("OpenReason",   new JSONNumber((double)_d.OpenReason));
+      jo.put("CloseReason",  new JSONNumber((double)_d.CloseReason));
+
+      jo.put("Volume",     new JSONNumber(_d.Volume));
+      jo.put("PriceOpen",  new JSONNumber(_d.PriceOpen));
+      jo.put("StopLoss",   new JSONNumber(_d.SL));
+      jo.put("TakeProfit", new JSONNumber(_d.TP));
+      jo.put("PriceClose", new JSONNumber(_d.PriceClose));
+      jo.put("Commission", new JSONNumber(_d.Commission));
+      jo.put("Swap",       new JSONNumber(_d.Swap));
+      jo.put("Profit",     new JSONNumber(_d.Profit));
+      jo.put("DealTickets",new JSONString(_d.DealTicket));
+
+      return jo;
+   }
+
+private:
+   HistPosData _d;
+};
+
+
 
 class MtOnBookEvent : public MtObject
 {
@@ -3960,50 +4012,6 @@ JSONObject* MqlRatesToJson(const MqlRates& rates)
    jo.put("tick_volume", new JSONNumber(rates.tick_volume));
    jo.put("spread", new JSONNumber(rates.spread));
    jo.put("real_volume", new JSONNumber(rates.real_volume));
-   return jo;
-}
-
-JSONObject* HistoryPositionToJsonObject(CHistoryPositionInfo &hp)
-{
-   JSONObject *jo = new JSONObject();
-
-   // Các định danh lớn -> để dạng string tránh mất chính xác
-   jo.put("Ticket",            new JSONString((string)hp.Ticket()));
-   jo.put("PositionId",        new JSONString((string)hp.Identifier()));
-   jo.put("Magic",             new JSONNumber((double)hp.Magic()));
-
-   // Symbol & type
-   jo.put("Symbol",            new JSONString(hp.Symbol()));
-   jo.put("PositionType",      new JSONNumber((double)hp.PositionType()));
-   jo.put("PositionTypeDesc",  new JSONString(hp.TypeDescription()));
-
-   // Thời gian
-   jo.put("TimeOpen",          new JSONString(ToIsoTime(hp.TimeOpen())));
-   jo.put("TimeOpenMsc",       new JSONString((string)hp.TimeOpenMsc()));
-   jo.put("TimeClose",         new JSONString(ToIsoTime(hp.TimeClose())));
-   jo.put("TimeCloseMsc",      new JSONString((string)hp.TimeCloseMsc()));
-
-   // Giá trị khối lượng/giá/PL
-   jo.put("Volume",            new JSONNumber(hp.Volume()));
-   jo.put("PriceOpen",         new JSONNumber(hp.PriceOpen()));
-   jo.put("StopLoss",          new JSONNumber(hp.StopLoss()));
-   jo.put("TakeProfit",        new JSONNumber(hp.TakeProfit()));
-   jo.put("PriceClose",        new JSONNumber(hp.PriceClose()));
-   jo.put("Commission",        new JSONNumber(hp.Commission()));
-   jo.put("Swap",              new JSONNumber(hp.Swap()));
-   jo.put("Profit",            new JSONNumber(hp.Profit()));
-
-   // Lý do/ghi chú
-   jo.put("OpenComment",       new JSONString(hp.OpenComment()));
-   jo.put("CloseComment",      new JSONString(hp.CloseComment()));
-   jo.put("OpenReasonDesc",    new JSONString(hp.OpenReasonDescription()));
-   jo.put("CloseReasonDesc",   new JSONString(hp.CloseReasonDescription()));
-
-   // Deals/Orders: dùng “đã chọn” trong history
-   jo.put("DealTickets",    new JSONString(hp.DealTickets(",")));
-   jo.put("DealsCount",        new JSONNumber((double)HistoryDealsTotal()));
-   jo.put("OrdersCount",       new JSONNumber((double)HistoryOrdersTotal()));
-
    return jo;
 }
 
