@@ -3961,10 +3961,8 @@ string Execute_iCustom()
       {
          int intParams[];
          ArrayResize(intParams, size);
-         for (int i = 0; i < size; i++)
-         {
-            intParams[i] = jaParams.getInt(i);
-         }
+         for (int it_i = 0; it_i < size; it_i++)
+            intParams[it_i] = jaParams.getInt(it_i);
          result = iCustomT(symbol, timeframe, name, intParams, size, mode, shift);
       }
       break;
@@ -3972,6 +3970,8 @@ string Execute_iCustom()
       {
          double doubleParams[];
          ArrayResize(doubleParams, size);
+         for (int it_d = 0; it_d < size; it_d++)
+            doubleParams[it_d] = jaParams.getDouble(it_d);
          result = iCustomT(symbol, timeframe, name, doubleParams, size, mode, shift);
       }
       break;
@@ -3979,6 +3979,8 @@ string Execute_iCustom()
       {
          string stringParams[];
          ArrayResize(stringParams, size);
+         for (int it_s = 0; it_s < size; it_s++)
+            stringParams[it_s] = jaParams.getString(it_s);
          result = iCustomT(symbol, timeframe, name, stringParams, size, mode, shift);
       }
       break;
@@ -3986,6 +3988,8 @@ string Execute_iCustom()
       {
          bool boolParams[];
          ArrayResize(boolParams, size);
+         for (int it_b = 0; it_b < size; it_b++)
+            boolParams[it_b] = jaParams.getBool(it_b);
          result = iCustomT(symbol, timeframe, name, boolParams, size, mode, shift);
       }
       break;
