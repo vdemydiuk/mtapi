@@ -3065,15 +3065,15 @@ string Execute_iCustom()
          int intParams[];
          ArrayResize(intParams, size);
          for (int i = 0; i < size; i++)
-         {
             intParams[i] = jaParams.getInt(i);
-         }
          result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, intParams, size);
       }
       break;
       case 1: //Double
       {
-         int doubleParams[];
+         double doubleParams[];
+         for (int i = 0; i < size; i++)
+            doubleParams[i] = jaParams.getDouble(i);
          ArrayResize(doubleParams, size);
          result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, doubleParams, size);
       }
@@ -3082,13 +3082,17 @@ string Execute_iCustom()
       {
          string stringParams[];
          ArrayResize(stringParams, size);
+         for (int i = 0; i < size; i++)
+            stringParams[i] = jaParams.getString(i);
          result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, stringParams, size);
       }
       break;
       case 3: //Boolean
       {
-         string boolParams[];
+         bool boolParams[];
          ArrayResize(boolParams, size);
+          for (int i = 0; i < size; i++)
+            boolParams[i] = jaParams.getBool(i);
          result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, boolParams, size);
       }
       break;
