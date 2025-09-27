@@ -1330,6 +1330,9 @@ int ExecuteCommand()
    case 290: //GetQuote
       response = Execute_GetQuote();
    break;
+   case 291: //GetSymbols
+      response = Execute_GetSymbols();
+   break;
    
    default:
       Print("WARNING: Unknown command type = ", command_type);
@@ -4186,4 +4189,26 @@ string Execute_GetQuote()
    
    MtQuote quote(Symbol(), tick);
    return CreateSuccessResponse(quote.CreateJson());
+}
+
+string Execute_GetSymbols()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_BOOL_JSON_VALUE(jo, "Selected", selected);
+   
+   const int symbolsCount = SymbolsTotal(selected);
+   JSONArray* jaSymbols = new JSONArray();
+   int idx = 0;
+   for(int idxSymbol = 0; idxSymbol < symbolsCount; idxSymbol++)
+   {      
+      string symbol = SymbolName(idxSymbol, selected);
+      string firstChar = StringSubstr(symbol, 0, 1);
+      if(firstChar != "#" && StringLen(symbol) == 6)
+      {        
+         jaSymbols.put(idx, new JSONString(symbol));
+         idx++;
+      } 
+   }
+   
+   return CreateSuccessResponse(jaSymbols);
 }

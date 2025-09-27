@@ -502,6 +502,12 @@ namespace MtApi
             Dictionary<string, object> cmdParams = new() { { "Pool", (int)pool} };
             return SendCommand<List<MtOrder>>(ExecutorHandle, MtCommandType.GetOrders, cmdParams);
         }
+
+        public List<string>? GetSymbols(bool selected)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Selected", selected } };
+            return SendCommand<List<string>>(ExecutorHandle, MtCommandType.GetSymbols, cmdParams);
+        }
         #endregion
 
         #region Checkup

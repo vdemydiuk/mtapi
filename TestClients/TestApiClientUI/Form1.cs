@@ -8,44 +8,12 @@ using System.Runtime.InteropServices;
 
 namespace TestApiClientUI
 {
-    class MtLogger : IMtLogger
-    {
-        public void Debug(object message)
-        {
-            Write("DEBUG", message);
-        }
-
-        public void Error(object message)
-        {
-            Write("ERROR", message);
-        }
-
-        public void Fatal(object message)
-        {
-            Write("FATAL", message);
-        }
-
-        public void Info(object message)
-        {
-            Write("INFO", message);
-        }
-
-        public void Warn(object message)
-        {
-            Write("WARN", message);
-        }
-        private void Write(string level, object message)
-        {
-            Console.WriteLine($"[{Environment.CurrentManagedThreadId}] [{level}] {message}");
-        }
-    }
-
     public partial class Form1 : Form
     {
         #region Fields
 
         private readonly List<Action> _groupOrderCommands = [];
-        private readonly MtApiClient _apiClient = new (new MtLogger());
+        private readonly MtApiClient _apiClient = new(new MtLogger());
         private readonly TimerTradeMonitor _timerTradeMonitor;
         private readonly TimeframeTradeMonitor _timeframeTradeMonitor;
 
@@ -742,7 +710,7 @@ namespace TestApiClientUI
 
             var symbol = textBoxOrderSymbol.Text;
 
-            var cmd = (TradeOperation) comboBoxOrderCommand.SelectedIndex;
+            var cmd = (TradeOperation)comboBoxOrderCommand.SelectedIndex;
 
             double volume;
             double.TryParse(textBoxOrderVolume.Text, out volume);
@@ -750,7 +718,7 @@ namespace TestApiClientUI
             double price;
             double.TryParse(textBoxOrderPrice.Text, out price);
 
-            var slippage = (int) numericOrderSlippage.Value;
+            var slippage = (int)numericOrderSlippage.Value;
 
             double stoploss;
             double.TryParse(textBoxOrderStoploss.Text, out stoploss);
@@ -805,8 +773,8 @@ namespace TestApiClientUI
         private async void button16_Click(object sender, EventArgs e)
         {
             var ticket = int.Parse(textBoxIndexTicket.Text);
-            var selectMode = (OrderSelectMode) comboBox1.SelectedIndex;
-            var selectSource = (OrderSelectSource) comboBox2.SelectedIndex;
+            var selectMode = (OrderSelectMode)comboBox1.SelectedIndex;
+            var selectSource = (OrderSelectSource)comboBox2.SelectedIndex;
 
             var order = await Execute(() => _apiClient.GetOrder(ticket, selectMode, selectSource));
 
@@ -1543,6 +1511,20 @@ namespace TestApiClientUI
 
             PrintLog($"iBarShift result1 = {result1}, time = {time1}");
             PrintLog($"iBarShift result2 = {result2}, time = {time2}");
+        }
+
+        private async void button74_Click(object sender, EventArgs e)
+        {
+            listBoxAllSymbols.Items.Clear();
+
+            var result = await Execute(() => _apiClient.GetSymbols(checkBox3.Checked));
+            if (result != null)
+            {
+                foreach (string? r in result)
+                    listBoxAllSymbols.Items.Add(r);
+            }
+            int count = result != null ? result.Count : 0;
+            PrintLog($"GetSymbols: {count}");
         }
     }
 }
