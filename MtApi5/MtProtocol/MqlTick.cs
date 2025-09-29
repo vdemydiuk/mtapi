@@ -8,5 +8,7 @@
         public double Last { get; set; }          // Price of the last deal (Last)
         public ulong Volume { get; set; }         // Volume for the current Last price
         public double VolumeReal { get; set; }    // Volume for the current Last price with greater accuracy
+        public uint Flags { get; set; }           // Tick flags
     }
+
 }
