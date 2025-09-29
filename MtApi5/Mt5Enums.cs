@@ -666,6 +666,15 @@ namespace MtApi5
         TRADE_ACTION_CLOSE_BY = 10  //Close a position by an opposite one
     }
 
+    public enum ENUM_TICK_FLAG
+    {
+        TICK_FLAG_BID = 1,      // Tick has changed a Bid price
+        TICK_FLAG_ASK = 2,      // Tick has changed an Ask price
+        TICK_FLAG_LAST = 4,     // Tick has changed the last deal price
+        TICK_FLAG_VOLUME = 8,   // Tick has changed a volume
+        TICK_FLAG_BUY = 16,     // Tick is a result of a buy deal
+        TICK_FLAG_SELL = 32     // Tick is a result of a sell deal
+    }
     #endregion //Trade Operation Types
 
     #region Trade Transaction Types
@@ -940,3 +949,4 @@ namespace MtApi5
     }
     #endregion
 }
+
