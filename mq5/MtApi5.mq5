@@ -3785,6 +3785,7 @@ JSONObject* MqlTickToJson(const MqlTick& tick)
     jo.put("Last", new JSONNumber(tick.last));
     jo.put("Volume", new JSONNumber(tick.volume));
     jo.put("VolumeReal", new JSONNumber(tick.volume_real));
+    jo.put("Flags", new JSONNumber(tick.flags));
     return jo;
 }
 
@@ -3872,4 +3873,5 @@ JSONObject* MqlRatesToJson(const MqlRates& rates)
    jo.put("spread", new JSONNumber(rates.spread));
    jo.put("real_volume", new JSONNumber(rates.real_volume));
    return jo;
+
 }
