@@ -1,7 +1,7 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      ""
 
-#property version   "2.0"
+#property version   "2.1"
 #property description "MtApi (MT5) connection expert"
 
 #include <json.mqh>
@@ -380,6 +380,7 @@ int preinit()
    ADD_EXECUTOR(303, OrderCheck);
    ADD_EXECUTOR(304, Buy);
    ADD_EXECUTOR(305, Sell);
+   ADD_EXECUTOR(306, GetSymbols);
    
    return (0);
 }
@@ -3448,6 +3449,28 @@ string Execute_Sell()
    result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
 
    return CreateSuccessResponse(result_value_jo); 
+}
+
+string Execute_GetSymbols()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_BOOL_JSON_VALUE(jo, "Selected", selected);
+   
+   const int symbolsCount = SymbolsTotal(selected);
+   JSONArray* jaSymbols = new JSONArray();
+   int idx = 0;
+   for(int idxSymbol = 0; idxSymbol < symbolsCount; idxSymbol++)
+   {      
+      string symbol = SymbolName(idxSymbol, selected);
+      string firstChar = StringSubstr(symbol, 0, 1);
+      if(firstChar != "#" && StringLen(symbol) == 6)
+      {        
+         jaSymbols.put(idx, new JSONString(symbol));
+         idx++;
+      } 
+   }
+   
+   return CreateSuccessResponse(jaSymbols);
 }
 
 int PositionCloseAll()

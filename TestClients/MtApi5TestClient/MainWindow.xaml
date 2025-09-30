@@ -473,22 +473,34 @@
                 </TabItem>
 
                 <TabItem Header="Market Info">
-                    <WrapPanel VerticalAlignment="Top" Margin="5">
-                        <Button Command="{Binding SymbolsTotalCommand}" Content="SymbolsTotal" Margin="2"/>
-                        <Button Command="{Binding SymbolNameCommand}" Content="SymbolName" Margin="2"/>
-                        <Button Command="{Binding SymbolSelectCommand}" Content="SymbolSelect" Margin="2"/>
-                        <Button Command="{Binding SymbolIsSynchronizedCommand}" Content="SymbolIsSynchronized" Margin="2"/>
-                        <Button Command="{Binding SymbolInfoDoubleCommand}" Content="SymbolInfoDouble" Margin="2"/>
-                        <Button Command="{Binding SymbolInfoIntegerCommand}" Content="SymbolInfoInteger" Margin="2"/>
-                        <Button Command="{Binding SymbolInfoStringCommand}" Content="SymbolInfoString" Margin="2"/>
-                        <Button Command="{Binding SymbolInfoString2Command}" Content="SymbolInfoString-2" Margin="2"/>
-                        <Button Command="{Binding SymbolInfoTickCommand}" Content="SymbolInfoTick" Margin="2"/>
-                        <Button Command="{Binding SymbolInfoSessionQuoteCommand}" Content="SymbolInfoSessionQuote" Margin="2"/>
-                        <Button Command="{Binding SymbolInfoSessionTradeCommand}" Content="SymbolInfoSessionTrade" Margin="2"/>
-                        <Button Command="{Binding MarketBookAddCommand}" Content="MarketBookAdd" Margin="2"/>
-                        <Button Command="{Binding MarketBookReleaseCommand}" Content="MarketBookRelease" Margin="2"/>
-                        <Button Command="{Binding MarketBookGetCommand}" Content="MarketBookGet" Margin="2"/>
-                    </WrapPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <WrapPanel Grid.Row="0" VerticalAlignment="Top" Margin="5">
+                            <Button Command="{Binding SymbolsTotalCommand}" Content="SymbolsTotal" Margin="2"/>
+                            <Button Command="{Binding SymbolNameCommand}" Content="SymbolName" Margin="2"/>
+                            <Button Command="{Binding SymbolSelectCommand}" Content="SymbolSelect" Margin="2"/>
+                            <Button Command="{Binding SymbolIsSynchronizedCommand}" Content="SymbolIsSynchronized" Margin="2"/>
+                            <Button Command="{Binding SymbolInfoDoubleCommand}" Content="SymbolInfoDouble" Margin="2"/>
+                            <Button Command="{Binding SymbolInfoIntegerCommand}" Content="SymbolInfoInteger" Margin="2"/>
+                            <Button Command="{Binding SymbolInfoStringCommand}" Content="SymbolInfoString" Margin="2"/>
+                            <Button Command="{Binding SymbolInfoString2Command}" Content="SymbolInfoString-2" Margin="2"/>
+                            <Button Command="{Binding SymbolInfoTickCommand}" Content="SymbolInfoTick" Margin="2"/>
+                            <Button Command="{Binding SymbolInfoSessionQuoteCommand}" Content="SymbolInfoSessionQuote" Margin="2"/>
+                            <Button Command="{Binding SymbolInfoSessionTradeCommand}" Content="SymbolInfoSessionTrade" Margin="2"/>
+                            <Button Command="{Binding MarketBookAddCommand}" Content="MarketBookAdd" Margin="2"/>
+                            <Button Command="{Binding MarketBookReleaseCommand}" Content="MarketBookRelease" Margin="2"/>
+                            <Button Command="{Binding MarketBookGetCommand}" Content="MarketBookGet" Margin="2"/>
+                        </WrapPanel>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal">
+                                <Button Content="GetSymbols" Command="{Binding GetSymbolsCommand}" Width="100" Margin="2"/>
+                                <CheckBox Content="Selected" IsChecked="{Binding GetSymbolsSelected}" Margin="5" />
+                            </StackPanel>
+                        <ListBox Grid.Row="2" ItemsSource="{Binding Symbols}" Height="Auto" Width="200" HorizontalAlignment="Left"/>
+                    </Grid>
                 </TabItem>
 
                 <TabItem Header="CTrade (Positions)">

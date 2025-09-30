@@ -160,6 +160,8 @@ namespace MtApi5TestClient
         public DelegateCommand GlobalVariablesTotalCommand { get; private set; }
 
         public DelegateCommand UnlockTicksCommand { get; private set; }
+
+        public DelegateCommand GetSymbolsCommand { get; private set; }
         #endregion
 
         #region Properties
@@ -312,6 +314,19 @@ namespace MtApi5TestClient
             {
                 _positionTicketValue = value;
                 OnPropertyChanged("PositionTicketValue");
+            }
+        }
+
+        public bool GetSymbolsSelected { get; set; } = false;
+
+        private List<string> _symbols;
+        public List<string> Symbols
+        {
+            get { return _symbols; }
+            set
+            {
+                _symbols = value;
+                OnPropertyChanged("Symbols");
             }
         }
         #endregion
@@ -475,6 +490,8 @@ namespace MtApi5TestClient
             GlobalVariablesTotalCommand = new DelegateCommand(ExecuteGlobalVariablesTotal);
 
             UnlockTicksCommand = new DelegateCommand(ExecuteUnlockTicks);
+
+            GetSymbolsCommand = new DelegateCommand(ExecuteGetSymbols);
         }
 
         private bool CanExecuteConnect(object o)
@@ -1724,6 +1741,19 @@ namespace MtApi5TestClient
         private void ExecuteUnlockTicks(object o)
         {
             _mtApiClient.UnlockTicks();
+        }
+
+        private async void ExecuteGetSymbols(object o)
+        {
+            var result = await Execute(() => _mtApiClient.GetSymbols(GetSymbolsSelected));
+            if (result == null)
+                return;
+
+            AddLog($"ChartScreenShot: {result.Count} count of symbols");
+            RunOnUiThread(() =>
+            {
+                Symbols = result;
+            });
         }
 
         private static void RunOnUiThread(Action action)
