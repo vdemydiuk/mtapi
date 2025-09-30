@@ -2,6 +2,7 @@
 using MtClient;
 using MtApi5.MtProtocol;
 using MtApi5.MtProtocol.ICustomRequest;
+using System.Data;
 
 namespace MtApi5
 {
@@ -186,6 +187,15 @@ namespace MtApi5
             {
                 return _quotes.Values.ToList();
             }
+        }
+
+        ///<summary>
+        ///Load symbols
+        ///</summary>
+        public List<string>? GetSymbols(bool selected)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Selected", selected } };
+            return SendCommand<List<string>>(ExecutorHandle, Mt5CommandType.GetSymbols, cmdParams);
         }
 
         ///<summary>
