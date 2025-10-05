@@ -3801,6 +3801,21 @@ bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
 
 JSONObject* MqlTickToJson(const MqlTick& tick)
 {
+   // MT5 can add some additional non-documented flags, so we need to filter required documented flags only
+    int summ=0;
+    if((tick.flags & TICK_FLAG_BID)==TICK_FLAG_BID)
+      summ+=TICK_FLAG_BID;
+    if((tick.flags & TICK_FLAG_ASK)==TICK_FLAG_ASK)
+      summ+=TICK_FLAG_ASK;
+    if((tick.flags & TICK_FLAG_LAST)==TICK_FLAG_LAST)
+      summ+=TICK_FLAG_LAST;
+    if((tick.flags & TICK_FLAG_VOLUME)==TICK_FLAG_VOLUME)
+      summ+=TICK_FLAG_VOLUME;
+    if((tick.flags & TICK_FLAG_BUY)==TICK_FLAG_BUY)
+      summ+=TICK_FLAG_BUY;
+    if((tick.flags & TICK_FLAG_SELL)==TICK_FLAG_SELL)
+      summ+=TICK_FLAG_SELL;
+
     JSONObject *jo = new JSONObject();
     jo.put("Time", new JSONNumber((long)tick.time));
     jo.put("Bid", new JSONNumber(tick.bid));
@@ -3808,6 +3823,7 @@ JSONObject* MqlTickToJson(const MqlTick& tick)
     jo.put("Last", new JSONNumber(tick.last));
     jo.put("Volume", new JSONNumber(tick.volume));
     jo.put("VolumeReal", new JSONNumber(tick.volume_real));
+    jo.put("Flags", new JSONNumber(summ));
     return jo;
 }
 

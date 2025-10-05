@@ -1071,7 +1071,7 @@ namespace MtApi5TestClient
             {
                 foreach (var v in result)
                 {
-                    var tickStr = $"time = {v.time}, bid = {v.bid}, ask = {v.ask}, last = {v.last}, volume = {v.volume}";
+                    var tickStr = $"time = {v.time}, bid = {v.bid}, ask = {v.ask}, last = {v.last}, volume = {v.volume}, flags = {v.flags}";
                     TimeSeriesResults.Add(tickStr);
                 }
             });
@@ -1159,6 +1159,7 @@ namespace MtApi5TestClient
             AddLog($"SymbolInfoTick(EURUSD) tick.last = {result.last}");
             AddLog($"SymbolInfoTick(EURUSD) tick.volume = {result.volume}");
             AddLog($"SymbolInfoTick(EURUSD) tick.volume_real = {result.volume_real}");
+            AddLog($"SymbolInfoTick(EURUSD) tick.flags = {result.flags}");
         }
 
         private async void ExecuteSymbolInfoSessionQuote(object o)
