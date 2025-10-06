@@ -44,6 +44,5 @@ private:
     std::string host_;
     std::string read_text_;
     boost::beast::flat_buffer read_buffer_;
-    //std::string send_text_;
     std::queue<std::string> send_queue_;
 };

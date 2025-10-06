@@ -107,6 +107,12 @@ void MtConnection::OnRead(
         return;
     }
 
+    if (ec == boost::asio::error::eof)
+    {
+        log_.Info("%s: %s. Remote peer gracefully closes the connection.", __FUNCTION__, ec.message().c_str());
+        return;
+    }
+
     if (ec)
     {
         log_.Error("%s: %s", __FUNCTION__, ec.message().c_str());
