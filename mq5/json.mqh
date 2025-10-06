@@ -324,27 +324,27 @@ public:
    /// Lookup key and get associated string value, return false if failure.
    bool getString(string key,string &out)
      {
-      return getString(getValue(key),out);
+      return JSONValue::getString(getValue(key),out);
      }
    /// Lookup key and get associated bool value, return false if failure.
    bool getBool(string key,bool &out)
      {
-      return getBool(getValue(key),out);
+      return JSONValue::getBool(getValue(key),out);
      }
    /// Lookup key and get associated double value, return false if failure.
    bool getDouble(string key,double &out)
      {
-      return getDouble(getValue(key),out);
+      return JSONValue::getDouble(getValue(key),out);
      }
    /// Lookup key and get associated long value, return false if failure.
    bool getLong(string key,long &out)
      {
-      return getLong(getValue(key),out);
+      return JSONValue::getLong(getValue(key),out);
      }
    /// Lookup key and get associated int value, return false if failure.
    bool getInt(string key,int &out)
      {
-      return getInt(getValue(key),out);
+      return JSONValue::getInt(getValue(key),out);
      }
 
    /// Lookup key and get associated array, NULL if not present. Cast failure if not an Array.
@@ -451,27 +451,27 @@ public:
    /// Lookup JSONString by array index. NULL if not present. Cast failure if not an Object.
    bool getString(int index,string &out)
      {
-      return getString(getValue(index),out);
+      return JSONValue::getString(getValue(index),out);
      }
    /// Lookup JSONBool by array index. NULL if not present. Cast failure if not an Object.
    bool getBool(int index,bool &out)
      {
-      return getBool(getValue(index),out);
+      return JSONValue::getBool(getValue(index),out);
      }
    /// Lookup JSONNumber by array index. NULL if not present. Cast failure if not an Object.
    bool getDouble(int index,double &out)
      {
-      return getDouble(getValue(index),out);
+      return JSONValue::getDouble(getValue(index),out);
      }
    /// Lookup JSONNumber by array index. NULL if not present. Cast failure if not an Object.
    bool getLong(int index,long &out)
      {
-      return getLong(getValue(index),out);
+      return JSONValue::getLong(getValue(index),out);
      }
    /// Lookup JSONNumber by array index. NULL if not present. Cast failure if not an Object.
    bool getInt(int index,int &out)
      {
-      return getInt(getValue(index),out);
+      return JSONValue::getInt(getValue(index),out);
      }
 
    /// Lookup array child by index, NULL if not present. Cast failure if not an Array.
