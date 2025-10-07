@@ -2272,7 +2272,7 @@ string Execute_iBands()
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
    GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
    GET_INT_JSON_VALUE(jo, "Period", period);
-   GET_INT_JSON_VALUE(jo, "Deviation", deviation);
+   GET_DOUBLE_JSON_VALUE(jo, "Deviation", deviation);
    GET_INT_JSON_VALUE(jo, "BandsShift", bands_shift);
    GET_INT_JSON_VALUE(jo, "AppliedPrice", applied_price);
    GET_INT_JSON_VALUE(jo, "Mode", mode);
@@ -2287,7 +2287,7 @@ string Execute_iBandsOnArray()
    GET_JSON_PAYLOAD(jo);
    GET_INT_JSON_VALUE(jo, "Total", total);
    GET_INT_JSON_VALUE(jo, "Period", period);
-   GET_INT_JSON_VALUE(jo, "Deviation", deviation);
+   GET_DOUBLE_JSON_VALUE(jo, "Deviation", deviation);
    GET_INT_JSON_VALUE(jo, "BandsShift", bands_shift);
    GET_INT_JSON_VALUE(jo, "Mode", mode);
    GET_INT_JSON_VALUE(jo, "Shift", shift);
