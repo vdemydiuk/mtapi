@@ -3795,16 +3795,25 @@ bool OrderCloseAll()
    {
       if (OrderSelect(i, SELECT_BY_POS))
       {
-         int type = OrderType();   
+         int type = OrderType();
+         bool order_closed = true;
          switch(type)
          {
             //Close opened long positions
-            case OP_BUY: OrderClose( OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_BID), 5, Red );
+            case OP_BUY: 
+            {
+               order_closed = OrderClose( OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_BID), 5, Red );
                break;      
+            }
             //Close opened short positions
-            case OP_SELL: OrderClose( OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_ASK), 5, Red );
+            case OP_SELL: 
+            {
+               order_closed = OrderClose( OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_ASK), 5, Red );
                break;
+            }
          }
+         if (order_closed == false)
+            Print("Failed to close order ", OrderTicket());
       }
    }
 
