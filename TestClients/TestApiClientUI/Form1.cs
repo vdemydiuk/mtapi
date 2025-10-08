@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Globalization;
-using MtApi;
+﻿using MtApi;
 using MtApi.Monitors;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace TestApiClientUI
@@ -1088,12 +1085,12 @@ namespace TestApiClientUI
         {
             if (e.Opened != null)
             {
-                PrintLog($"{sender.GetType()}: Opened orders - {string.Join(", ", e.Opened.Select(o => o.Ticket).ToList())}");
+                PrintLog($"{sender.GetType()}: Opened orders - {string.Join(", ", e.Opened.Select(o => new { o.Ticket, o.Symbol, o.OpenPrice, o.OpenTime }).ToList())}");
             }
 
             if (e.Closed != null)
             {
-                PrintLog($"{sender.GetType()}: Closed orders - {string.Join(", ", e.Closed.Select(o => o.Ticket).ToList())}");
+                PrintLog($"{sender.GetType()}: Closed orders - {string.Join(", ", e.Closed.Select(o => new { o.Ticket, o.Symbol, o.ClosePrice, o.CloseTime }).ToList())}");
             }
         }
 
