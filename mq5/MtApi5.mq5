@@ -106,13 +106,14 @@ void OnTick()
          (BacktestingLockTicks == LOCK_EVERY_CANDLE && lastbar_time_changed))
       {
          _is_ticks_locked = true;
-         
+
          MtLockTickEvent lock_tick_event(symbol);
          SendMtEvent(ON_LOCK_TICKS_EVENT, lock_tick_event);
       }
-      
-      OnTimer();
    }
+
+   //--- Process pending commands on every tick (supplements timer in live mode)
+   OnTimer();
 }
 
 void  OnTradeTransaction( 
@@ -446,31 +447,39 @@ int init()
    
    //--- Backtesting mode
     if (IsTesting())
-    {      
+    {
        Print("Waiting on remote client...");
        //wait for command (BacktestingReady) from remote side to be ready for work
        while(!IsRemoteReadyForTesting)
        {
           executeCommand();
-          
+
           //This section uses a while loop to simulate Sleep() during Backtest.
           unsigned int viSleepUntilTick = GetTickCount() + 100; //100 milliseconds
-          while(GetTickCount() < viSleepUntilTick) 
+          while(GetTickCount() < viSleepUntilTick)
           {
              //Do absolutely nothing. Just loop until the desired tick is reached.
           }
        }
     }
-   //--- 
+    else
+    {
+       //--- In live trading, poll for commands every 100ms via timer
+       if (!EventSetMillisecondTimer(100))
+          Print("[WARNING] Failed to set millisecond timer for command polling");
+    }
+   //---
 
    return (0);
 }
 
-int deinit() 
+int deinit()
 {
-   if (isCrashed == 0) 
+   EventKillTimer();
+
+   if (isCrashed == 0)
    {
-      if (!deinitExpert(ExpertHandle, _error)) 
+      if (!deinitExpert(ExpertHandle, _error))
       {
          MessageBox(_error, "MtApi", 0);
          isCrashed = true;
