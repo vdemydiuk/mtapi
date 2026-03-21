@@ -50,6 +50,14 @@ void MtConnection::Send(const std::string& msg)
 {
     log_.Trace("%s: msg = %s", __FUNCTION__, msg.c_str());
 
+    // Drop oldest messages if queue grows too large (prevents memory bloat on slow clients)
+    static constexpr size_t MAX_QUEUE_SIZE = 10000;
+    if (send_queue_.size() >= MAX_QUEUE_SIZE)
+    {
+        log_.Warning("%s: send queue overflow (%zu), dropping oldest message", __FUNCTION__, send_queue_.size());
+        send_queue_.pop();
+    }
+
     send_queue_.push(msg);
     if (send_queue_.size() == 1)
         DoWrite();
