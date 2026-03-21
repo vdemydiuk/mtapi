@@ -79,10 +79,7 @@ public:
       jo.put("ClosePrice", new JSONNumber(_closePrice));
       jo.put("Lots", new JSONNumber(_lots));
       jo.put("Profit", new JSONNumber(_profit));
-      if (_comment != "")
-      {
-         jo.put("Comment", new JSONString(_comment));
-      }
+      jo.put("Comment", new JSONString(_comment));
       jo.put("Commission", new JSONNumber(_commission));
       jo.put("MagicNumber", new JSONNumber(_magicNumber));
       jo.put("MtOpenTime", new JSONNumber(_openTime));
@@ -186,9 +183,10 @@ private:
 class MtTimeBar: public MtObject
 {
 public:
-   MtTimeBar(string symbol, datetime openTime, datetime closeTime, double open, double close, double high, double low)
+   MtTimeBar(string symbol, int period, datetime openTime, datetime closeTime, double open, double close, double high, double low)
    {
       _symbol = symbol;
+      _period = period;
       _openTime = openTime;
       _closeTime = closeTime;
       _open = open;
@@ -196,11 +194,12 @@ public:
       _high = high;
       _low = low;
    }
-   
+
    virtual JSONObject* CreateJson()
    {
-      JSONObject *jo = new JSONObject();   
+      JSONObject *jo = new JSONObject();
       jo.put("Symbol", new JSONString(_symbol));
+      jo.put("Period", new JSONNumber(_period));
       jo.put("MtOpenTime", new JSONNumber(_openTime));
       jo.put("MtCloseTime", new JSONNumber(_closeTime));
       jo.put("Open", new JSONNumber(_open));
@@ -210,8 +209,9 @@ public:
       return jo;
    }
 
-private: 
+private:
    string _symbol;
+   int _period;
    datetime _openTime;
    datetime _closeTime;
    double _open;
@@ -381,33 +381,40 @@ int OnInit()
    
    //--- Backtesting mode
    if (IsTesting())
-   {      
+   {
       Print("Waiting on remote client...");
       //wait for command (BacktestingReady) from remote side to be ready for work
       while(!IsRemoteReadyForTesting)
       {
          ExecuteCommand();
-         
+
          //This section uses a while loop to simulate Sleep() during Backtest.
          unsigned int viSleepUntilTick = GetTickCount() + 100; //100 milliseconds
-         while(GetTickCount() < viSleepUntilTick) 
+         while(GetTickCount() < viSleepUntilTick)
          {
             //Do absolutely nothing. Just loop until the desired tick is reached.
          }
       }
    }
-   //--- 
-   
+   else
+   {
+      //--- Live trading: poll command queue via timer
+      EventSetMillisecondTimer(100);
+   }
+   //---
+
    _lastBarOpenTime = Time[0];
-   
+
    return (INIT_SUCCEEDED);
 }
 
 void OnDeinit(const int reason)
 {
-   if (isCrashed == 0) 
+   EventKillTimer();
+
+   if (isCrashed == 0)
    {
-      if (!deinitExpert(ExpertHandle, _error)) 
+      if (!deinitExpert(ExpertHandle, _error))
       {
          MessageBox(_error, "MtApi", MB_OK);
          isCrashed = TRUE;
@@ -437,7 +444,7 @@ void OnTick()
       double high = High[1];
       double low = Low[1];
       
-      MtTimeBar timeBar(Symbol(), _lastBarOpenTime, Time[0], open, close, high, low);
+      MtTimeBar timeBar(Symbol(), Period(), _lastBarOpenTime, Time[0], open, close, high, low);
       SendMtEvent(LAST_TIME_BAR_EVENT, timeBar);
       
       _lastBarOpenTime = Time[0];
@@ -452,24 +459,28 @@ void OnTick()
          (BacktestingLockTicks == LOCK_EVERY_CANDLE  && lastbar_time_changed))
       {
          _is_ticks_locked = true;
-         
+
          MtLockTickEvent lock_tick_event(Symbol());
          SendMtEvent(ON_LOCK_TICKS_EVENT, lock_tick_event);
       }
-      
+
       while(true)
       {
          if (IsStopped())
             break;
-      
+
          int executedCommand = ExecuteCommand();
-                       
+
          if (_is_ticks_locked)
             continue;
-               
-         if (executedCommand == 0) 
+
+         if (executedCommand == 0)
             break;
       }
+   }
+   else
+   {
+      OnTimer();
    }
 }
 
