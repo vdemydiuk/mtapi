@@ -171,11 +171,17 @@ public:
      }
    string getString() { return _string; }
    void setString(string v) { _string=v; }
-   string toString() 
+   string toString()
    {
-    string string_var; 
-    StringConcatenate(string_var, "\"",_string,"\"");
-    return string_var; 
+    string escaped = _string;
+    StringReplace(escaped, "\\", "\\\\");
+    StringReplace(escaped, "\"", "\\\"");
+    StringReplace(escaped, "\n", "\\n");
+    StringReplace(escaped, "\r", "\\r");
+    StringReplace(escaped, "\t", "\\t");
+    string string_var;
+    StringConcatenate(string_var, "\"",escaped,"\"");
+    return string_var;
    }
   };
 // -----------------------------------------
@@ -798,7 +804,7 @@ private:
          // number
          int i=_pos;
 
-         if(_in[_pos]=='-') 
+         if(_in[_pos]=='-')
            {
             sign=-1;
             _pos++;
@@ -809,6 +815,7 @@ private:
             sign=1;
            }
 
+         i=_pos;
          while(i<_len && isDigit(_in[i])) 
            {
             l=l*10+(_in[i]-'0');

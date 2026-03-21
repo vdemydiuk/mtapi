@@ -82,7 +82,7 @@ void OnTick()
            MqlRates rates_array[];
            CopyRates(symbol, Period(), 1, 1, rates_array);
       
-           MtTimeBarEvent time_bar(symbol, rates_array[0]);
+           MtTimeBarEvent time_bar(symbol, (int)Period(), rates_array[0]);
            SendMtEvent(ON_LAST_TIME_BAR_EVENT, time_bar);
          }
         lastbar_time_changed = true;
@@ -106,13 +106,13 @@ void OnTick()
          (BacktestingLockTicks == LOCK_EVERY_CANDLE && lastbar_time_changed))
       {
          _is_ticks_locked = true;
-         
+
          MtLockTickEvent lock_tick_event(symbol);
          SendMtEvent(ON_LOCK_TICKS_EVENT, lock_tick_event);
       }
-      
-      OnTimer();
    }
+
+   OnTimer();
 }
 
 void  OnTradeTransaction( 
@@ -446,29 +446,36 @@ int init()
    
    //--- Backtesting mode
     if (IsTesting())
-    {      
+    {
        Print("Waiting on remote client...");
        //wait for command (BacktestingReady) from remote side to be ready for work
        while(!IsRemoteReadyForTesting)
        {
           executeCommand();
-          
+
           //This section uses a while loop to simulate Sleep() during Backtest.
           unsigned int viSleepUntilTick = GetTickCount() + 100; //100 milliseconds
-          while(GetTickCount() < viSleepUntilTick) 
+          while(GetTickCount() < viSleepUntilTick)
           {
              //Do absolutely nothing. Just loop until the desired tick is reached.
           }
        }
     }
-   //--- 
+    else
+    {
+       //--- Live trading: poll command queue via timer
+       EventSetMillisecondTimer(100);
+    }
+   //---
 
    return (0);
 }
 
-int deinit() 
+int deinit()
 {
-   if (isCrashed == 0) 
+   EventKillTimer();
+
+   if (isCrashed == 0)
    {
       if (!deinitExpert(ExpertHandle, _error)) 
       {
@@ -2959,7 +2966,8 @@ string Execute_UnlockTicks()
       Print("WARNING: function UnlockTicks can be used only for backtesting");
       return CreateErrorResponse(-1, "UnlockTicks can be used only for backtesting");
    }
-   
+
+   _is_ticks_locked = false;
    return CreateSuccessResponse();
 }
 
@@ -3073,9 +3081,9 @@ string Execute_iCustom()
       case 1: //Double
       {
          double doubleParams[];
+         ArrayResize(doubleParams, size);
          for (int i = 0; i < size; i++)
             doubleParams[i] = jaParams.getDouble(i);
-         ArrayResize(doubleParams, size);
          result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, doubleParams, size);
       }
       break;
@@ -3662,23 +3670,26 @@ private:
 class MtTimeBarEvent: public MtObject
 {
 public:
-   MtTimeBarEvent(string symbol, const MqlRates& rates)
+   MtTimeBarEvent(string symbol, int period, const MqlRates& rates)
    {
       _symbol = symbol;
+      _period = period;
       _rates = rates;
    }
-   
+
    virtual JSONObject* CreateJson() const
    {
       JSONObject *jo = new JSONObject();
       jo.put("Rates", MqlRatesToJson(_rates));
       jo.put("Instrument", new JSONString(_symbol));
+      jo.put("Period", new JSONNumber(_period));
       jo.put("ExpertHandle", new JSONNumber(ExpertHandle));
       return jo;
    }
 
-private: 
+private:
    string _symbol;
+   int _period;
    MqlRates _rates;
 };
 
