@@ -775,24 +775,22 @@ private:
          s=parseString();
          ret=(JSONValue*)new JSONString(s);
 
-           } else if(isDoubleDigit(_in[_pos])) {
+         } else if(isDoubleDigit(_in[_pos])) {
          bool isDoubleOnly=false;
          long l=0;
          long sign;
-         // number
-         int i=_pos;
-
+         
          if(_in[_pos]=='-') 
            {
             sign=-1;
             _pos++;
-              } else if(_in[_pos]=='+') {
+           } else if(_in[_pos]=='+') {
             sign=1;
             _pos++;
-              } else {
+           } else {
             sign=1;
            }
-
+         int i=_pos; 
          while(i<_len && isDigit(_in[i])) 
            {
             l=l*10+(_in[i]-'0');
