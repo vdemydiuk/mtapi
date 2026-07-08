@@ -29,6 +29,46 @@
 /// Different types of JSON Values
 enum ENUM_JSON_TYPE { JSON_NULL,JSON_OBJECT,JSON_ARRAY,JSON_NUMBER,JSON_STRING,JSON_BOOL };
 
+/// Output buffer for JSON serialization. MQL string append re-allocates and
+/// copies the whole string on every call, which makes serializing large
+/// arrays O(n^2). This buffer writes characters into a pre-grown ushort array
+/// instead (true in-place writes, amortized-doubling ArrayResize) and converts
+/// to a string once at the end - linear overall.
+class JsonBuffer
+  {
+private:
+   ushort            _data[];
+   int               _len;
+
+   void ensure(const int extra)
+     {
+      int size = ArraySize(_data);
+      if(_len + extra > size)
+        {
+         int new_size = (size < 1024) ? 1024 : size;
+         while(new_size < _len + extra) new_size *= 2;
+         ArrayResize(_data, new_size);
+        }
+     }
+
+public:
+                     JsonBuffer() : _len(0) { ArrayResize(_data, 1024); }
+
+   void append(const string piece)
+     {
+      int l = StringLen(piece);
+      if(l == 0) return;
+      ensure(l);
+      StringToShortArray(piece, _data, _len, l); // count=l: exclude the terminating 0
+      _len += l;
+     }
+
+   string str()
+     {
+      return (_len > 0) ? ShortArrayToString(_data, 0, _len) : "";
+     }
+  };
+
 class JSONString;
 ///
 /// Generic class for all JSON types (Number, String, Bool, Array, Object )
@@ -64,9 +104,18 @@ public:
    bool isBool() { return _type==JSON_BOOL; }
 
    // Override in child classes
-   virtual string toString() 
+   virtual string toString()
      {
       return "";
+     }
+
+   /// Append this value's JSON representation to buf. Containers override this
+   /// to serialize recursively into ONE growing buffer (amortized linear),
+   /// avoiding the O(n^2) repeated-concatenation cost of composing toString()
+   /// results for large arrays/objects.
+   virtual void serialize(JsonBuffer &buf)
+     {
+      buf.append(toString());
      }
 
    // Some convenience getters to cast to the subtype. - this is bad OO design!
@@ -368,24 +417,32 @@ public:
       if(_hash==NULL) _hash=new Hash();
       _hash.hPut(key,v);
      }
-   string toString() 
+   string toString()
      {
-      string s="{";
-      if(_hash!=NULL) 
+      JsonBuffer buf;
+      serialize(buf);
+      return buf.str();
+     }
+
+   virtual void serialize(JsonBuffer &buf)
+     {
+      buf.append("{");
+      if(_hash!=NULL)
         {
          HashLoop *l;
          int n=0;
 
-         for(l=new HashLoop(_hash); l.hasNext(); l.next()) 
+         for(l=new HashLoop(_hash); l.hasNext(); l.next())
            {
             JSONValue *v=(JSONValue *)(l.val());
-            s=StringConcatenate(s,(++n==1?"":","),
-                                "\"",l.key(),"\" : ",v.toString());
+            buf.append((++n==1?"\"":",\""));
+            buf.append(l.key());
+            buf.append("\" : ");
+            v.serialize(buf);
            }
          delete l;
         }
-      s=s+"}";
-      return s;
+      buf.append("}");
      }
 
    /// Return the internal Hash - Used by JSONIterator
@@ -506,19 +563,26 @@ public:
       return true;
      }
 
-   string toString() 
+   string toString()
      {
-      string s="[";
-      if(_size>0) 
+      JsonBuffer buf;
+      serialize(buf);
+      return buf.str();
+     }
+
+   virtual void serialize(JsonBuffer &buf)
+     {
+      buf.append("[");
+      if(_size>0)
         {
-         s=StringConcatenate(s,_array[0].toString());
-         for(int i=1; i<_size; i++) 
+         _array[0].serialize(buf);
+         for(int i=1; i<_size; i++)
            {
-            s=StringConcatenate(s,",",_array[i].toString());
+            buf.append(",");
+            _array[i].serialize(buf);
            }
         }
-      s=s+"]";
-      return s;
+      buf.append("]");
      }
 
    int size() 
