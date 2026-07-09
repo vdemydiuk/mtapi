@@ -18,6 +18,8 @@
 
    bool getCommandType(int expertHandle, int& res, string& err);
    bool getPayload(int expertHandle, string& res, string& err);
+   int getPayload2(int expertHandle, string& res, int capacity, string& err);
+   int getCommandInfo(int expertHandle, int& type, string& payload, int capacity, string& err);
 #import
 
 ///--------------------------------------------------------------------------------------
@@ -43,6 +45,7 @@ input bool Enable_OnLastBarEvent = true;
 int ExpertHandle;
 
 string _error;
+string _command_payload;
 bool isCrashed = false;
 
 bool IsRemoteReadyForTesting = false;
@@ -512,15 +515,34 @@ int executeCommand()
 {
    int commandType = 0;
 
-   if (!getCommandType(ExpertHandle, commandType, _error))
-   {
-      Print("[ERROR] ExecuteCommand: Failed to get command type! ", _error);
-      return (0);
-   }
+   StringInit(_command_payload, 5000, 0);
+   int required = getCommandInfo(ExpertHandle, commandType, _command_payload, 5000, _error);
 
    if (commandType == 0)
       return 0;
-   
+
+   if (required < 0)
+   {
+      //--- the command was already popped (commandType is set) but its payload
+      //--- could not be converted: dispatch with an empty payload so the handler
+      //--- still sends an error response instead of leaving the client waiting
+      Print("[ERROR] ExecuteCommand: Failed to get command info! ", _error);
+      _command_payload = "";
+   }
+
+   if (required >= 5000)
+   {
+      //--- payload larger than the default buffer: re-allocate and fetch the
+      //--- already popped command again via getPayload2 (non-destructive read)
+      StringInit(_command_payload, required + 1, 0);
+      required = getPayload2(ExpertHandle, _command_payload, required + 1, _error);
+      if (required < 0)
+      {
+         Print("[ERROR] ExecuteCommand: Failed to get command payload! ", _error);
+         _command_payload = "";
+      }
+   }
+
 #ifdef __DEBUG_LOG__
    Print("executeCommand: commnad type = ", commandType);
 #endif 
@@ -564,17 +586,9 @@ public:
 
 JSONObject* GetJsonPayload()
 {
-   string payload;
-   StringInit(payload, 5000, 0);
-   
-   if (!getPayload(ExpertHandle, payload, _error))
-   {
-      PrintFormat("%s [ERROR]: %s", __FUNCTION__, _error);
-      return NULL;
-   }
-
+   //--- the payload is fetched together with the command type in executeCommand
    JSONParser payload_parser;
-   JSONValue *payload_json = payload_parser.parse(payload);
+   JSONValue *payload_json = payload_parser.parse(_command_payload);
    
    if (payload_json == NULL) 
    {   

@@ -71,3 +71,9 @@ std::string MtExpert::GetCommandPayload()
 {
     return current_task_ ? current_task_->getCommand().getPayload() : "";
 }
+
+void MtExpert::GetCommandInfo(int& command_type, std::string& payload)
+{
+    command_type = GetCommandType();
+    payload = (command_type != MT_COMMAND_TYPE_EMPTY) ? GetCommandPayload() : "";
+}

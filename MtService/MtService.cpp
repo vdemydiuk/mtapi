@@ -31,6 +31,7 @@ public:
 
     int GetCommandType(int handle);
     std::string GetCommandPayload(int handle);
+    void GetCommandInfo(int handle, int& command_type, std::string& payload);
 
     void LogError(const std::string& error);
 
@@ -152,6 +153,25 @@ std::string MtServiceImpl::GetCommandPayload(int handle)
     return payload;
 }
 
+void MtServiceImpl::GetCommandInfo(int handle, int& command_type, std::string& payload)
+{
+    // Single blocking round-trip to the io thread: pops the next command
+    // (like GetCommandType) and returns its payload in the same task.
+    std::packaged_task<std::pair<int, std::string>()> task([handle, this]() {
+        std::pair<int, std::string> info(0, "");
+        if (experts_.count(handle) > 0)
+            experts_[handle]->GetCommandInfo(info.first, info.second);
+        return info;
+    });
+    auto f = task.get_future();
+    boost::asio::post(context_, std::bind(std::move(task)));
+
+    auto info = f.get();
+    command_type = info.first;
+    payload = std::move(info.second);
+    log_.Trace("%s: handle = %d, command_type = %d, payload = %s", __FUNCTION__, handle, command_type, payload.c_str());
+}
+
 void MtServiceImpl::LogError(const std::string& error)
 {
     log_.Error("%s: %s", __FUNCTION__, error.c_str());
@@ -232,6 +252,11 @@ int MtService::GetCommandType(int handle)
 std::string MtService::GetCommandPayload(int handle)
 {
     return impl_->GetCommandPayload(handle);
+}
+
+void MtService::GetCommandInfo(int handle, int& command_type, std::string& payload)
+{
+    impl_->GetCommandInfo(handle, command_type, payload);
 }
 
 void MtService::LogError(const std::string& error)

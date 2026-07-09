@@ -25,6 +25,7 @@ public:
 
     int GetCommandType();
     std::string GetCommandPayload();
+    void GetCommandInfo(int& command_type, std::string& payload);
 
     boost::signals2::signal<void(const MtEvent& event)> OnEvent;
     boost::signals2::signal<void(int)> OnDeinit;

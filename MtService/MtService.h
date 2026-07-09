@@ -25,6 +25,7 @@ public:
 
     int GetCommandType(int handle);
     std::string GetCommandPayload(int handle);
+    void GetCommandInfo(int handle, int& command_type, std::string& payload);
 
     void LogError(const std::string& error);
 
