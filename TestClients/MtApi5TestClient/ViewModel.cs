@@ -66,6 +66,7 @@ namespace MtApi5TestClient
         public DelegateCommand TerminalInfoStringCommand { get; private set; }
 
         public DelegateCommand CopyRatesCommand { get; private set; }
+        public DelegateCommand CustomSymbolTestCommand { get; private set; }
         public DelegateCommand CopyTimesCommand { get; private set; }
         public DelegateCommand CopyOpenCommand { get; private set; }
         public DelegateCommand CopyHighCommand { get; private set; }
@@ -412,6 +413,7 @@ namespace MtApi5TestClient
             TerminalInfoStringCommand = new DelegateCommand(ExecuteTerminalInfoString);
 
             CopyRatesCommand = new DelegateCommand(ExecuteCopyRates);
+            CustomSymbolTestCommand = new DelegateCommand(ExecuteCustomSymbolTest);
             CopyTimesCommand = new DelegateCommand(ExecuteCopyTime);
             CopyOpenCommand = new DelegateCommand(ExecuteCopyOpen);
             CopyHighCommand = new DelegateCommand(ExecuteCopyHigh);
@@ -1937,6 +1939,48 @@ namespace MtApi5TestClient
 
             TradeRequest.Symbol = SelectedQuote.Instrument;
             TimeSeriesValues.SymbolValue = SelectedQuote.Instrument;
+        }
+
+        private async void ExecuteCustomSymbolTest(object o)
+        {
+            const string symbol = "MtApi5.Custom";
+
+            await Execute(() =>
+            {
+                var created = _mtApiClient.CustomSymbolCreate(symbol, "Custom");
+                AddLog($"CustomSymbolCreate({symbol}): {created}");
+
+                AddLog($"CustomSymbolSetInteger(SYMBOL_DIGITS, 5): {_mtApiClient.CustomSymbolSetInteger(symbol, ENUM_SYMBOL_INFO_INTEGER.SYMBOL_DIGITS, 5)}");
+                AddLog($"CustomSymbolSetDouble(SYMBOL_POINT, 0.00001): {_mtApiClient.CustomSymbolSetDouble(symbol, ENUM_SYMBOL_INFO_DOUBLE.SYMBOL_POINT, 0.00001)}");
+                AddLog($"CustomSymbolSetString(SYMBOL_DESCRIPTION): {_mtApiClient.CustomSymbolSetString(symbol, ENUM_SYMBOL_INFO_STRING.SYMBOL_DESCRIPTION, "MtApi5 custom symbol test")}");
+
+                var minute = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, DateTime.UtcNow.Day,
+                    DateTime.UtcNow.Hour, DateTime.UtcNow.Minute, 0);
+                var rates = new MqlRates[3];
+                for (var i = 0; i < rates.Length; i++)
+                {
+                    var open = 1.10000 + i * 0.00010;
+                    rates[i] = new MqlRates(minute.AddMinutes(i - rates.Length), open, open + 0.00020,
+                        open - 0.00020, open + 0.00010, 10 + i, 2, 0);
+                }
+                AddLog($"CustomRatesUpdate: {_mtApiClient.CustomRatesUpdate(symbol, rates)}");
+
+                var ticks = new MqlTick[2];
+                for (var i = 0; i < ticks.Length; i++)
+                {
+                    ticks[i] = new MqlTick(minute.AddSeconds(i), 1.10030 + i * 0.00001, 1.10050 + i * 0.00001, 0, 0,
+                        ENUM_TICK_FLAGS.TICK_FLAG_BID | ENUM_TICK_FLAGS.TICK_FLAG_ASK);
+                }
+                AddLog($"SymbolSelect({symbol}): {_mtApiClient.SymbolSelect(symbol, true)}");
+                AddLog($"CustomTicksAdd: {_mtApiClient.CustomTicksAdd(symbol, ticks)}");
+
+                AddLog($"CustomTicksDelete: {_mtApiClient.CustomTicksDelete(symbol, ticks[0].MtTime * 1000, (ticks[1].MtTime + 1) * 1000)}");
+                AddLog($"CustomRatesDelete: {_mtApiClient.CustomRatesDelete(symbol, rates[0].time, rates[rates.Length - 1].time)}");
+
+                AddLog($"SymbolSelect({symbol}, false): {_mtApiClient.SymbolSelect(symbol, false)}");
+                AddLog($"CustomSymbolDelete({symbol}): {_mtApiClient.CustomSymbolDelete(symbol)}");
+                return true;
+            });
         }
 
         private async Task<TResult> Execute<TResult>(Func<TResult> func)

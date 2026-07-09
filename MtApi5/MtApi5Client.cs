@@ -1645,6 +1645,211 @@ namespace MtApi5
             return null;
         }
 
+        #region Custom Symbols
+
+        ///<summary>
+        ///Creates a custom symbol with the specified name in the specified group.
+        ///</summary>
+        ///<param name="symbolName">Custom symbol name. It must not contain groups or subgroups the symbol is located in.</param>
+        ///<param name="symbolPath">The group name a symbol is located in.</param>
+        ///<param name="symbolOrigin">Name of a symbol the properties of the created custom symbol are to be copied from.</param>
+        ///<returns>true if successful, otherwise false.</returns>
+        public bool CustomSymbolCreate(string symbolName, string symbolPath = "", string symbolOrigin = "")
+        {
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName ?? string.Empty },
+                { "SymbolPath", symbolPath ?? string.Empty }, { "SymbolOrigin", symbolOrigin ?? string.Empty } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.CustomSymbolCreate, cmdParams);
+        }
+
+        ///<summary>
+        ///Deletes a custom symbol with the specified name.
+        ///</summary>
+        ///<param name="symbolName">Custom symbol name.</param>
+        ///<returns>true if successful, otherwise false.</returns>
+        public bool CustomSymbolDelete(string symbolName)
+        {
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName ?? string.Empty } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.CustomSymbolDelete, cmdParams);
+        }
+
+        ///<summary>
+        ///Sets the double type property value for a custom symbol.
+        ///</summary>
+        ///<param name="symbolName">Custom symbol name.</param>
+        ///<param name="propertyId">Symbol property ID.</param>
+        ///<param name="value">A double type property value.</param>
+        ///<returns>true if successful, otherwise false.</returns>
+        public bool CustomSymbolSetDouble(string symbolName, ENUM_SYMBOL_INFO_DOUBLE propertyId, double value)
+        {
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName ?? string.Empty },
+                { "PropertyId", (int)propertyId }, { "PropertyValue", value } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.CustomSymbolSetDouble, cmdParams);
+        }
+
+        ///<summary>
+        ///Sets the integer type property value for a custom symbol.
+        ///</summary>
+        ///<param name="symbolName">Custom symbol name.</param>
+        ///<param name="propertyId">Symbol property ID.</param>
+        ///<param name="value">A long type property value.</param>
+        ///<returns>true if successful, otherwise false.</returns>
+        public bool CustomSymbolSetInteger(string symbolName, ENUM_SYMBOL_INFO_INTEGER propertyId, long value)
+        {
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName ?? string.Empty },
+                { "PropertyId", (int)propertyId }, { "PropertyValue", value } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.CustomSymbolSetInteger, cmdParams);
+        }
+
+        ///<summary>
+        ///Sets the string type property value for a custom symbol.
+        ///</summary>
+        ///<param name="symbolName">Custom symbol name.</param>
+        ///<param name="propertyId">Symbol property ID.</param>
+        ///<param name="value">A string type property value.</param>
+        ///<returns>true if successful, otherwise false.</returns>
+        public bool CustomSymbolSetString(string symbolName, ENUM_SYMBOL_INFO_STRING propertyId, string value)
+        {
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName ?? string.Empty },
+                { "PropertyId", (int)propertyId }, { "PropertyValue", value ?? string.Empty } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.CustomSymbolSetString, cmdParams);
+        }
+
+        ///<summary>
+        ///Deletes all bars from the price history of the custom symbol in the specified time interval.
+        ///</summary>
+        ///<param name="symbolName">Custom symbol name.</param>
+        ///<param name="from">Time of the first bar in the price history within the specified range to be removed.</param>
+        ///<param name="to">Time of the last bar in the price history within the specified range to be removed.</param>
+        ///<returns>Number of deleted bars or -1 in case of an error.</returns>
+        public int CustomRatesDelete(string symbolName, DateTime from, DateTime to)
+        {
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName ?? string.Empty },
+                { "FromDate", Mt5TimeConverter.ConvertToMtTime(from) }, { "ToDate", Mt5TimeConverter.ConvertToMtTime(to) } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.CustomRatesDelete, cmdParams);
+        }
+
+        ///<summary>
+        ///Fully replaces the price history of the custom symbol within the specified time interval with the data from the MqlRates type array.
+        ///</summary>
+        ///<param name="symbolName">Custom symbol name.</param>
+        ///<param name="from">Time of the first bar in the price history within the specified range to be updated.</param>
+        ///<param name="to">Time of the last bar in the price history within the specified range to be updated.</param>
+        ///<param name="rates">Array of the MqlRates type history data for M1.</param>
+        ///<returns>Number of updated bars or -1 in case of an error.</returns>
+        public int CustomRatesReplace(string symbolName, DateTime from, DateTime to, MqlRates[] rates)
+        {
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName ?? string.Empty },
+                { "FromDate", Mt5TimeConverter.ConvertToMtTime(from) }, { "ToDate", Mt5TimeConverter.ConvertToMtTime(to) },
+                { "Rates", MqlRatesArrayToPayload(rates) } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.CustomRatesReplace, cmdParams);
+        }
+
+        ///<summary>
+        ///Adds missing bars to the custom symbol history and replaces existing data with the ones from the MqlRates type array.
+        ///</summary>
+        ///<param name="symbolName">Custom symbol name.</param>
+        ///<param name="rates">Array of the MqlRates type history data for M1.</param>
+        ///<returns>Number of updated bars or -1 in case of an error.</returns>
+        public int CustomRatesUpdate(string symbolName, MqlRates[] rates)
+        {
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName ?? string.Empty },
+                { "Rates", MqlRatesArrayToPayload(rates) } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.CustomRatesUpdate, cmdParams);
+        }
+
+        ///<summary>
+        ///Adds data from an array of the MqlTick type to the price history of a custom symbol. The custom symbol must be selected in the Market Watch window.
+        ///</summary>
+        ///<param name="symbolName">Custom symbol name.</param>
+        ///<param name="ticks">Array of the MqlTick type tick data arranged in order of time from the oldest to the newest.</param>
+        ///<returns>Number of added ticks or -1 in case of an error.</returns>
+        public int CustomTicksAdd(string symbolName, MqlTick[] ticks)
+        {
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName ?? string.Empty },
+                { "Ticks", MqlTickArrayToPayload(ticks) } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.CustomTicksAdd, cmdParams);
+        }
+
+        ///<summary>
+        ///Deletes all ticks from the price history of the custom symbol in the specified time interval.
+        ///</summary>
+        ///<param name="symbolName">Custom symbol name.</param>
+        ///<param name="fromMsc">Time of the first tick in the price history within the specified range to be removed, in milliseconds since 1970.01.01.</param>
+        ///<param name="toMsc">Time of the last tick in the price history within the specified range to be removed, in milliseconds since 1970.01.01.</param>
+        ///<returns>Number of deleted ticks or -1 in case of an error.</returns>
+        public int CustomTicksDelete(string symbolName, long fromMsc, long toMsc)
+        {
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName ?? string.Empty },
+                { "FromMsc", fromMsc }, { "ToMsc", toMsc } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.CustomTicksDelete, cmdParams);
+        }
+
+        ///<summary>
+        ///Fully replaces the price history of the custom symbol within the specified time interval with the data from the MqlTick type array.
+        ///</summary>
+        ///<param name="symbolName">Custom symbol name.</param>
+        ///<param name="fromMsc">Time of the first tick in the price history within the specified range to be replaced, in milliseconds since 1970.01.01.</param>
+        ///<param name="toMsc">Time of the last tick in the price history within the specified range to be replaced, in milliseconds since 1970.01.01.</param>
+        ///<param name="ticks">Array of the MqlTick type tick data arranged in order of time from the oldest to the newest.</param>
+        ///<returns>Number of replaced ticks or -1 in case of an error.</returns>
+        public int CustomTicksReplace(string symbolName, long fromMsc, long toMsc, MqlTick[] ticks)
+        {
+            Dictionary<string, object> cmdParams = new() { { "SymbolName", symbolName ?? string.Empty },
+                { "FromMsc", fromMsc }, { "ToMsc", toMsc }, { "Ticks", MqlTickArrayToPayload(ticks) } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.CustomTicksReplace, cmdParams);
+        }
+
+        // Serializes MqlRates[] for the command payload using the same field names
+        // the EA uses in MqlRatesToJson (the EA parses the reverse direction).
+        private static List<Dictionary<string, object>> MqlRatesArrayToPayload(MqlRates[]? rates)
+        {
+            List<Dictionary<string, object>> payload = new(rates?.Length ?? 0);
+            if (rates == null)
+                return payload;
+            foreach (var r in rates)
+            {
+                payload.Add(new Dictionary<string, object>
+                {
+                    { "mt_time", r.mt_time },
+                    { "open", r.open },
+                    { "high", r.high },
+                    { "low", r.low },
+                    { "close", r.close },
+                    { "tick_volume", r.tick_volume },
+                    { "spread", r.spread },
+                    { "real_volume", r.real_volume }
+                });
+            }
+            return payload;
+        }
+
+        // Serializes MqlTick[] for the command payload using the same field names
+        // the EA uses in MqlTickToJson (the EA parses the reverse direction).
+        // TimeMsc falls back to MtTime * 1000 when time_msc is not set.
+        private static List<Dictionary<string, object>> MqlTickArrayToPayload(MqlTick[]? ticks)
+        {
+            List<Dictionary<string, object>> payload = new(ticks?.Length ?? 0);
+            if (ticks == null)
+                return payload;
+            foreach (var t in ticks)
+            {
+                payload.Add(new Dictionary<string, object>
+                {
+                    { "Time", t.MtTime },
+                    { "TimeMsc", t.time_msc != 0 ? t.time_msc : t.MtTime * 1000 },
+                    { "Bid", t.bid },
+                    { "Ask", t.ask },
+                    { "Last", t.last },
+                    { "Volume", t.volume },
+                    { "VolumeReal", t.volume_real },
+                    { "Flags", (uint)t.flags }
+                });
+            }
+            return payload;
+        }
+
+        #endregion
+
         ///<summary>
         ///Allows receiving time of beginning and end of the specified quoting sessions for a specified symbol and weekday.
         ///</summary>

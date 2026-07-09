@@ -381,7 +381,19 @@ int preinit()
    ADD_EXECUTOR(304, Buy);
    ADD_EXECUTOR(305, Sell);
    ADD_EXECUTOR(306, GetSymbols);
-   
+
+   ADD_EXECUTOR(340, CustomSymbolCreate);
+   ADD_EXECUTOR(341, CustomSymbolDelete);
+   ADD_EXECUTOR(342, CustomSymbolSetDouble);
+   ADD_EXECUTOR(343, CustomSymbolSetInteger);
+   ADD_EXECUTOR(344, CustomSymbolSetString);
+   ADD_EXECUTOR(345, CustomRatesDelete);
+   ADD_EXECUTOR(346, CustomRatesReplace);
+   ADD_EXECUTOR(347, CustomRatesUpdate);
+   ADD_EXECUTOR(348, CustomTicksAdd);
+   ADD_EXECUTOR(349, CustomTicksDelete);
+   ADD_EXECUTOR(350, CustomTicksReplace);
+
    return (0);
 }
 
@@ -3474,6 +3486,130 @@ string Execute_GetSymbols()
    return CreateSuccessResponse(jaSymbols);
 }
 
+//+------------------------------------------------------------------+
+//| Custom symbols command handlers                                  |
+//+------------------------------------------------------------------+
+string Execute_CustomSymbolCreate()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "SymbolName", symbol_name);
+   GET_STRING_JSON_VALUE(jo, "SymbolPath", symbol_path);
+   GET_STRING_JSON_VALUE(jo, "SymbolOrigin", symbol_origin);
+   if(StringLen(symbol_origin) == 0) symbol_origin = NULL;
+   bool ok = CustomSymbolCreate(symbol_name, symbol_path, symbol_origin);
+   return CreateSuccessResponse(new JSONBool(ok));
+}
+
+string Execute_CustomSymbolDelete()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "SymbolName", symbol_name);
+   bool ok = CustomSymbolDelete(symbol_name);
+   return CreateSuccessResponse(new JSONBool(ok));
+}
+
+string Execute_CustomSymbolSetDouble()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "SymbolName", symbol_name);
+   GET_INT_JSON_VALUE(jo, "PropertyId", property_id);
+   GET_DOUBLE_JSON_VALUE(jo, "PropertyValue", property_value);
+   bool ok = CustomSymbolSetDouble(symbol_name, (ENUM_SYMBOL_INFO_DOUBLE)property_id, property_value);
+   return CreateSuccessResponse(new JSONBool(ok));
+}
+
+string Execute_CustomSymbolSetInteger()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "SymbolName", symbol_name);
+   GET_INT_JSON_VALUE(jo, "PropertyId", property_id);
+   GET_LONG_JSON_VALUE(jo, "PropertyValue", property_value);
+   bool ok = CustomSymbolSetInteger(symbol_name, (ENUM_SYMBOL_INFO_INTEGER)property_id, property_value);
+   return CreateSuccessResponse(new JSONBool(ok));
+}
+
+string Execute_CustomSymbolSetString()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "SymbolName", symbol_name);
+   GET_INT_JSON_VALUE(jo, "PropertyId", property_id);
+   GET_STRING_JSON_VALUE(jo, "PropertyValue", property_value);
+   bool ok = CustomSymbolSetString(symbol_name, (ENUM_SYMBOL_INFO_STRING)property_id, property_value);
+   return CreateSuccessResponse(new JSONBool(ok));
+}
+
+string Execute_CustomRatesDelete()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "SymbolName", symbol_name);
+   GET_LONG_JSON_VALUE(jo, "FromDate", from_date);
+   GET_LONG_JSON_VALUE(jo, "ToDate", to_date);
+   int result = CustomRatesDelete(symbol_name, (datetime)from_date, (datetime)to_date);
+   return CreateSuccessResponse(new JSONNumber((long)result));
+}
+
+string Execute_CustomRatesReplace()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "SymbolName", symbol_name);
+   GET_LONG_JSON_VALUE(jo, "FromDate", from_date);
+   GET_LONG_JSON_VALUE(jo, "ToDate", to_date);
+   CHECK_JSON_VALUE(jo, "Rates");
+   MqlRates rates[];
+   if(JsonToMqlRatesArray(jo.p.getArray("Rates"), rates) < 0)
+      return CreateErrorResponse(-1, "Failed to parse parameter Rates");
+   int result = CustomRatesReplace(symbol_name, (datetime)from_date, (datetime)to_date, rates);
+   return CreateSuccessResponse(new JSONNumber((long)result));
+}
+
+string Execute_CustomRatesUpdate()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "SymbolName", symbol_name);
+   CHECK_JSON_VALUE(jo, "Rates");
+   MqlRates rates[];
+   if(JsonToMqlRatesArray(jo.p.getArray("Rates"), rates) < 0)
+      return CreateErrorResponse(-1, "Failed to parse parameter Rates");
+   int result = CustomRatesUpdate(symbol_name, rates);
+   return CreateSuccessResponse(new JSONNumber((long)result));
+}
+
+string Execute_CustomTicksAdd()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "SymbolName", symbol_name);
+   CHECK_JSON_VALUE(jo, "Ticks");
+   MqlTick ticks[];
+   if(JsonToMqlTickArray(jo.p.getArray("Ticks"), ticks) < 0)
+      return CreateErrorResponse(-1, "Failed to parse parameter Ticks");
+   int result = CustomTicksAdd(symbol_name, ticks);
+   return CreateSuccessResponse(new JSONNumber((long)result));
+}
+
+string Execute_CustomTicksDelete()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "SymbolName", symbol_name);
+   GET_LONG_JSON_VALUE(jo, "FromMsc", from_msc);
+   GET_LONG_JSON_VALUE(jo, "ToMsc", to_msc);
+   int result = CustomTicksDelete(symbol_name, from_msc, to_msc);
+   return CreateSuccessResponse(new JSONNumber((long)result));
+}
+
+string Execute_CustomTicksReplace()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "SymbolName", symbol_name);
+   GET_LONG_JSON_VALUE(jo, "FromMsc", from_msc);
+   GET_LONG_JSON_VALUE(jo, "ToMsc", to_msc);
+   CHECK_JSON_VALUE(jo, "Ticks");
+   MqlTick ticks[];
+   if(JsonToMqlTickArray(jo.p.getArray("Ticks"), ticks) < 0)
+      return CreateErrorResponse(-1, "Failed to parse parameter Ticks");
+   int result = CustomTicksReplace(symbol_name, from_msc, to_msc, ticks);
+   return CreateSuccessResponse(new JSONNumber((long)result));
+}
+
 int PositionCloseAll()
 {
    CTrade trade;
@@ -3822,6 +3958,7 @@ JSONObject* MqlTickToJson(const MqlTick& tick)
 
     JSONObject *jo = new JSONObject();
     jo.put("Time", new JSONNumber((long)tick.time));
+    jo.put("TimeMsc", new JSONNumber(tick.time_msc));
     jo.put("Bid", new JSONNumber(tick.bid));
     jo.put("Ask", new JSONNumber(tick.ask));
     jo.put("Last", new JSONNumber(tick.last));
@@ -3915,4 +4052,101 @@ JSONObject* MqlRatesToJson(const MqlRates& rates)
    jo.put("spread", new JSONNumber(rates.spread));
    jo.put("real_volume", new JSONNumber(rates.real_volume));
    return jo;
+}
+
+bool JsonToMqlRates(JSONObject* jo, MqlRates& rates)
+{
+   if (jo == NULL) return false;
+
+   if (jo.getValue("mt_time") == NULL) return false;
+   rates.time = (datetime)jo.getLong("mt_time");
+
+   if (jo.getValue("open") == NULL) return false;
+   rates.open = jo.getDouble("open");
+
+   if (jo.getValue("high") == NULL) return false;
+   rates.high = jo.getDouble("high");
+
+   if (jo.getValue("low") == NULL) return false;
+   rates.low = jo.getDouble("low");
+
+   if (jo.getValue("close") == NULL) return false;
+   rates.close = jo.getDouble("close");
+
+   if (jo.getValue("tick_volume") == NULL) return false;
+   rates.tick_volume = jo.getLong("tick_volume");
+
+   if (jo.getValue("spread") == NULL) return false;
+   rates.spread = jo.getInt("spread");
+
+   if (jo.getValue("real_volume") == NULL) return false;
+   rates.real_volume = jo.getLong("real_volume");
+
+   return true;
+}
+
+int JsonToMqlRatesArray(JSONArray* ja, MqlRates& rates[])
+{
+   if (ja == NULL) return -1;
+
+   int size = ja.size();
+   ArrayResize(rates, size);
+   for(int i = 0; i < size; i++)
+   {
+      ZeroMemory(rates[i]);
+      if (!JsonToMqlRates(ja.getObject(i), rates[i]))
+         return -1;
+   }
+   return size;
+}
+
+bool JsonToMqlTick(JSONObject* jo, MqlTick& tick)
+{
+   if (jo == NULL) return false;
+
+   if (jo.getValue("Time") == NULL) return false;
+   long time = jo.getLong("Time");
+
+   if (jo.getValue("TimeMsc") == NULL) return false;
+   long time_msc = jo.getLong("TimeMsc");
+
+   if (time_msc == 0 && time != 0) time_msc = time * 1000;
+   if (time == 0 && time_msc != 0) time = time_msc / 1000;
+   tick.time = (datetime)time;
+   tick.time_msc = time_msc;
+
+   if (jo.getValue("Bid") == NULL) return false;
+   tick.bid = jo.getDouble("Bid");
+
+   if (jo.getValue("Ask") == NULL) return false;
+   tick.ask = jo.getDouble("Ask");
+
+   if (jo.getValue("Last") == NULL) return false;
+   tick.last = jo.getDouble("Last");
+
+   if (jo.getValue("VolumeReal") == NULL) return false;
+   tick.volume_real = jo.getDouble("VolumeReal");
+
+   if (jo.getValue("Volume") == NULL) return false;
+   tick.volume = (ulong)jo.getLong("Volume");
+
+   if (jo.getValue("Flags") == NULL) return false;
+   tick.flags = (uint)jo.getLong("Flags");
+
+   return true;
+}
+
+int JsonToMqlTickArray(JSONArray* ja, MqlTick& ticks[])
+{
+   if (ja == NULL) return -1;
+
+   int size = ja.size();
+   ArrayResize(ticks, size);
+   for(int i = 0; i < size; i++)
+   {
+      ZeroMemory(ticks[i]);
+      if (!JsonToMqlTick(ja.getObject(i), ticks[i]))
+         return -1;
+   }
+   return size;
 }

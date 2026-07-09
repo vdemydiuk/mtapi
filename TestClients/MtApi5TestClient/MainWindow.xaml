@@ -421,6 +421,8 @@
                             <WrapPanel Grid.Row="1" Grid.Column="0" Margin="5">
                                 <Button Command="{Binding CopyRatesCommand}" Margin="1"
                                         Content="CopyRates" HorizontalAlignment="Left" />
+                                <Button Command="{Binding CustomSymbolTestCommand}" Margin="1"
+                                        Content="CustomSymbolTest" HorizontalAlignment="Left" />
                                 <Button Command="{Binding CopyTimesCommand}" Margin="1"
                                         Content="CopyTimes" HorizontalAlignment="Left" />
                                 <Button Command="{Binding CopyOpenCommand}" Margin="1"

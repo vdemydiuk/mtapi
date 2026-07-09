@@ -260,6 +260,18 @@ namespace MtApi5.MtProtocol
         OrderCheck = 303,
         Buy = 304,
         Sell = 305,
-        GetSymbols = 306
+        GetSymbols = 306,
+
+        CustomSymbolCreate = 340,
+        CustomSymbolDelete = 341,
+        CustomSymbolSetDouble = 342,
+        CustomSymbolSetInteger = 343,
+        CustomSymbolSetString = 344,
+        CustomRatesDelete = 345,
+        CustomRatesReplace = 346,
+        CustomRatesUpdate = 347,
+        CustomTicksAdd = 348,
+        CustomTicksDelete = 349,
+        CustomTicksReplace = 350
     }
 }
