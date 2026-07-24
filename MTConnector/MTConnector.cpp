@@ -9,12 +9,27 @@
 #include <string>
 #include <codecvt>
 
-static void convertSystemString(wchar_t* dest, const std::string& src)
+// Capacities (in wchar_t, including the null terminator) of the caller-allocated
+// MQL string buffers. They must match the StringInit calls in the expert advisor:
+// StringInit(_error, 1000, 0) and StringInit(payload, 5000, 0).
+static const size_t ERROR_BUFFER_CAPACITY = 1000;
+static const size_t PAYLOAD_BUFFER_CAPACITY = 5000;
+
+static std::wstring convertToWString(const std::string& src)
 {
     using convert_typeX = std::codecvt_utf8<wchar_t>;
     std::wstring_convert<convert_typeX, wchar_t> converterX;
-    auto wstr = converterX.from_bytes(src);
-    memcpy(dest, wstr.c_str(), wcsnlen(wstr.c_str(), 1000) * sizeof(wchar_t));
+    return converterX.from_bytes(src);
+}
+
+static void convertSystemString(wchar_t* dest, const std::string& src, size_t capacity)
+{
+    auto wstr = convertToWString(src);
+    size_t len = wstr.length();
+    if (len >= capacity)
+        len = capacity - 1;
+    memcpy(dest, wstr.c_str(), len * sizeof(wchar_t));
+    dest[len] = L'\0';
 }
 
 static std::string convertWString(const wchar_t* src)
@@ -34,7 +49,7 @@ template <typename T> T Execute(std::function<T()> func, wchar_t* err, T default
     }
     catch (std::exception& e)
     {
-        convertSystemString(err, e.what());
+        convertSystemString(err, e.what(), ERROR_BUFFER_CAPACITY);
         MtService::GetInstance().LogError(e.what());
     }
     return result;
@@ -84,7 +99,26 @@ _DLLAPI int _stdcall getCommandType(int expertHandle, int& res, wchar_t* err)
 _DLLAPI int _stdcall getPayload(int expertHandle, wchar_t* res, wchar_t* err)
 {
     return Execute<int>([&expertHandle, res]() {
-        convertSystemString(res, MtService::GetInstance().GetCommandPayload(expertHandle));
+        convertSystemString(res, MtService::GetInstance().GetCommandPayload(expertHandle), PAYLOAD_BUFFER_CAPACITY);
         return 1;
         }, err, 0);
+}
+
+// Size-aware replacement for getPayload: copies at most (capacity - 1) characters
+// into res (always null-terminated) and returns the full payload length in wchar_t
+// (excluding the null terminator), or -1 on error. If the returned length is
+// >= capacity, the caller should re-allocate its buffer and call again.
+_DLLAPI int _stdcall getPayload2(int expertHandle, wchar_t* res, int capacity, wchar_t* err)
+{
+    return Execute<int>([&expertHandle, res, &capacity]() {
+        auto wstr = convertToWString(MtService::GetInstance().GetCommandPayload(expertHandle));
+        int required = static_cast<int>(wstr.length());
+        if (capacity > 0)
+        {
+            int len = required < capacity ? required : capacity - 1;
+            memcpy(res, wstr.c_str(), static_cast<size_t>(len) * sizeof(wchar_t));
+            res[len] = L'\0';
+        }
+        return required;
+        }, err, -1);
 }

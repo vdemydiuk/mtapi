@@ -18,6 +18,7 @@
 
    bool getCommandType(int expertHandle, int& res, string& err);
    bool getPayload(int expertHandle, string& res, string& err);
+   int getPayload2(int expertHandle, string& res, int capacity, string& err);
 #import
 
 ///--------------------------------------------------------------------------------------
@@ -566,11 +567,24 @@ JSONObject* GetJsonPayload()
 {
    string payload;
    StringInit(payload, 5000, 0);
-   
-   if (!getPayload(ExpertHandle, payload, _error))
+
+   int required = getPayload2(ExpertHandle, payload, 5000, _error);
+   if (required < 0)
    {
       PrintFormat("%s [ERROR]: %s", __FUNCTION__, _error);
       return NULL;
+   }
+
+   if (required >= 5000)
+   {
+      //--- payload larger than the default buffer: re-allocate and fetch again
+      StringInit(payload, required + 1, 0);
+      required = getPayload2(ExpertHandle, payload, required + 1, _error);
+      if (required < 0)
+      {
+         PrintFormat("%s [ERROR]: %s", __FUNCTION__, _error);
+         return NULL;
+      }
    }
 
    JSONParser payload_parser;
