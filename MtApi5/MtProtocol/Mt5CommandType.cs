@@ -260,6 +260,13 @@ namespace MtApi5.MtProtocol
         OrderCheck = 303,
         Buy = 304,
         Sell = 305,
-        GetSymbols = 306
+        GetSymbols = 306,
+
+        BuyLimit = 320,
+        SellLimit = 321,
+        BuyStop = 322,
+        SellStop = 323,
+        OrderModify = 324,
+        OrderDelete = 325
     }
 }

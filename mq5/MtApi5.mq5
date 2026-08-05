@@ -381,7 +381,14 @@ int preinit()
    ADD_EXECUTOR(304, Buy);
    ADD_EXECUTOR(305, Sell);
    ADD_EXECUTOR(306, GetSymbols);
-   
+
+   ADD_EXECUTOR(320, BuyLimit);
+   ADD_EXECUTOR(321, SellLimit);
+   ADD_EXECUTOR(322, BuyStop);
+   ADD_EXECUTOR(323, SellStop);
+   ADD_EXECUTOR(324, OrderModify);
+   ADD_EXECUTOR(325, OrderDelete);
+
    return (0);
 }
 
@@ -3449,7 +3456,210 @@ string Execute_Sell()
    result_value_jo.put("RetVal", new JSONBool(ok));
    result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
 
-   return CreateSuccessResponse(result_value_jo); 
+   return CreateSuccessResponse(result_value_jo);
+}
+
+string Execute_BuyLimit()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_DOUBLE_JSON_VALUE(jo, "Volume", volume);
+   GET_DOUBLE_JSON_VALUE(jo, "Price", price);
+   GET_DOUBLE_JSON_VALUE(jo, "Sl", sl);
+   GET_DOUBLE_JSON_VALUE(jo, "Tp", tp);
+   GET_INT_JSON_VALUE(jo, "TypeTime", type_time);
+   GET_LONG_JSON_VALUE(jo, "Expiration", expiration);
+
+   //Symbol
+   string symbol = Symbol();
+   if (jo.p.getValue("Symbol") != NULL)
+      symbol = jo.p.getString("Symbol");
+
+   //Comment
+   string comment = "";
+   if (jo.p.getValue("Comment") != NULL)
+      comment = jo.p.getString("Comment");
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: symbol = %s, volume = %f, price = %f, sl = %f, tp = %f, type_time = %d, expiration = %I64d, comment = %s",
+      __FUNCTION__, symbol, volume, price, sl, tp, type_time, expiration, comment);
+#endif
+
+   CTrade trade;
+   bool ok = trade.BuyLimit(volume, price, symbol, sl, tp, (ENUM_ORDER_TYPE_TIME)type_time, (datetime)expiration, comment);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse(result_value_jo);
+}
+
+string Execute_SellLimit()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_DOUBLE_JSON_VALUE(jo, "Volume", volume);
+   GET_DOUBLE_JSON_VALUE(jo, "Price", price);
+   GET_DOUBLE_JSON_VALUE(jo, "Sl", sl);
+   GET_DOUBLE_JSON_VALUE(jo, "Tp", tp);
+   GET_INT_JSON_VALUE(jo, "TypeTime", type_time);
+   GET_LONG_JSON_VALUE(jo, "Expiration", expiration);
+
+   //Symbol
+   string symbol = Symbol();
+   if (jo.p.getValue("Symbol") != NULL)
+      symbol = jo.p.getString("Symbol");
+
+   //Comment
+   string comment = "";
+   if (jo.p.getValue("Comment") != NULL)
+      comment = jo.p.getString("Comment");
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: symbol = %s, volume = %f, price = %f, sl = %f, tp = %f, type_time = %d, expiration = %I64d, comment = %s",
+      __FUNCTION__, symbol, volume, price, sl, tp, type_time, expiration, comment);
+#endif
+
+   CTrade trade;
+   bool ok = trade.SellLimit(volume, price, symbol, sl, tp, (ENUM_ORDER_TYPE_TIME)type_time, (datetime)expiration, comment);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse(result_value_jo);
+}
+
+string Execute_BuyStop()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_DOUBLE_JSON_VALUE(jo, "Volume", volume);
+   GET_DOUBLE_JSON_VALUE(jo, "Price", price);
+   GET_DOUBLE_JSON_VALUE(jo, "Sl", sl);
+   GET_DOUBLE_JSON_VALUE(jo, "Tp", tp);
+   GET_INT_JSON_VALUE(jo, "TypeTime", type_time);
+   GET_LONG_JSON_VALUE(jo, "Expiration", expiration);
+
+   //Symbol
+   string symbol = Symbol();
+   if (jo.p.getValue("Symbol") != NULL)
+      symbol = jo.p.getString("Symbol");
+
+   //Comment
+   string comment = "";
+   if (jo.p.getValue("Comment") != NULL)
+      comment = jo.p.getString("Comment");
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: symbol = %s, volume = %f, price = %f, sl = %f, tp = %f, type_time = %d, expiration = %I64d, comment = %s",
+      __FUNCTION__, symbol, volume, price, sl, tp, type_time, expiration, comment);
+#endif
+
+   CTrade trade;
+   bool ok = trade.BuyStop(volume, price, symbol, sl, tp, (ENUM_ORDER_TYPE_TIME)type_time, (datetime)expiration, comment);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse(result_value_jo);
+}
+
+string Execute_SellStop()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_DOUBLE_JSON_VALUE(jo, "Volume", volume);
+   GET_DOUBLE_JSON_VALUE(jo, "Price", price);
+   GET_DOUBLE_JSON_VALUE(jo, "Sl", sl);
+   GET_DOUBLE_JSON_VALUE(jo, "Tp", tp);
+   GET_INT_JSON_VALUE(jo, "TypeTime", type_time);
+   GET_LONG_JSON_VALUE(jo, "Expiration", expiration);
+
+   //Symbol
+   string symbol = Symbol();
+   if (jo.p.getValue("Symbol") != NULL)
+      symbol = jo.p.getString("Symbol");
+
+   //Comment
+   string comment = "";
+   if (jo.p.getValue("Comment") != NULL)
+      comment = jo.p.getString("Comment");
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: symbol = %s, volume = %f, price = %f, sl = %f, tp = %f, type_time = %d, expiration = %I64d, comment = %s",
+      __FUNCTION__, symbol, volume, price, sl, tp, type_time, expiration, comment);
+#endif
+
+   CTrade trade;
+   bool ok = trade.SellStop(volume, price, symbol, sl, tp, (ENUM_ORDER_TYPE_TIME)type_time, (datetime)expiration, comment);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse(result_value_jo);
+}
+
+string Execute_OrderModify()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_ULONG_JSON_VALUE(jo, "Ticket", ticket);
+   GET_DOUBLE_JSON_VALUE(jo, "Price", price);
+   GET_DOUBLE_JSON_VALUE(jo, "Sl", sl);
+   GET_DOUBLE_JSON_VALUE(jo, "Tp", tp);
+   GET_INT_JSON_VALUE(jo, "TypeTime", type_time);
+   GET_LONG_JSON_VALUE(jo, "Expiration", expiration);
+   GET_DOUBLE_JSON_VALUE(jo, "Stoplimit", stoplimit);
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: ticket = %I64u, price = %f, sl = %f, tp = %f, type_time = %d, expiration = %I64d, stoplimit = %f",
+      __FUNCTION__, ticket, price, sl, tp, type_time, expiration, stoplimit);
+#endif
+
+   CTrade trade;
+   bool ok = trade.OrderModify(ticket, price, sl, tp, (ENUM_ORDER_TYPE_TIME)type_time, (datetime)expiration, stoplimit);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse(result_value_jo);
+}
+
+string Execute_OrderDelete()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_ULONG_JSON_VALUE(jo, "Ticket", ticket);
+
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: ticket = %I64u", __FUNCTION__, ticket);
+#endif
+
+   CTrade trade;
+   bool ok = trade.OrderDelete(ticket);
+
+   MqlTradeResult trade_result={0};
+   trade.Result(trade_result);
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   result_value_jo.put("Result", MqlTradeResultToJson(trade_result));
+
+   return CreateSuccessResponse(result_value_jo);
 }
 
 string Execute_GetSymbols()

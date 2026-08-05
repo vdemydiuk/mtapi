@@ -529,6 +529,8 @@
                         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="4">
                             <Button Command="{Binding BuyCommand}" Content="Buy" Width="60" Margin="2" HorizontalAlignment="Left"/>
                             <Button Command="{Binding SellCommand}" Content="Sell" Width="60" Margin="2" HorizontalAlignment="Left"/>
+                            <Button Command="{Binding BuyLimitCommand}" Content="BuyLimit" Width="60" Margin="2" HorizontalAlignment="Left"/>
+                            <Button Command="{Binding OrderDeleteCommand}" Content="OrderDelete" Width="80" Margin="2" HorizontalAlignment="Left"/>
                         </StackPanel>
                     </Grid>
                 </TabItem>

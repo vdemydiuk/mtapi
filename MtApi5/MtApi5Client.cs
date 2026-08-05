@@ -860,6 +860,157 @@ namespace MtApi5
             result = response?.Result;
             return response != null && response.RetVal;
         }
+
+        /// <summary>
+        /// Places a Buy Limit pending order (buy at a price lower than the current market price) with specified parameters
+        /// </summary>
+        /// <param name="result">output result</param>
+        /// <param name="volume">Requested order volume.</param>
+        /// <param name="price">Order execution price.</param>
+        /// <param name="symbol">Order symbol. If it is not specified, the current symbol will be used.</param>
+        /// <param name="sl">Stop Loss price.</param>
+        /// <param name="tp">Take Profit price.</param>
+        /// <param name="typeTime">Order expiration type.</param>
+        /// <param name="expiration">Order expiration time (used with typeTime ORDER_TIME_SPECIFIED or ORDER_TIME_SPECIFIED_DAY).</param>
+        /// <param name="comment">Comment.</param>
+        /// <returns>true - successful check of the structures, otherwise - false.</returns>
+        public bool BuyLimit(out MqlTradeResult? result, double volume, double price, string? symbol = null, double sl = 0.0, double tp = 0.0, ENUM_ORDER_TYPE_TIME typeTime = ENUM_ORDER_TYPE_TIME.ORDER_TIME_GTC, DateTime? expiration = null, string? comment = null)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Volume", volume }, { "Price", price }, { "Sl", sl }, { "Tp", tp },
+                { "TypeTime", (int)typeTime }, { "Expiration", Mt5TimeConverter.ConvertToMtTime(expiration) } };
+            if (symbol != null)
+                cmdParams["Symbol"] = symbol;
+            if (comment != null)
+                cmdParams["Comment"] = comment;
+
+            var response = SendCommand<FuncResult<MqlTradeResult>>(ExecutorHandle, Mt5CommandType.BuyLimit, cmdParams);
+
+            result = response?.Result;
+            return response != null && response.RetVal;
+        }
+
+        /// <summary>
+        /// Places a Sell Limit pending order (sell at a price higher than the current market price) with specified parameters
+        /// </summary>
+        /// <param name="result">output result</param>
+        /// <param name="volume">Requested order volume.</param>
+        /// <param name="price">Order execution price.</param>
+        /// <param name="symbol">Order symbol. If it is not specified, the current symbol will be used.</param>
+        /// <param name="sl">Stop Loss price.</param>
+        /// <param name="tp">Take Profit price.</param>
+        /// <param name="typeTime">Order expiration type.</param>
+        /// <param name="expiration">Order expiration time (used with typeTime ORDER_TIME_SPECIFIED or ORDER_TIME_SPECIFIED_DAY).</param>
+        /// <param name="comment">Comment.</param>
+        /// <returns>true - successful check of the structures, otherwise - false.</returns>
+        public bool SellLimit(out MqlTradeResult? result, double volume, double price, string? symbol = null, double sl = 0.0, double tp = 0.0, ENUM_ORDER_TYPE_TIME typeTime = ENUM_ORDER_TYPE_TIME.ORDER_TIME_GTC, DateTime? expiration = null, string? comment = null)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Volume", volume }, { "Price", price }, { "Sl", sl }, { "Tp", tp },
+                { "TypeTime", (int)typeTime }, { "Expiration", Mt5TimeConverter.ConvertToMtTime(expiration) } };
+            if (symbol != null)
+                cmdParams["Symbol"] = symbol;
+            if (comment != null)
+                cmdParams["Comment"] = comment;
+
+            var response = SendCommand<FuncResult<MqlTradeResult>>(ExecutorHandle, Mt5CommandType.SellLimit, cmdParams);
+
+            result = response?.Result;
+            return response != null && response.RetVal;
+        }
+
+        /// <summary>
+        /// Places a Buy Stop pending order (buy at a price higher than the current market price) with specified parameters
+        /// </summary>
+        /// <param name="result">output result</param>
+        /// <param name="volume">Requested order volume.</param>
+        /// <param name="price">Order execution price.</param>
+        /// <param name="symbol">Order symbol. If it is not specified, the current symbol will be used.</param>
+        /// <param name="sl">Stop Loss price.</param>
+        /// <param name="tp">Take Profit price.</param>
+        /// <param name="typeTime">Order expiration type.</param>
+        /// <param name="expiration">Order expiration time (used with typeTime ORDER_TIME_SPECIFIED or ORDER_TIME_SPECIFIED_DAY).</param>
+        /// <param name="comment">Comment.</param>
+        /// <returns>true - successful check of the structures, otherwise - false.</returns>
+        public bool BuyStop(out MqlTradeResult? result, double volume, double price, string? symbol = null, double sl = 0.0, double tp = 0.0, ENUM_ORDER_TYPE_TIME typeTime = ENUM_ORDER_TYPE_TIME.ORDER_TIME_GTC, DateTime? expiration = null, string? comment = null)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Volume", volume }, { "Price", price }, { "Sl", sl }, { "Tp", tp },
+                { "TypeTime", (int)typeTime }, { "Expiration", Mt5TimeConverter.ConvertToMtTime(expiration) } };
+            if (symbol != null)
+                cmdParams["Symbol"] = symbol;
+            if (comment != null)
+                cmdParams["Comment"] = comment;
+
+            var response = SendCommand<FuncResult<MqlTradeResult>>(ExecutorHandle, Mt5CommandType.BuyStop, cmdParams);
+
+            result = response?.Result;
+            return response != null && response.RetVal;
+        }
+
+        /// <summary>
+        /// Places a Sell Stop pending order (sell at a price lower than the current market price) with specified parameters
+        /// </summary>
+        /// <param name="result">output result</param>
+        /// <param name="volume">Requested order volume.</param>
+        /// <param name="price">Order execution price.</param>
+        /// <param name="symbol">Order symbol. If it is not specified, the current symbol will be used.</param>
+        /// <param name="sl">Stop Loss price.</param>
+        /// <param name="tp">Take Profit price.</param>
+        /// <param name="typeTime">Order expiration type.</param>
+        /// <param name="expiration">Order expiration time (used with typeTime ORDER_TIME_SPECIFIED or ORDER_TIME_SPECIFIED_DAY).</param>
+        /// <param name="comment">Comment.</param>
+        /// <returns>true - successful check of the structures, otherwise - false.</returns>
+        public bool SellStop(out MqlTradeResult? result, double volume, double price, string? symbol = null, double sl = 0.0, double tp = 0.0, ENUM_ORDER_TYPE_TIME typeTime = ENUM_ORDER_TYPE_TIME.ORDER_TIME_GTC, DateTime? expiration = null, string? comment = null)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Volume", volume }, { "Price", price }, { "Sl", sl }, { "Tp", tp },
+                { "TypeTime", (int)typeTime }, { "Expiration", Mt5TimeConverter.ConvertToMtTime(expiration) } };
+            if (symbol != null)
+                cmdParams["Symbol"] = symbol;
+            if (comment != null)
+                cmdParams["Comment"] = comment;
+
+            var response = SendCommand<FuncResult<MqlTradeResult>>(ExecutorHandle, Mt5CommandType.SellStop, cmdParams);
+
+            result = response?.Result;
+            return response != null && response.RetVal;
+        }
+
+        /// <summary>
+        /// Modifies the parameters of a previously placed pending order
+        /// </summary>
+        /// <param name="result">output result</param>
+        /// <param name="ticket">Ticket of the pending order to be modified.</param>
+        /// <param name="price">New order execution price.</param>
+        /// <param name="sl">New Stop Loss price.</param>
+        /// <param name="tp">New Take Profit price.</param>
+        /// <param name="typeTime">Order expiration type.</param>
+        /// <param name="expiration">Order expiration time (used with typeTime ORDER_TIME_SPECIFIED or ORDER_TIME_SPECIFIED_DAY).</param>
+        /// <param name="stoplimit">Limit order price for the StopLimit order.</param>
+        /// <returns>true - successful check of the structures, otherwise - false.</returns>
+        public bool OrderModify(out MqlTradeResult? result, ulong ticket, double price, double sl, double tp, ENUM_ORDER_TYPE_TIME typeTime = ENUM_ORDER_TYPE_TIME.ORDER_TIME_GTC, DateTime? expiration = null, double stoplimit = 0.0)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket }, { "Price", price }, { "Sl", sl }, { "Tp", tp },
+                { "TypeTime", (int)typeTime }, { "Expiration", Mt5TimeConverter.ConvertToMtTime(expiration) }, { "Stoplimit", stoplimit } };
+
+            var response = SendCommand<FuncResult<MqlTradeResult>>(ExecutorHandle, Mt5CommandType.OrderModify, cmdParams);
+
+            result = response?.Result;
+            return response != null && response.RetVal;
+        }
+
+        /// <summary>
+        /// Removes a previously placed pending order
+        /// </summary>
+        /// <param name="result">output result</param>
+        /// <param name="ticket">Ticket of the pending order to be deleted.</param>
+        /// <returns>true - successful check of the structures, otherwise - false.</returns>
+        public bool OrderDelete(out MqlTradeResult? result, ulong ticket)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Ticket", ticket } };
+
+            var response = SendCommand<FuncResult<MqlTradeResult>>(ExecutorHandle, Mt5CommandType.OrderDelete, cmdParams);
+
+            result = response?.Result;
+            return response != null && response.RetVal;
+        }
         #endregion
 
         #region Account Information functions

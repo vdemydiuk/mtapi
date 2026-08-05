@@ -104,6 +104,8 @@ namespace MtApi5TestClient
         public DelegateCommand PositionCloseAllCommand { get; private set; }
         public DelegateCommand BuyCommand { get; private set; }
         public DelegateCommand SellCommand { get; private set; }
+        public DelegateCommand BuyLimitCommand { get; private set; }
+        public DelegateCommand OrderDeleteCommand { get; private set; }
 
         public DelegateCommand GetLastErrorCommand { get; private set; }
         public DelegateCommand ResetLastErrorCommand { get; private set; }
@@ -450,6 +452,8 @@ namespace MtApi5TestClient
             PositionCloseAllCommand = new DelegateCommand(ExecutePositionCloseAll);
             BuyCommand = new DelegateCommand(ExecuteBuy);
             SellCommand = new DelegateCommand(ExecuteSell);
+            BuyLimitCommand = new DelegateCommand(ExecuteBuyLimit);
+            OrderDeleteCommand = new DelegateCommand(ExecuteOrderDelete);
 
             PrintCommand = new DelegateCommand(ExecutePrint);
             AlertCommand = new DelegateCommand(ExecuteAlert);
@@ -1300,6 +1304,35 @@ namespace MtApi5TestClient
 
             var retVal = await Execute(() => _mtApiClient.Sell(out tradeResult, volume, symbol));
             AddLog($"Sell: symbol EURUSD retVal = {retVal}, result = {tradeResult}");
+        }
+
+        private async void ExecuteBuyLimit(object obj)
+        {
+            const string symbol = "EURUSD";
+            const double volume = 0.1;
+
+            MqlTick tick = null;
+            var gotTick = await Execute(() => _mtApiClient.SymbolInfoTick(symbol, out tick));
+            if (gotTick == false || tick == null)
+            {
+                AddLog("BuyLimit: failed to get current tick");
+                return;
+            }
+
+            var price = Math.Round(tick.bid - 0.00500, 5);
+            MqlTradeResult tradeResult = null;
+
+            var retVal = await Execute(() => _mtApiClient.BuyLimit(out tradeResult, volume, price, symbol));
+            AddLog($"BuyLimit: symbol {symbol} price {price} retVal = {retVal}, result = {tradeResult}");
+        }
+
+        private async void ExecuteOrderDelete(object obj)
+        {
+            var ticket = PositionTicketValue;
+            MqlTradeResult tradeResult = null;
+
+            var retVal = await Execute(() => _mtApiClient.OrderDelete(out tradeResult, ticket));
+            AddLog($"OrderDelete: ticket {ticket} retVal = {retVal}, result = {tradeResult}");
         }
 
         private async void ExecutePrint(object obj)
