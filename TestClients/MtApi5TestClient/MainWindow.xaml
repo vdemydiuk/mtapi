@@ -627,6 +627,8 @@
                             <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
                                 <Button Command="{Binding PrintCommand}" Content="Print" Margin="2" />
                                 <Button Command="{Binding AlertCommand}" Content="Alert" Margin="2" />
+                                <Button Command="{Binding CommentCommand}" Content="Comment" Margin="2" />
+                                <Button Command="{Binding SendNotificationCommand}" Content="SendNotification" Margin="2" />
                             </StackPanel>
 
                         </Grid>

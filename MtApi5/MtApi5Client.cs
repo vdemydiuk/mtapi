@@ -2279,6 +2279,55 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Outputs a comment in the left top corner of the chart.
+        ///</summary>
+        ///<param name="comments">Comment text.</param>
+        ///<returns>true after the comment has been output.</returns>
+        public bool Comment(string comments)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Comments", comments ?? string.Empty } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.Comment, cmdParams);
+        }
+
+        ///<summary>
+        ///Plays a sound file.
+        ///</summary>
+        ///<param name="filename">Path to a sound file relative to the terminal_directory\Sounds folder.</param>
+        ///<returns>true if the file is found; otherwise false.</returns>
+        public bool PlaySound(string filename)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Filename", filename ?? string.Empty } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.PlaySound, cmdParams);
+        }
+
+        ///<summary>
+        ///Sends push notifications to the mobile terminals whose MetaQuotes IDs are specified in the terminal settings.
+        ///</summary>
+        ///<param name="text">Notification text (up to 255 characters).</param>
+        ///<returns>true if the notification has been sent; otherwise false.</returns>
+        public bool SendNotification(string text)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Text", text ?? string.Empty } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.SendNotification, cmdParams);
+        }
+
+        ///<summary>
+        ///Sends an email at the address specified in the settings window of the Email tab.
+        ///</summary>
+        ///<param name="subject">Email header.</param>
+        ///<param name="someText">Email body.</param>
+        ///<returns>true if the email has been queued for sending; otherwise false.</returns>
+        public bool SendMail(string subject, string someText)
+        {
+            Dictionary<string, object> cmdParams = new()
+            {
+                { "Subject", subject ?? string.Empty },
+                { "SomeText", someText ?? string.Empty }
+            };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.SendMail, cmdParams);
+        }
+
+        ///<summary>
         ///Gives program operation completion command when testing.
         ///</summary>
         public void TesterStop()

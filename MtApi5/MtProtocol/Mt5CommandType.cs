@@ -226,16 +226,16 @@ namespace MtApi5.MtProtocol
 
         //Common Functions
         Alert = 136,
-        Comment = 137,  //TODO
+        Comment = 137,
         GetTickCount = 138,  //TODO
         GetMicrosecondCount = 139,  //TODO
         MessageBox = 140,  //TODO
         PeriodSeconds = 141,  //TODO
-        PlaySound = 142,  //TODO
+        PlaySound = 142,
         Print = 68,
         ResetLastError = 143,
-        SendNotification = 144,  //TODO
-        SendMail = 145,  //TODO
+        SendNotification = 144,
+        SendMail = 145,
 
         //Global Variables
         GlobalVariableCheck = 146,

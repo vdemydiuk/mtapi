@@ -109,6 +109,8 @@ namespace MtApi5TestClient
         public DelegateCommand ResetLastErrorCommand { get; private set; }
         public DelegateCommand PrintCommand { get; private set; }
         public DelegateCommand AlertCommand { get; private set; }
+        public DelegateCommand CommentCommand { get; private set; }
+        public DelegateCommand SendNotificationCommand { get; private set; }
         public DelegateCommand TesterStopCommand { get; private set; }
 
         public DelegateCommand TimeCurrentCommand { get; private set; }
@@ -453,6 +455,8 @@ namespace MtApi5TestClient
 
             PrintCommand = new DelegateCommand(ExecutePrint);
             AlertCommand = new DelegateCommand(ExecuteAlert);
+            CommentCommand = new DelegateCommand(ExecuteComment);
+            SendNotificationCommand = new DelegateCommand(ExecuteSendNotification);
             GetLastErrorCommand = new DelegateCommand(ExecuteGetLastError);
             ResetLastErrorCommand = new DelegateCommand(ExecuteResetLastError);
             TesterStopCommand = new DelegateCommand(ExecuteTesterStop);
@@ -1316,6 +1320,22 @@ namespace MtApi5TestClient
 
             _mtApiClient.Alert(message);
             AddLog($"Alert: send alert to MetaTrader - {message}.");
+        }
+
+        private async void ExecuteComment(object obj)
+        {
+            var message = MessageText;
+
+            var retVal = await Execute(() => _mtApiClient.Comment(message));
+            AddLog($"Comment: message shown on MetaTrader chart - {retVal}");
+        }
+
+        private async void ExecuteSendNotification(object obj)
+        {
+            var message = MessageText;
+
+            var retVal = await Execute(() => _mtApiClient.SendNotification(message));
+            AddLog($"SendNotification: notification sent - {retVal}");
         }
 
         private async void ExecuteGetLastError(object obj)

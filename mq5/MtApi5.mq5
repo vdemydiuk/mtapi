@@ -322,7 +322,11 @@ int preinit()
    ADD_EXECUTOR(130, TimeGMT);
    ADD_EXECUTOR(132, GetLastError);
    ADD_EXECUTOR(136, Alert);
+   ADD_EXECUTOR(137, Comment);
+   ADD_EXECUTOR(142, PlaySound);
    ADD_EXECUTOR(143, ResetLastError);
+   ADD_EXECUTOR(144, SendNotification);
+   ADD_EXECUTOR(145, SendMail);
    ADD_EXECUTOR(146, GlobalVariableCheck);
    ADD_EXECUTOR(147, GlobalVariableTime);
    ADD_EXECUTOR(148, GlobalVariableDel);
@@ -2543,6 +2547,43 @@ string Execute_Alert()
    
    Alert(message);
    return CreateSuccessResponse();   
+}
+
+string Execute_Comment()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Comments", comments);
+
+   Comment(comments);
+   return CreateSuccessResponse(new JSONBool(true));
+}
+
+string Execute_PlaySound()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Filename", filename);
+
+   bool result = PlaySound(filename);
+   return CreateSuccessResponse(new JSONBool(result));
+}
+
+string Execute_SendNotification()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Text", text);
+
+   bool result = SendNotification(text);
+   return CreateSuccessResponse(new JSONBool(result));
+}
+
+string Execute_SendMail()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Subject", subject);
+   GET_STRING_JSON_VALUE(jo, "SomeText", some_text);
+
+   bool result = SendMail(subject, some_text);
+   return CreateSuccessResponse(new JSONBool(result));
 }
 
 string Execute_ResetLastError()
