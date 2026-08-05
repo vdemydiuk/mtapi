@@ -171,11 +171,17 @@ public:
      }
    string getString() { return _string; }
    void setString(string v) { _string=v; }
-   string toString() 
+   string toString()
    {
-    string string_var; 
-    StringConcatenate(string_var, "\"",_string,"\"");
-    return string_var; 
+    string escaped = _string;
+    StringReplace(escaped, "\\", "\\\\");
+    StringReplace(escaped, "\"", "\\\"");
+    StringReplace(escaped, "\n", "\\n");
+    StringReplace(escaped, "\r", "\\r");
+    StringReplace(escaped, "\t", "\\t");
+    string string_var;
+    StringConcatenate(string_var, "\"", escaped, "\"");
+    return string_var;
    }
   };
 // -----------------------------------------
