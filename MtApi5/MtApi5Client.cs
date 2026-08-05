@@ -453,6 +453,17 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Gets a snapshot of all open positions with all their properties in a single request.
+        ///Replaces the PositionsTotal/PositionGetTicket/PositionGet* per-property call sequence
+        ///with one round-trip to the terminal.
+        ///</summary>
+        ///<returns>List of open positions (empty if there are none) or null if the request failed.</returns>
+        public List<Mt5Position>? GetPositions()
+        {
+            return SendCommand<List<Mt5Position>>(ExecutorHandle, Mt5CommandType.GetAllPositions);
+        }
+
+        ///<summary>
         ///Returns the number of current orders.
         ///</summary>
         public int OrdersTotal()
@@ -508,6 +519,17 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "PropertyId", (int)propertyId } };
             return SendCommand<string>(ExecutorHandle, Mt5CommandType.OrderGetString, cmdParams);
+        }
+
+        ///<summary>
+        ///Gets a snapshot of all current (pending) orders with all their properties in a single request.
+        ///Replaces the OrdersTotal/OrderGetTicket/OrderGet* per-property call sequence
+        ///with one round-trip to the terminal.
+        ///</summary>
+        ///<returns>List of current orders (empty if there are none) or null if the request failed.</returns>
+        public List<Mt5Order>? GetOrders()
+        {
+            return SendCommand<List<Mt5Order>>(ExecutorHandle, Mt5CommandType.GetAllOrders);
         }
 
         ///<summary>

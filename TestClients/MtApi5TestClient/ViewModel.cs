@@ -50,6 +50,7 @@ namespace MtApi5TestClient
         public DelegateCommand OrderSendCommand { get; private set; }
         public DelegateCommand OrderCheckCommand { get; private set; }
         public DelegateCommand PositionGetTicketCommand { get; private set; }
+        public DelegateCommand GetPositionsOrdersCommand { get; private set; }
 
         public DelegateCommand HistoryOrderGetIntegerCommand { get; private set; }
         public DelegateCommand HistoryDealGetDoubleCommand { get; private set; }
@@ -396,6 +397,7 @@ namespace MtApi5TestClient
             OrderSendCommand = new DelegateCommand(ExecuteOrderSend);
             OrderCheckCommand = new DelegateCommand(ExecuteOrderCheck);
             PositionGetTicketCommand = new DelegateCommand(ExecutePositionGetTicket);
+            GetPositionsOrdersCommand = new DelegateCommand(ExecuteGetPositionsOrders);
 
             HistoryOrderGetIntegerCommand = new DelegateCommand(ExecuteHistoryOrderGetInteger);
             HistoryDealGetDoubleCommand = new DelegateCommand(ExecuteHistoryDealGetDouble);
@@ -579,6 +581,23 @@ namespace MtApi5TestClient
 
             var message = $"PositionGetTicket: result = {retVal}";
             AddLog(message);
+        }
+
+        private async void ExecuteGetPositionsOrders(object obj)
+        {
+            var positions = await Execute(() => _mtApiClient.GetPositions());
+            AddLog($"GetPositions: count = {positions?.Count ?? 0}");
+            if (positions != null && positions.Count > 0)
+            {
+                AddLog($"  first: {positions[0]}");
+            }
+
+            var orders = await Execute(() => _mtApiClient.GetOrders());
+            AddLog($"GetOrders: count = {orders?.Count ?? 0}");
+            if (orders != null && orders.Count > 0)
+            {
+                AddLog($"  first: {orders[0]}");
+            }
         }
 
         private async void ExecuteHistoryOrderGetInteger(object o)
