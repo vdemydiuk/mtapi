@@ -599,6 +599,7 @@
                         <Button Command="{Binding TimeTradeServerCommand}" Content="TimeTradeServer" Margin="2"/>
                         <Button Command="{Binding TimeLocalCommand}" Content="TimeLocal" Margin="2"/>
                         <Button Command="{Binding TimeGMTCommand}" Content="TimeGMT" Margin="2"/>
+                        <Button Command="{Binding AsyncPipelineDemoCommand}" Content="AsyncPipelineDemo" Margin="2"/>
                     </WrapPanel>
                 </TabItem>
 

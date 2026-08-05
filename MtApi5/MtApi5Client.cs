@@ -383,6 +383,14 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Asynchronous variant of PositionsTotal; multiple in-flight commands are pipelined and typically served in a single expert wake-up.
+        ///</summary>
+        public Task<int> PositionsTotalAsync()
+        {
+            return SendCommandAsync<int>(ExecutorHandle, Mt5CommandType.PositionsTotal);
+        }
+
+        ///<summary>
         ///Returns the symbol corresponding to the open position and automatically selects the position for further working with it using functions PositionGetDouble, PositionGetInteger, PositionGetString.
         ///</summary>
         ///<param name="index">Number of the position in the list of open positions.</param>
@@ -458,6 +466,14 @@ namespace MtApi5
         public int OrdersTotal()
         {
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.OrdersTotal);
+        }
+
+        ///<summary>
+        ///Asynchronous variant of OrdersTotal; multiple in-flight commands are pipelined and typically served in a single expert wake-up.
+        ///</summary>
+        public Task<int> OrdersTotalAsync()
+        {
+            return SendCommandAsync<int>(ExecutorHandle, Mt5CommandType.OrdersTotal);
         }
 
         ///<summary>
@@ -875,6 +891,16 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Asynchronous variant of AccountInfoDouble; multiple in-flight commands are pipelined and typically served in a single expert wake-up.
+        ///</summary>
+        ///<param name="propertyId">Identifier of the property.</param>
+        public Task<double> AccountInfoDoubleAsync(ENUM_ACCOUNT_INFO_DOUBLE propertyId)
+        {
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", propertyId } };
+            return SendCommandAsync<double>(ExecutorHandle, Mt5CommandType.AccountInfoDouble, cmdParams);
+        }
+
+        ///<summary>
         ///Returns the value of the corresponding account property. 
         ///</summary>
         ///<param name="propertyId">Identifier of the property.</param>
@@ -882,6 +908,16 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "PropertyId", propertyId } };
             return SendCommand<long>(ExecutorHandle, Mt5CommandType.AccountInfoInteger, cmdParams);
+        }
+
+        ///<summary>
+        ///Asynchronous variant of AccountInfoInteger; multiple in-flight commands are pipelined and typically served in a single expert wake-up.
+        ///</summary>
+        ///<param name="propertyId">Identifier of the property.</param>
+        public Task<long> AccountInfoIntegerAsync(ENUM_ACCOUNT_INFO_INTEGER propertyId)
+        {
+            Dictionary<string, object> cmdParams = new() { { "PropertyId", propertyId } };
+            return SendCommandAsync<long>(ExecutorHandle, Mt5CommandType.AccountInfoInteger, cmdParams);
         }
 
         ///<summary>
@@ -1013,7 +1049,22 @@ namespace MtApi5
             ratesArray = response?.ToArray() ?? [];
             return response?.Count ?? 0;
         }
-            
+
+        ///<summary>
+        ///Asynchronous variant of CopyRates; multiple in-flight commands are pipelined and typically served in a single expert wake-up.
+        ///</summary>
+        ///<param name="symbolName">Symbol name.</param>
+        ///<param name="timeframe">Period.</param>
+        ///<param name="startPos">The start position for the first element to copy.</param>
+        ///<param name="count">Data count to copy.</param>
+        public async Task<MqlRates[]> CopyRatesAsync(string symbolName, ENUM_TIMEFRAMES timeframe, int startPos, int count)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "StartPos", startPos }, { "Count", count } };
+            var response = await SendCommandAsync<List<MqlRates>>(ExecutorHandle, Mt5CommandType.CopyRates, cmdParams).ConfigureAwait(false);
+            return response?.ToArray() ?? [];
+        }
+
         ///<summary>
         ///Gets history data of MqlRates structure of a specified symbol-period in specified quantity into the ratesArray array. The elements ordering of the copied data is from present to the past, i.e., starting position of 0 means the current bar.
         ///</summary>
@@ -1032,6 +1083,21 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Asynchronous variant of CopyRates; multiple in-flight commands are pipelined and typically served in a single expert wake-up.
+        ///</summary>
+        ///<param name="symbolName">Symbol name.</param>
+        ///<param name="timeframe">Period.</param>
+        ///<param name="startTime">The start time for the first element to copy.</param>
+        ///<param name="count">Data count to copy.</param>
+        public async Task<MqlRates[]> CopyRatesAsync(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, int count)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "StartTime",  Mt5TimeConverter.ConvertToMtTime(startTime) }, { "Count", count } };
+            var response = await SendCommandAsync<List<MqlRates>>(ExecutorHandle, Mt5CommandType.CopyRates1, cmdParams).ConfigureAwait(false);
+            return response?.ToArray() ?? [];
+        }
+
+        ///<summary>
         ///Gets history data of MqlRates structure of a specified symbol-period in specified quantity into the ratesArray array. The elements ordering of the copied data is from present to the past, i.e., starting position of 0 means the current bar.
         ///</summary>
         ///<param name="symbolName">Symbol name.</param>
@@ -1047,6 +1113,22 @@ namespace MtApi5
             var response = SendCommand<List<MqlRates>>(ExecutorHandle, Mt5CommandType.CopyRates2, cmdParams);
             ratesArray = response?.ToArray() ?? [];
             return response?.Count ?? 0;
+        }
+
+        ///<summary>
+        ///Asynchronous variant of CopyRates; multiple in-flight commands are pipelined and typically served in a single expert wake-up.
+        ///</summary>
+        ///<param name="symbolName">Symbol name.</param>
+        ///<param name="timeframe">Period.</param>
+        ///<param name="startTime">The start time for the first element to copy.</param>
+        ///<param name="stopTime">Bar time, corresponding to the last element to copy.</param>
+        public async Task<MqlRates[]> CopyRatesAsync(string symbolName, ENUM_TIMEFRAMES timeframe, DateTime startTime, DateTime stopTime)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "StartTime",  Mt5TimeConverter.ConvertToMtTime(startTime) },
+                { "StopTime", Mt5TimeConverter.ConvertToMtTime(stopTime) } };
+            var response = await SendCommandAsync<List<MqlRates>>(ExecutorHandle, Mt5CommandType.CopyRates2, cmdParams).ConfigureAwait(false);
+            return response?.ToArray() ?? [];
         }
 
         ///<summary>
@@ -1505,6 +1587,22 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Asynchronous variant of CopyTicks; multiple in-flight commands are pipelined and typically served in a single expert wake-up.
+        ///</summary>
+        ///<param name="symbolName">Symbol name.</param>
+        ///<param name="flags">The flag that determines the type of received ticks.</param>
+        ///<param name="from">The date from which you want to request ticks.  In milliseconds since 1970.01.01. If from=0, the last count ticks will be returned.</param>
+        ///<param name="count">The number of ticks that you want to receive. If the 'from' and 'count' parameters are not specified, all available recent ticks (but not more than 2000) will be written to result.</param>
+        ///<see href="https://www.mql5.com/en/docs/series/copyticks"/>
+        public async Task<List<MqlTick>?> CopyTicksAsync(string symbolName, CopyTicksFlag flags = CopyTicksFlag.All, ulong from = 0, uint count = 0)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName ?? string.Empty }, { "Flags", flags },
+                { "From", from }, { "Count", count }  };
+            var response = await SendCommandAsync<List<MtTick>>(ExecutorHandle, Mt5CommandType.CopyTicks, cmdParams).ConfigureAwait(false);
+            return response?.Select(t => new MqlTick(t)).ToList();
+        }
+
+        ///<summary>
         ///The function returns the handle of a specified technical indicator created based on the array of parameters of MqlParam type.
         ///</summary>
         ///<param name="symbol">Name of a symbol, on data of which the indicator is calculated. NULL means the current symbol.</param>
@@ -1584,6 +1682,17 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Asynchronous variant of SymbolInfoDouble; multiple in-flight commands are pipelined and typically served in a single expert wake-up.
+        ///</summary>
+        ///<param name="symbolName">Symbol name.</param>
+        ///<param name="propId">Identifier of a symbol property.</param>
+        public Task<double> SymbolInfoDoubleAsync(string symbolName, ENUM_SYMBOL_INFO_DOUBLE propId)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName ?? string.Empty }, { "PropId", (int)propId } };
+            return SendCommandAsync<double>(ExecutorHandle, Mt5CommandType.SymbolInfoDouble, cmdParams);
+        }
+
+        ///<summary>
         ///Returns the corresponding property of a specified symbol.
         ///</summary>
         ///<param name="symbolName">Symbol name.</param>
@@ -1592,6 +1701,17 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName ?? string.Empty }, { "PropId", (int)propId } };
             return SendCommand<long>(ExecutorHandle, Mt5CommandType.SymbolInfoInteger, cmdParams);
+        }
+
+        ///<summary>
+        ///Asynchronous variant of SymbolInfoInteger; multiple in-flight commands are pipelined and typically served in a single expert wake-up.
+        ///</summary>
+        ///<param name="symbolName">Symbol name.</param>
+        ///<param name="propId">Identifier of a symbol property.</param>
+        public Task<long> SymbolInfoIntegerAsync(string symbolName, ENUM_SYMBOL_INFO_INTEGER propId)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName ?? string.Empty }, { "PropId", (int)propId } };
+            return SendCommandAsync<long>(ExecutorHandle, Mt5CommandType.SymbolInfoInteger, cmdParams);
         }
 
         ///<summary>
@@ -1643,6 +1763,17 @@ namespace MtApi5
             if (SymbolInfoTick(symbol, out MqlTick? tick))
                 return tick;
             return null;
+        }
+
+        ///<summary>
+        ///Asynchronous variant of SymbolInfoTick; multiple in-flight commands are pipelined and typically served in a single expert wake-up.
+        ///</summary>
+        ///<param name="symbol">Symbol name.</param>
+        public async Task<MqlTick?> SymbolInfoTickAsync(string symbol)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty } };
+            var response = await SendCommandAsync<FuncResult<MtTick>>(ExecutorHandle, Mt5CommandType.SymbolInfoTick, cmdParams).ConfigureAwait(false);
+            return response != null && response.RetVal && response.Result != null ? new MqlTick(response.Result) : null;
         }
 
         ///<summary>
@@ -3159,6 +3290,15 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Asynchronous variant of TimeCurrent; multiple in-flight commands are pipelined and typically served in a single expert wake-up.
+        ///</summary>
+        public async Task<DateTime> TimeCurrentAsync()
+        {
+            var response = await SendCommandAsync<long>(ExecutorHandle, Mt5CommandType.TimeCurrent).ConfigureAwait(false);
+            return Mt5TimeConverter.ConvertFromMtTime(response);
+        }
+
+        ///<summary>
         ///Returns the calculated current time of the trade server. Unlike TimeCurrent(), the calculation of the time value is performed in the client terminal and depends on the time settings on your computer.
         ///</summary>
         public DateTime TimeTradeServer()
@@ -3621,6 +3761,44 @@ namespace MtApi5
             if (response.ErrorCode != 0)
             {
                 Log.Warn($"SendCommand: ErrorCode = {response.ErrorCode}. {response.ErrorMessage}");
+                throw new ExecutionException((ErrorCode)response.ErrorCode, response.ErrorMessage);
+            }
+
+            return (response.Value == null) ? default : response.Value;
+        }
+
+        private async Task<T?> SendCommandAsync<T>(int expertHandle, Mt5CommandType commandType, object? payload = null)
+        {
+            var client = Client;
+            if (client == null)
+            {
+                Log.Warn("SendCommandAsync: No connection");
+                throw new Exception("No connection");
+            }
+
+            var payloadJson = payload == null ? string.Empty : JsonConvert.SerializeObject(payload);
+            Log.Debug($"SendCommandAsync: sending '{payloadJson}' ...");
+
+            var responseJson = await client.SendCommandAsync(expertHandle, (int)commandType, payloadJson, CommandTimeout).ConfigureAwait(false);
+
+            Log.Debug($"SendCommandAsync: received response JSON [{responseJson}]");
+
+            if (string.IsNullOrEmpty(responseJson))
+            {
+                Log.Warn("SendCommandAsync: Response JSON from MetaTrader is null or empty");
+                throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
+            }
+
+            var response = JsonConvert.DeserializeObject<Response<T>>(responseJson);
+            if (response == null)
+            {
+                Log.Warn("SendCommandAsync: Failed to deserialize response from JSON");
+                throw new ExecutionException(ErrorCode.ErrCustom, "Response from MetaTrader is null");
+            }
+
+            if (response.ErrorCode != 0)
+            {
+                Log.Warn($"SendCommandAsync: ErrorCode = {response.ErrorCode}. {response.ErrorMessage}");
                 throw new ExecutionException((ErrorCode)response.ErrorCode, response.ErrorMessage);
             }
 
