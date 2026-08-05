@@ -2286,6 +2286,30 @@ namespace MtApi5
             SendCommand<object>(ExecutorHandle, Mt5CommandType.TesterStop);
         }
 
+        ///<summary>
+        ///Deposits money to the account of the tested Expert Advisor.
+        ///Works only in the strategy tester (see IsTesting); fails with an error when the Expert Advisor runs on a live chart.
+        ///</summary>
+        ///<param name="money">Deposited sum of money.</param>
+        ///<returns>true if successful, otherwise false.</returns>
+        public bool TesterDeposit(double money)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Money", money } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.TesterDeposit, cmdParams);
+        }
+
+        ///<summary>
+        ///Withdraws money from the account of the tested Expert Advisor.
+        ///Works only in the strategy tester (see IsTesting); fails with an error when the Expert Advisor runs on a live chart.
+        ///</summary>
+        ///<param name="money">Withdrawn sum of money.</param>
+        ///<returns>true if successful, otherwise false.</returns>
+        public bool TesterWithdrawal(double money)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Money", money } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.TesterWithdrawal, cmdParams);
+        }
+
         #endregion // Common Functions
 
         #region Object Functions
