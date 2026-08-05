@@ -95,6 +95,7 @@ namespace MtApi5TestClient
         public DelegateCommand SymbolInfoTickCommand { get; private set; }
         public DelegateCommand SymbolInfoSessionQuoteCommand { get; private set; }
         public DelegateCommand SymbolInfoSessionTradeCommand { get; private set; }
+        public DelegateCommand SymbolInfoMarginRateCommand { get; private set; }
         public DelegateCommand MarketBookAddCommand { get; private set; }
         public DelegateCommand MarketBookReleaseCommand { get; private set; }
         public DelegateCommand MarketBookGetCommand { get; private set; }
@@ -441,6 +442,7 @@ namespace MtApi5TestClient
             SymbolInfoTickCommand = new DelegateCommand(ExecuteSymbolInfoTick);
             SymbolInfoSessionQuoteCommand = new DelegateCommand(ExecuteSymbolInfoSessionQuote);
             SymbolInfoSessionTradeCommand = new DelegateCommand(ExecuteSymbolInfoSessionTrade);
+            SymbolInfoMarginRateCommand = new DelegateCommand(ExecuteSymbolInfoMarginRate);
             MarketBookAddCommand = new DelegateCommand(ExecuteMarketBookAdd);   
             MarketBookReleaseCommand = new DelegateCommand(ExecuteMarketBookRelease);
             MarketBookGetCommand = new DelegateCommand(ExecuteMarketBookGet);
@@ -1215,6 +1217,24 @@ namespace MtApi5TestClient
             });
 
             AddLog("SymbolInfoSessionTrade(EURUSD): result = " + retVal);
+        }
+
+        private async void ExecuteSymbolInfoMarginRate(object o)
+        {
+            var retVal = await Execute(() =>
+            {
+                double initialMarginRate;
+                double maintenanceMarginRate;
+                var ok = _mtApiClient.SymbolInfoMarginRate("EURUSD", ENUM_ORDER_TYPE.ORDER_TYPE_BUY, out initialMarginRate, out maintenanceMarginRate);
+                if (ok)
+                {
+                    AddLog($"SymbolInfoMarginRate(EURUSD) initial = {initialMarginRate}");
+                    AddLog($"SymbolInfoMarginRate(EURUSD) maintenance = {maintenanceMarginRate}");
+                }
+                return ok;
+            });
+
+            AddLog($"SymbolInfoMarginRate(EURUSD): result = {retVal}");
         }
 
         private async void ExecuteMarketBookAdd(object o)

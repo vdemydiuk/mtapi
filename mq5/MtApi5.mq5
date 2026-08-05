@@ -381,6 +381,7 @@ int preinit()
    ADD_EXECUTOR(304, Buy);
    ADD_EXECUTOR(305, Sell);
    ADD_EXECUTOR(306, GetSymbols);
+   ADD_EXECUTOR(380, SymbolInfoMarginRate);
    
    return (0);
 }
@@ -1644,6 +1645,26 @@ string Execute_SymbolInfoSessionTrade()
    info_jo.put("To", new JSONNumber((long)to));
    result_value_jo.put("Result", info_jo);
    
+   return CreateSuccessResponse(result_value_jo);
+}
+
+string Execute_SymbolInfoMarginRate()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
+   GET_INT_JSON_VALUE(jo, "OrderType", order_type);
+
+   double initial_margin_rate = 0.0;
+   double maintenance_margin_rate = 0.0;
+   bool ok = SymbolInfoMarginRate(symbol, (ENUM_ORDER_TYPE)order_type, initial_margin_rate, maintenance_margin_rate);
+
+   JSONObject* result_value_jo = new JSONObject();
+   result_value_jo.put("RetVal", new JSONBool(ok));
+   JSONObject* info_jo = new JSONObject();
+   info_jo.put("Initial", new JSONNumber(initial_margin_rate));
+   info_jo.put("Maintenance", new JSONNumber(maintenance_margin_rate));
+   result_value_jo.put("Result", info_jo);
+
    return CreateSuccessResponse(result_value_jo);
 }
 

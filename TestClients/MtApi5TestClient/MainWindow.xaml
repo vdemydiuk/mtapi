@@ -499,6 +499,7 @@
                             <Button Command="{Binding SymbolInfoTickCommand}" Content="SymbolInfoTick" Margin="2"/>
                             <Button Command="{Binding SymbolInfoSessionQuoteCommand}" Content="SymbolInfoSessionQuote" Margin="2"/>
                             <Button Command="{Binding SymbolInfoSessionTradeCommand}" Content="SymbolInfoSessionTrade" Margin="2"/>
+                            <Button Command="{Binding SymbolInfoMarginRateCommand}" Content="SymbolInfoMarginRate" Margin="2"/>
                             <Button Command="{Binding MarketBookAddCommand}" Content="MarketBookAdd" Margin="2"/>
                             <Button Command="{Binding MarketBookReleaseCommand}" Content="MarketBookRelease" Margin="2"/>
                             <Button Command="{Binding MarketBookGetCommand}" Content="MarketBookGet" Margin="2"/>

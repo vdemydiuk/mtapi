@@ -260,6 +260,8 @@ namespace MtApi5.MtProtocol
         OrderCheck = 303,
         Buy = 304,
         Sell = 305,
-        GetSymbols = 306
+        GetSymbols = 306,
+
+        SymbolInfoMarginRate = 380
     }
 }

@@ -1702,6 +1702,32 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Returns the margin rates depending on the order type and direction.
+        ///</summary>
+        ///<param name="symbolName">Symbol name.</param>
+        ///<param name="orderType">Order type.</param>
+        ///<param name="initialMarginRate">A variable, to which the initial margin rate value will be written.</param>
+        ///<param name="maintenanceMarginRate">A variable, to which the maintenance margin rate value will be written.</param>
+        public bool SymbolInfoMarginRate(string symbolName, ENUM_ORDER_TYPE orderType, out double initialMarginRate, out double maintenanceMarginRate)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbolName ?? string.Empty }, { "OrderType", orderType } };
+
+            var response = SendCommand<FuncResult<Dictionary<string, double>>>(ExecutorHandle,
+                Mt5CommandType.SymbolInfoMarginRate, cmdParams);
+            if (response != null && response.Result != null
+                && response.Result.TryGetValue("Initial", out double initial)
+                && response.Result.TryGetValue("Maintenance", out double maintenance))
+            {
+                initialMarginRate = initial;
+                maintenanceMarginRate = maintenance;
+                return response.RetVal;
+            }
+            initialMarginRate = 0;
+            maintenanceMarginRate = 0;
+            return false;
+        }
+
+        ///<summary>
         ///Provides opening of Depth of Market for a selected symbol, and subscribes for receiving notifications of the DOM changes.
         ///</summary>
         ///<param name="symbol">Symbol name.</param>
