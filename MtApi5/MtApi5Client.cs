@@ -1049,6 +1049,160 @@ namespace MtApi5
             return response?.Count ?? 0;
         }
 
+        #region Economic Calendar
+
+        ///<summary>
+        ///Gets the array of country descriptions available in the terminal's economic calendar.
+        ///</summary>
+        ///<returns>Array of countries (empty if none).</returns>
+        public MqlCalendarCountry[] CalendarCountries()
+        {
+            // Send an empty object "{}" (not null): the EA's GET_JSON_PAYLOAD needs a valid JSON object.
+            var cmdParams = new Dictionary<string, object>();
+            var response = SendCommand<List<MqlCalendarCountry>>(ExecutorHandle, Mt5CommandType.CalendarCountries, cmdParams);
+            return response?.ToArray() ?? [];
+        }
+
+        ///<summary>
+        ///Gets a country description by its id.
+        ///</summary>
+        ///<param name="countryId">Country id (ISO 3166-1).</param>
+        ///<param name="country">Receives the country description when found.</param>
+        ///<returns>true if the country was found; otherwise false.</returns>
+        public bool CalendarCountryById(long countryId, out MqlCalendarCountry? country)
+        {
+            var cmdParams = new Dictionary<string, object> { { "CountryId", countryId } };
+            country = SendCommand<MqlCalendarCountry>(ExecutorHandle, Mt5CommandType.CalendarCountryById, cmdParams);
+            return country != null;
+        }
+
+        ///<summary>
+        ///Gets an economic calendar event description by its id.
+        ///</summary>
+        ///<param name="eventId">Event id.</param>
+        ///<param name="evt">Receives the event description when found.</param>
+        ///<returns>true if the event was found; otherwise false.</returns>
+        public bool CalendarEventById(long eventId, out MqlCalendarEvent? evt)
+        {
+            var cmdParams = new Dictionary<string, object> { { "EventId", eventId } };
+            evt = SendCommand<MqlCalendarEvent>(ExecutorHandle, Mt5CommandType.CalendarEventById, cmdParams);
+            return evt != null;
+        }
+
+        ///<summary>
+        ///Gets the array of calendar events for the specified country.
+        ///</summary>
+        ///<param name="countryCode">Country code name (ISO 3166-1 alpha-2), e.g. "US".</param>
+        ///<returns>Array of events (empty if none).</returns>
+        public MqlCalendarEvent[] CalendarEventByCountry(string countryCode)
+        {
+            var cmdParams = new Dictionary<string, object> { { "CountryCode", countryCode ?? string.Empty } };
+            var response = SendCommand<List<MqlCalendarEvent>>(ExecutorHandle, Mt5CommandType.CalendarEventByCountry, cmdParams);
+            return response?.ToArray() ?? [];
+        }
+
+        ///<summary>
+        ///Gets the array of calendar events for the specified currency.
+        ///</summary>
+        ///<param name="currency">Currency code, e.g. "USD".</param>
+        ///<returns>Array of events (empty if none).</returns>
+        public MqlCalendarEvent[] CalendarEventByCurrency(string currency)
+        {
+            var cmdParams = new Dictionary<string, object> { { "Currency", currency ?? string.Empty } };
+            var response = SendCommand<List<MqlCalendarEvent>>(ExecutorHandle, Mt5CommandType.CalendarEventByCurrency, cmdParams);
+            return response?.ToArray() ?? [];
+        }
+
+        ///<summary>
+        ///Gets a calendar event value by its id.
+        ///</summary>
+        ///<param name="valueId">Value id.</param>
+        ///<param name="value">Receives the event value when found.</param>
+        ///<returns>true if the value was found; otherwise false.</returns>
+        public bool CalendarValueById(long valueId, out MqlCalendarValue? value)
+        {
+            var cmdParams = new Dictionary<string, object> { { "ValueId", valueId } };
+            value = SendCommand<MqlCalendarValue>(ExecutorHandle, Mt5CommandType.CalendarValueById, cmdParams);
+            return value != null;
+        }
+
+        ///<summary>
+        ///Gets calendar event values by event id within the specified date range.
+        ///</summary>
+        ///<param name="eventId">Event id.</param>
+        ///<param name="from">Range start (left boundary).</param>
+        ///<param name="to">Range end (right boundary). Pass default for an open-ended range.</param>
+        ///<returns>Array of event values (empty if none).</returns>
+        public MqlCalendarValue[] CalendarValueHistoryByEvent(long eventId, DateTime from, DateTime to = default)
+        {
+            var cmdParams = new Dictionary<string, object>
+            {
+                { "EventId", eventId },
+                { "FromDate", Mt5TimeConverter.ConvertToMtTime(from) },
+                { "ToDate", to == default ? 0 : Mt5TimeConverter.ConvertToMtTime(to) }
+            };
+            var response = SendCommand<List<MqlCalendarValue>>(ExecutorHandle, Mt5CommandType.CalendarValueHistoryByEvent, cmdParams);
+            return response?.ToArray() ?? [];
+        }
+
+        ///<summary>
+        ///Gets calendar event values within the specified date range, optionally filtered by country and/or currency.
+        ///</summary>
+        ///<param name="from">Range start (left boundary).</param>
+        ///<param name="to">Range end (right boundary). Pass default for an open-ended range.</param>
+        ///<param name="countryCode">Optional country code filter (ISO 3166-1 alpha-2). null/empty = no filter.</param>
+        ///<param name="currency">Optional currency filter. null/empty = no filter.</param>
+        ///<returns>Array of event values (empty if none).</returns>
+        public MqlCalendarValue[] CalendarValueHistory(DateTime from, DateTime to = default,
+                                                       string? countryCode = null, string? currency = null)
+        {
+            var cmdParams = new Dictionary<string, object>
+            {
+                { "FromDate", Mt5TimeConverter.ConvertToMtTime(from) },
+                { "ToDate", to == default ? 0 : Mt5TimeConverter.ConvertToMtTime(to) },
+                { "CountryCode", countryCode ?? string.Empty },
+                { "Currency", currency ?? string.Empty }
+            };
+            var response = SendCommand<List<MqlCalendarValue>>(ExecutorHandle, Mt5CommandType.CalendarValueHistory, cmdParams);
+            return response?.ToArray() ?? [];
+        }
+
+        ///<summary>
+        ///Gets the calendar event values that changed for the specified event since the given change id.
+        ///</summary>
+        ///<param name="eventId">Event id.</param>
+        ///<param name="changeId">In/out change id: pass the last known value (0 initially); receives the current change id.</param>
+        ///<returns>Array of changed event values (empty if none).</returns>
+        public MqlCalendarValue[] CalendarValueLastByEvent(long eventId, ref long changeId)
+        {
+            var cmdParams = new Dictionary<string, object> { { "EventId", eventId }, { "ChangeId", changeId } };
+            var response = SendCommand<CalendarValueLastResult>(ExecutorHandle, Mt5CommandType.CalendarValueLastByEvent, cmdParams);
+            changeId = response?.ChangeId ?? changeId;
+            return response?.Values?.ToArray() ?? [];
+        }
+
+        ///<summary>
+        ///Gets the calendar event values that changed since the given change id, optionally filtered by country and/or currency.
+        ///</summary>
+        ///<param name="changeId">In/out change id: pass the last known value (0 initially); receives the current change id.</param>
+        ///<param name="countryCode">Optional country code filter (ISO 3166-1 alpha-2). null/empty = no filter.</param>
+        ///<param name="currency">Optional currency filter. null/empty = no filter.</param>
+        ///<returns>Array of changed event values (empty if none).</returns>
+        public MqlCalendarValue[] CalendarValueLast(ref long changeId, string? countryCode = null, string? currency = null)
+        {
+            var cmdParams = new Dictionary<string, object>
+            {
+                { "ChangeId", changeId },
+                { "CountryCode", countryCode ?? string.Empty },
+                { "Currency", currency ?? string.Empty }
+            };
+            var response = SendCommand<CalendarValueLastResult>(ExecutorHandle, Mt5CommandType.CalendarValueLast, cmdParams);
+            changeId = response?.ChangeId ?? changeId;
+            return response?.Values?.ToArray() ?? [];
+        }
+
+        #endregion
+
         ///<summary>
         ///The function gets to time_array history data of bar opening time for the specified symbol-period pair in the specified quantity. It should be noted that elements ordering is from present to past, i.e., starting position of 0 means the current bar.
         ///</summary>

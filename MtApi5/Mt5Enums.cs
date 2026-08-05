@@ -951,4 +951,92 @@ namespace MtApi5
         TYPE_STRING     = 14
     }
     #endregion
+
+    #region Economic Calendar Enums
+
+    public enum ENUM_CALENDAR_EVENT_TYPE
+    {
+        CALENDAR_TYPE_EVENT     = 0,
+        CALENDAR_TYPE_INDICATOR = 1,
+        CALENDAR_TYPE_HOLIDAY   = 2
+    }
+
+    public enum ENUM_CALENDAR_EVENT_SECTOR
+    {
+        CALENDAR_SECTOR_NONE       = 0,
+        CALENDAR_SECTOR_MARKET     = 1,
+        CALENDAR_SECTOR_GDP        = 2,
+        CALENDAR_SECTOR_JOBS       = 3,
+        CALENDAR_SECTOR_PRICES     = 4,
+        CALENDAR_SECTOR_MONEY      = 5,
+        CALENDAR_SECTOR_TRADE      = 6,
+        CALENDAR_SECTOR_GOVERNMENT = 7,
+        CALENDAR_SECTOR_BUSINESS   = 8,
+        CALENDAR_SECTOR_CONSUMER   = 9,
+        CALENDAR_SECTOR_HOUSING    = 10,
+        CALENDAR_SECTOR_TAXES      = 11,
+        CALENDAR_SECTOR_HOLIDAYS   = 12
+    }
+
+    public enum ENUM_CALENDAR_EVENT_FREQUENCY
+    {
+        CALENDAR_FREQUENCY_NONE    = 0,
+        CALENDAR_FREQUENCY_WEEK    = 1,
+        CALENDAR_FREQUENCY_MONTH   = 2,
+        CALENDAR_FREQUENCY_QUARTER = 3,
+        CALENDAR_FREQUENCY_YEAR    = 4,
+        CALENDAR_FREQUENCY_DAY     = 5
+    }
+
+    public enum ENUM_CALENDAR_EVENT_TIMEMODE
+    {
+        CALENDAR_TIMEMODE_DATETIME  = 0,
+        CALENDAR_TIMEMODE_DATE      = 1,
+        CALENDAR_TIMEMODE_NOTIME    = 2,
+        CALENDAR_TIMEMODE_TENTATIVE = 3
+    }
+
+    public enum ENUM_CALENDAR_EVENT_UNIT
+    {
+        CALENDAR_UNIT_NONE      = 0,
+        CALENDAR_UNIT_PERCENT   = 1,
+        CALENDAR_UNIT_CURRENCY  = 2,
+        CALENDAR_UNIT_HOUR      = 3,
+        CALENDAR_UNIT_JOB       = 4,
+        CALENDAR_UNIT_RIG       = 5,
+        CALENDAR_UNIT_USD       = 6,
+        CALENDAR_UNIT_PEOPLE    = 7,
+        CALENDAR_UNIT_MORTGAGE  = 8,
+        CALENDAR_UNIT_VOTE      = 9,
+        CALENDAR_UNIT_BARREL    = 10,
+        CALENDAR_UNIT_CUBICFEET = 11,
+        CALENDAR_UNIT_POSITION  = 12,
+        CALENDAR_UNIT_BUILDING  = 13
+    }
+
+    public enum ENUM_CALENDAR_EVENT_IMPORTANCE
+    {
+        CALENDAR_IMPORTANCE_NONE     = 0,
+        CALENDAR_IMPORTANCE_LOW      = 1,
+        CALENDAR_IMPORTANCE_MODERATE = 2,
+        CALENDAR_IMPORTANCE_HIGH     = 3
+    }
+
+    public enum ENUM_CALENDAR_EVENT_MULTIPLIER
+    {
+        CALENDAR_MULTIPLIER_NONE      = 0,
+        CALENDAR_MULTIPLIER_THOUSANDS = 1,
+        CALENDAR_MULTIPLIER_MILLIONS  = 2,
+        CALENDAR_MULTIPLIER_BILLIONS  = 3,
+        CALENDAR_MULTIPLIER_TRILLIONS = 4
+    }
+
+    public enum ENUM_CALENDAR_EVENT_IMPACT
+    {
+        CALENDAR_IMPACT_NA       = 0,
+        CALENDAR_IMPACT_POSITIVE = 1,
+        CALENDAR_IMPACT_NEGATIVE = 2
+    }
+
+    #endregion
 }

@@ -381,7 +381,18 @@ int preinit()
    ADD_EXECUTOR(304, Buy);
    ADD_EXECUTOR(305, Sell);
    ADD_EXECUTOR(306, GetSymbols);
-   
+
+   ADD_EXECUTOR(307, CalendarCountries);
+   ADD_EXECUTOR(308, CalendarCountryById);
+   ADD_EXECUTOR(309, CalendarEventById);
+   ADD_EXECUTOR(310, CalendarEventByCountry);
+   ADD_EXECUTOR(311, CalendarEventByCurrency);
+   ADD_EXECUTOR(312, CalendarValueById);
+   ADD_EXECUTOR(313, CalendarValueHistoryByEvent);
+   ADD_EXECUTOR(314, CalendarValueHistory);
+   ADD_EXECUTOR(315, CalendarValueLastByEvent);
+   ADD_EXECUTOR(316, CalendarValueLast);
+
    return (0);
 }
 
@@ -3474,6 +3485,156 @@ string Execute_GetSymbols()
    return CreateSuccessResponse(jaSymbols);
 }
 
+//+------------------------------------------------------------------+
+//| Economic calendar command handlers                               |
+//+------------------------------------------------------------------+
+string Execute_CalendarCountries()
+{
+   MqlCalendarCountry countries[];
+   ResetLastError();
+   int count = CalendarCountries(countries);
+   if(count <= 0 && GetLastError() != 0)
+      return CreateErrorResponse(GetLastError(), "CalendarCountries failed");
+   JSONArray* ja = new JSONArray();
+   for(int i = 0; i < count; i++) ja.put(i, MqlCalendarCountryToJson(countries[i]));
+   return CreateSuccessResponse(ja);
+}
+
+string Execute_CalendarCountryById()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_LONG_JSON_VALUE(jo, "CountryId", country_id);
+   MqlCalendarCountry country;
+   if(CalendarCountryById(country_id, country))
+      return CreateSuccessResponse(MqlCalendarCountryToJson(country));
+   // native returned false: not found / no data -> null Value -> client bool false
+   return CreateSuccessResponse(NULL);
+}
+
+string Execute_CalendarEventById()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_ULONG_JSON_VALUE(jo, "EventId", event_id);
+   MqlCalendarEvent event;
+   if(CalendarEventById(event_id, event))
+      return CreateSuccessResponse(MqlCalendarEventToJson(event));
+   // native returned false: not found / no data -> null Value -> client bool false
+   return CreateSuccessResponse(NULL);
+}
+
+string Execute_CalendarEventByCountry()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "CountryCode", country_code);
+   MqlCalendarEvent events[];
+   ResetLastError();
+   int count = CalendarEventByCountry(country_code, events);
+   if(count <= 0 && GetLastError() != 0)
+      return CreateErrorResponse(GetLastError(), "CalendarEventByCountry failed");
+   JSONArray* ja = new JSONArray();
+   for(int i = 0; i < count; i++) ja.put(i, MqlCalendarEventToJson(events[i]));
+   return CreateSuccessResponse(ja);
+}
+
+string Execute_CalendarEventByCurrency()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Currency", currency);
+   MqlCalendarEvent events[];
+   ResetLastError();
+   int count = CalendarEventByCurrency(currency, events);
+   if(count <= 0 && GetLastError() != 0)
+      return CreateErrorResponse(GetLastError(), "CalendarEventByCurrency failed");
+   JSONArray* ja = new JSONArray();
+   for(int i = 0; i < count; i++) ja.put(i, MqlCalendarEventToJson(events[i]));
+   return CreateSuccessResponse(ja);
+}
+
+string Execute_CalendarValueById()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_ULONG_JSON_VALUE(jo, "ValueId", value_id);
+   MqlCalendarValue value;
+   if(CalendarValueById(value_id, value))
+      return CreateSuccessResponse(MqlCalendarValueToJson(value));
+   // native returned false: not found / no data -> null Value -> client bool false
+   return CreateSuccessResponse(NULL);
+}
+
+string Execute_CalendarValueHistoryByEvent()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_ULONG_JSON_VALUE(jo, "EventId", event_id);
+   GET_LONG_JSON_VALUE(jo, "FromDate", from_date);
+   GET_LONG_JSON_VALUE(jo, "ToDate", to_date);
+   MqlCalendarValue values[];
+   ResetLastError();
+   int count = CalendarValueHistoryByEvent(event_id, values, (datetime)from_date, (datetime)to_date);
+   if(count <= 0 && GetLastError() != 0)
+      return CreateErrorResponse(GetLastError(), "CalendarValueHistoryByEvent failed");
+   JSONArray* ja = new JSONArray();
+   for(int i = 0; i < count; i++) ja.put(i, MqlCalendarValueToJson(values[i]));
+   return CreateSuccessResponse(ja);
+}
+
+string Execute_CalendarValueHistory()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_LONG_JSON_VALUE(jo, "FromDate", from_date);
+   GET_LONG_JSON_VALUE(jo, "ToDate", to_date);
+   GET_STRING_JSON_VALUE(jo, "CountryCode", country_code);
+   GET_STRING_JSON_VALUE(jo, "Currency", currency);
+   if(StringLen(country_code) == 0) country_code = NULL;
+   if(StringLen(currency) == 0) currency = NULL;
+   MqlCalendarValue values[];
+   ResetLastError();
+   int count = CalendarValueHistory(values, (datetime)from_date, (datetime)to_date, country_code, currency);
+   if(count <= 0 && GetLastError() != 0)
+      return CreateErrorResponse(GetLastError(), "CalendarValueHistory failed");
+   JSONArray* ja = new JSONArray();
+   for(int i = 0; i < count; i++) ja.put(i, MqlCalendarValueToJson(values[i]));
+   return CreateSuccessResponse(ja);
+}
+
+string Execute_CalendarValueLastByEvent()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_ULONG_JSON_VALUE(jo, "EventId", event_id);
+   GET_ULONG_JSON_VALUE(jo, "ChangeId", change_id);
+   MqlCalendarValue values[];
+   ResetLastError();
+   int count = CalendarValueLastByEvent(event_id, change_id, values);
+   if(count <= 0 && GetLastError() != 0)
+      return CreateErrorResponse(GetLastError(), "CalendarValueLastByEvent failed");
+   JSONArray* ja = new JSONArray();
+   for(int i = 0; i < count; i++) ja.put(i, MqlCalendarValueToJson(values[i]));
+   JSONObject* body = new JSONObject();
+   body.put("ChangeId", new JSONNumber((long)change_id));
+   body.put("Values", ja);
+   return CreateSuccessResponse(body);
+}
+
+string Execute_CalendarValueLast()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_ULONG_JSON_VALUE(jo, "ChangeId", change_id);
+   GET_STRING_JSON_VALUE(jo, "CountryCode", country_code);
+   GET_STRING_JSON_VALUE(jo, "Currency", currency);
+   if(StringLen(country_code) == 0) country_code = NULL;
+   if(StringLen(currency) == 0) currency = NULL;
+   MqlCalendarValue values[];
+   ResetLastError();
+   int count = CalendarValueLast(change_id, values, country_code, currency);
+   if(count <= 0 && GetLastError() != 0)
+      return CreateErrorResponse(GetLastError(), "CalendarValueLast failed");
+   JSONArray* ja = new JSONArray();
+   for(int i = 0; i < count; i++) ja.put(i, MqlCalendarValueToJson(values[i]));
+   JSONObject* body = new JSONObject();
+   body.put("ChangeId", new JSONNumber((long)change_id));
+   body.put("Values", ja);
+   return CreateSuccessResponse(body);
+}
+
 int PositionCloseAll()
 {
    CTrade trade;
@@ -3914,5 +4075,52 @@ JSONObject* MqlRatesToJson(const MqlRates& rates)
    jo.put("tick_volume", new JSONNumber(rates.tick_volume));
    jo.put("spread", new JSONNumber(rates.spread));
    jo.put("real_volume", new JSONNumber(rates.real_volume));
+   return jo;
+}
+
+JSONObject* MqlCalendarCountryToJson(const MqlCalendarCountry& c)
+{
+   JSONObject *jo = new JSONObject();
+   jo.put("id", new JSONNumber((long)c.id));
+   jo.put("name", new JSONString(c.name));
+   jo.put("code", new JSONString(c.code));
+   jo.put("currency", new JSONString(c.currency));
+   jo.put("currency_symbol", new JSONString(c.currency_symbol));
+   jo.put("url_name", new JSONString(c.url_name));
+   return jo;
+}
+
+JSONObject* MqlCalendarEventToJson(const MqlCalendarEvent& e)
+{
+   JSONObject *jo = new JSONObject();
+   jo.put("id", new JSONNumber((long)e.id));
+   jo.put("type", new JSONNumber((int)e.type));
+   jo.put("sector", new JSONNumber((int)e.sector));
+   jo.put("frequency", new JSONNumber((int)e.frequency));
+   jo.put("time_mode", new JSONNumber((int)e.time_mode));
+   jo.put("country_id", new JSONNumber((long)e.country_id));
+   jo.put("unit", new JSONNumber((int)e.unit));
+   jo.put("importance", new JSONNumber((int)e.importance));
+   jo.put("multiplier", new JSONNumber((int)e.multiplier));
+   jo.put("digits", new JSONNumber((int)e.digits));
+   jo.put("source_url", new JSONString(e.source_url));
+   jo.put("event_code", new JSONString(e.event_code));
+   jo.put("name", new JSONString(e.name));
+   return jo;
+}
+
+JSONObject* MqlCalendarValueToJson(const MqlCalendarValue& v)
+{
+   JSONObject *jo = new JSONObject();
+   jo.put("id", new JSONNumber((long)v.id));
+   jo.put("event_id", new JSONNumber((long)v.event_id));
+   jo.put("mt_time", new JSONNumber((long)v.time));
+   jo.put("mt_period", new JSONNumber((long)v.period));
+   jo.put("revision", new JSONNumber((int)v.revision));
+   jo.put("actual_value", new JSONNumber((long)v.actual_value));
+   jo.put("prev_value", new JSONNumber((long)v.prev_value));
+   jo.put("revised_prev_value", new JSONNumber((long)v.revised_prev_value));
+   jo.put("forecast_value", new JSONNumber((long)v.forecast_value));
+   jo.put("impact_type", new JSONNumber((int)v.impact_type));
    return jo;
 }

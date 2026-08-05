@@ -66,6 +66,7 @@ namespace MtApi5TestClient
         public DelegateCommand TerminalInfoStringCommand { get; private set; }
 
         public DelegateCommand CopyRatesCommand { get; private set; }
+        public DelegateCommand CalendarHistoryCommand { get; private set; }
         public DelegateCommand CopyTimesCommand { get; private set; }
         public DelegateCommand CopyOpenCommand { get; private set; }
         public DelegateCommand CopyHighCommand { get; private set; }
@@ -412,6 +413,7 @@ namespace MtApi5TestClient
             TerminalInfoStringCommand = new DelegateCommand(ExecuteTerminalInfoString);
 
             CopyRatesCommand = new DelegateCommand(ExecuteCopyRates);
+            CalendarHistoryCommand = new DelegateCommand(ExecuteCalendarValueHistory);
             CopyTimesCommand = new DelegateCommand(ExecuteCopyTime);
             CopyOpenCommand = new DelegateCommand(ExecuteCopyOpen);
             CopyHighCommand = new DelegateCommand(ExecuteCopyHigh);
@@ -1937,6 +1939,25 @@ namespace MtApi5TestClient
 
             TradeRequest.Symbol = SelectedQuote.Instrument;
             TimeSeriesValues.SymbolValue = SelectedQuote.Instrument;
+        }
+
+        private async void ExecuteCalendarValueHistory(object o)
+        {
+            var from = DateTime.Now.AddDays(-7);
+            var result = await Execute(() => _mtApiClient.CalendarValueHistory(from));
+
+            if (result == null)
+            {
+                AddLog("CalendarValueHistory: result is null");
+                return;
+            }
+
+            AddLog($"CalendarValueHistory: {result.Length} values since {from:u}");
+            foreach (var v in result)
+            {
+                AddLog($"  event={v.event_id}; time={v.time:u}; actual={v.ActualValue}; " +
+                       $"forecast={v.ForecastValue}; prev={v.PrevValue}; impact={v.impact_type}");
+            }
         }
 
         private async Task<TResult> Execute<TResult>(Func<TResult> func)

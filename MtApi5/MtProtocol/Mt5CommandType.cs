@@ -260,6 +260,17 @@ namespace MtApi5.MtProtocol
         OrderCheck = 303,
         Buy = 304,
         Sell = 305,
-        GetSymbols = 306
+        GetSymbols = 306,
+
+        CalendarCountries = 307,
+        CalendarCountryById = 308,
+        CalendarEventById = 309,
+        CalendarEventByCountry = 310,
+        CalendarEventByCurrency = 311,
+        CalendarValueById = 312,
+        CalendarValueHistoryByEvent = 313,
+        CalendarValueHistory = 314,
+        CalendarValueLastByEvent = 315,
+        CalendarValueLast = 316
     }
 }
