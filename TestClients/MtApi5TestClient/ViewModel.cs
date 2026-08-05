@@ -142,6 +142,7 @@ namespace MtApi5TestClient
         public DelegateCommand ChartYOnDroppedCommand { get; private set; }
         public DelegateCommand ChartSetSymbolPeriodCommand { get; private set; }
         public DelegateCommand ChartScreenShotCommand { get; private set; }
+        public DelegateCommand EventChartCustomCommand { get; private set; }
 
         public DelegateCommand TimeTradeServerCommand { get; private set; }
         public DelegateCommand TimeLocalCommand { get; private set; }
@@ -359,6 +360,7 @@ namespace MtApi5TestClient
             _mtApiClient.OnBookEvent += _mtApiClient_OnBookEvent;
             _mtApiClient.OnLastTimeBar += _mtApiClient_OnLastTimeBar;
             _mtApiClient.OnLockTicks += _mtApiClient_OnLockTicks;
+            _mtApiClient.OnChartEvent += _mtApiClient_OnChartEvent;
 
             ConnectionState = _mtApiClient.ConnectionState;
             ConnectionMessage = "Disconnected";
@@ -486,6 +488,7 @@ namespace MtApi5TestClient
             ChartYOnDroppedCommand = new DelegateCommand(ExecuteChartYOnDropped);
             ChartSetSymbolPeriodCommand = new DelegateCommand(ExecuteChartSetSymbolPeriod);
             ChartScreenShotCommand = new DelegateCommand(ExecuteChartScreenShot);
+            EventChartCustomCommand = new DelegateCommand(ExecuteEventChartCustom);
 
             TimeCurrentCommand = new DelegateCommand(ExecuteTimeCurrent);
             TimeTradeServerCommand = new DelegateCommand(ExecuteTimeTradeServer);
@@ -1755,6 +1758,14 @@ namespace MtApi5TestClient
             var result = await Execute(() => _mtApiClient.ChartScreenShot(chartId, filename, width, height));
             AddLog($"ChartScreenShot: result {result} for chartid {chartId}. Filename {filename}");
         }
+
+        private async void ExecuteEventChartCustom(object obj)
+        {
+            var chartId = ChartFunctionsChartIdValue;
+            const ushort customEventId = 1;
+            var result = await Execute(() => _mtApiClient.EventChartCustom(chartId, customEventId, 42, 3.14, "Test custom event from MtApi5"));
+            AddLog($"EventChartCustom: result {result} for chartid {chartId}; expect OnChartEvent with EventId = {1000 + customEventId} (CHARTEVENT_CUSTOM + {customEventId})");
+        }
         #endregion
 
         private void ExecuteUnlockTicks(object o)
@@ -1879,6 +1890,11 @@ namespace MtApi5TestClient
         private void _mtApiClient_OnLockTicks(object sender, Mt5LockTicksEventArgs e)
         {
             AddLog($"OnLockTicksEvent: Symbol = {e.Symbol}");
+        }
+
+        private void _mtApiClient_OnChartEvent(object sender, Mt5ChartEventArgs e)
+        {
+            AddLog($"OnChartEvent: ExpertHandle = {e.ExpertHandle}, EventId = {e.EventId}, Lparam = {e.Lparam}, Dparam = {e.Dparam}, Sparam = {e.Sparam}");
         }
 
         private void AddQuote(Mt5Quote quote)

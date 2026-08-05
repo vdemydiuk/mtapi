@@ -36,8 +36,9 @@ input LockTickType BacktestingLockTicks = NO_LOCK;
 input group           "Disable Events "
 input bool Enable_OnBookEvent = true;                 
 input bool Enable_OnTickEvent = false;                 
-input bool Enable_OnTradeTransactionEvent = true;     
-input bool Enable_OnLastBarEvent = true;    
+input bool Enable_OnTradeTransactionEvent = true;
+input bool Enable_OnLastBarEvent = true;
+input bool Enable_OnChartEvent = true;
 
 
 int ExpertHandle;
@@ -142,6 +143,28 @@ void OnBookEvent(const string& symbol)
 
     MtOnBookEvent book_event(symbol);
     SendMtEvent(ON_BOOK_EVENT, book_event);
+}
+
+void OnChartEvent(const int id, const long& lparam, const double& dparam, const string& sparam)
+{
+    if(!Enable_OnChartEvent) return;
+
+    #ifdef __DEBUG_LOG__
+      PrintFormat("%s: id = %d", __FUNCTION__, id);
+    #endif
+
+    // JSONString::toString() in json.mqh performs no escaping, so escape sparam manually
+    // (backslash first, then quote and control characters) to keep the event JSON valid.
+    string escaped_sparam = sparam;
+    StringReplace(escaped_sparam, "\\", "\\\\");
+    StringReplace(escaped_sparam, "\"", "\\\"");
+    StringReplace(escaped_sparam, "\n", "\\n");
+    StringReplace(escaped_sparam, "\r", "\\r");
+    StringReplace(escaped_sparam, "\t", "\\t");
+
+    // Custom events sent with EventChartCustom arrive with id = CHARTEVENT_CUSTOM (1000) + custom event id.
+    MtOnChartEvent chart_event(id, lparam, dparam, escaped_sparam);
+    SendMtEvent(ON_CHART_EVENT, chart_event);
 }
 
 typedef string (*TExecutor)();
@@ -381,7 +404,9 @@ int preinit()
    ADD_EXECUTOR(304, Buy);
    ADD_EXECUTOR(305, Sell);
    ADD_EXECUTOR(306, GetSymbols);
-   
+
+   ADD_EXECUTOR(385, EventChartCustom);
+
    return (0);
 }
 
@@ -3474,6 +3499,20 @@ string Execute_GetSymbols()
    return CreateSuccessResponse(jaSymbols);
 }
 
+string Execute_EventChartCustom()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_LONG_JSON_VALUE(jo, "ChartId", chart_id);
+   GET_INT_JSON_VALUE(jo, "CustomEventId", custom_event_id);
+   GET_LONG_JSON_VALUE(jo, "Lparam", lparam);
+   GET_DOUBLE_JSON_VALUE(jo, "Dparam", dparam);
+   GET_STRING_JSON_VALUE(jo, "Sparam", sparam);
+
+   // The event is delivered back through OnChartEvent with id = CHARTEVENT_CUSTOM (1000) + custom_event_id.
+   bool result = EventChartCustom(chart_id, (ushort)custom_event_id, lparam, dparam, sparam);
+   return CreateSuccessResponse(new JSONBool(result));
+}
+
 int PositionCloseAll()
 {
    CTrade trade;
@@ -3584,7 +3623,8 @@ enum MtEventTypes
    ON_BOOK_EVENT              = 2,
    ON_TICK_EVENT              = 3,
    ON_LAST_TIME_BAR_EVENT     = 4,
-   ON_LOCK_TICKS_EVENT        = 5
+   ON_LOCK_TICKS_EVENT        = 5,
+   ON_CHART_EVENT             = 6
 };
 
 class MtObject
@@ -3684,6 +3724,34 @@ private:
    string _symbol;
    int _timeframe;
    MqlRates _rates;
+};
+
+class MtOnChartEvent: public MtObject
+{
+public:
+   MtOnChartEvent(int id, long lparam, double dparam, string sparam)
+   {
+      _id = id;
+      _lparam = lparam;
+      _dparam = dparam;
+      _sparam = sparam;
+   }
+
+   virtual JSONObject* CreateJson() const
+   {
+      JSONObject *jo = new JSONObject();
+      jo.put("EventId", new JSONNumber(_id));
+      jo.put("Lparam", new JSONNumber(_lparam));
+      jo.put("Dparam", new JSONNumber(_dparam));
+      jo.put("Sparam", new JSONString(_sparam));
+      return jo;
+   }
+
+private:
+   int    _id;
+   long   _lparam;
+   double _dparam;
+   string _sparam;
 };
 
 class MtLockTickEvent: public MtObject

@@ -57,6 +57,7 @@ namespace MtApi5
             _mtEventHandlers[Mt5EventTypes.OnTradeTransaction] = ReceivedOnTradeTransactionEvent;
             _mtEventHandlers[Mt5EventTypes.OnLastTimeBar] = ReceivedOnLastTimeBarEvent;
             _mtEventHandlers[Mt5EventTypes.OnLockTicks] = ReceivedOnLockTicksEvent;
+            _mtEventHandlers[Mt5EventTypes.OnChartEvent] = ReceivedOnChartEvent;
 
             Log = log ?? new StubMtLogger();
         }
@@ -2212,6 +2213,25 @@ namespace MtApi5
                 { "Width", width }, { "Height", height }, { "AlignMode", (int)alignMode } };
             return SendCommand<bool>(ExecutorHandle, Mt5CommandType.ChartScreenShot, cmdParams);
         }
+
+        ///<summary>
+        ///Generates a custom event for the specified chart. The event is delivered back through the
+        ///OnChartEvent event with EventId = CHARTEVENT_CUSTOM (1000) + customEventId.
+        ///</summary>
+        ///<param name="chartId">Chart ID. 0 means the current chart.</param>
+        ///<param name="customEventId">ID of the user's event. This event ID is added to CHARTEVENT_CUSTOM (1000) on delivery.</param>
+        ///<param name="lparam">Event parameter of the long type.</param>
+        ///<param name="dparam">Event parameter of the double type.</param>
+        ///<param name="sparam">Event parameter of the string type.</param>
+        ///<returns>
+        ///Returns true if the custom event has been successfully placed in the events queue of the chart, otherwise false.
+        ///</returns>
+        public bool EventChartCustom(long chartId, ushort customEventId, long lparam, double dparam, string sparam)
+        {
+            Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "CustomEventId", (int)customEventId },
+                { "Lparam", lparam }, { "Dparam", dparam }, { "Sparam", sparam ?? string.Empty } };
+            return SendCommand<bool>(ExecutorHandle, Mt5CommandType.EventChartCustom, cmdParams);
+        }
         #endregion
 
         #region Commands of Terminal
@@ -3385,6 +3405,7 @@ namespace MtApi5
         public event EventHandler<Mt5BookEventArgs>? OnBookEvent;
         public event EventHandler<Mt5TimeBarArgs>? OnLastTimeBar;
         public event EventHandler<Mt5LockTicksEventArgs>? OnLockTicks;
+        public event EventHandler<Mt5ChartEventArgs>? OnChartEvent;
         public event EventHandler<Mt5QuotesEventArgs>? QuoteList;
         #endregion
 
@@ -3547,6 +3568,14 @@ namespace MtApi5
             if (e == null || string.IsNullOrEmpty(e.Instrument) || e.Rates == null)
                 return;
             OnLastTimeBar?.Invoke(this, new Mt5TimeBarArgs(expertHandle, e.Instrument, e.Timeframe, e.Rates));
+        }
+
+        private void ReceivedOnChartEvent(int expertHandle, string payload)
+        {
+            var e = JsonConvert.DeserializeObject<MtProtocol.OnChartEvent>(payload);
+            if (e == null)
+                return;
+            OnChartEvent?.Invoke(this, new Mt5ChartEventArgs(expertHandle, e.EventId, e.Lparam, e.Dparam, e.Sparam ?? string.Empty));
         }
 
         private void ReceivedOnLockTicksEvent(int expertHandle, string payload)

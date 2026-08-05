@@ -6,6 +6,7 @@
         OnBookEvent = 2,
         OnTick = 3,
         OnLastTimeBar = 4,
-        OnLockTicks = 5
+        OnLockTicks = 5,
+        OnChartEvent = 6
     }
 }

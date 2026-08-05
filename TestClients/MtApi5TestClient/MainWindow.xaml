@@ -590,6 +590,7 @@
                             <Button Command="{Binding ChartYOnDroppedCommand}" Content="ChartYOnDropped" Margin="2"/>
                             <Button Command="{Binding ChartSetSymbolPeriodCommand}" Content="ChartSetSymbolPeriod" Margin="2"/>
                             <Button Command="{Binding ChartScreenShotCommand}" Content="ChartScreenShot" Margin="2"/>
+                            <Button Command="{Binding EventChartCustomCommand}" Content="EventChartCustom" Margin="2"/>
                         </WrapPanel>
                     </Grid>
                 </TabItem>
