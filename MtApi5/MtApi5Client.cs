@@ -3110,8 +3110,8 @@ namespace MtApi5
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, int[] parameters)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty },
-                { "Timeframe", (int)period }, { "Name", name  ?? string.Empty }, { "Parameters", parameters },
-                { "Params", ParametersType.Int } };
+                { "Timeframe", (int)period }, { "Name", name  ?? string.Empty }, { "Params", parameters },
+                { "ParamsType", ParametersType.Int } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
