@@ -79,10 +79,7 @@ public:
       jo.put("ClosePrice", new JSONNumber(_closePrice));
       jo.put("Lots", new JSONNumber(_lots));
       jo.put("Profit", new JSONNumber(_profit));
-      if (_comment != "")
-      {
-         jo.put("Comment", new JSONString(_comment));
-      }
+      jo.put("Comment", new JSONString(_comment));
       jo.put("Commission", new JSONNumber(_commission));
       jo.put("MagicNumber", new JSONNumber(_magicNumber));
       jo.put("MtOpenTime", new JSONNumber(_openTime));
