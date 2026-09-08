@@ -809,6 +809,7 @@ private:
             sign=1;
            }
 
+         i=_pos;
          while(i<_len && isDigit(_in[i])) 
            {
             l=l*10+(_in[i]-'0');
