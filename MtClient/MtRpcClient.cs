@@ -87,6 +87,28 @@ namespace MtClient
             return response;
         }
 
+        public async Task<string?> SendCommandAsync(int expertHandle, int commandType, string payload, int timeout = 10000)  // 10 sec
+        {
+            CommandTask<string> commandTask = new();
+            int commandId;
+            lock (tasks_)
+            {
+                commandId = nextCommandId++;
+                tasks_[commandId] = commandTask;
+            }
+
+            MtCommand command = new(expertHandle, commandType, commandId, payload);
+            Send(command);
+
+            var response = await commandTask.WaitResponseAsync(timeout).ConfigureAwait(false);
+            lock (tasks_)
+            {
+                tasks_.Remove(commandId);
+            }
+
+            return response;
+        }
+
         public HashSet<int>? RequestExpertsList()
         {
             CommandTask<object> requestTask = new();
@@ -309,12 +331,29 @@ namespace MtClient
     internal class CommandTask<T>
     {
         private readonly EventWaitHandle responseWaiter_ = new AutoResetEvent(false);
+        // RunContinuationsAsynchronously: the response arrives on the receive thread, so awaiter
+        // continuations must not run inline on it and block processing of further messages.
+        private readonly TaskCompletionSource<T?> responseSource_ = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private T? response_;
         private readonly object locker_ = new();
 
         public T? WaitResponse(int time)
         {
             responseWaiter_.WaitOne(time);
+            lock (locker_)
+            {
+                return response_;
+            }
+        }
+
+        public async Task<T?> WaitResponseAsync(int time)
+        {
+            using var timeoutCancellation = new CancellationTokenSource();
+            var completed = await Task.WhenAny(responseSource_.Task, Task.Delay(time, timeoutCancellation.Token)).ConfigureAwait(false);
+            if (completed == responseSource_.Task)
+                timeoutCancellation.Cancel();
+
+            // Mirrors WaitResponse: on timeout the current response value (default if none arrived) is returned.
             lock (locker_)
             {
                 return response_;
@@ -328,6 +367,7 @@ namespace MtClient
                 response_ = result;
             }
             responseWaiter_.Set();
+            responseSource_.TrySetResult(result);
         }
     }
 
