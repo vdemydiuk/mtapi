@@ -51,17 +51,17 @@
         <data name="stringPayload" id="3" type="varDataEncoding"/>
 	</sbe:message>
 	
-	<sbe:message name="MtExpertList" id="102" description="Provide expert list linked to MetaTrader">
+	<sbe:message name="MtExpertList" id="103" description="Provide expert list linked to MetaTrader">
         <group name="extert_list" id="1" dimensionType="groupSizeEncoding">
             <field name="expert_handle" id="2" type="int32_t"/>
         </group>
 	</sbe:message>
 	
-	<sbe:message name="MtExertAdded" id="102" description="Event about adding exeprt into MetaTrader">
+	<sbe:message name="MtExertAdded" id="104" description="Event about adding exeprt into MetaTrader">
         <field name="expert_handle" id="1" type="uint32_t"/>
 	</sbe:message>
 	
-	<sbe:message name="MtExertRemoved" id="102" description="Event about removing exeprt from MetaTrader">
+	<sbe:message name="MtExertRemoved" id="105" description="Event about removing exeprt from MetaTrader">
         <field name="expert_handle" id="1" type="uint32_t"/>
 	</sbe:message>
 	
