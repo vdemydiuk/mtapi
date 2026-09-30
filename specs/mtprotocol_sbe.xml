@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
+                   package="net.mtapi4"
+                   id="1"
+                   version="1"
+                   semanticVersion="1.0"
+                   byteOrder="littleEndian">
+
+    <!-- Types Definition -->
+    <types>
+        <type name="uint8_t" primitiveType="uint8"/>
+        <type name="uint16_t" primitiveType="uint16"/>
+        <type name="uint32_t" primitiveType="uint32"/>
+        <type name="uint64_t" primitiveType="uint64"/>
+
+        <composite name="messageHeader" description="Standard SBE Header">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="templateId" primitiveType="uint16"/>
+            <type name="schemaId" primitiveType="uint16"/>
+            <type name="version" primitiveType="uint16"/>
+        </composite>
+
+        <composite name="varDataEncoding">
+            <type name="length" primitiveType="uint32"/>
+            <type name="varData" primitiveType="uint8" length="0" characterEncoding="UTF-8"/>
+        </composite>
+		
+		<composite name="groupSizeEncoding">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="numInGroup" primitiveType="uint16"/>
+        </composite>
+    </types>
+
+    <!-- Messages Definition -->
+	<sbe:message name="MtCommand" id="100" description="Carry command payload to MetaTrader">
+        <field name="expert_handle" id="1" type="uint32_t"/>
+        <field name="command_id" id="2" type="uint32_t"/>
+        <field name="command_type" id="3" type="uint16_t"/>
+        <data name="stringPayload" id="4" type="varDataEncoding"/>
+	</sbe:message>
+	
+	<sbe:message name="MtResponse" id="101" description="Carry response payload from MetaTrader">
+        <field name="expert_handle" id="1" type="uint32_t"/>
+        <field name="command_id" id="2" type="uint32_t"/>>
+        <data name="stringPayload" id="3" type="varDataEncoding"/>
+	</sbe:message>
+	
+	<sbe:message name="MtEvent" id="102" description="Carry event payload from MetaTrader">
+        <field name="expert_handle" id="1" type="uint32_t"/>
+		<field name="event_type" id="2" type="uint16_t"/>
+        <data name="stringPayload" id="3" type="varDataEncoding"/>
+	</sbe:message>
+	
+	<sbe:message name="MtExpertList" id="102" description="Provide expert list linked to MetaTrader">
+        <group name="extert_list" id="1" dimensionType="groupSizeEncoding">
+            <field name="expert_handle" id="2" type="int32_t"/>
+        </group>
+	</sbe:message>
+	
+	<sbe:message name="MtExertAdded" id="102" description="Event about adding exeprt into MetaTrader">
+        <field name="expert_handle" id="1" type="uint32_t"/>
+	</sbe:message>
+	
+	<sbe:message name="MtExertRemoved" id="102" description="Event about removing exeprt from MetaTrader">
+        <field name="expert_handle" id="1" type="uint32_t"/>
+	</sbe:message>
+	
+	<sbe:message name="MtServiceRequest" id="106" description="Internal request to the MtApiService">
+		<field name="request_type" id="1" type="uint16_t"/>
+	</sbe:message>
+
+</sbe:messageSchema>
