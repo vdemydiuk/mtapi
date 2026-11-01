@@ -1,6 +1,6 @@
 /* Generated SBE (Simple Binary Encoding) message codec */
-#ifndef _MTSERVICE_MTEXERTADDED_CXX_H_
-#define _MTSERVICE_MTEXERTADDED_CXX_H_
+#ifndef _MTSERVICE_MTEXPERTREMOVED_CXX_H_
+#define _MTSERVICE_MTEXPERTREMOVED_CXX_H_
 
 #if __cplusplus >= 201103L
 #  define SBE_CONSTEXPR constexpr
@@ -96,7 +96,7 @@
 
 namespace MtService {
 
-class MtExertAdded
+class MtExpertRemoved
 {
 private:
     char *m_buffer = nullptr;
@@ -113,7 +113,7 @@ private:
 
 public:
     static constexpr std::uint16_t SBE_BLOCK_LENGTH = static_cast<std::uint16_t>(4);
-    static constexpr std::uint16_t SBE_TEMPLATE_ID = static_cast<std::uint16_t>(104);
+    static constexpr std::uint16_t SBE_TEMPLATE_ID = static_cast<std::uint16_t>(105);
     static constexpr std::uint16_t SBE_SCHEMA_ID = static_cast<std::uint16_t>(1);
     static constexpr std::uint16_t SBE_SCHEMA_VERSION = static_cast<std::uint16_t>(1);
     static constexpr const char* SBE_SEMANTIC_VERSION = "1.0";
@@ -137,9 +137,9 @@ public:
 
     using messageHeader = MessageHeader;
 
-    MtExertAdded() = default;
+    MtExpertRemoved() = default;
 
-    MtExertAdded(
+    MtExpertRemoved(
         char *buffer,
         const std::uint64_t offset,
         const std::uint64_t bufferLength,
@@ -154,17 +154,17 @@ public:
     {
     }
 
-    MtExertAdded(char *buffer, const std::uint64_t bufferLength) :
-        MtExertAdded(buffer, 0, bufferLength, sbeBlockLength(), sbeSchemaVersion())
+    MtExpertRemoved(char *buffer, const std::uint64_t bufferLength) :
+        MtExpertRemoved(buffer, 0, bufferLength, sbeBlockLength(), sbeSchemaVersion())
     {
     }
 
-    MtExertAdded(
+    MtExpertRemoved(
         char *buffer,
         const std::uint64_t bufferLength,
         const std::uint64_t actingBlockLength,
         const std::uint64_t actingVersion) :
-        MtExertAdded(buffer, 0, bufferLength, actingBlockLength, actingVersion)
+        MtExpertRemoved(buffer, 0, bufferLength, actingBlockLength, actingVersion)
     {
     }
 
@@ -180,7 +180,7 @@ public:
 
     SBE_NODISCARD static SBE_CONSTEXPR std::uint16_t sbeTemplateId() SBE_NOEXCEPT
     {
-        return static_cast<std::uint16_t>(104);
+        return static_cast<std::uint16_t>(105);
     }
 
     SBE_NODISCARD static SBE_CONSTEXPR std::uint16_t sbeSchemaId() SBE_NOEXCEPT
@@ -208,7 +208,7 @@ public:
         return m_offset;
     }
 
-    MtExertAdded &wrapForEncode(char *buffer, const std::uint64_t offset, const std::uint64_t bufferLength)
+    MtExpertRemoved &wrapForEncode(char *buffer, const std::uint64_t offset, const std::uint64_t bufferLength)
     {
         m_buffer = buffer;
         m_bufferLength = bufferLength;
@@ -219,7 +219,7 @@ public:
         return *this;
     }
 
-    MtExertAdded &wrapAndApplyHeader(char *buffer, const std::uint64_t offset, const std::uint64_t bufferLength)
+    MtExpertRemoved &wrapAndApplyHeader(char *buffer, const std::uint64_t offset, const std::uint64_t bufferLength)
     {
         messageHeader hdr(buffer, offset, bufferLength, sbeSchemaVersion());
 
@@ -238,7 +238,7 @@ public:
         return *this;
     }
 
-    MtExertAdded &wrapForDecode(
+    MtExpertRemoved &wrapForDecode(
         char *buffer,
         const std::uint64_t offset,
         const std::uint64_t actingBlockLength,
@@ -254,7 +254,7 @@ public:
         return *this;
     }
 
-    MtExertAdded &sbeRewind()
+    MtExpertRemoved &sbeRewind()
     {
         return wrapForDecode(m_buffer, m_offset, m_actingBlockLength, m_actingVersion, m_bufferLength);
     }
@@ -286,7 +286,7 @@ public:
 
     SBE_NODISCARD std::uint64_t decodeLength() const
     {
-        MtExertAdded skipper(m_buffer, m_offset, m_bufferLength, m_actingBlockLength, m_actingVersion);
+        MtExpertRemoved skipper(m_buffer, m_offset, m_bufferLength, m_actingBlockLength, m_actingVersion);
         skipper.skip();
         return skipper.encodedLength();
     }
@@ -367,7 +367,7 @@ public:
         return SBE_LITTLE_ENDIAN_ENCODE_32(val);
     }
 
-    MtExertAdded &expert_handle(const std::uint32_t value) SBE_NOEXCEPT
+    MtExpertRemoved &expert_handle(const std::uint32_t value) SBE_NOEXCEPT
     {
         std::uint32_t val = SBE_LITTLE_ENDIAN_ENCODE_32(value);
         std::memcpy(m_buffer + m_offset + 0, &val, sizeof(std::uint32_t));
@@ -376,9 +376,9 @@ public:
 
 template<typename CharT, typename Traits>
 friend std::basic_ostream<CharT, Traits> & operator << (
-    std::basic_ostream<CharT, Traits> &builder, const MtExertAdded &_writer)
+    std::basic_ostream<CharT, Traits> &builder, const MtExpertRemoved &_writer)
 {
-    MtExertAdded writer(
+    MtExpertRemoved writer(
         _writer.m_buffer,
         _writer.m_offset,
         _writer.m_bufferLength,
@@ -386,7 +386,7 @@ friend std::basic_ostream<CharT, Traits> & operator << (
         _writer.m_actingVersion);
 
     builder << '{';
-    builder << R"("Name": "MtExertAdded", )";
+    builder << R"("Name": "MtExpertRemoved", )";
     builder << R"("sbeTemplateId": )";
     builder << writer.sbeTemplateId();
     builder << ", ";

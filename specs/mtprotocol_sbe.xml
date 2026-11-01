@@ -57,11 +57,11 @@
         </group>
 	</sbe:message>
 	
-	<sbe:message name="MtExertAdded" id="104" description="Event about adding exeprt into MetaTrader">
+	<sbe:message name="MtExpertAdded" id="104" description="Event about adding exeprt into MetaTrader">
         <field name="expert_handle" id="1" type="uint32_t"/>
 	</sbe:message>
 	
-	<sbe:message name="MtExertRemoved" id="105" description="Event about removing exeprt from MetaTrader">
+	<sbe:message name="MtExpertRemoved" id="105" description="Event about removing exeprt from MetaTrader">
         <field name="expert_handle" id="1" type="uint32_t"/>
 	</sbe:message>
 	
