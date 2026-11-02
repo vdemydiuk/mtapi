@@ -112,7 +112,7 @@ private:
     }
 
 public:
-    static constexpr std::uint16_t SBE_BLOCK_LENGTH = static_cast<std::uint16_t>(0);
+    static constexpr std::uint16_t SBE_BLOCK_LENGTH = static_cast<std::uint16_t>(4);
     static constexpr std::uint16_t SBE_TEMPLATE_ID = static_cast<std::uint16_t>(103);
     static constexpr std::uint16_t SBE_SCHEMA_ID = static_cast<std::uint16_t>(1);
     static constexpr std::uint16_t SBE_SCHEMA_VERSION = static_cast<std::uint16_t>(1);
@@ -170,7 +170,7 @@ public:
 
     SBE_NODISCARD static SBE_CONSTEXPR std::uint16_t sbeBlockLength() SBE_NOEXCEPT
     {
-        return static_cast<std::uint16_t>(0);
+        return static_cast<std::uint16_t>(4);
     }
 
     SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t sbeBlockAndHeaderLength() SBE_NOEXCEPT
@@ -309,6 +309,69 @@ public:
     SBE_NODISCARD std::uint64_t actingVersion() const SBE_NOEXCEPT
     {
         return m_actingVersion;
+    }
+
+    SBE_NODISCARD static const char *request_idMetaAttribute(const MetaAttribute metaAttribute) SBE_NOEXCEPT
+    {
+        switch (metaAttribute)
+        {
+            case MetaAttribute::PRESENCE: return "required";
+            default: return "";
+        }
+    }
+
+    static SBE_CONSTEXPR std::uint16_t request_idId() SBE_NOEXCEPT
+    {
+        return 1;
+    }
+
+    SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t request_idSinceVersion() SBE_NOEXCEPT
+    {
+        return 0;
+    }
+
+    SBE_NODISCARD bool request_idInActingVersion() SBE_NOEXCEPT
+    {
+        return true;
+    }
+
+    SBE_NODISCARD static SBE_CONSTEXPR std::size_t request_idEncodingOffset() SBE_NOEXCEPT
+    {
+        return 0;
+    }
+
+    static SBE_CONSTEXPR std::uint32_t request_idNullValue() SBE_NOEXCEPT
+    {
+        return SBE_NULLVALUE_UINT32;
+    }
+
+    static SBE_CONSTEXPR std::uint32_t request_idMinValue() SBE_NOEXCEPT
+    {
+        return UINT32_C(0x0);
+    }
+
+    static SBE_CONSTEXPR std::uint32_t request_idMaxValue() SBE_NOEXCEPT
+    {
+        return UINT32_C(0xfffffffe);
+    }
+
+    static SBE_CONSTEXPR std::size_t request_idEncodingLength() SBE_NOEXCEPT
+    {
+        return 4;
+    }
+
+    SBE_NODISCARD std::uint32_t request_id() const SBE_NOEXCEPT
+    {
+        std::uint32_t val;
+        std::memcpy(&val, m_buffer + m_offset + 0, sizeof(std::uint32_t));
+        return SBE_LITTLE_ENDIAN_ENCODE_32(val);
+    }
+
+    MtExpertList &request_id(const std::uint32_t value) SBE_NOEXCEPT
+    {
+        std::uint32_t val = SBE_LITTLE_ENDIAN_ENCODE_32(value);
+        std::memcpy(m_buffer + m_offset + 0, &val, sizeof(std::uint32_t));
+        return *this;
     }
 
     class Extert_list
@@ -473,7 +536,7 @@ public:
 
         static SBE_CONSTEXPR std::uint16_t expert_handleId() SBE_NOEXCEPT
         {
-            return 2;
+            return 3;
         }
 
         SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t expert_handleSinceVersion() SBE_NOEXCEPT
@@ -568,7 +631,7 @@ private:
 public:
     SBE_NODISCARD static SBE_CONSTEXPR std::uint16_t extert_listId() SBE_NOEXCEPT
     {
-        return 1;
+        return 2;
     }
 
     SBE_NODISCARD inline Extert_list &extert_list()
@@ -610,6 +673,10 @@ friend std::basic_ostream<CharT, Traits> & operator << (
     builder << writer.sbeTemplateId();
     builder << ", ";
 
+    builder << R"("request_id": )";
+    builder << +writer.request_id();
+
+    builder << ", ";
     {
         bool atLeastOne = false;
         builder << R"("extert_list": [)";
