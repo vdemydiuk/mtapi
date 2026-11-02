@@ -65,8 +65,8 @@
         <field name="expert_handle" id="1" type="uint32_t"/>
 	</sbe:message>
 	
-	<sbe:message name="MtServiceRequest" id="106" description="Internal request to the MtApiService">
-		<field name="request_type" id="1" type="uint16_t"/>
+	<sbe:message name="MtRequestExpertList" id="106" description="Internal request of experts to the MtApiService">
+		<field name="request_id" id="1" type="uint32_t"/>
 	</sbe:message>
 
 </sbe:messageSchema>
