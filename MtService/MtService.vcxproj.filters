@@ -30,9 +30,6 @@
     <ClInclude Include="MtExpert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MtMessage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CommandTask.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -49,6 +46,36 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LogLevel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GroupSizeEncoding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MessageHeader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MtCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MtEvent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MtExpertList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MtResponse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VarDataEncoding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MtExpertAdded.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MtExpertRemoved.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MtRequestExpertList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -72,9 +99,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Logger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MtMessage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

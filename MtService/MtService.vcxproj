@@ -109,6 +109,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)thirdparty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -127,6 +128,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)thirdparty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -146,6 +148,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)thirdparty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -158,23 +161,31 @@
   <ItemGroup>
     <ClInclude Include="CommandTask.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GroupSizeEncoding.h" />
     <ClInclude Include="LogConfigurator.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="LogLevel.h" />
+    <ClInclude Include="MessageHeader.h" />
     <ClInclude Include="MetaTraderHandler.h" />
+    <ClInclude Include="MtCommand.h" />
     <ClInclude Include="MtConnection.h" />
+    <ClInclude Include="MtEvent.h" />
     <ClInclude Include="MtExpert.h" />
-    <ClInclude Include="MtMessage.h" />
+    <ClInclude Include="MtExpertAdded.h" />
+    <ClInclude Include="MtExpertList.h" />
+    <ClInclude Include="MtExpertRemoved.h" />
+    <ClInclude Include="MtRequestExpertList.h" />
+    <ClInclude Include="MtResponse.h" />
     <ClInclude Include="MtServer.h" />
     <ClInclude Include="MtService.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="VarDataEncoding.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LogConfigurator.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="MtConnection.cpp" />
     <ClCompile Include="MtExpert.cpp" />
-    <ClCompile Include="MtMessage.cpp" />
     <ClCompile Include="MtServer.cpp" />
     <ClCompile Include="MtService.cpp" />
     <ClCompile Include="pch.cpp">

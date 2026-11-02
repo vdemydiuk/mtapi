@@ -46,11 +46,12 @@ void MtConnection::Close()
             [](boost::beast::error_code const ec){ });
 }
 
-void MtConnection::Send(const std::string& msg)
+void MtConnection::Send(boost::beast::flat_buffer&& buffer)
 {
-    log_.Trace("%s: msg = %s", __FUNCTION__, msg.c_str());
+    log_.Trace("%s: msg = %s", __FUNCTION__, boost::beast::buffers_to_string(buffer.data()).c_str());
 
-    send_queue_.push(msg);
+    // TODO: Optimize this to avoid copying the buffer data into a string. Instead, we can use the buffer directly in the async_write call.
+    send_queue_.push(std::move(buffer));
     if (send_queue_.size() == 1)
         DoWrite();
 }
@@ -73,9 +74,6 @@ void MtConnection::OnAccept(boost::beast::error_code ec)
 void MtConnection::DoRead()
 {
     log_.Trace("%s: enter.", __FUNCTION__);
-
-    // Clear the buffer
-    read_text_.clear();
 
     // Read a message into our buffer
     ws_.async_read(
@@ -120,10 +118,7 @@ void MtConnection::OnRead(
     }
     else
     {
-        auto msg = boost::beast::buffers_to_string(read_buffer_.data());
-        log_.Trace("%s: %s", __FUNCTION__, msg.c_str());
-
-        OnMessageReceived(msg);
+        OnMessageReceived(read_buffer_);
 
         // Clear the buffer
         read_buffer_.consume(read_buffer_.size());
@@ -140,11 +135,12 @@ void MtConnection::DoWrite()
     if (send_queue_.empty())
         return;
 
-    log_.Trace("%s: msg = %s", __FUNCTION__, send_queue_.front().c_str());
+    log_.Trace("%s: msg = %s", __FUNCTION__, boost::beast::buffers_to_string(send_queue_.front().data()).c_str());
 
-    ws_.text(ws_.got_text());
+    //ws_.text(ws_.got_text());
+    auto& buffer = send_queue_.front();
     ws_.async_write(
-        boost::asio::buffer(send_queue_.front()),
+        boost::asio::buffer(buffer.data(), buffer.size()),
         std::bind(
             &MtConnection::OnWrite,
             shared_from_this(),

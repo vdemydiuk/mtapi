@@ -8,7 +8,6 @@
 #include <queue>
 
 #include "Logger.h"
-#include "MtMessage.h"
 
 typedef boost::beast::websocket::stream<boost::asio::ip::tcp::socket> WebsocketStream;
 
@@ -20,12 +19,12 @@ public:
 
     void Accept();
     void Close();
-    void Send(const std::string& msg);
+    void Send(boost::beast::flat_buffer&& buffer);
 
     boost::signals2::signal<void()> OnConnected;
     boost::signals2::signal<void(const std::string&)> OnConnectionFailed;
     boost::signals2::signal<void()> OnDisconnected;
-    boost::signals2::signal<void(const std::string&)> OnMessageReceived;
+    boost::signals2::signal<void(const boost::beast::flat_buffer& buffer)> OnMessageReceived;
 
 private:
     void OnAccept(boost::beast::error_code ec);
@@ -42,7 +41,6 @@ private:
     WebsocketStream ws_;
     boost::asio::ip::tcp::resolver resolver_; 
     std::string host_;
-    std::string read_text_;
     boost::beast::flat_buffer read_buffer_;
-    std::queue<std::string> send_queue_;
+    std::queue<boost::beast::flat_buffer> send_queue_;
 };

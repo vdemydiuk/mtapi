@@ -31,7 +31,7 @@ void MtExpert::SendEvent(int event_type, const std::string& payload)
 {
     log_.Trace("%s: handle = %d, event_type = %d, payload = %s", __FUNCTION__, handle_, event_type, payload.c_str());
 
-    OnEvent(MtEvent(handle_, event_type, payload));
+    OnEvent(handle_, event_type, payload);
 }
 
 void MtExpert::SendResponse(const std::string& payload)
@@ -45,14 +45,12 @@ void MtExpert::SendResponse(const std::string& payload)
     }
 }
 
-void MtExpert::Process(std::unique_ptr<MtCommand> command, TaskCallback callback)
+void MtExpert::ProcessCommand(int command_id, int command_type, std::string&& payload, TaskCallback&& callback)
 {
-    log_.Debug("%s: handle = %d, command type = %d, command id = %d", __FUNCTION__, handle_,
-        command->getCommandType(), command->getCommandId());
-
-    auto task = std::make_unique<CommandTask>(std::move(command), std::move(callback));
+    log_.Debug("%s: handle = %d, command id = %d, command type = %d, payload = %s", __FUNCTION__,
+        handle_, command_id, command_type, payload.c_str());
+    auto task = std::make_unique<CommandTask>(command_id, command_type, std::move(payload), std::move(callback));
     tasks_.push(std::move(task));
-
     mt_handler_->SendTickToMetaTrader();
 }
 
@@ -64,10 +62,10 @@ int MtExpert::GetCommandType()
     current_task_ = std::move(tasks_.front());
     tasks_.pop();
 
-    return current_task_->getCommand().getCommandType();
+    return current_task_->getCommandType();
 }
 
 std::string MtExpert::GetCommandPayload()
 {
-    return current_task_ ? current_task_->getCommand().getPayload() : "";
+    return current_task_ ? current_task_->getPayload() : "";
 }

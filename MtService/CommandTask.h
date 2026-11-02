@@ -1,27 +1,31 @@
 #pragma once
 
 #include <functional>
-#include "MtMessage.h"
 
-typedef std::function<void(const MtResponse&)> TaskCallback;
+typedef std::function<void(int handle, int command_id, const std::string& payload)> TaskCallback;
 
 class CommandTask
 {
 public:
-    CommandTask(std::unique_ptr<MtCommand> command, TaskCallback callback)
-        : command_(std::move(command))
+    CommandTask(int command_id, int command_type, std::string&& payload, TaskCallback&& callback)
+        : command_id_(command_id)
+        , command_type_(command_type)
+        , payload_(std::move(payload))
         , callback_(std::move(callback))
-    {}
-
-    MtCommand& getCommand() const { return *command_; }
-
-    void ProcessResponse(int handle, const std::string& payload)
     {
-        MtResponse respone(handle, command_->getCommandId(), payload);
-        callback_(respone);
+    }
+
+    int getCommandType() const { return command_type_; }
+    std::string getPayload() const { return payload_; }
+
+    void ProcessResponse(int handle, const std::string& response)
+    {
+        callback_(handle, command_id_, response);
     }
 
 private:
-    std::unique_ptr<MtCommand> command_;
+    int command_id_;
+    int command_type_;
+    std::string payload_;
     TaskCallback callback_;
 };
