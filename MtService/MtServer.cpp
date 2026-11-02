@@ -24,6 +24,8 @@ constexpr int STOP_EXPERT_INTERVAL = 1; // 1 sec
 
 using namespace MtService;
 
+constexpr std::size_t MESSAGE_HEADER_SIZE = MessageHeader::encodedLength();
+
 static std::string ToHex(const boost::beast::flat_buffer& buffer, size_t maxBytes = 256)
 {
     static const char* digits = "0123456789ABCDEF";
@@ -344,7 +346,7 @@ void MtServer::SendExpertAdded(int handle)
         MtExpertAdded event_encoder;
 
         // Estimate max space needed and prepare Beast buffer memory
-        std::size_t required_size = MessageHeader::encodedLength() +
+        constexpr std::size_t required_size = MessageHeader::encodedLength() +
             MtExpertAdded::sbeBlockLength();
 
         auto mutable_buffer = event_buf.prepare(required_size);
@@ -388,7 +390,7 @@ void MtServer::SendExpertRemoved(int handle)
         MtExpertRemoved event_encoder;
 
         // Estimate max space needed and prepare Beast buffer memory
-        std::size_t required_size = MessageHeader::encodedLength() +
+        constexpr std::size_t required_size = MessageHeader::encodedLength() +
             MtExpertRemoved::sbeBlockLength();
 
         auto mutable_buffer = event_buf.prepare(required_size);
