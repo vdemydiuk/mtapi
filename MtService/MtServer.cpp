@@ -569,7 +569,7 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
                 .request_id(101);
 
             // 3. Write Vector Elements into SBE Group
-            auto& expert_list_encoder = response_encoder.extert_listCount(static_cast<std::uint16_t>(experts_.size()));
+            auto& expert_list_encoder = response_encoder.expert_listCount(static_cast<std::uint16_t>(experts_.size()));
             for (const auto& e : experts_) {
                 expert_list_encoder.next().expert_handle(e.first);
             }
