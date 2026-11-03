@@ -135,32 +135,32 @@ namespace MtService
         }
 
 
-        private readonly Extert_listGroup _extert_list = new Extert_listGroup();
+        private readonly Expert_listGroup _expert_list = new Expert_listGroup();
 
-        public const long Extert_listId = 2;
-        public const int Extert_listSinceVersion = 0;
-        public const int Extert_listDeprecated = 0;
-        public bool Extert_listInActingVersion()
+        public const long Expert_listId = 2;
+        public const int Expert_listSinceVersion = 0;
+        public const int Expert_listDeprecated = 0;
+        public bool Expert_listInActingVersion()
         {
-            return _actingVersion >= Extert_listSinceVersion;
+            return _actingVersion >= Expert_listSinceVersion;
         }
 
-        public Extert_listGroup Extert_list
+        public Expert_listGroup Expert_list
         {
             get
             {
-                _extert_list.WrapForDecode(_parentMessage, _buffer, _actingVersion);
-                return _extert_list;
+                _expert_list.WrapForDecode(_parentMessage, _buffer, _actingVersion);
+                return _expert_list;
             }
         }
 
-        public Extert_listGroup Extert_listCount(int count)
+        public Expert_listGroup Expert_listCount(int count)
         {
-            _extert_list.WrapForEncode(_parentMessage, _buffer, count);
-            return _extert_list;
+            _expert_list.WrapForEncode(_parentMessage, _buffer, count);
+            return _expert_list;
         }
 
-        public sealed partial class Extert_listGroup
+        public sealed partial class Expert_listGroup
         {
             private readonly GroupSizeEncoding _dimensions = new GroupSizeEncoding();
             private MtExpertList _parentMessage;
@@ -227,7 +227,7 @@ namespace MtService
                 return _count;
             }
 
-            public Extert_listGroup Next()
+            public Expert_listGroup Next()
             {
                 if (_index >= _count)
                 {
@@ -345,19 +345,19 @@ namespace MtService
             builder.Append("Request_id=");
             builder.Append(this.Request_id);
             builder.Append('|');
-            builder.Append("Extert_list=[");
-            var extert_list = this.Extert_list;
-            if (extert_list.Count > 0)
+            builder.Append("Expert_list=[");
+            var expert_list = this.Expert_list;
+            if (expert_list.Count > 0)
             {
                 var first = true;
-                while (extert_list.HasNext)
+                while (expert_list.HasNext)
                 {
                     if (!first)
                     {
                         builder.Append(',');
                     }
                     first = false;
-                    extert_list.Next().BuildString(builder);
+                    expert_list.Next().BuildString(builder);
                 }
             }
             builder.Append("]");

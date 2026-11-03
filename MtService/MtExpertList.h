@@ -374,7 +374,7 @@ public:
         return *this;
     }
 
-    class Extert_list
+    class Expert_list
     {
     private:
         char *m_buffer = nullptr;
@@ -393,7 +393,7 @@ public:
         }
 
     public:
-        Extert_list() = default;
+        Expert_list() = default;
 
         inline void wrapForDecode(
             char *buffer,
@@ -490,7 +490,7 @@ public:
             return m_index < m_count;
         }
 
-        inline Extert_list &next()
+        inline Expert_list &next()
         {
             if (m_index >= m_count)
             {
@@ -581,7 +581,7 @@ public:
             return SBE_LITTLE_ENDIAN_ENCODE_32(val);
         }
 
-        Extert_list &expert_handle(const std::uint32_t value) SBE_NOEXCEPT
+        Expert_list &expert_handle(const std::uint32_t value) SBE_NOEXCEPT
         {
             std::uint32_t val = SBE_LITTLE_ENDIAN_ENCODE_32(value);
             std::memcpy(m_buffer + m_offset + 0, &val, sizeof(std::uint32_t));
@@ -590,7 +590,7 @@ public:
 
         template<typename CharT, typename Traits>
         friend std::basic_ostream<CharT, Traits> & operator << (
-            std::basic_ostream<CharT, Traits> &builder, Extert_list &writer)
+            std::basic_ostream<CharT, Traits> &builder, Expert_list &writer)
         {
             builder << '{';
             builder << R"("expert_handle": )";
@@ -626,32 +626,32 @@ public:
     };
 
 private:
-    Extert_list m_extert_list;
+    Expert_list m_expert_list;
 
 public:
-    SBE_NODISCARD static SBE_CONSTEXPR std::uint16_t extert_listId() SBE_NOEXCEPT
+    SBE_NODISCARD static SBE_CONSTEXPR std::uint16_t expert_listId() SBE_NOEXCEPT
     {
         return 2;
     }
 
-    SBE_NODISCARD inline Extert_list &extert_list()
+    SBE_NODISCARD inline Expert_list &expert_list()
     {
-        m_extert_list.wrapForDecode(m_buffer, sbePositionPtr(), m_actingVersion, m_bufferLength);
-        return m_extert_list;
+        m_expert_list.wrapForDecode(m_buffer, sbePositionPtr(), m_actingVersion, m_bufferLength);
+        return m_expert_list;
     }
 
-    Extert_list &extert_listCount(const std::uint16_t count)
+    Expert_list &expert_listCount(const std::uint16_t count)
     {
-        m_extert_list.wrapForEncode(m_buffer, count, sbePositionPtr(), m_actingVersion, m_bufferLength);
-        return m_extert_list;
+        m_expert_list.wrapForEncode(m_buffer, count, sbePositionPtr(), m_actingVersion, m_bufferLength);
+        return m_expert_list;
     }
 
-    SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t extert_listSinceVersion() SBE_NOEXCEPT
+    SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t expert_listSinceVersion() SBE_NOEXCEPT
     {
         return 0;
     }
 
-    SBE_NODISCARD bool extert_listInActingVersion() const SBE_NOEXCEPT
+    SBE_NODISCARD bool expert_listInActingVersion() const SBE_NOEXCEPT
     {
         return true;
     }
@@ -679,16 +679,16 @@ friend std::basic_ostream<CharT, Traits> & operator << (
     builder << ", ";
     {
         bool atLeastOne = false;
-        builder << R"("extert_list": [)";
-        writer.extert_list().forEach(
-            [&](Extert_list &extert_list)
+        builder << R"("expert_list": [)";
+        writer.expert_list().forEach(
+            [&](Expert_list &expert_list)
             {
                 if (atLeastOne)
                 {
                     builder << ", ";
                 }
                 atLeastOne = true;
-                builder << extert_list;
+                builder << expert_list;
             });
         builder << ']';
     }
@@ -700,10 +700,10 @@ friend std::basic_ostream<CharT, Traits> & operator << (
 
 void skip()
 {
-    auto &extert_listGroup { extert_list() };
-    while (extert_listGroup.hasNext())
+    auto &expert_listGroup { expert_list() };
+    while (expert_listGroup.hasNext())
     {
-        extert_listGroup.next().skip();
+        expert_listGroup.next().skip();
     }
 }
 
@@ -712,7 +712,7 @@ SBE_NODISCARD static SBE_CONSTEXPR bool isConstLength() SBE_NOEXCEPT
     return false;
 }
 
-SBE_NODISCARD static std::size_t computeLength(std::size_t extert_listLength = 0)
+SBE_NODISCARD static std::size_t computeLength(std::size_t expert_listLength = 0)
 {
 #if defined(__GNUG__) && !defined(__clang__)
 #pragma GCC diagnostic push
@@ -720,12 +720,12 @@ SBE_NODISCARD static std::size_t computeLength(std::size_t extert_listLength = 0
 #endif
     std::size_t length = sbeBlockLength();
 
-    length += Extert_list::sbeHeaderSize();
-    if (extert_listLength > 65534LL)
+    length += Expert_list::sbeHeaderSize();
+    if (expert_listLength > 65534LL)
     {
-        throw std::runtime_error("extert_listLength outside of allowed range [E110]");
+        throw std::runtime_error("expert_listLength outside of allowed range [E110]");
     }
-    length += extert_listLength *Extert_list::sbeBlockLength();
+    length += expert_listLength *Expert_list::sbeBlockLength();
 
     return length;
 #if defined(__GNUG__) && !defined(__clang__)
