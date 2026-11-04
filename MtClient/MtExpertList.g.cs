@@ -272,19 +272,19 @@ namespace MtService
                 return "";
             }
 
-            public const uint Expert_handleNullValue = 4294967295U;
-            public const uint Expert_handleMinValue = 0U;
-            public const uint Expert_handleMaxValue = 4294967294U;
+            public const int Expert_handleNullValue = -2147483648;
+            public const int Expert_handleMinValue = -2147483647;
+            public const int Expert_handleMaxValue = 2147483647;
 
-            public uint Expert_handle
+            public int Expert_handle
             {
                 get
                 {
-                    return _buffer.Uint32GetLittleEndian(_offset + 0);
+                    return _buffer.Int32GetLittleEndian(_offset + 0);
                 }
                 set
                 {
-                    _buffer.Uint32PutLittleEndian(_offset + 0, value);
+                    _buffer.Int32PutLittleEndian(_offset + 0, value);
                 }
             }
 

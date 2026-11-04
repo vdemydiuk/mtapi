@@ -14,7 +14,7 @@ namespace MtService
     /// </summary>
     public sealed partial class MtCommand
     {
-        public const ushort BlockLength = (ushort)10;
+        public const ushort BlockLength = (ushort)12;
         public const ushort TemplateId = (ushort)100;
         public const ushort SchemaId = (ushort)1;
         public const ushort SchemaVersion = (ushort)1;
@@ -118,19 +118,19 @@ namespace MtService
             return "";
         }
 
-        public const uint Expert_handleNullValue = 4294967295U;
-        public const uint Expert_handleMinValue = 0U;
-        public const uint Expert_handleMaxValue = 4294967294U;
+        public const int Expert_handleNullValue = -2147483648;
+        public const int Expert_handleMinValue = -2147483647;
+        public const int Expert_handleMaxValue = 2147483647;
 
-        public uint Expert_handle
+        public int Expert_handle
         {
             get
             {
-                return _buffer.Uint32GetLittleEndian(_offset + 0);
+                return _buffer.Int32GetLittleEndian(_offset + 0);
             }
             set
             {
-                _buffer.Uint32PutLittleEndian(_offset + 0, value);
+                _buffer.Int32PutLittleEndian(_offset + 0, value);
             }
         }
 
@@ -198,19 +198,19 @@ namespace MtService
             return "";
         }
 
-        public const ushort Command_typeNullValue = (ushort)65535;
-        public const ushort Command_typeMinValue = (ushort)0;
-        public const ushort Command_typeMaxValue = (ushort)65534;
+        public const int Command_typeNullValue = -2147483648;
+        public const int Command_typeMinValue = -2147483647;
+        public const int Command_typeMaxValue = 2147483647;
 
-        public ushort Command_type
+        public int Command_type
         {
             get
             {
-                return _buffer.Uint16GetLittleEndian(_offset + 8);
+                return _buffer.Int32GetLittleEndian(_offset + 8);
             }
             set
             {
-                _buffer.Uint16PutLittleEndian(_offset + 8, value);
+                _buffer.Int32PutLittleEndian(_offset + 8, value);
             }
         }
 
@@ -223,7 +223,7 @@ namespace MtService
             return _actingVersion >= StringPayloadSinceVersion;
         }
 
-        public const int StringPayloadOffset = 10;
+        public const int StringPayloadOffset = 12;
 
         public const string StringPayloadCharacterEncoding = "UTF-8";
         public static Encoding StringPayloadResolvedCharacterEncoding = Encoding.GetEncoding(StringPayloadCharacterEncoding);

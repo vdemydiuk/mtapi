@@ -340,19 +340,19 @@ public:
         return 0;
     }
 
-    static SBE_CONSTEXPR std::uint32_t expert_handleNullValue() SBE_NOEXCEPT
+    static SBE_CONSTEXPR std::int32_t expert_handleNullValue() SBE_NOEXCEPT
     {
-        return SBE_NULLVALUE_UINT32;
+        return SBE_NULLVALUE_INT32;
     }
 
-    static SBE_CONSTEXPR std::uint32_t expert_handleMinValue() SBE_NOEXCEPT
+    static SBE_CONSTEXPR std::int32_t expert_handleMinValue() SBE_NOEXCEPT
     {
-        return UINT32_C(0x0);
+        return INT32_C(-2147483647);
     }
 
-    static SBE_CONSTEXPR std::uint32_t expert_handleMaxValue() SBE_NOEXCEPT
+    static SBE_CONSTEXPR std::int32_t expert_handleMaxValue() SBE_NOEXCEPT
     {
-        return UINT32_C(0xfffffffe);
+        return INT32_C(2147483647);
     }
 
     static SBE_CONSTEXPR std::size_t expert_handleEncodingLength() SBE_NOEXCEPT
@@ -360,17 +360,17 @@ public:
         return 4;
     }
 
-    SBE_NODISCARD std::uint32_t expert_handle() const SBE_NOEXCEPT
+    SBE_NODISCARD std::int32_t expert_handle() const SBE_NOEXCEPT
     {
-        std::uint32_t val;
-        std::memcpy(&val, m_buffer + m_offset + 0, sizeof(std::uint32_t));
+        std::int32_t val;
+        std::memcpy(&val, m_buffer + m_offset + 0, sizeof(std::int32_t));
         return SBE_LITTLE_ENDIAN_ENCODE_32(val);
     }
 
-    MtExpertRemoved &expert_handle(const std::uint32_t value) SBE_NOEXCEPT
+    MtExpertRemoved &expert_handle(const std::int32_t value) SBE_NOEXCEPT
     {
-        std::uint32_t val = SBE_LITTLE_ENDIAN_ENCODE_32(value);
-        std::memcpy(m_buffer + m_offset + 0, &val, sizeof(std::uint32_t));
+        std::int32_t val = SBE_LITTLE_ENDIAN_ENCODE_32(value);
+        std::memcpy(m_buffer + m_offset + 0, &val, sizeof(std::int32_t));
         return *this;
     }
 

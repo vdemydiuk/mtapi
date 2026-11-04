@@ -112,7 +112,7 @@ private:
     }
 
 public:
-    static constexpr std::uint16_t SBE_BLOCK_LENGTH = static_cast<std::uint16_t>(6);
+    static constexpr std::uint16_t SBE_BLOCK_LENGTH = static_cast<std::uint16_t>(8);
     static constexpr std::uint16_t SBE_TEMPLATE_ID = static_cast<std::uint16_t>(102);
     static constexpr std::uint16_t SBE_SCHEMA_ID = static_cast<std::uint16_t>(1);
     static constexpr std::uint16_t SBE_SCHEMA_VERSION = static_cast<std::uint16_t>(1);
@@ -170,7 +170,7 @@ public:
 
     SBE_NODISCARD static SBE_CONSTEXPR std::uint16_t sbeBlockLength() SBE_NOEXCEPT
     {
-        return static_cast<std::uint16_t>(6);
+        return static_cast<std::uint16_t>(8);
     }
 
     SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t sbeBlockAndHeaderLength() SBE_NOEXCEPT
@@ -340,19 +340,19 @@ public:
         return 0;
     }
 
-    static SBE_CONSTEXPR std::uint32_t expert_handleNullValue() SBE_NOEXCEPT
+    static SBE_CONSTEXPR std::int32_t expert_handleNullValue() SBE_NOEXCEPT
     {
-        return SBE_NULLVALUE_UINT32;
+        return SBE_NULLVALUE_INT32;
     }
 
-    static SBE_CONSTEXPR std::uint32_t expert_handleMinValue() SBE_NOEXCEPT
+    static SBE_CONSTEXPR std::int32_t expert_handleMinValue() SBE_NOEXCEPT
     {
-        return UINT32_C(0x0);
+        return INT32_C(-2147483647);
     }
 
-    static SBE_CONSTEXPR std::uint32_t expert_handleMaxValue() SBE_NOEXCEPT
+    static SBE_CONSTEXPR std::int32_t expert_handleMaxValue() SBE_NOEXCEPT
     {
-        return UINT32_C(0xfffffffe);
+        return INT32_C(2147483647);
     }
 
     static SBE_CONSTEXPR std::size_t expert_handleEncodingLength() SBE_NOEXCEPT
@@ -360,17 +360,17 @@ public:
         return 4;
     }
 
-    SBE_NODISCARD std::uint32_t expert_handle() const SBE_NOEXCEPT
+    SBE_NODISCARD std::int32_t expert_handle() const SBE_NOEXCEPT
     {
-        std::uint32_t val;
-        std::memcpy(&val, m_buffer + m_offset + 0, sizeof(std::uint32_t));
+        std::int32_t val;
+        std::memcpy(&val, m_buffer + m_offset + 0, sizeof(std::int32_t));
         return SBE_LITTLE_ENDIAN_ENCODE_32(val);
     }
 
-    MtEvent &expert_handle(const std::uint32_t value) SBE_NOEXCEPT
+    MtEvent &expert_handle(const std::int32_t value) SBE_NOEXCEPT
     {
-        std::uint32_t val = SBE_LITTLE_ENDIAN_ENCODE_32(value);
-        std::memcpy(m_buffer + m_offset + 0, &val, sizeof(std::uint32_t));
+        std::int32_t val = SBE_LITTLE_ENDIAN_ENCODE_32(value);
+        std::memcpy(m_buffer + m_offset + 0, &val, sizeof(std::int32_t));
         return *this;
     }
 
@@ -403,37 +403,37 @@ public:
         return 4;
     }
 
-    static SBE_CONSTEXPR std::uint16_t event_typeNullValue() SBE_NOEXCEPT
+    static SBE_CONSTEXPR std::int32_t event_typeNullValue() SBE_NOEXCEPT
     {
-        return SBE_NULLVALUE_UINT16;
+        return SBE_NULLVALUE_INT32;
     }
 
-    static SBE_CONSTEXPR std::uint16_t event_typeMinValue() SBE_NOEXCEPT
+    static SBE_CONSTEXPR std::int32_t event_typeMinValue() SBE_NOEXCEPT
     {
-        return static_cast<std::uint16_t>(0);
+        return INT32_C(-2147483647);
     }
 
-    static SBE_CONSTEXPR std::uint16_t event_typeMaxValue() SBE_NOEXCEPT
+    static SBE_CONSTEXPR std::int32_t event_typeMaxValue() SBE_NOEXCEPT
     {
-        return static_cast<std::uint16_t>(65534);
+        return INT32_C(2147483647);
     }
 
     static SBE_CONSTEXPR std::size_t event_typeEncodingLength() SBE_NOEXCEPT
     {
-        return 2;
+        return 4;
     }
 
-    SBE_NODISCARD std::uint16_t event_type() const SBE_NOEXCEPT
+    SBE_NODISCARD std::int32_t event_type() const SBE_NOEXCEPT
     {
-        std::uint16_t val;
-        std::memcpy(&val, m_buffer + m_offset + 4, sizeof(std::uint16_t));
-        return SBE_LITTLE_ENDIAN_ENCODE_16(val);
+        std::int32_t val;
+        std::memcpy(&val, m_buffer + m_offset + 4, sizeof(std::int32_t));
+        return SBE_LITTLE_ENDIAN_ENCODE_32(val);
     }
 
-    MtEvent &event_type(const std::uint16_t value) SBE_NOEXCEPT
+    MtEvent &event_type(const std::int32_t value) SBE_NOEXCEPT
     {
-        std::uint16_t val = SBE_LITTLE_ENDIAN_ENCODE_16(value);
-        std::memcpy(m_buffer + m_offset + 4, &val, sizeof(std::uint16_t));
+        std::int32_t val = SBE_LITTLE_ENDIAN_ENCODE_32(value);
+        std::memcpy(m_buffer + m_offset + 4, &val, sizeof(std::int32_t));
         return *this;
     }
 
