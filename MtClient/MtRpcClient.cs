@@ -71,7 +71,7 @@ namespace MtClient
 
         public string? SendCommand(int expertHandle, int commandType, string payload, int timeout = 10000)  // 10 sec
         {
-            uint commandId = getNextCommandId();
+            uint commandId = GetNextCommandId();
 
             int requiredBufferSize = MessageHeader.Size + MtService.MtCommand.BlockLength + 4 + payload.Length; // 4 bytes for length prefix
             byte[] buffer = new byte[requiredBufferSize];
@@ -87,7 +87,7 @@ namespace MtClient
             // 2. Wrap and write message fields
             commandEncoder.WrapForEncodeAndApplyHeader(directBuffer, offset, headerEncoder);
             commandEncoder.Command_id = commandId;
-            commandEncoder.Expert_handle = (uint)expertHandle;
+            commandEncoder.Expert_handle = expertHandle;
             commandEncoder.Command_type = (ushort)commandType;
 
             byte[] payloadBytes = Encoding.UTF8.GetBytes(payload);
@@ -99,7 +99,7 @@ namespace MtClient
 
         public HashSet<int>? RequestExpertsList()
         {
-            uint requestId = getNextCommandId();
+            uint requestId = GetNextCommandId();
             int requiredBufferSize = MessageHeader.Size + MtRequestExpertList.BlockLength;
             byte[] buffer = new byte[requiredBufferSize];
             DirectBuffer directBuffer = new(buffer);
@@ -263,16 +263,16 @@ namespace MtClient
             }
         }
 
-        private void ProcessEvent(MtService.MtEvent msg)
+        private void ProcessEvent(MtEvent msg)
         {
-            var expertHandle = (int)msg.Expert_handle;
-            var eventType = (int)msg.Event_type;
+            var expertHandle = msg.Expert_handle;
+            var eventType = msg.Event_type;
             var payload = msg.GetStringPayload();
             logger_.Debug($"MtRpcClient.ProcessEvent: {expertHandle}, {eventType}, [{payload}]");
             MtEventReceived?.Invoke(this, new(expertHandle, eventType, payload));
         }
 
-        private void ProcessResponse(MtService.MtResponse msg)
+        private void ProcessResponse(MtResponse msg)
         {
             var handle = msg.Expert_handle;
             var commandId = msg.Command_id;
@@ -299,8 +299,7 @@ namespace MtClient
             while (groupDecoder.HasNext)
             {
                 groupDecoder.Next(); // Advance cursor to the next item in the group
-                uint handle = groupDecoder.Expert_handle;
-                expertHandles.Add((int)handle);
+                expertHandles.Add(groupDecoder.Expert_handle);
             }
 
             logger_.Debug($"MtRpcClient.ProcessExpertList: request ID - {requestId}, experts count - {totalExperts}, expert handles - [{string.Join(", ", expertHandles)}]");
@@ -316,17 +315,17 @@ namespace MtClient
         {
             var expertHandle = msg.Expert_handle;
             logger_.Debug($"MtRpcClient.ProcessExpertAdded: expert handle - {expertHandle}");
-            ExpertAdded?.Invoke(this, new((int)expertHandle));
+            ExpertAdded?.Invoke(this, new(expertHandle));
         }
 
         private void ProcessExpertRemoved(MtExpertRemoved msg)
         {
             var expertHandle = msg.Expert_handle;
             logger_.Debug($"MtRpcClient.ProcessExpertRemoved: expert handle - {expertHandle}");
-            ExpertRemoved?.Invoke(this, new((int)expertHandle));
+            ExpertRemoved?.Invoke(this, new(expertHandle));
         }
 
-        private uint getNextCommandId()
+        private uint GetNextCommandId()
         {
             lock (tasks_)
             {
