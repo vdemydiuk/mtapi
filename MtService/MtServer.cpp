@@ -566,7 +566,7 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
 
             // 2. Write Static Fields
             response_encoder.wrapForEncode(dest, header_encoder.encodedLength(), required_size)
-                .request_id(101);
+                .request_id(request_id);
 
             // 3. Write Vector Elements into SBE Group
             auto& expert_list_encoder = response_encoder.expert_listCount(static_cast<std::uint16_t>(experts_.size()));
