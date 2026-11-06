@@ -293,18 +293,9 @@ void MtServer::SendEvent(int expert_handle, int event_type, const std::string& p
         // 3. Write Variable-Length JSON Data
         event_encoder.putStringPayload(payload.data(), static_cast<std::uint32_t>(payload.size()));
 
-        // Commit written bytes into Beast flat buffer
+        assert(event_encoder.sbePosition() <= required_size);
         event_buf.commit(event_encoder.sbePosition());
-
-        assert(event_buf.size() > 0);
-        if (event_buf.size() == 0)
-        {
-            log_.Error("%s: Event buffer is empty after encoding.", __FUNCTION__);
-        }
-        else
-        {
-            c->Send(std::move(event_buf));
-        }
+        c->Send(std::move(event_buf));
     }
 }
 
@@ -337,18 +328,9 @@ void MtServer::SendExpertAdded(int handle)
         event_encoder.wrapForEncode(dest, header_encoder.encodedLength(), required_size)
             .expert_handle(handle);
 
-        // Commit written bytes into Beast flat buffer
+        assert(event_encoder.sbePosition() <= required_size);
         event_buf.commit(event_encoder.sbePosition());
-
-        assert(event_buf.size() > 0);
-        if (event_buf.size() == 0)
-        {
-            log_.Error("%s: Event ExpertAdded buffer is empty after encoding.", __FUNCTION__);
-        }
-        else
-        {
-            c->Send(std::move(event_buf));
-        }
+        c->Send(std::move(event_buf));
     }
 }
 
@@ -381,18 +363,9 @@ void MtServer::SendExpertRemoved(int handle)
         event_encoder.wrapForEncode(dest, header_encoder.encodedLength(), required_size)
             .expert_handle(handle);
 
-        // Commit written bytes into Beast flat buffer
+        assert(event_encoder.sbePosition() <= required_size);
         event_buf.commit(event_encoder.sbePosition());
-
-        assert(event_buf.size() > 0);
-        if (event_buf.size() == 0)
-        {
-            log_.Error("%s: Event ExpertRemoved buffer is empty after encoding.", __FUNCTION__);
-        }
-        else
-        {
-            c->Send(std::move(event_buf));
-        }
+        c->Send(std::move(event_buf));
     }
 }
 
@@ -401,6 +374,8 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
     log_.Trace("MtServer::ProcessMessage: size=%zu | hex: %s", buffer.size(), ToHex(buffer).c_str());
 
     auto readable = buffer.data();
+    // The generated SBE API requires char*, but decoders are read-only (they only index into the pointer).
+    // flat_buffer's internal storage is heap-allocated writable memory; casting away const here is safe.
     char* src = static_cast<char*>(const_cast<void*>(readable.data()));
     std::size_t length = readable.size();
 
@@ -413,11 +388,16 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
     MessageHeader header_decoder;
     header_decoder.wrap(src, 0, MessageHeader::sbeSchemaVersion(), length);
 
-    // 3. Extract header parameters
+    // 3. Extract and validate header parameters
     std::uint16_t templateId = header_decoder.templateId();
     std::uint16_t blockLength = header_decoder.blockLength();
     std::uint16_t schemaId = header_decoder.schemaId();
     std::uint16_t version = header_decoder.version();
+
+    if (schemaId != MtCommand::sbeSchemaId())
+        throw std::runtime_error("Unexpected SBE schema ID: " + std::to_string(schemaId));
+    if (version > MessageHeader::sbeSchemaVersion())
+        throw std::runtime_error("Unsupported SBE schema version: " + std::to_string(version));
 
     // 4. Dispatch based on templateId
     switch (templateId) {
@@ -485,19 +465,9 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
                     // 3. Write Variable-Length JSON Data
                     response_encoder.putStringPayload(payload.data(), static_cast<std::uint32_t>(payload.size()));
 
-                    // Commit written bytes into Beast flat buffer
+                    assert(response_encoder.sbePosition() <= required_size);
                     response_buf.commit(response_encoder.sbePosition());
-
-                    // Verification
-                    assert(response_buf.size() > 0);
-                    if (response_buf.size() == 0)
-                    {
-                        self->log_.Error("%s: Response buffer is empty after encoding.", __FUNCTION__);
-                    }
-                    else
-                    {
-                        connection->Send(std::move(response_buf));
-                    }
+                    connection->Send(std::move(response_buf));
                 }
             };
 
@@ -561,16 +531,9 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
                 expert_list_encoder.next().expert_handle(e.first);
             }
 
+            assert(response_encoder.sbePosition() <= required_size);
             response_buf.commit(response_encoder.sbePosition());
-            assert(response_buf.size() > 0);
-            if (response_buf.size() == 0)
-            {
-                log_.Error("%s: Event ExpertRemoved buffer is empty after encoding.", __FUNCTION__);
-            }
-            else
-            {
-                connection->Send(std::move(response_buf));
-            }
+            connection->Send(std::move(response_buf));
         }
         else
         {
