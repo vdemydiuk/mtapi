@@ -440,6 +440,12 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
             std::uint32_t payload_len = cmd_decoder.stringPayloadLength();
             if (payload_len > 0)
             {
+                // Validate the claimed payload fits within the received buffer before reading.
+                // sbePosition() is the byte offset immediately after the length prefix field;
+                // the varData bytes must all lie within [0, length).
+                if (static_cast<std::size_t>(cmd_decoder.sbePosition()) + payload_len > length)
+                    throw std::runtime_error("Buffer underflow: MtCommand stringPayload exceeds buffer");
+
                 const char* payload_ptr = cmd_decoder.stringPayload();
                 payload = std::string(payload_ptr, payload_len);
             }

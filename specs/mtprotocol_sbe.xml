@@ -42,7 +42,7 @@
 	
 	<sbe:message name="MtResponse" id="101" description="Carry response payload from MetaTrader">
         <field name="expert_handle" id="1" type="int32_t"/>
-        <field name="command_id" id="2" type="uint32_t"/>>
+        <field name="command_id" id="2" type="uint32_t"/>
         <data name="stringPayload" id="3" type="varDataEncoding"/>
 	</sbe:message>
 	
