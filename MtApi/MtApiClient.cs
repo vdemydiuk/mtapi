@@ -3096,6 +3096,7 @@ namespace MtApi
             }
             catch (Exception e)
             {
+                client.Disconnect();
                 Log.Warn($"Failed connection to {host}:{port}. {e.Message}");
                 lock (_locker)
                 {
