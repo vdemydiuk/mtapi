@@ -48,7 +48,9 @@ void MtConnection::Close()
 
 void MtConnection::Send(boost::beast::flat_buffer&& buffer)
 {
-    log_.Trace("%s: msg = %s", __FUNCTION__, boost::beast::buffers_to_string(buffer.data()).c_str());
+    log_.Trace("%s: msg size = %d, msg = %s", __FUNCTION__,
+        buffer.size(),
+        ToHex(buffer).c_str());
 
     // TODO: Optimize this to avoid copying the buffer data into a string. Instead, we can use the buffer directly in the async_write call.
     send_queue_.push(std::move(buffer));
@@ -135,9 +137,9 @@ void MtConnection::DoWrite()
     if (send_queue_.empty())
         return;
 
-    log_.Trace("%s: msg = %s", __FUNCTION__, boost::beast::buffers_to_string(send_queue_.front().data()).c_str());
+    log_.Trace("%s: msg size = %zu", __FUNCTION__, send_queue_.front().data().size());
 
-    //ws_.text(ws_.got_text());
+    ws_.binary(true);
     auto& buffer = send_queue_.front();
     ws_.async_write(
         boost::asio::buffer(buffer.data(), buffer.size()),

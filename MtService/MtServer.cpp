@@ -26,32 +26,6 @@ using namespace MtService;
 
 constexpr std::size_t MESSAGE_HEADER_SIZE = MessageHeader::encodedLength();
 
-static std::string ToHex(const boost::beast::flat_buffer& buffer, size_t maxBytes = 256)
-{
-    static const char* digits = "0123456789ABCDEF";
-
-    const auto data = buffer.data();
-    const auto* p = static_cast<const unsigned char*>(data.data());
-    const size_t size = data.size();
-    const size_t n = std::min(size, maxBytes);
-
-    std::string out;
-    out.reserve(n * 3 + 16);
-
-    for (size_t i = 0; i < n; ++i)
-    {
-        out.push_back(digits[p[i] >> 4]);
-        out.push_back(digits[p[i] & 0x0F]);
-        if (i + 1 < n)
-            out.push_back(' ');
-    }
-
-    if (size > n)
-        out += " ...(" + std::to_string(size - n) + " more bytes)";
-
-    return out;
-}
-
 MtServer::MtServer(
     boost::asio::io_context& context,
     unsigned short port)
@@ -424,6 +398,8 @@ void MtServer::SendExpertRemoved(int handle)
 
 void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak_ptr<MtConnection> con)
 {
+    log_.Trace("MtServer::ProcessMessage: size=%zu | hex: %s", buffer.size(), ToHex(buffer).c_str());
+
     auto readable = buffer.data();
     char* src = static_cast<char*>(const_cast<void*>(readable.data()));
     std::size_t length = readable.size();
@@ -447,24 +423,29 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
     switch (templateId) {
     case MtCommand::sbeTemplateId():
     {
-        MtCommand cmd_decoder;
-        cmd_decoder.wrapForDecode(src, header_decoder.encodedLength(), blockLength, version, length);
-
-        std::cout << "Decoded MtCommand (ID: " << templateId << ")\n";
-
         if (experts_.size() == 0)
         {
             log_.Error("%s: Expert list is empty. There is no any command executor.", __FUNCTION__);
         }
         else
         {
-            auto expert_handle = cmd_decoder.expert_handle();
-            auto command_type = cmd_decoder.command_type();
-            auto command_id = cmd_decoder.command_id();
+            MtCommand cmd_decoder;
+            cmd_decoder.wrapForDecode(src, header_decoder.encodedLength(), blockLength, version, length);
 
-            const char* payload_ptr = cmd_decoder.stringPayload();
+            auto expert_handle = cmd_decoder.expert_handle();
+            auto command_id = cmd_decoder.command_id();
+            auto command_type = cmd_decoder.command_type();
+
+            std::string payload;
             std::uint32_t payload_len = cmd_decoder.stringPayloadLength();
-            std::string payload(payload_ptr, payload_len);
+            if (payload_len > 0)
+            {
+                const char* payload_ptr = cmd_decoder.stringPayload();
+                payload = std::string(payload_ptr, payload_len);
+            }
+
+            log_.Trace("%s: Decoded MtCommand (ID: %d), expert_handle = %d, command_id = %d, command_type = %d", __FUNCTION__,
+                templateId, expert_handle, command_id, command_type);
 
             auto cmd_callback = [con = con, this](int handle, int command_id, const std::string& payload) {
                 auto connection = con.lock();
@@ -540,7 +521,7 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
 
         auto request_id = request_decoder.request_id();
 
-        std::cout << "Decoded MtRequestExpertList (ID: " << templateId << ", request_id: " << request_id << ")\n";
+        log_.Trace("%s: Decoded MtRequestExpertList (ID: %d, request_id: %d)", __FUNCTION__, templateId, request_id);
 
         auto connection = con.lock();
         if (connection)

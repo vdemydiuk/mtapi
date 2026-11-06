@@ -1,6 +1,6 @@
-﻿using MtService;
+﻿using MtClient;
+using MtService;
 using Org.SbeTool.Sbe.Dll;
-using System;
 using System.ComponentModel.Design;
 using System.Net.WebSockets;
 using System.Text;
@@ -71,21 +71,22 @@ namespace MtClient
 
         public string? SendCommand(int expertHandle, int commandType, string payload, int timeout = 10000)  // 10 sec
         {
-            uint commandId = GetNextCommandId();
+            logger_.Info($"MtRpcClient.SendCommand: try to send command to {host_}:{port_}, expertHandle: {expertHandle}, commandType: {commandType}, payload: {payload}");
 
-            int requiredBufferSize = MessageHeader.Size + MtService.MtCommand.BlockLength + 4 + payload.Length; // 4 bytes for length prefix
+            uint commandId = getNextCommandId();
+
+            int requiredBufferSize = MessageHeader.Size + MtCommand.BlockLength + 4 + payload.Length; // 4 bytes for length prefix
             byte[] buffer = new byte[requiredBufferSize];
             DirectBuffer directBuffer = new(buffer);
 
             MessageHeader headerEncoder = new();
-            MtService.MtCommand commandEncoder = new();
+            MtCommand commandEncoder = new();
 
             // 1. Wrap and write SBE Header
-            headerEncoder.Wrap(directBuffer, 0, MtService.MtCommand.SchemaVersion);
-            int offset = MessageHeader.Size;
+            headerEncoder.Wrap(directBuffer, 0, MtCommand.SchemaVersion);
 
             // 2. Wrap and write message fields
-            commandEncoder.WrapForEncodeAndApplyHeader(directBuffer, offset, headerEncoder);
+            commandEncoder.WrapForEncodeAndApplyHeader(directBuffer, 0, headerEncoder);
             commandEncoder.Command_id = commandId;
             commandEncoder.Expert_handle = expertHandle;
             commandEncoder.Command_type = (ushort)commandType;
@@ -99,7 +100,8 @@ namespace MtClient
 
         public HashSet<int>? RequestExpertsList()
         {
-            uint requestId = GetNextCommandId();
+            logger_.Info($"MtRpcClient.RequestExpertsList: try to send request to {host_}:{port_}");
+             uint requestId = getNextCommandId();
             int requiredBufferSize = MessageHeader.Size + MtRequestExpertList.BlockLength;
             byte[] buffer = new byte[requiredBufferSize];
             DirectBuffer directBuffer = new(buffer);
@@ -109,10 +111,9 @@ namespace MtClient
 
             // 1. Wrap and write SBE Header
             headerEncoder.Wrap(directBuffer, 0, MtRequestExpertList.SchemaVersion);
-            int offset = MessageHeader.Size;
 
             // 2. Wrap and write message fields
-            requestEncoder.WrapForEncodeAndApplyHeader(directBuffer, offset, headerEncoder);
+            requestEncoder.WrapForEncodeAndApplyHeader(directBuffer, 0, headerEncoder);
             requestEncoder.Request_id = requestId;
 
             var response = Send<HashSet<int>>(buffer, requestId, 10000);
@@ -121,20 +122,27 @@ namespace MtClient
 
         private T? Send<T>(byte[] message, uint commandId, int timeout = 10000)
         {
-            CommandTask<T> requestTask = new();
+            logger_.Info($"MtRpcClient.Send: try to send message with id {commandId} to {host_}:{port_}");
+
+            MessageResponse messageResponse = new();
+            lock (responses_)
+            {
+                responses_.Add(commandId, messageResponse);
+            }
+
             lock (pendingMessages_)
             {
                 pendingMessages_.Enqueue(message);
             }
             sendWaiter_.Set();
 
-            var response = requestTask.WaitResponse(timeout);
-            lock (tasks_)
+            var response = messageResponse.WaitResponse(timeout);
+            lock (responses_)
             {
-                tasks_.Remove(commandId);
+                responses_.Remove(commandId);
             }
 
-            return response;
+            return (T?)response;
         }
 
         private async void DoWrite()
@@ -188,6 +196,8 @@ namespace MtClient
                         }
                         while (!result.EndOfMessage);
 
+                        logger_.Debug($"MtRpcClient.DoReceive: Message received, size = {recvCount}, type = {result.MessageType}");
+
                         if (result.MessageType == WebSocketMessageType.Close)
                         {
                             logger_.Info($"MtRpcClient.DoReceive: close signal {result.CloseStatusDescription}");
@@ -195,7 +205,7 @@ namespace MtClient
                             break;
                         }
                         else if (result.MessageType == WebSocketMessageType.Binary)
-                        {;
+                        {
                             OnReceive(ms.ToArray());
                         }
                         ms.Seek(0, SeekOrigin.Begin);
@@ -225,16 +235,16 @@ namespace MtClient
 
             switch (templateId)
             {
-                case MtService.MtEvent.TemplateId:
+                case MtEvent.TemplateId:
                     {
-                        MtService.MtEvent eventMsg = new();
+                        MtEvent eventMsg = new();
                         eventMsg.WrapForDecode(directBuffer, MessageHeader.Size, blockLength, schemaVersion);
                         ProcessEvent(eventMsg);
                     }
                     break;
-                case MtService.MtResponse.TemplateId:
+                case MtResponse.TemplateId:
                     {
-                        MtService.MtResponse responseMsg = new();
+                        MtResponse responseMsg = new();
                         responseMsg.WrapForDecode(directBuffer, MessageHeader.Size, blockLength, schemaVersion);
                         ProcessResponse(responseMsg);
                     }
@@ -280,9 +290,9 @@ namespace MtClient
 
             logger_.Debug($"MtRpcClient.ProcessResponse: {handle}, {commandId}, [{payload}]");
 
-            lock (tasks_)
+            lock (responses_)
             {
-                if (tasks_.TryGetValue(commandId, out CommandTask<object>? value))
+                if (responses_.TryGetValue(commandId, out MessageResponse? value))
                     value.SetResponse(payload);
             }
         }
@@ -304,9 +314,9 @@ namespace MtClient
 
             logger_.Debug($"MtRpcClient.ProcessExpertList: request ID - {requestId}, experts count - {totalExperts}, expert handles - [{string.Join(", ", expertHandles)}]");
 
-            lock (tasks_)
+            lock (responses_)
             {
-                if (tasks_.TryGetValue(requestId, out CommandTask<object>? value))
+                if (responses_.TryGetValue(requestId, out MessageResponse? value))
                     value.SetResponse(expertHandles);
             }
         }
@@ -325,9 +335,9 @@ namespace MtClient
             ExpertRemoved?.Invoke(this, new(expertHandle));
         }
 
-        private uint GetNextCommandId()
+        private uint getNextCommandId()
         {
-            lock (tasks_)
+            lock (responses_)
             {
                 return nextCommandId++;
             }
@@ -342,25 +352,25 @@ namespace MtClient
         private readonly ClientWebSocket ws_ = new();
         private readonly string host_;
         private readonly int port_;
-        private readonly Queue<byte[]> pendingMessages_ = [];
 
         private readonly Thread receiveThread_;
         private readonly Thread sendThread_;
         private readonly EventWaitHandle sendWaiter_ = new AutoResetEvent(false);
 
         private uint nextCommandId = 0;
-        private readonly Dictionary<uint, CommandTask<object>> tasks_ = [];
+        private readonly Dictionary<uint, MessageResponse> responses_ = [];
+        private readonly Queue<byte[]> pendingMessages_ = [];
 
         private readonly IRpcLogger logger_;
     }
 
-    internal class CommandTask<T>
+    internal class MessageResponse
     {
         private readonly EventWaitHandle responseWaiter_ = new AutoResetEvent(false);
-        private T? response_;
+        private object? response_ = null;
         private readonly object locker_ = new();
 
-        public T? WaitResponse(int time)
+        public object? WaitResponse(int time)
         {
             responseWaiter_.WaitOne(time);
             lock (locker_)
@@ -369,7 +379,7 @@ namespace MtClient
             }
         }
 
-        public void SetResponse(T result)
+        public void SetResponse(object? result)
         {
             lock (locker_)
             {
