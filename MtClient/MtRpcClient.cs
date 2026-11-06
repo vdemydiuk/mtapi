@@ -1,7 +1,5 @@
-﻿using MtClient;
-using MtService;
+﻿using MtService;
 using Org.SbeTool.Sbe.Dll;
-using System.ComponentModel.Design;
 using System.Net.WebSockets;
 using System.Text;
 
@@ -71,7 +69,7 @@ namespace MtClient
 
         public string? SendCommand(int expertHandle, int commandType, string payload, int timeout = 10000)  // 10 sec
         {
-            logger_.Info($"MtRpcClient.SendCommand: try to send command to {host_}:{port_}, expertHandle: {expertHandle}, commandType: {commandType}, payload: {payload}");
+            logger_.Debug($"MtRpcClient.SendCommand: try to send command to {host_}:{port_}, expertHandle: {expertHandle}, commandType: {commandType}, payload: {payload}");
 
             uint commandId = getNextCommandId();
 
@@ -100,7 +98,7 @@ namespace MtClient
 
         public HashSet<int>? RequestExpertsList()
         {
-            logger_.Info($"MtRpcClient.RequestExpertsList: try to send request to {host_}:{port_}");
+            logger_.Debug($"MtRpcClient.RequestExpertsList: try to send request to {host_}:{port_}");
              uint requestId = getNextCommandId();
             int requiredBufferSize = MessageHeader.Size + MtRequestExpertList.BlockLength;
             byte[] buffer = new byte[requiredBufferSize];
@@ -122,7 +120,7 @@ namespace MtClient
 
         private T? Send<T>(byte[] message, uint commandId, int timeout = 10000)
         {
-            logger_.Info($"MtRpcClient.Send: try to send message with id {commandId} to {host_}:{port_}");
+            logger_.Debug($"MtRpcClient.Send: try to send message with id {commandId} to {host_}:{port_}");
 
             MessageResponse messageResponse = new();
             lock (responses_)
