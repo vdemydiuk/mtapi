@@ -71,7 +71,7 @@ namespace MtClient
         {
             logger_.Debug($"MtRpcClient.SendCommand: try to send command to {host_}:{port_}, expertHandle: {expertHandle}, commandType: {commandType}, payload: {payload}");
 
-            uint commandId = getNextCommandId();
+            ulong commandId = getNextCommandId();
 
             int requiredBufferSize = MessageHeader.Size + MtCommand.BlockLength + 4 + payload.Length; // 4 bytes for length prefix
             byte[] buffer = new byte[requiredBufferSize];
@@ -99,7 +99,7 @@ namespace MtClient
         public HashSet<int>? RequestExpertsList()
         {
             logger_.Debug($"MtRpcClient.RequestExpertsList: try to send request to {host_}:{port_}");
-             uint requestId = getNextCommandId();
+            ulong requestId = getNextCommandId();
             int requiredBufferSize = MessageHeader.Size + MtRequestExpertList.BlockLength;
             byte[] buffer = new byte[requiredBufferSize];
             DirectBuffer directBuffer = new(buffer);
@@ -118,7 +118,7 @@ namespace MtClient
             return response;
         }
 
-        private T? Send<T>(byte[] message, uint commandId, int timeout = 10000)
+        private T? Send<T>(byte[] message, ulong commandId, int timeout = 10000)
         {
             logger_.Debug($"MtRpcClient.Send: try to send message with id {commandId} to {host_}:{port_}");
 
@@ -333,11 +333,11 @@ namespace MtClient
             ExpertRemoved?.Invoke(this, new(expertHandle));
         }
 
-        private uint getNextCommandId()
+        private ulong getNextCommandId()
         {
             lock (responses_)
             {
-                uint id;
+                ulong id;
                 do
                 {
                     id = nextCommandId++;
@@ -360,8 +360,8 @@ namespace MtClient
         private readonly Thread sendThread_;
         private readonly EventWaitHandle sendWaiter_ = new AutoResetEvent(false);
 
-        private uint nextCommandId = 0;
-        private readonly Dictionary<uint, MessageResponse> responses_ = [];
+        private ulong nextCommandId = 0;
+        private readonly Dictionary<ulong, MessageResponse> responses_ = [];
         private readonly Queue<byte[]> pendingMessages_ = [];
 
         private readonly IRpcLogger logger_;

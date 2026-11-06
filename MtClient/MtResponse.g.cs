@@ -14,7 +14,7 @@ namespace MtService
     /// </summary>
     public sealed partial class MtResponse
     {
-        public const ushort BlockLength = (ushort)8;
+        public const ushort BlockLength = (ushort)12;
         public const ushort TemplateId = (ushort)101;
         public const ushort SchemaId = (ushort)1;
         public const ushort SchemaVersion = (ushort)1;
@@ -158,19 +158,19 @@ namespace MtService
             return "";
         }
 
-        public const uint Command_idNullValue = 4294967295U;
-        public const uint Command_idMinValue = 0U;
-        public const uint Command_idMaxValue = 4294967294U;
+        public const ulong Command_idNullValue = 0xffffffffffffffffUL;
+        public const ulong Command_idMinValue = 0x0UL;
+        public const ulong Command_idMaxValue = 0xfffffffffffffffeUL;
 
-        public uint Command_id
+        public ulong Command_id
         {
             get
             {
-                return _buffer.Uint32GetLittleEndian(_offset + 4);
+                return _buffer.Uint64GetLittleEndian(_offset + 4);
             }
             set
             {
-                _buffer.Uint32PutLittleEndian(_offset + 4, value);
+                _buffer.Uint64PutLittleEndian(_offset + 4, value);
             }
         }
 
@@ -183,7 +183,7 @@ namespace MtService
             return _actingVersion >= StringPayloadSinceVersion;
         }
 
-        public const int StringPayloadOffset = 8;
+        public const int StringPayloadOffset = 12;
 
         public const string StringPayloadCharacterEncoding = "UTF-8";
         public static Encoding StringPayloadResolvedCharacterEncoding = Encoding.GetEncoding(StringPayloadCharacterEncoding);

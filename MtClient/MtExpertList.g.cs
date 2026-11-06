@@ -14,7 +14,7 @@ namespace MtService
     /// </summary>
     public sealed partial class MtExpertList
     {
-        public const ushort BlockLength = (ushort)4;
+        public const ushort BlockLength = (ushort)8;
         public const ushort TemplateId = (ushort)103;
         public const ushort SchemaId = (ushort)1;
         public const ushort SchemaVersion = (ushort)1;
@@ -118,19 +118,19 @@ namespace MtService
             return "";
         }
 
-        public const uint Request_idNullValue = 4294967295U;
-        public const uint Request_idMinValue = 0U;
-        public const uint Request_idMaxValue = 4294967294U;
+        public const ulong Request_idNullValue = 0xffffffffffffffffUL;
+        public const ulong Request_idMinValue = 0x0UL;
+        public const ulong Request_idMaxValue = 0xfffffffffffffffeUL;
 
-        public uint Request_id
+        public ulong Request_id
         {
             get
             {
-                return _buffer.Uint32GetLittleEndian(_offset + 0);
+                return _buffer.Uint64GetLittleEndian(_offset + 0);
             }
             set
             {
-                _buffer.Uint32PutLittleEndian(_offset + 0, value);
+                _buffer.Uint64PutLittleEndian(_offset + 0, value);
             }
         }
 

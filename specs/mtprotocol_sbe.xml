@@ -35,14 +35,14 @@
     <!-- Messages Definition -->
 	<sbe:message name="MtCommand" id="100" description="Carry command payload to MetaTrader">
         <field name="expert_handle" id="1" type="int32_t"/>
-        <field name="command_id" id="2" type="uint32_t"/>
+        <field name="command_id" id="2" type="uint64_t"/>
         <field name="command_type" id="3" type="int32_t"/>
         <data name="stringPayload" id="4" type="varDataEncoding"/>
 	</sbe:message>
 	
 	<sbe:message name="MtResponse" id="101" description="Carry response payload from MetaTrader">
         <field name="expert_handle" id="1" type="int32_t"/>
-        <field name="command_id" id="2" type="uint32_t"/>
+        <field name="command_id" id="2" type="uint64_t"/>
         <data name="stringPayload" id="3" type="varDataEncoding"/>
 	</sbe:message>
 	
@@ -53,7 +53,7 @@
 	</sbe:message>
 	
 	<sbe:message name="MtExpertList" id="103" description="Provide expert list linked to MetaTrader">
-        <field name="request_id" id="1" type="uint32_t"/>
+        <field name="request_id" id="1" type="uint64_t"/>
         <group name="expert_list" id="2" dimensionType="groupSizeEncoding">
             <field name="expert_handle" id="3" type="int32_t"/>
         </group>
@@ -68,7 +68,7 @@
 	</sbe:message>
 	
 	<sbe:message name="MtRequestExpertList" id="106" description="Internal request of experts to the MtApiService">
-		<field name="request_id" id="1" type="uint32_t"/>
+		<field name="request_id" id="1" type="uint64_t"/>
 	</sbe:message>
 
 </sbe:messageSchema>

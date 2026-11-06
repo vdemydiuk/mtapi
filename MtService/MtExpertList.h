@@ -112,7 +112,7 @@ private:
     }
 
 public:
-    static constexpr std::uint16_t SBE_BLOCK_LENGTH = static_cast<std::uint16_t>(4);
+    static constexpr std::uint16_t SBE_BLOCK_LENGTH = static_cast<std::uint16_t>(8);
     static constexpr std::uint16_t SBE_TEMPLATE_ID = static_cast<std::uint16_t>(103);
     static constexpr std::uint16_t SBE_SCHEMA_ID = static_cast<std::uint16_t>(1);
     static constexpr std::uint16_t SBE_SCHEMA_VERSION = static_cast<std::uint16_t>(1);
@@ -170,7 +170,7 @@ public:
 
     SBE_NODISCARD static SBE_CONSTEXPR std::uint16_t sbeBlockLength() SBE_NOEXCEPT
     {
-        return static_cast<std::uint16_t>(4);
+        return static_cast<std::uint16_t>(8);
     }
 
     SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t sbeBlockAndHeaderLength() SBE_NOEXCEPT
@@ -340,37 +340,37 @@ public:
         return 0;
     }
 
-    static SBE_CONSTEXPR std::uint32_t request_idNullValue() SBE_NOEXCEPT
+    static SBE_CONSTEXPR std::uint64_t request_idNullValue() SBE_NOEXCEPT
     {
-        return SBE_NULLVALUE_UINT32;
+        return SBE_NULLVALUE_UINT64;
     }
 
-    static SBE_CONSTEXPR std::uint32_t request_idMinValue() SBE_NOEXCEPT
+    static SBE_CONSTEXPR std::uint64_t request_idMinValue() SBE_NOEXCEPT
     {
-        return UINT32_C(0x0);
+        return UINT64_C(0x0);
     }
 
-    static SBE_CONSTEXPR std::uint32_t request_idMaxValue() SBE_NOEXCEPT
+    static SBE_CONSTEXPR std::uint64_t request_idMaxValue() SBE_NOEXCEPT
     {
-        return UINT32_C(0xfffffffe);
+        return UINT64_C(0xfffffffffffffffe);
     }
 
     static SBE_CONSTEXPR std::size_t request_idEncodingLength() SBE_NOEXCEPT
     {
-        return 4;
+        return 8;
     }
 
-    SBE_NODISCARD std::uint32_t request_id() const SBE_NOEXCEPT
+    SBE_NODISCARD std::uint64_t request_id() const SBE_NOEXCEPT
     {
-        std::uint32_t val;
-        std::memcpy(&val, m_buffer + m_offset + 0, sizeof(std::uint32_t));
-        return SBE_LITTLE_ENDIAN_ENCODE_32(val);
+        std::uint64_t val;
+        std::memcpy(&val, m_buffer + m_offset + 0, sizeof(std::uint64_t));
+        return SBE_LITTLE_ENDIAN_ENCODE_64(val);
     }
 
-    MtExpertList &request_id(const std::uint32_t value) SBE_NOEXCEPT
+    MtExpertList &request_id(const std::uint64_t value) SBE_NOEXCEPT
     {
-        std::uint32_t val = SBE_LITTLE_ENDIAN_ENCODE_32(value);
-        std::memcpy(m_buffer + m_offset + 0, &val, sizeof(std::uint32_t));
+        std::uint64_t val = SBE_LITTLE_ENDIAN_ENCODE_64(value);
+        std::memcpy(m_buffer + m_offset + 0, &val, sizeof(std::uint64_t));
         return *this;
     }
 
