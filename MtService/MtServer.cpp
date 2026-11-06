@@ -430,10 +430,10 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
                 payload = std::string(payload_ptr, payload_len);
             }
 
-            log_.Trace("%s: Decoded MtCommand (ID: %d), expert_handle = %d, command_id = %d, command_type = %d", __FUNCTION__,
-                templateId, expert_handle, command_id, command_type);
+            log_.Trace("%s: Decoded MtCommand (ID: %d), expert_handle = %d, command_id = %llu, command_type = %d", __FUNCTION__,
+                templateId, expert_handle, static_cast<unsigned long long>(command_id), command_type);
 
-            auto cmd_callback = [con = con, self = shared_from_this()](int handle, int command_id, const std::string& payload) {
+            auto cmd_callback = [con = con, self = shared_from_this()](int handle, uint64_t command_id, const std::string& payload) {
                 auto connection = con.lock();
                 if (connection)
                 {

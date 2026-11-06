@@ -20,7 +20,7 @@ public:
     void SendEvent(int event_type, const std::string& payload);
     void SendResponse(const std::string& payload);
 
-    void ProcessCommand(int command_id, int command_type, std::string&& payload, TaskCallback&& callback);
+    void ProcessCommand(uint64_t command_id, int command_type, std::string&& payload, TaskCallback&& callback);
 
     int GetCommandType();
     std::string GetCommandPayload();

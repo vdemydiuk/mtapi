@@ -45,10 +45,10 @@ void MtExpert::SendResponse(const std::string& payload)
     }
 }
 
-void MtExpert::ProcessCommand(int command_id, int command_type, std::string&& payload, TaskCallback&& callback)
+void MtExpert::ProcessCommand(uint64_t command_id, int command_type, std::string&& payload, TaskCallback&& callback)
 {
-    log_.Debug("%s: handle = %d, command id = %d, command type = %d, payload = %s", __FUNCTION__,
-        handle_, command_id, command_type, payload.c_str());
+    log_.Debug("%s: handle = %d, command id = %llu, command type = %d, payload = %s", __FUNCTION__,
+        handle_, static_cast<unsigned long long>(command_id), command_type, payload.c_str());
     auto task = std::make_unique<CommandTask>(command_id, command_type, std::move(payload), std::move(callback));
     tasks_.push(std::move(task));
     mt_handler_->SendTickToMetaTrader();
