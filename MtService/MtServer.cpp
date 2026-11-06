@@ -453,7 +453,7 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
             log_.Trace("%s: Decoded MtCommand (ID: %d), expert_handle = %d, command_id = %d, command_type = %d", __FUNCTION__,
                 templateId, expert_handle, command_id, command_type);
 
-            auto cmd_callback = [con = con, this](int handle, int command_id, const std::string& payload) {
+            auto cmd_callback = [con = con, self = shared_from_this()](int handle, int command_id, const std::string& payload) {
                 auto connection = con.lock();
                 if (connection)
                 {
@@ -492,7 +492,7 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
                     assert(response_buf.size() > 0);
                     if (response_buf.size() == 0)
                     {
-                        log_.Error("%s: Response buffer is empty after encoding.", __FUNCTION__);
+                        self->log_.Error("%s: Response buffer is empty after encoding.", __FUNCTION__);
                     }
                     else
                     {

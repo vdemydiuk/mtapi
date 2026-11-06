@@ -48,14 +48,17 @@ void MtConnection::Close()
 
 void MtConnection::Send(boost::beast::flat_buffer&& buffer)
 {
-    log_.Trace("%s: msg size = %d, msg = %s", __FUNCTION__,
-        buffer.size(),
-        ToHex(buffer).c_str());
-
-    // TODO: Optimize this to avoid copying the buffer data into a string. Instead, we can use the buffer directly in the async_write call.
-    send_queue_.push(std::move(buffer));
-    if (send_queue_.size() == 1)
-        DoWrite();
+    // Post onto the connection's strand so send_queue_ is only ever
+    // touched from within the strand (same as DoWrite / OnWrite).
+    boost::asio::post(ws_.get_executor(),
+        [this, self = shared_from_this(), buf = std::move(buffer)]() mutable {
+            log_.Trace("%s: msg size = %d, msg = %s", __FUNCTION__,
+                buf.size(),
+                ToHex(buf).c_str());
+            send_queue_.push(std::move(buf));
+            if (send_queue_.size() == 1)
+                DoWrite();
+        });
 }
 
 void MtConnection::OnAccept(boost::beast::error_code ec)
@@ -159,6 +162,9 @@ void MtConnection::OnWrite(
     if (ec)
     {
         log_.Error("%s, %s", __FUNCTION__, ec.what().c_str());
+        while (!send_queue_.empty())
+            send_queue_.pop();
+        OnConnectionFailed(ec.message());
         return;
     }
 
