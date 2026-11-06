@@ -337,7 +337,12 @@ namespace MtClient
         {
             lock (responses_)
             {
-                return nextCommandId++;
+                uint id;
+                do
+                {
+                    id = nextCommandId++;
+                } while (responses_.ContainsKey(id));
+                return id;
             }
         }
 
