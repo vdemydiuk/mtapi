@@ -79,21 +79,24 @@ namespace MtClient
 
             int requiredBufferSize = MessageHeader.Size + MtCommand.BlockLength + 4 + payloadBytes.Length; // 4 bytes for length prefix
             byte[] buffer = new byte[requiredBufferSize];
-            DirectBuffer directBuffer = new(buffer);
 
-            MessageHeader headerEncoder = new();
-            MtCommand commandEncoder = new();
+            // DirectBuffer pins the array: dispose it as soon as encoding is done, before waiting for the response
+            using (DirectBuffer directBuffer = new(buffer))
+            {
+                MessageHeader headerEncoder = new();
+                MtCommand commandEncoder = new();
 
-            // 1. Wrap and write SBE Header
-            headerEncoder.Wrap(directBuffer, 0, MtCommand.SchemaVersion);
+                // 1. Wrap and write SBE Header
+                headerEncoder.Wrap(directBuffer, 0, MtCommand.SchemaVersion);
 
-            // 2. Wrap and write message fields
-            commandEncoder.WrapForEncodeAndApplyHeader(directBuffer, 0, headerEncoder);
-            commandEncoder.Command_id = commandId;
-            commandEncoder.Expert_handle = expertHandle;
-            commandEncoder.Command_type = (ushort)commandType;
+                // 2. Wrap and write message fields
+                commandEncoder.WrapForEncodeAndApplyHeader(directBuffer, 0, headerEncoder);
+                commandEncoder.Command_id = commandId;
+                commandEncoder.Expert_handle = expertHandle;
+                commandEncoder.Command_type = commandType; // int32 in the SBE spec
 
-            commandEncoder.SetStringPayload(payloadBytes, 0, payloadBytes.Length);
+                commandEncoder.SetStringPayload(payloadBytes, 0, payloadBytes.Length);
+            }
 
             var response = Send<string>(buffer, commandId, timeout);
             return response;
@@ -105,17 +108,20 @@ namespace MtClient
             ulong requestId = getNextCommandId();
             int requiredBufferSize = MessageHeader.Size + MtRequestExpertList.BlockLength;
             byte[] buffer = new byte[requiredBufferSize];
-            DirectBuffer directBuffer = new(buffer);
 
-            MessageHeader headerEncoder = new();
-            MtRequestExpertList requestEncoder = new();
+            // DirectBuffer pins the array: dispose it as soon as encoding is done, before waiting for the response
+            using (DirectBuffer directBuffer = new(buffer))
+            {
+                MessageHeader headerEncoder = new();
+                MtRequestExpertList requestEncoder = new();
 
-            // 1. Wrap and write SBE Header
-            headerEncoder.Wrap(directBuffer, 0, MtRequestExpertList.SchemaVersion);
+                // 1. Wrap and write SBE Header
+                headerEncoder.Wrap(directBuffer, 0, MtRequestExpertList.SchemaVersion);
 
-            // 2. Wrap and write message fields
-            requestEncoder.WrapForEncodeAndApplyHeader(directBuffer, 0, headerEncoder);
-            requestEncoder.Request_id = requestId;
+                // 2. Wrap and write message fields
+                requestEncoder.WrapForEncodeAndApplyHeader(directBuffer, 0, headerEncoder);
+                requestEncoder.Request_id = requestId;
+            }
 
             var response = Send<HashSet<int>>(buffer, requestId, 10000);
             return response;
