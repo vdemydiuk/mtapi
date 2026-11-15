@@ -1,8 +1,18 @@
 #pragma once
 
+#include <cstdint>
 #include <functional>
+#include <string>
 
-typedef std::function<void(int handle, uint64_t command_id, const std::string& payload)> TaskCallback;
+// Outcome of a command task. Kept independent of the SBE generated types (namespace MtService),
+// because this header is included where class MtService is defined.
+enum class TaskResult
+{
+    Completed,      // MetaTrader executed the command, payload contains its response
+    ExpertRemoved   // expert was removed before the command was executed, payload contains error message
+};
+
+typedef std::function<void(int handle, uint64_t command_id, TaskResult result, const std::string& payload)> TaskCallback;
 
 class CommandTask
 {
@@ -20,7 +30,12 @@ public:
 
     void ProcessResponse(int handle, const std::string& response)
     {
-        callback_(handle, command_id_, response);
+        callback_(handle, command_id_, TaskResult::Completed, response);
+    }
+
+    void Cancel(int handle, const std::string& reason)
+    {
+        callback_(handle, command_id_, TaskResult::ExpertRemoved, reason);
     }
 
 private:

@@ -267,6 +267,56 @@ bool IsPayloadSizeValid(const std::string& payload)
 {
     return payload.size() <= VarDataEncoding::lengthMaxValue();
 }
+
+// Sends MtResponse to the connection that issued the command (if it is still alive).
+// Must not throw: it is also called from command callbacks running inside io_context handlers.
+void SendResponse(Logger& log, const std::weak_ptr<MtConnection>& con, int handle, uint64_t command_id,
+    ResponseStatus::Value status, const std::string& payload)
+{
+    auto connection = con.lock();
+    if (!connection)
+        return;
+
+    if (!IsPayloadSizeValid(payload))
+    {
+        log.Error("SendResponse: response payload is too large (%zu bytes), response dropped. handle=%d, command_id=%llu",
+            payload.size(), handle, static_cast<unsigned long long>(command_id));
+        return;
+    }
+
+    boost::beast::flat_buffer response_buf;
+
+    MessageHeader header_encoder;
+    MtResponse response_encoder;
+
+    // Estimate max space needed and prepare Beast buffer memory
+    std::size_t required_size = MessageHeader::encodedLength() +
+        MtResponse::sbeBlockLength() +
+        MtResponse::stringPayloadHeaderLength() + payload.size();
+
+    auto mutable_buffer = response_buf.prepare(required_size);
+    char* dest = static_cast<char*>(mutable_buffer.data());
+
+    // 1. Wrap and write Message Header
+    header_encoder.wrap(dest, 0, MessageHeader::sbeSchemaVersion(), required_size)
+        .blockLength(MtResponse::sbeBlockLength())
+        .templateId(MtResponse::sbeTemplateId())
+        .schemaId(MtResponse::sbeSchemaId())
+        .version(MtResponse::sbeSchemaVersion());
+
+    // 2. Wrap and write Static Fields
+    response_encoder.wrapForEncode(dest, header_encoder.encodedLength(), required_size)
+        .expert_handle(handle)
+        .command_id(command_id)
+        .status(status);
+
+    // 3. Write Variable-Length Data: MetaTrader response (JSON) or error message
+    response_encoder.putStringPayload(payload.data(), static_cast<std::uint32_t>(payload.size()));
+
+    assert(response_encoder.sbePosition() <= required_size);
+    response_buf.commit(response_encoder.sbePosition());
+    connection->Send(std::move(response_buf));
+}
 }
 
 void MtServer::Broadcast(boost::beast::flat_buffer&& buffer)
@@ -433,107 +483,78 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
     switch (templateId) {
     case MtCommand::sbeTemplateId():
     {
-        if (experts_.size() == 0)
+        // The generated field getters read at fixed offsets without bounds checks,
+        // so the client-supplied blockLength must cover the whole fixed block.
+        if (blockLength < MtCommand::sbeBlockLength())
+            throw std::runtime_error("Invalid MtCommand blockLength: " + std::to_string(blockLength));
+
+        MtCommand cmd_decoder;
+        cmd_decoder.wrapForDecode(src, header_decoder.encodedLength(), blockLength, version, length);
+
+        auto expert_handle = cmd_decoder.expert_handle();
+        auto command_id = cmd_decoder.command_id();
+        auto command_type = cmd_decoder.command_type();
+
+        // sbePosition() points at the varData length prefix (right after the fixed block).
+        // stringPayloadLength() reads it without a bounds check, so verify it is present.
+        const std::size_t length_prefix_pos = static_cast<std::size_t>(cmd_decoder.sbePosition());
+        if (length_prefix_pos + MtCommand::stringPayloadHeaderLength() > length)
+            throw std::runtime_error("Buffer underflow: MtCommand stringPayload length prefix missing");
+
+        std::string payload;
+        std::uint32_t payload_len = cmd_decoder.stringPayloadLength();
+        if (payload_len > 0)
+        {
+            // The varData bytes follow the length prefix and must lie within [0, length).
+            if (length_prefix_pos + MtCommand::stringPayloadHeaderLength() + payload_len > length)
+                throw std::runtime_error("Buffer underflow: MtCommand stringPayload exceeds buffer");
+
+            const char* payload_ptr = cmd_decoder.stringPayload();
+            payload = std::string(payload_ptr, payload_len);
+        }
+
+        log_.Trace("%s: Decoded MtCommand (ID: %d), expert_handle = %d, command_id = %llu, command_type = %d", __FUNCTION__,
+            templateId, expert_handle, static_cast<unsigned long long>(command_id), command_type);
+
+        // Every command gets a response: either from MetaTrader or an error status from MtService,
+        // so that the client does not wait for timeout.
+        if (experts_.empty())
         {
             log_.Error("%s: Expert list is empty. There is no any command executor.", __FUNCTION__);
+            SendResponse(log_, con, expert_handle, command_id, ResponseStatus::NoExperts,
+                "MtService: no expert is attached to execute the command");
+            break;
+        }
+
+        MtExpert* expert = nullptr;
+        if (expert_handle == 0)
+        {
+            // use default expert
+            auto it = experts_.begin();
+            log_.Debug("%s: using default expert for executing command - %d", __FUNCTION__, it->first);
+            expert = it->second->expert;
         }
         else
         {
-            // The generated field getters read at fixed offsets without bounds checks,
-            // so the client-supplied blockLength must cover the whole fixed block.
-            if (blockLength < MtCommand::sbeBlockLength())
-                throw std::runtime_error("Invalid MtCommand blockLength: " + std::to_string(blockLength));
-
-            MtCommand cmd_decoder;
-            cmd_decoder.wrapForDecode(src, header_decoder.encodedLength(), blockLength, version, length);
-
-            auto expert_handle = cmd_decoder.expert_handle();
-            auto command_id = cmd_decoder.command_id();
-            auto command_type = cmd_decoder.command_type();
-
-            // sbePosition() points at the varData length prefix (right after the fixed block).
-            // stringPayloadLength() reads it without a bounds check, so verify it is present.
-            const std::size_t length_prefix_pos = static_cast<std::size_t>(cmd_decoder.sbePosition());
-            if (length_prefix_pos + MtCommand::stringPayloadHeaderLength() > length)
-                throw std::runtime_error("Buffer underflow: MtCommand stringPayload length prefix missing");
-
-            std::string payload;
-            std::uint32_t payload_len = cmd_decoder.stringPayloadLength();
-            if (payload_len > 0)
-            {
-                // The varData bytes follow the length prefix and must lie within [0, length).
-                if (length_prefix_pos + MtCommand::stringPayloadHeaderLength() + payload_len > length)
-                    throw std::runtime_error("Buffer underflow: MtCommand stringPayload exceeds buffer");
-
-                const char* payload_ptr = cmd_decoder.stringPayload();
-                payload = std::string(payload_ptr, payload_len);
-            }
-
-            log_.Trace("%s: Decoded MtCommand (ID: %d), expert_handle = %d, command_id = %llu, command_type = %d", __FUNCTION__,
-                templateId, expert_handle, static_cast<unsigned long long>(command_id), command_type);
-
-            auto cmd_callback = [con = con, self = shared_from_this()](int handle, uint64_t command_id, const std::string& payload) {
-                auto connection = con.lock();
-                if (connection)
-                {
-                    if (!IsPayloadSizeValid(payload))
-                    {
-                        // Must not throw here: this runs inside an io_context handler.
-                        self->log_.Error("MtServer: response payload is too large (%zu bytes), response dropped. handle=%d, command_id=%llu",
-                            payload.size(), handle, static_cast<unsigned long long>(command_id));
-                        return;
-                    }
-
-                    boost::beast::flat_buffer response_buf;
-
-                    MessageHeader header_encoder;
-                    MtResponse response_encoder;
-
-                    // Estimate max space needed and prepare Beast buffer memory
-                    std::size_t required_size = MessageHeader::encodedLength() +
-                        MtResponse::sbeBlockLength() +
-                        MtResponse::stringPayloadHeaderLength() + payload.size();
-
-                    auto mutable_buffer = response_buf.prepare(required_size);
-                    char* dest = static_cast<char*>(mutable_buffer.data());
-
-                    // 1. Wrap and write Message Header
-                    header_encoder.wrap(dest, 0, MessageHeader::sbeSchemaVersion(), required_size)
-                        .blockLength(MtResponse::sbeBlockLength())
-                        .templateId(MtResponse::sbeTemplateId())
-                        .schemaId(MtResponse::sbeSchemaId())
-                        .version(MtResponse::sbeSchemaVersion());
-
-                    // 2. Wrap and write Static Fields
-                    response_encoder.wrapForEncode(dest, header_encoder.encodedLength(), required_size)
-                        .expert_handle(handle)
-                        .command_id(command_id);
-
-                    // 3. Write Variable-Length JSON Data
-                    response_encoder.putStringPayload(payload.data(), static_cast<std::uint32_t>(payload.size()));
-
-                    assert(response_encoder.sbePosition() <= required_size);
-                    response_buf.commit(response_encoder.sbePosition());
-                    connection->Send(std::move(response_buf));
-                }
-            };
-
-            if (expert_handle == 0)
-            {
-                // use default expert
-                auto expert = experts_.begin();
-                log_.Debug("%s: using default expert for executing command - %d", __FUNCTION__, expert->first);
-                expert->second->expert->ProcessCommand(command_id, command_type, std::move(payload), std::move(cmd_callback));
-            }
-            else if (experts_.count(expert_handle) > 0)
-            {
-                experts_[expert_handle]->expert->ProcessCommand(command_id, command_type, std::move(payload), std::move(cmd_callback));
-            }
-            else
-            {
-                log_.Warning("%s: Expert is not found with handle %d", __FUNCTION__, expert_handle);
-            }
+            auto it = experts_.find(expert_handle);
+            if (it != experts_.end())
+                expert = it->second->expert;
         }
+
+        if (expert == nullptr)
+        {
+            log_.Warning("%s: Expert is not found with handle %d", __FUNCTION__, expert_handle);
+            SendResponse(log_, con, expert_handle, command_id, ResponseStatus::ExpertNotFound,
+                "MtService: expert with handle " + std::to_string(expert_handle) + " is not found");
+            break;
+        }
+
+        auto cmd_callback = [con = con, self = shared_from_this()](int handle, uint64_t command_id, TaskResult result, const std::string& payload) {
+            const auto status = (result == TaskResult::Completed) ? ResponseStatus::Ok : ResponseStatus::ExpertRemoved;
+            SendResponse(self->log_, con, handle, command_id, status, payload);
+        };
+
+        expert->ProcessCommand(command_id, command_type, std::move(payload), std::move(cmd_callback));
 
         break;
     }
