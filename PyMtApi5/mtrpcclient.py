@@ -178,7 +178,6 @@ class MtRpcClient:
         while True:
             try:
                 message = self.__ws.recv()
-                self.__process_message(message)
             except websockets.exceptions.ConnectionClosed:
                 self.__logger.info("Connection closed")
                 if self.__callback is not None:
@@ -189,4 +188,12 @@ class MtRpcClient:
                 if self.__callback is not None:
                     self.__callback.mt_rpc_on_connection_failed(str(e))
                 break
+
+            # A malformed message or an exception raised by a subscriber's callback
+            # must not break the receive loop: log it and drop only this message.
+            try:
+                self.__process_message(message)
+            except Exception:
+                size = len(message) if isinstance(message, (bytes, bytearray, str)) else "?"
+                self.__logger.exception(f"receive_messages: failed to process received message ({size} bytes)")
         self.__logger.debug("function receive_messages finished")
