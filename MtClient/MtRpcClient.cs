@@ -207,10 +207,19 @@ namespace MtClient
                         }
                         else if (result.MessageType == WebSocketMessageType.Binary)
                         {
-                            OnReceive(ms.ToArray());
+                            // A malformed message or an exception thrown by a subscriber's event handler
+                            // must not break the receive loop: log it and drop only this message.
+                            try
+                            {
+                                OnReceive(ms.ToArray());
+                            }
+                            catch (Exception ex)
+                            {
+                                logger_.Error($"MtRpcClient.DoReceive: Failed to process received message ({recvCount} bytes) - {ex.GetType().Name}: {ex.Message}");
+                            }
                         }
-                        ms.Seek(0, SeekOrigin.Begin);
-                        ms.Position = 0;
+                        // Truncate (not only rewind) so ToArray() of the next message doesn't include stale bytes
+                        ms.SetLength(0);
                     }
                 }
             }
