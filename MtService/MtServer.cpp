@@ -409,6 +409,11 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
         }
         else
         {
+            // The generated field getters read at fixed offsets without bounds checks,
+            // so the client-supplied blockLength must cover the whole fixed block.
+            if (blockLength < MtCommand::sbeBlockLength())
+                throw std::runtime_error("Invalid MtCommand blockLength: " + std::to_string(blockLength));
+
             MtCommand cmd_decoder;
             cmd_decoder.wrapForDecode(src, header_decoder.encodedLength(), blockLength, version, length);
 
@@ -416,14 +421,18 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
             auto command_id = cmd_decoder.command_id();
             auto command_type = cmd_decoder.command_type();
 
+            // sbePosition() points at the varData length prefix (right after the fixed block).
+            // stringPayloadLength() reads it without a bounds check, so verify it is present.
+            const std::size_t length_prefix_pos = static_cast<std::size_t>(cmd_decoder.sbePosition());
+            if (length_prefix_pos + MtCommand::stringPayloadHeaderLength() > length)
+                throw std::runtime_error("Buffer underflow: MtCommand stringPayload length prefix missing");
+
             std::string payload;
             std::uint32_t payload_len = cmd_decoder.stringPayloadLength();
             if (payload_len > 0)
             {
-                // Validate the claimed payload fits within the received buffer before reading.
-                // sbePosition() is the byte offset immediately after the length prefix field;
-                // the varData bytes must all lie within [0, length).
-                if (static_cast<std::size_t>(cmd_decoder.sbePosition()) + payload_len > length)
+                // The varData bytes follow the length prefix and must lie within [0, length).
+                if (length_prefix_pos + MtCommand::stringPayloadHeaderLength() + payload_len > length)
                     throw std::runtime_error("Buffer underflow: MtCommand stringPayload exceeds buffer");
 
                 const char* payload_ptr = cmd_decoder.stringPayload();
@@ -492,12 +501,16 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
     }
     case MtRequestExpertList::sbeTemplateId():
     {
+        if (blockLength < MtRequestExpertList::sbeBlockLength())
+            throw std::runtime_error("Invalid MtRequestExpertList blockLength: " + std::to_string(blockLength));
+
         MtRequestExpertList request_decoder;
         request_decoder.wrapForDecode(src, header_decoder.encodedLength(), blockLength, version, length);
 
         auto request_id = request_decoder.request_id();
 
-        log_.Trace("%s: Decoded MtRequestExpertList (ID: %d, request_id: %d)", __FUNCTION__, templateId, request_id);
+        log_.Trace("%s: Decoded MtRequestExpertList (ID: %d, request_id: %llu)", __FUNCTION__, templateId,
+            static_cast<unsigned long long>(request_id));
 
         auto connection = con.lock();
         if (connection)
