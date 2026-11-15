@@ -4,9 +4,9 @@ import logging
 from enum import IntEnum
 from threading import Lock, Thread
 
-from mt5commandtype import Mt5CommandType
-from mt5enums import *
-from mtrpcclient import MtRpcClient
+from .mt5commandtype import Mt5CommandType
+from .mt5enums import *
+from .mtrpcclient import MtRpcClient
 
 
 class Mt5EventType(IntEnum):

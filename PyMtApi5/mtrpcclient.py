@@ -1,49 +1,45 @@
 import logging
-from enum import IntEnum
 from threading import Condition, Lock, Thread
 
 import websockets
 from websockets.sync.client import connect as ws_connect
 
+from .mtprotocol_sbe import (
+    MtCommand,
+    MtEvent,
+    MtExpertAdded,
+    MtExpertList,
+    MtExpertRemoved,
+    MtRequestExpertList,
+    MtResponse,
+    decode_message,
+)
 
-class MtNotification(IntEnum):
-    ClientReady = 0
-
-
-class MtMessageType(IntEnum):
-    Command = 0
-    Response = 1
-    Event = 2
-    ExpertList = 3
-    ExpertAdded = 4
-    ExpertRemoved = 5
-    Notification = 6
+_UINT64_MASK = (1 << 64) - 1
 
 
 class CommandTask:
     def __init__(self):
-        self.locker = Lock()
         self.waiter = Condition()
         self.response = None
+        self.is_set = False
 
-    def wait_response(self, time):
+    def wait_response(self, timeout):
         with self.waiter:
-            self.waiter.wait(time)
-        with self.locker:
+            self.waiter.wait_for(lambda: self.is_set, timeout)
             return self.response
 
     def set_response(self, response):
-        with self.locker:
-            self.response = response
         with self.waiter:
-            self.waiter.notify()
+            self.response = response
+            self.is_set = True
+            self.waiter.notify_all()
 
 
 class MtRpcClient:
     def __init__(self, callback=None):
         self.__logger = logging.getLogger(__name__)
         self.__callback = callback
-        self.__notification_tasks = dict()
         self.__tasks = dict()
         self.__next_command_id = 0
         self.__lock = Lock()
@@ -59,86 +55,95 @@ class MtRpcClient:
         self.__receive_thread.join()
         self.__logger.debug("disconnected")
 
-    def request_expert_list(self):
-        task = CommandTask()
-        with self.__lock:
-            self.__notification_tasks[MtNotification.ClientReady] = task
-        self.__ws.send(self.__create_notification(MtNotification.ClientReady))
-        response = task.wait_response(10)
-        with self.__lock:
-            self.__notification_tasks.pop(MtNotification.ClientReady)
-        return response
+    def request_expert_list(self, timeout=10):
+        request_id = self.__get_next_command_id()
+        self.__logger.debug(f"request_expert_list: request_id = {request_id}")
+        message = MtRequestExpertList(request_id).encode()
+        return self.__send(message, request_id, timeout)
 
-    def send_command(self, expert_handle, command_type, payload=None):
-        command_id = self.__next_command_id
-        self.__next_command_id += 1
-        task = CommandTask()
-        with self.__lock:
-            self.__tasks[command_id] = task
-        self.__ws.send(self.__create_mt_command(expert_handle, command_id, command_type, payload))
-        response = task.wait_response(10)
-        with self.__lock:
-            self.__tasks.pop(command_id)
-        return response
+    def send_command(self, expert_handle, command_type, payload=None, timeout=10):
+        command_id = self.__get_next_command_id()
+        self.__logger.debug(
+            f"send_command: expert_handle = {expert_handle}, command_id = {command_id}, "
+            f"command_type = {command_type}, payload = {payload}"
+        )
+        message = MtCommand(expert_handle, command_id, command_type, payload or "").encode()
+        return self.__send(message, command_id, timeout)
 
     # Private methods
 
-    def __process_message(self, message):
-        self.__logger.debug(f"process_message: {message}")
-        pieces = message.split(";", 1)
-        if len(pieces) != 2 or not pieces[0] or not pieces[1]:
-            self.__logger.warning("process_message: Invalid message format")
-            return
-        message_type = MtMessageType(int(pieces[0]))
-        if message_type == MtMessageType.ExpertList:
-            self.__process_expert_list(pieces[1])
-        elif message_type == MtMessageType.Event:
-            self.__process_event(pieces[1])
-        elif message_type == MtMessageType.Response:
-            self.__process_response(pieces[1])
-        elif message_type == MtMessageType.ExpertAdded:
-            self.__process_expert_added(pieces[1])
-        elif message_type == MtMessageType.ExpertRemoved:
-            self.__process_expert_removed(pieces[1])
-        else:
-            self.__logger.warning(f"received unknown message type: {message_type}")
-
-    def __process_expert_list(self, payload):
-        pieces = payload.split(",")
-        experts = list()
-        for p in pieces:
-            experts.append(int(p))
+    def __get_next_command_id(self):
         with self.__lock:
-            task = self.__notification_tasks.get(MtNotification.ClientReady)
-            if task is not None:
-                task.set_response(experts)
+            while True:
+                command_id = self.__next_command_id
+                self.__next_command_id = (self.__next_command_id + 1) & _UINT64_MASK
+                if command_id not in self.__tasks:
+                    # reserve id so concurrent callers do not get the same one
+                    self.__tasks[command_id] = CommandTask()
+                    return command_id
 
-    def __process_event(self, payload):
-        pieces = payload.split(";", 2)
-        if len(pieces) != 3 or not pieces[0] or not pieces[1] or not pieces[2]:
-            self.__logger.warning("process_event: Invalid message format")
-            return
-        if self.__callback is not None:
-            self.__callback.mt_rpc_on_event(int(pieces[0]), int(pieces[1]), pieces[2])
+    def __send(self, message, command_id, timeout):
+        with self.__lock:
+            task = self.__tasks[command_id]
+        try:
+            self.__ws.send(message)
+            return task.wait_response(timeout)
+        finally:
+            with self.__lock:
+                self.__tasks.pop(command_id, None)
 
-    def __process_response(self, payload):
-        pieces = payload.split(";", 2)
-        if len(pieces) != 3 or not pieces[0] or not pieces[1] or not pieces[2]:
-            self.__logger.warning("process_response: Invalid message format")
-            return
-        command_id = int(pieces[1])
+    def __set_task_response(self, command_id, response):
         with self.__lock:
             task = self.__tasks.get(command_id)
-            if task is not None:
-                task.set_response(pieces[2])
+        if task is not None:
+            task.set_response(response)
 
-    def __process_expert_added(self, payload):
-        if self.__callback is not None:
-            self.__callback.mt_rpc_on_expert_added(int(payload))
+    def __process_message(self, message):
+        if not isinstance(message, (bytes, bytearray)):
+            self.__logger.warning(f"process_message: unexpected text message: {message}")
+            return
+        self.__logger.debug(f"process_message: {len(message)} bytes")
 
-    def __process_expert_removed(self, payload):
+        msg = decode_message(message)
+        if isinstance(msg, MtResponse):
+            self.__process_response(msg)
+        elif isinstance(msg, MtEvent):
+            self.__process_event(msg)
+        elif isinstance(msg, MtExpertList):
+            self.__process_expert_list(msg)
+        elif isinstance(msg, MtExpertAdded):
+            self.__process_expert_added(msg)
+        elif isinstance(msg, MtExpertRemoved):
+            self.__process_expert_removed(msg)
+        else:
+            self.__logger.warning(f"received unknown message: {msg}")
+
+    def __process_response(self, msg):
+        self.__logger.debug(
+            f"process_response: {msg.expert_handle}, {msg.command_id}, [{msg.string_payload}]"
+        )
+        self.__set_task_response(msg.command_id, msg.string_payload)
+
+    def __process_event(self, msg):
+        self.__logger.debug(f"process_event: {msg.expert_handle}, {msg.event_type}, [{msg.string_payload}]")
         if self.__callback is not None:
-            self.__callback.mt_rpc_on_expert_removed(int(payload))
+            self.__callback.mt_rpc_on_event(msg.expert_handle, msg.event_type, msg.string_payload)
+
+    def __process_expert_list(self, msg):
+        self.__logger.debug(f"process_expert_list: request_id = {msg.request_id}, experts = {msg.expert_list}")
+        # keep order, drop duplicates (C# client uses HashSet)
+        experts = list(dict.fromkeys(msg.expert_list))
+        self.__set_task_response(msg.request_id, experts)
+
+    def __process_expert_added(self, msg):
+        self.__logger.debug(f"process_expert_added: {msg.expert_handle}")
+        if self.__callback is not None:
+            self.__callback.mt_rpc_on_expert_added(msg.expert_handle)
+
+    def __process_expert_removed(self, msg):
+        self.__logger.debug(f"process_expert_removed: {msg.expert_handle}")
+        if self.__callback is not None:
+            self.__callback.mt_rpc_on_expert_removed(msg.expert_handle)
 
     def __receive_messages_thread(self):
         self.__logger.debug("started receive_messages thread")
@@ -157,11 +162,3 @@ class MtRpcClient:
                     self.__callback.mt_rpc_on_connection_failed(str(e))
                 break
         self.__logger.debug("function receive_messages finished")
-
-    def __create_notification(self, notification_type):
-        return f"{int(MtMessageType.Notification)};{notification_type}"
-
-    def __create_mt_command(self, expert_handle, command_id, command_type, payload):
-        if payload is None:
-            return f"{MtMessageType.Command};{expert_handle};{command_id};{command_type}"
-        return f"{MtMessageType.Command};{expert_handle};{command_id};{command_type};{payload}"

@@ -7,8 +7,11 @@ import time
 from functools import partial
 from threading import Thread
 
-import mt5enums
-from mt5apiclient import Mt5ApiClient
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from PyMtApi5 import Mt5ApiClient, mt5enums  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
