@@ -46,6 +46,8 @@ public:
     void Accept();
     void Close();
     void Send(boost::beast::flat_buffer&& buffer);
+    // Queue an already-encoded message that may be shared with other connections (broadcast).
+    void Send(std::shared_ptr<const boost::beast::flat_buffer> buffer);
 
     boost::signals2::signal<void()> OnConnected;
     boost::signals2::signal<void(const std::string&)> OnConnectionFailed;
@@ -68,5 +70,5 @@ private:
     boost::asio::ip::tcp::resolver resolver_; 
     std::string host_;
     boost::beast::flat_buffer read_buffer_;
-    std::queue<boost::beast::flat_buffer> send_queue_;
+    std::queue<std::shared_ptr<const boost::beast::flat_buffer>> send_queue_;
 };

@@ -14,7 +14,7 @@ namespace MtService
     /// </summary>
     public sealed partial class MtResponse
     {
-        public const ushort BlockLength = (ushort)12;
+        public const ushort BlockLength = (ushort)16;
         public const ushort TemplateId = (ushort)101;
         public const ushort SchemaId = (ushort)1;
         public const ushort SchemaVersion = (ushort)1;
@@ -175,7 +175,43 @@ namespace MtService
         }
 
 
-        public const int StringPayloadId = 3;
+        public const int StatusId = 3;
+        public const int StatusSinceVersion = 0;
+        public const int StatusDeprecated = 0;
+        public bool StatusInActingVersion()
+        {
+            return _actingVersion >= StatusSinceVersion;
+        }
+
+        public const int StatusOffset = 12;
+
+        public static string StatusMetaAttribute(MetaAttribute metaAttribute)
+        {
+            switch (metaAttribute)
+            {
+                case MetaAttribute.Epoch: return "";
+                case MetaAttribute.TimeUnit: return "";
+                case MetaAttribute.SemanticType: return "";
+                case MetaAttribute.Presence: return "required";
+            }
+
+            return "";
+        }
+
+        public ResponseStatus Status
+        {
+            get
+            {
+                return (ResponseStatus)_buffer.Int32GetLittleEndian(_offset + 12);
+            }
+            set
+            {
+                _buffer.Int32PutLittleEndian(_offset + 12, (int)value);
+            }
+        }
+
+
+        public const int StringPayloadId = 4;
         public const int StringPayloadSinceVersion = 0;
         public const int StringPayloadDeprecated = 0;
         public bool StringPayloadInActingVersion()
@@ -183,7 +219,7 @@ namespace MtService
             return _actingVersion >= StringPayloadSinceVersion;
         }
 
-        public const int StringPayloadOffset = 12;
+        public const int StringPayloadOffset = 16;
 
         public const string StringPayloadCharacterEncoding = "UTF-8";
         public static Encoding StringPayloadResolvedCharacterEncoding = Encoding.GetEncoding(StringPayloadCharacterEncoding);
@@ -317,6 +353,9 @@ namespace MtService
             builder.Append('|');
             builder.Append("Command_id=");
             builder.Append(this.Command_id);
+            builder.Append('|');
+            builder.Append("Status=");
+            builder.Append(this.Status);
             builder.Append('|');
             builder.Append("StringPayload=");
             builder.Append('\'').Append(GetStringPayload()).Append('\'');

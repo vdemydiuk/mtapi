@@ -3602,7 +3602,17 @@ namespace MtApi5
             var payloadJson = payload == null ? string.Empty : JsonConvert.SerializeObject(payload);
             Log.Debug($"SendCommand: sending '{payloadJson}' ...");
 
-            var responseJson = client.SendCommand(expertHandle, (int)commandType, payloadJson, CommandTimeout);
+            string? responseJson;
+            try
+            {
+                responseJson = client.SendCommand(expertHandle, (int)commandType, payloadJson, CommandTimeout);
+            }
+            catch (MtRpcException ex)
+            {
+                // MtService could not deliver the command to MetaTrader (no expert, expert not found or removed)
+                Log.Warn($"SendCommand: command was not executed. Status = {ex.Status}. {ex.Message}");
+                throw new ExecutionException(ErrorCode.ErrCustom, ex.Message);
+            }
 
             Log.Debug($"SendCommand: received response JSON [{responseJson}]");
 

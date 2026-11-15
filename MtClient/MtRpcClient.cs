@@ -67,6 +67,11 @@ namespace MtClient
             logger_.Debug($"MtRpcClient.Disconnect: success");
         }
 
+        /// <summary>
+        /// Sends command to MetaTrader and waits for its response.
+        /// Returns null if the response was not received within timeout.
+        /// </summary>
+        /// <exception cref="MtRpcException">MtService could not deliver the command to MetaTrader (no expert, expert not found or removed).</exception>
         public string? SendCommand(int expertHandle, int commandType, string payload, int timeout = 10000)  // 10 sec
         {
             logger_.Debug($"MtRpcClient.SendCommand: try to send command to {host_}:{port_}, expertHandle: {expertHandle}, commandType: {commandType}, payload: {payload}");
@@ -79,21 +84,24 @@ namespace MtClient
 
             int requiredBufferSize = MessageHeader.Size + MtCommand.BlockLength + 4 + payloadBytes.Length; // 4 bytes for length prefix
             byte[] buffer = new byte[requiredBufferSize];
-            DirectBuffer directBuffer = new(buffer);
 
-            MessageHeader headerEncoder = new();
-            MtCommand commandEncoder = new();
+            // DirectBuffer pins the array: dispose it as soon as encoding is done, before waiting for the response
+            using (DirectBuffer directBuffer = new(buffer))
+            {
+                MessageHeader headerEncoder = new();
+                MtCommand commandEncoder = new();
 
-            // 1. Wrap and write SBE Header
-            headerEncoder.Wrap(directBuffer, 0, MtCommand.SchemaVersion);
+                // 1. Wrap and write SBE Header
+                headerEncoder.Wrap(directBuffer, 0, MtCommand.SchemaVersion);
 
-            // 2. Wrap and write message fields
-            commandEncoder.WrapForEncodeAndApplyHeader(directBuffer, 0, headerEncoder);
-            commandEncoder.Command_id = commandId;
-            commandEncoder.Expert_handle = expertHandle;
-            commandEncoder.Command_type = (ushort)commandType;
+                // 2. Wrap and write message fields
+                commandEncoder.WrapForEncodeAndApplyHeader(directBuffer, 0, headerEncoder);
+                commandEncoder.Command_id = commandId;
+                commandEncoder.Expert_handle = expertHandle;
+                commandEncoder.Command_type = commandType; // int32 in the SBE spec
 
-            commandEncoder.SetStringPayload(payloadBytes, 0, payloadBytes.Length);
+                commandEncoder.SetStringPayload(payloadBytes, 0, payloadBytes.Length);
+            }
 
             var response = Send<string>(buffer, commandId, timeout);
             return response;
@@ -105,17 +113,20 @@ namespace MtClient
             ulong requestId = getNextCommandId();
             int requiredBufferSize = MessageHeader.Size + MtRequestExpertList.BlockLength;
             byte[] buffer = new byte[requiredBufferSize];
-            DirectBuffer directBuffer = new(buffer);
 
-            MessageHeader headerEncoder = new();
-            MtRequestExpertList requestEncoder = new();
+            // DirectBuffer pins the array: dispose it as soon as encoding is done, before waiting for the response
+            using (DirectBuffer directBuffer = new(buffer))
+            {
+                MessageHeader headerEncoder = new();
+                MtRequestExpertList requestEncoder = new();
 
-            // 1. Wrap and write SBE Header
-            headerEncoder.Wrap(directBuffer, 0, MtRequestExpertList.SchemaVersion);
+                // 1. Wrap and write SBE Header
+                headerEncoder.Wrap(directBuffer, 0, MtRequestExpertList.SchemaVersion);
 
-            // 2. Wrap and write message fields
-            requestEncoder.WrapForEncodeAndApplyHeader(directBuffer, 0, headerEncoder);
-            requestEncoder.Request_id = requestId;
+                // 2. Wrap and write message fields
+                requestEncoder.WrapForEncodeAndApplyHeader(directBuffer, 0, headerEncoder);
+                requestEncoder.Request_id = requestId;
+            }
 
             var response = Send<HashSet<int>>(buffer, requestId, 10000);
             return response;
@@ -142,6 +153,10 @@ namespace MtClient
             {
                 responses_.Remove(commandId);
             }
+
+            // MtService could not deliver the command to MetaTrader
+            if (response is ErrorResponse error)
+                throw new MtRpcException(error.Status, error.Message);
 
             return (T?)response;
         }
@@ -207,10 +222,19 @@ namespace MtClient
                         }
                         else if (result.MessageType == WebSocketMessageType.Binary)
                         {
-                            OnReceive(ms.ToArray());
+                            // A malformed message or an exception thrown by a subscriber's event handler
+                            // must not break the receive loop: log it and drop only this message.
+                            try
+                            {
+                                OnReceive(ms.ToArray());
+                            }
+                            catch (Exception ex)
+                            {
+                                logger_.Error($"MtRpcClient.DoReceive: Failed to process received message ({recvCount} bytes) - {ex.GetType().Name}: {ex.Message}");
+                            }
                         }
-                        ms.Seek(0, SeekOrigin.Begin);
-                        ms.Position = 0;
+                        // Truncate (not only rewind) so ToArray() of the next message doesn't include stale bytes
+                        ms.SetLength(0);
                     }
                 }
             }
@@ -225,14 +249,36 @@ namespace MtClient
         {
             logger_.Debug($"MtRpcClient.OnReceive: {msg.Length} bytes");
 
-            // Decoding the Header
+            // DirectBuffer reads header and fixed fields through unchecked pointers,
+            // so every length the decoders rely on must be validated before reading.
+            // Exceptions thrown here are caught and logged by DoReceive, dropping only this message.
+            if (msg.Length < MessageHeader.Size)
+                throw new InvalidDataException($"Message is shorter than SBE header: {msg.Length} bytes");
+
+            // Decoding the Header (Dispose unpins the message array)
             MessageHeader headerDecoder = new();
-            var directBuffer = new DirectBuffer(msg);
+            using var directBuffer = new DirectBuffer(msg);
             headerDecoder.Wrap(directBuffer, 0, MessageHeader.SbeSchemaVersion);
 
             ushort templateId = headerDecoder.TemplateId;
             ushort blockLength = headerDecoder.BlockLength;
+            ushort schemaId = headerDecoder.SchemaId;
             ushort schemaVersion = headerDecoder.Version;
+
+            if (schemaId != MessageHeader.SbeSchemaId)
+                throw new InvalidDataException($"Unexpected SBE schema ID: {schemaId}");
+
+            int minBlockLength = GetMinBlockLength(templateId);
+            if (minBlockLength < 0)
+            {
+                logger_.Warn($"MtRpcClient.OnReceive: Unknown SBE template ID: {templateId}");
+                return;
+            }
+
+            // Fixed fields are read at constant offsets: the sender's block must contain all of them.
+            // (WrapForDecode itself checks that the block fits into the message.)
+            if (blockLength < minBlockLength)
+                throw new InvalidDataException($"Invalid blockLength {blockLength} for template ID {templateId}, expected at least {minBlockLength}");
 
             switch (templateId)
             {
@@ -254,6 +300,11 @@ namespace MtClient
                     {
                         MtExpertList expertListMsg = new();
                         expertListMsg.WrapForDecode(directBuffer, MessageHeader.Size, blockLength, schemaVersion);
+
+                        // The group header (blockLength + numInGroup) is read before any limit check
+                        if (expertListMsg.Limit + MtExpertList.Expert_listGroup.SbeHeaderSize > msg.Length)
+                            throw new InvalidDataException("MtExpertList: expert_list group header is missing");
+
                         ProcessExpertList(expertListMsg);
                     }
                     break;
@@ -274,6 +325,17 @@ namespace MtClient
             }
         }
 
+        // Minimum fixed block length of each message the client can receive, -1 for unknown messages
+        private static int GetMinBlockLength(ushort templateId) => templateId switch
+        {
+            MtEvent.TemplateId => MtEvent.BlockLength,
+            MtResponse.TemplateId => MtResponse.BlockLength,
+            MtExpertList.TemplateId => MtExpertList.BlockLength,
+            MtExpertAdded.TemplateId => MtExpertAdded.BlockLength,
+            MtExpertRemoved.TemplateId => MtExpertRemoved.BlockLength,
+            _ => -1
+        };
+
         private void ProcessEvent(MtEvent msg)
         {
             var expertHandle = msg.Expert_handle;
@@ -287,14 +349,18 @@ namespace MtClient
         {
             var handle = msg.Expert_handle;
             var commandId = msg.Command_id;
+            var status = msg.Status;
             var payload = msg.GetStringPayload();
 
-            logger_.Debug($"MtRpcClient.ProcessResponse: {handle}, {commandId}, [{payload}]");
+            logger_.Debug($"MtRpcClient.ProcessResponse: {handle}, {commandId}, {status}, [{payload}]");
+
+            // On error the payload is not MetaTrader response, but error message from MtService
+            object response = status == ResponseStatus.Ok ? payload : new ErrorResponse(status, payload);
 
             lock (responses_)
             {
                 if (responses_.TryGetValue(commandId, out MessageResponse? value))
-                    value.SetResponse(payload);
+                    value.SetResponse(response);
             }
         }
 
@@ -305,6 +371,11 @@ namespace MtClient
             // Read the Repeating Group (expert_list)
             var groupDecoder = msg.Expert_list;
             int totalExperts = groupDecoder.Count;
+
+            // Next() checks that each entry's block fits into the message, but Expert_handle is read
+            // at a fixed offset inside the entry, so the entry block must be large enough for it.
+            if (totalExperts > 0 && groupDecoder.ActingBlockLength < MtExpertList.Expert_listGroup.SbeBlockLength)
+                throw new InvalidDataException($"MtExpertList: invalid expert_list entry blockLength {groupDecoder.ActingBlockLength}");
 
             HashSet<int> expertHandles = [];
             while (groupDecoder.HasNext)
@@ -369,6 +440,9 @@ namespace MtClient
 
         private readonly IRpcLogger logger_;
     }
+
+    // Response with status other than Ok: MtService could not deliver the command to MetaTrader
+    internal sealed record ErrorResponse(ResponseStatus Status, string Message);
 
     internal class MessageResponse
     {

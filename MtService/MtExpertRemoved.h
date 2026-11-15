@@ -91,6 +91,7 @@
 
 
 #include "MessageHeader.h"
+#include "ResponseStatus.h"
 #include "GroupSizeEncoding.h"
 #include "VarDataEncoding.h"
 

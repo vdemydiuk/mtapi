@@ -3151,7 +3151,17 @@ namespace MtApi
             var payloadJson = payload == null ? string.Empty : JsonConvert.SerializeObject(payload);
             Log.Debug($"SendCommand: sending '{payloadJson}' ...");
 
-            var responseJson = client.SendCommand(expertHandle, (int)commandType, payloadJson);
+            string? responseJson;
+            try
+            {
+                responseJson = client.SendCommand(expertHandle, (int)commandType, payloadJson);
+            }
+            catch (MtRpcException ex)
+            {
+                // MtService could not deliver the command to MetaTrader (no expert, expert not found or removed)
+                Log.Warn($"SendCommand: command was not executed. Status = {ex.Status}. {ex.Message}");
+                throw new MtExecutionException(MtErrorCode.MtApiCustomError, ex.Message);
+            }
 
             Log.Debug($"SendCommand: received response JSON [{responseJson}]");
 

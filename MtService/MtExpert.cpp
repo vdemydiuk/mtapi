@@ -24,7 +24,30 @@ void MtExpert::Deinit()
 {
     log_.Debug("%s: handle = %d", __FUNCTION__, handle_);
 
+    CancelTasks();
     OnDeinit(handle_);
+}
+
+void MtExpert::CancelTasks()
+{
+    // Reply to every command that will never be executed, so that clients don't wait for timeout.
+    const std::string reason = "MtService: expert " + std::to_string(handle_) + " was removed before the command was executed";
+
+    if (current_task_)
+    {
+        log_.Warning("%s: cancel current command of expert %d", __FUNCTION__, handle_);
+        current_task_->Cancel(handle_, reason);
+        current_task_.reset();
+    }
+
+    if (!tasks_.empty())
+        log_.Warning("%s: cancel %zu queued command(s) of expert %d", __FUNCTION__, tasks_.size(), handle_);
+
+    while (!tasks_.empty())
+    {
+        tasks_.front()->Cancel(handle_, reason);
+        tasks_.pop();
+    }
 }
 
 void MtExpert::SendEvent(int event_type, const std::string& payload)

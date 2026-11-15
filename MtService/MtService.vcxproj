@@ -176,6 +176,7 @@
     <ClInclude Include="MtExpertRemoved.h" />
     <ClInclude Include="MtRequestExpertList.h" />
     <ClInclude Include="MtResponse.h" />
+    <ClInclude Include="ResponseStatus.h" />
     <ClInclude Include="MtServer.h" />
     <ClInclude Include="MtService.h" />
     <ClInclude Include="pch.h" />

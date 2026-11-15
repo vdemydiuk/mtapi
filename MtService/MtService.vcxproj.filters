@@ -66,6 +66,9 @@
     <ClInclude Include="MtResponse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ResponseStatus.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="VarDataEncoding.h">
       <Filter>Header Files</Filter>
     </ClInclude>

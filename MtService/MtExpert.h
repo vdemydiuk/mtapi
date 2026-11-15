@@ -29,6 +29,8 @@ public:
     boost::signals2::signal<void(int)> OnDeinit;
 
 private:
+    void CancelTasks();
+
     Logger log_{ "MtExpert" };
     int handle_;
     std::unique_ptr<MetaTraderHandler> mt_handler_;

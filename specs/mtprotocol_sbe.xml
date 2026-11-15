@@ -30,6 +30,13 @@
             <type name="blockLength" primitiveType="uint16"/>
             <type name="numInGroup" primitiveType="uint16"/>
         </composite>
+
+        <enum name="ResponseStatus" encodingType="int32" description="Result of command delivery by MtService">
+            <validValue name="Ok" description="Command was executed by MetaTrader, payload contains its response">0</validValue>
+            <validValue name="NoExperts" description="There is no expert attached to MtService to execute the command">1</validValue>
+            <validValue name="ExpertNotFound" description="Expert with requested handle is not found">2</validValue>
+            <validValue name="ExpertRemoved" description="Expert was removed before the command was executed">3</validValue>
+        </enum>
     </types>
 
     <!-- Messages Definition -->
@@ -43,9 +50,10 @@
 	<sbe:message name="MtResponse" id="101" description="Carry response payload from MetaTrader">
         <field name="expert_handle" id="1" type="int32_t"/>
         <field name="command_id" id="2" type="uint64_t"/>
-        <data name="stringPayload" id="3" type="varDataEncoding"/>
+        <field name="status" id="3" type="ResponseStatus"/>
+        <data name="stringPayload" id="4" type="varDataEncoding" description="MetaTrader response if status is Ok, otherwise error message"/>
 	</sbe:message>
-	
+
 	<sbe:message name="MtEvent" id="102" description="Carry event payload from MetaTrader">
         <field name="expert_handle" id="1" type="int32_t"/>
         <field name="event_type" id="2" type="int32_t"/>

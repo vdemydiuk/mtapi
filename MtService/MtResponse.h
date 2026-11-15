@@ -91,6 +91,7 @@
 
 
 #include "MessageHeader.h"
+#include "ResponseStatus.h"
 #include "GroupSizeEncoding.h"
 #include "VarDataEncoding.h"
 
@@ -112,7 +113,7 @@ private:
     }
 
 public:
-    static constexpr std::uint16_t SBE_BLOCK_LENGTH = static_cast<std::uint16_t>(12);
+    static constexpr std::uint16_t SBE_BLOCK_LENGTH = static_cast<std::uint16_t>(16);
     static constexpr std::uint16_t SBE_TEMPLATE_ID = static_cast<std::uint16_t>(101);
     static constexpr std::uint16_t SBE_SCHEMA_ID = static_cast<std::uint16_t>(1);
     static constexpr std::uint16_t SBE_SCHEMA_VERSION = static_cast<std::uint16_t>(1);
@@ -170,7 +171,7 @@ public:
 
     SBE_NODISCARD static SBE_CONSTEXPR std::uint16_t sbeBlockLength() SBE_NOEXCEPT
     {
-        return static_cast<std::uint16_t>(12);
+        return static_cast<std::uint16_t>(16);
     }
 
     SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t sbeBlockAndHeaderLength() SBE_NOEXCEPT
@@ -437,6 +438,61 @@ public:
         return *this;
     }
 
+    SBE_NODISCARD static const char *statusMetaAttribute(const MetaAttribute metaAttribute) SBE_NOEXCEPT
+    {
+        switch (metaAttribute)
+        {
+            case MetaAttribute::PRESENCE: return "required";
+            default: return "";
+        }
+    }
+
+    static SBE_CONSTEXPR std::uint16_t statusId() SBE_NOEXCEPT
+    {
+        return 3;
+    }
+
+    SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t statusSinceVersion() SBE_NOEXCEPT
+    {
+        return 0;
+    }
+
+    SBE_NODISCARD bool statusInActingVersion() SBE_NOEXCEPT
+    {
+        return true;
+    }
+
+    SBE_NODISCARD static SBE_CONSTEXPR std::size_t statusEncodingOffset() SBE_NOEXCEPT
+    {
+        return 12;
+    }
+
+    SBE_NODISCARD static SBE_CONSTEXPR std::size_t statusEncodingLength() SBE_NOEXCEPT
+    {
+        return 4;
+    }
+
+    SBE_NODISCARD std::int32_t statusRaw() const SBE_NOEXCEPT
+    {
+        std::int32_t val;
+        std::memcpy(&val, m_buffer + m_offset + 12, sizeof(std::int32_t));
+        return SBE_LITTLE_ENDIAN_ENCODE_32(val);
+    }
+
+    SBE_NODISCARD ResponseStatus::Value status() const
+    {
+        std::int32_t val;
+        std::memcpy(&val, m_buffer + m_offset + 12, sizeof(std::int32_t));
+        return ResponseStatus::get(SBE_LITTLE_ENDIAN_ENCODE_32(val));
+    }
+
+    MtResponse &status(const ResponseStatus::Value value) SBE_NOEXCEPT
+    {
+        std::int32_t val = SBE_LITTLE_ENDIAN_ENCODE_32(value);
+        std::memcpy(m_buffer + m_offset + 12, &val, sizeof(std::int32_t));
+        return *this;
+    }
+
     SBE_NODISCARD static const char *stringPayloadMetaAttribute(const MetaAttribute metaAttribute) SBE_NOEXCEPT
     {
         switch (metaAttribute)
@@ -463,7 +519,7 @@ public:
 
     static SBE_CONSTEXPR std::uint16_t stringPayloadId() SBE_NOEXCEPT
     {
-        return 3;
+        return 4;
     }
 
     static SBE_CONSTEXPR std::uint64_t stringPayloadHeaderLength() SBE_NOEXCEPT
@@ -635,6 +691,10 @@ friend std::basic_ostream<CharT, Traits> & operator << (
     builder << ", ";
     builder << R"("command_id": )";
     builder << +writer.command_id();
+
+    builder << ", ";
+    builder << R"("status": )";
+    builder << '"' << writer.status() << '"';
 
     builder << ", ";
     builder << R"("stringPayload": )";

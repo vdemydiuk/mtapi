@@ -53,6 +53,7 @@ private:
     void SendEvent(int expert_handle, int event_type, const std::string& payload);
     void SendExpertAdded(int handle);
     void SendExpertRemoved(int handle);
+    void Broadcast(boost::beast::flat_buffer&& buffer);
 
     void ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak_ptr<MtConnection> con);
 
