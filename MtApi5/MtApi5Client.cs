@@ -157,6 +157,7 @@ namespace MtApi5
             catch (Exception e)
             {
                 Log.Error($"Connect: Failed connection to {host}:{port}. Error: {e.Message}");
+                client.Disconnect();
                 lock (_locker)
                 {
                     _connectionState = Mt5ConnectionState.Failed;

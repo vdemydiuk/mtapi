@@ -1,4 +1,6 @@
-﻿using System.Net.WebSockets;
+﻿using MtService;
+using Org.SbeTool.Sbe.Dll;
+using System.Net.WebSockets;
 using System.Text;
 
 namespace MtClient
@@ -67,60 +69,85 @@ namespace MtClient
 
         public string? SendCommand(int expertHandle, int commandType, string payload, int timeout = 10000)  // 10 sec
         {
-            CommandTask<string> commandTask = new();
-            int commandId;
-            lock (tasks_)
-            {
-                commandId = nextCommandId++;
-                tasks_[commandId] = commandTask;
-            }
+            logger_.Debug($"MtRpcClient.SendCommand: try to send command to {host_}:{port_}, expertHandle: {expertHandle}, commandType: {commandType}, payload: {payload}");
 
-            MtCommand command = new(expertHandle, commandType, commandId, payload);
-            Send(command);
+            ulong commandId = getNextCommandId();
 
-            var response = commandTask.WaitResponse(timeout);
-            lock (tasks_)
-            {
-                tasks_.Remove(commandId);
-            }
+            int requiredBufferSize = MessageHeader.Size + MtCommand.BlockLength + 4 + payload.Length; // 4 bytes for length prefix
+            byte[] buffer = new byte[requiredBufferSize];
+            DirectBuffer directBuffer = new(buffer);
 
+            MessageHeader headerEncoder = new();
+            MtCommand commandEncoder = new();
+
+            // 1. Wrap and write SBE Header
+            headerEncoder.Wrap(directBuffer, 0, MtCommand.SchemaVersion);
+
+            // 2. Wrap and write message fields
+            commandEncoder.WrapForEncodeAndApplyHeader(directBuffer, 0, headerEncoder);
+            commandEncoder.Command_id = commandId;
+            commandEncoder.Expert_handle = expertHandle;
+            commandEncoder.Command_type = (ushort)commandType;
+
+            byte[] payloadBytes = Encoding.UTF8.GetBytes(payload);
+            commandEncoder.SetStringPayload(payloadBytes, 0, payloadBytes.Length);
+
+            var response = Send<string>(buffer, commandId, timeout);
             return response;
         }
 
         public HashSet<int>? RequestExpertsList()
         {
-            CommandTask<object> requestTask = new();
-            lock (service_requests_)
-            {
-                service_requests_[ServiceRequestType.ExpertList] = requestTask;
-            }
+            logger_.Debug($"MtRpcClient.RequestExpertsList: try to send request to {host_}:{port_}");
+            ulong requestId = getNextCommandId();
+            int requiredBufferSize = MessageHeader.Size + MtRequestExpertList.BlockLength;
+            byte[] buffer = new byte[requiredBufferSize];
+            DirectBuffer directBuffer = new(buffer);
 
-            MtServiceRequest request = new(ServiceRequestType.ExpertList);
-            Send(request);
+            MessageHeader headerEncoder = new();
+            MtRequestExpertList requestEncoder = new();
 
-            var response = requestTask.WaitResponse(10000); // 10 sec
-            lock (service_requests_)
-            {
-                service_requests_.Remove(ServiceRequestType.ExpertList);
-            }
+            // 1. Wrap and write SBE Header
+            headerEncoder.Wrap(directBuffer, 0, MtRequestExpertList.SchemaVersion);
 
-            return response as HashSet<int>;
+            // 2. Wrap and write message fields
+            requestEncoder.WrapForEncodeAndApplyHeader(directBuffer, 0, headerEncoder);
+            requestEncoder.Request_id = requestId;
+
+            var response = Send<HashSet<int>>(buffer, requestId, 10000);
+            return response;
         }
 
-        private void Send(MtMessage message)
+        private T? Send<T>(byte[] message, ulong commandId, int timeout = 10000)
         {
+            logger_.Debug($"MtRpcClient.Send: try to send message with id {commandId} to {host_}:{port_}");
+
+            MessageResponse messageResponse = new();
+            lock (responses_)
+            {
+                responses_.Add(commandId, messageResponse);
+            }
+
             lock (pendingMessages_)
             {
                 pendingMessages_.Enqueue(message);
             }
             sendWaiter_.Set();
+
+            var response = messageResponse.WaitResponse(timeout);
+            lock (responses_)
+            {
+                responses_.Remove(commandId);
+            }
+
+            return (T?)response;
         }
 
         private async void DoWrite()
         {
             while(ws_.State == WebSocketState.Open)
             {
-                MtMessage? message = null;
+                byte[]? message = null;
                 lock(pendingMessages_)
                 {
                     if (pendingMessages_.Count > 0)
@@ -135,10 +162,7 @@ namespace MtClient
 
                 try
                 {
-                    string msgStr = message.Serialize();
-                    logger_.Debug($"MtRpcClient.DoWrite: sending message: {msgStr}");
-                    byte[] bytes = Encoding.ASCII.GetBytes(msgStr);
-                    await ws_.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
+                    await ws_.SendAsync(message, WebSocketMessageType.Binary, true, CancellationToken.None);
                 }
                 catch (Exception e)
                 {
@@ -170,16 +194,17 @@ namespace MtClient
                         }
                         while (!result.EndOfMessage);
 
+                        logger_.Debug($"MtRpcClient.DoReceive: Message received, size = {recvCount}, type = {result.MessageType}");
+
                         if (result.MessageType == WebSocketMessageType.Close)
                         {
                             logger_.Info($"MtRpcClient.DoReceive: close signal {result.CloseStatusDescription}");
                             Disconnected?.Invoke(this, EventArgs.Empty);
                             break;
                         }
-                        else if (result.MessageType == WebSocketMessageType.Text)
+                        else if (result.MessageType == WebSocketMessageType.Binary)
                         {
-                            var msg = Encoding.UTF8.GetString(ms.ToArray(), 0, recvCount);
-                            OnReceive(msg);
+                            OnReceive(ms.ToArray());
                         }
                         ms.Seek(0, SeekOrigin.Begin);
                         ms.Position = 0;
@@ -193,94 +218,131 @@ namespace MtClient
             }
         }
 
-        private void OnReceive(string msg)
+        private void OnReceive(byte[] msg)
         {
-            logger_.Debug($"MtRpcClient.OnReceive: {msg}");
+            logger_.Debug($"MtRpcClient.OnReceive: {msg.Length} bytes");
 
-            if (string.IsNullOrEmpty(msg))
+            // Decoding the Header
+            MessageHeader headerDecoder = new();
+            var directBuffer = new DirectBuffer(msg);
+            headerDecoder.Wrap(directBuffer, 0, MessageHeader.SbeSchemaVersion);
+
+            ushort templateId = headerDecoder.TemplateId;
+            ushort blockLength = headerDecoder.BlockLength;
+            ushort schemaVersion = headerDecoder.Version;
+
+            switch (templateId)
             {
-                logger_.Warn("MtRpcClient.OnReceive: Invalid message (null or empty)");
-                return;
-            }
-
-            var pieces = msg.Split(";", 2);
-
-            if (pieces.Length != 2
-                || string.IsNullOrEmpty(pieces[0])
-                || string.IsNullOrEmpty(pieces[1]))
-            {
-                logger_.Warn("MtRpcClient.OnReceive: Invalid message format.");
-                return;
-            }
-
-            MessageType msgType;
-            try
-            {
-                var msgTypeValue = int.Parse(pieces[0]);
-                msgType = (MessageType)Enum.ToObject(typeof(MessageType), msgTypeValue);
-
-            }
-            catch (Exception e)
-            {
-                logger_.Error($"MtRpcClient.OnReceive: Parse MessageType failed. {e.Message}");
-                return;
-            }
-
-            var message = MtMessageParser.Parse(msgType, (pieces[1]));
-            if (message == null)
-            {
-                logger_.Error("MtRpcClient.OnReceive: Failed parse message payload");
-                return;
-            }
-
-            switch (message.MsgType)
-            {
-                case MessageType.Event:
-                    if (message is MtEvent e)
-                        MtEventReceived?.Invoke(this, new(e.ExpertHandle, e.EventType, e.Payload));
+                case MtEvent.TemplateId:
+                    {
+                        MtEvent eventMsg = new();
+                        eventMsg.WrapForDecode(directBuffer, MessageHeader.Size, blockLength, schemaVersion);
+                        ProcessEvent(eventMsg);
+                    }
                     break;
-                case MessageType.Response:
-                    if (message is MtResponse response)
-                        ProcessResponse(response);
+                case MtResponse.TemplateId:
+                    {
+                        MtResponse responseMsg = new();
+                        responseMsg.WrapForDecode(directBuffer, MessageHeader.Size, blockLength, schemaVersion);
+                        ProcessResponse(responseMsg);
+                    }
                     break;
-                case MessageType.ExpertList:
-                    if (message is MtExpertListMsg expertListMsg)
-                        ProcessExpertList(expertListMsg.Experts);
+                case MtExpertList.TemplateId:
+                    {
+                        MtExpertList expertListMsg = new();
+                        expertListMsg.WrapForDecode(directBuffer, MessageHeader.Size, blockLength, schemaVersion);
+                        ProcessExpertList(expertListMsg);
+                    }
                     break;
-                case MessageType.ExpertAdded:
-                    if (message is MtExpertAddedMsg expertAddedMsg)
-                        ExpertAdded?.Invoke(this, new(expertAddedMsg.ExpertHandle));
+                case MtExpertAdded.TemplateId:
+                    {
+                        MtExpertAdded expertAddedMsg = new();
+                        expertAddedMsg.WrapForDecode(directBuffer, MessageHeader.Size, blockLength, schemaVersion);
+                        ProcessExpertAdded(expertAddedMsg);
+                    }
                     break;
-                case MessageType.ExpertRemoved:
-                    if (message is MtExpertRemovedMsg expertRemovedMsg)
-                        ExpertRemoved?.Invoke(this, new(expertRemovedMsg.ExpertHandle));
+                case MtExpertRemoved.TemplateId:
+                    {
+                        MtExpertRemoved expertRemovedMsg = new();
+                        expertRemovedMsg.WrapForDecode(directBuffer, MessageHeader.Size, blockLength, schemaVersion);
+                        ProcessExpertRemoved(expertRemovedMsg);
+                    }
                     break;
             }
+        }
+
+        private void ProcessEvent(MtEvent msg)
+        {
+            var expertHandle = msg.Expert_handle;
+            var eventType = msg.Event_type;
+            var payload = msg.GetStringPayload();
+            logger_.Debug($"MtRpcClient.ProcessEvent: {expertHandle}, {eventType}, [{payload}]");
+            MtEventReceived?.Invoke(this, new(expertHandle, eventType, payload));
         }
 
         private void ProcessResponse(MtResponse msg)
         {
-            var handle = msg.ExpertHandle;
-            var commandId = msg.CommandId;
-            var payload = msg.Payload;
+            var handle = msg.Expert_handle;
+            var commandId = msg.Command_id;
+            var payload = msg.GetStringPayload();
 
             logger_.Debug($"MtRpcClient.ProcessResponse: {handle}, {commandId}, [{payload}]");
 
-            lock (tasks_)
+            lock (responses_)
             {
-                if (tasks_.TryGetValue(commandId, out CommandTask<string>? value))
+                if (responses_.TryGetValue(commandId, out MessageResponse? value))
                     value.SetResponse(payload);
             }
         }
 
-        private void ProcessExpertList(HashSet<int> experts)
+        private void ProcessExpertList(MtExpertList msg)
         {
-            logger_.Debug($"MtRpcClient.ProcessExpertList: experts count - {experts.Count}");
+            var requestId = msg.Request_id;
 
-            lock (service_requests_)
+            // Read the Repeating Group (expert_list)
+            var groupDecoder = msg.Expert_list;
+            int totalExperts = groupDecoder.Count;
+
+            HashSet<int> expertHandles = [];
+            while (groupDecoder.HasNext)
             {
-                if (service_requests_.TryGetValue(ServiceRequestType.ExpertList, out CommandTask<object>? value))
-                    value.SetResponse(experts);
+                groupDecoder.Next(); // Advance cursor to the next item in the group
+                expertHandles.Add(groupDecoder.Expert_handle);
+            }
+
+            logger_.Debug($"MtRpcClient.ProcessExpertList: request ID - {requestId}, experts count - {totalExperts}, expert handles - [{string.Join(", ", expertHandles)}]");
+
+            lock (responses_)
+            {
+                if (responses_.TryGetValue(requestId, out MessageResponse? value))
+                    value.SetResponse(expertHandles);
+            }
+        }
+
+        private void ProcessExpertAdded(MtExpertAdded msg)
+        {
+            var expertHandle = msg.Expert_handle;
+            logger_.Debug($"MtRpcClient.ProcessExpertAdded: expert handle - {expertHandle}");
+            ExpertAdded?.Invoke(this, new(expertHandle));
+        }
+
+        private void ProcessExpertRemoved(MtExpertRemoved msg)
+        {
+            var expertHandle = msg.Expert_handle;
+            logger_.Debug($"MtRpcClient.ProcessExpertRemoved: expert handle - {expertHandle}");
+            ExpertRemoved?.Invoke(this, new(expertHandle));
+        }
+
+        private ulong getNextCommandId()
+        {
+            lock (responses_)
+            {
+                ulong id;
+                do
+                {
+                    id = nextCommandId++;
+                } while (responses_.ContainsKey(id));
+                return id;
             }
         }
 
@@ -293,26 +355,25 @@ namespace MtClient
         private readonly ClientWebSocket ws_ = new();
         private readonly string host_;
         private readonly int port_;
-        private readonly Queue<MtMessage> pendingMessages_ = [];
 
         private readonly Thread receiveThread_;
         private readonly Thread sendThread_;
         private readonly EventWaitHandle sendWaiter_ = new AutoResetEvent(false);
 
-        private int nextCommandId = 0;
-        private readonly Dictionary<int, CommandTask<string>> tasks_ = [];
-        private readonly Dictionary<ServiceRequestType, CommandTask<object>> service_requests_ = [];
+        private ulong nextCommandId = 0;
+        private readonly Dictionary<ulong, MessageResponse> responses_ = [];
+        private readonly Queue<byte[]> pendingMessages_ = [];
 
         private readonly IRpcLogger logger_;
     }
 
-    internal class CommandTask<T>
+    internal class MessageResponse
     {
         private readonly EventWaitHandle responseWaiter_ = new AutoResetEvent(false);
-        private T? response_;
+        private object? response_ = null;
         private readonly object locker_ = new();
 
-        public T? WaitResponse(int time)
+        public object? WaitResponse(int time)
         {
             responseWaiter_.WaitOne(time);
             lock (locker_)
@@ -321,7 +382,7 @@ namespace MtClient
             }
         }
 
-        public void SetResponse(T result)
+        public void SetResponse(object? result)
         {
             lock (locker_)
             {
