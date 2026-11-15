@@ -6,7 +6,7 @@ from threading import Lock, Thread
 
 from .mt5commandtype import Mt5CommandType
 from .mt5enums import *
-from .mtrpcclient import MtRpcClient
+from .mtrpcclient import MtRpcClient, MtRpcError
 
 
 class Mt5EventType(IntEnum):
@@ -572,7 +572,12 @@ class Mt5ApiClient:
 
     def __send_command(self, expert_handle, command_type, payload=None):
         payload_json = None if payload is None else json.dumps(payload)
-        response = self.__rpcclient.send_command(expert_handle, command_type, payload_json)
+        try:
+            response = self.__rpcclient.send_command(expert_handle, command_type, payload_json)
+        except MtRpcError as e:
+            # MtService could not deliver the command to MetaTrader (no expert, expert not found or removed)
+            self.__logger.warning(f"send_command: command was not executed. Status = {e.status!r}. {e}")
+            raise
         if response is None:
             self.__logger.warning("Failed to send commad. Result is None")
             raise Exception("Failed to send commad. Result is None")

@@ -12,10 +12,26 @@ from .mtprotocol_sbe import (
     MtExpertRemoved,
     MtRequestExpertList,
     MtResponse,
+    ResponseStatus,
     decode_message,
 )
 
 _UINT64_MASK = (1 << 64) - 1
+
+
+class MtRpcError(Exception):
+    """MtService could not deliver the command to MetaTrader, see status for the reason."""
+
+    def __init__(self, status, message):
+        super().__init__(message)
+        self.status = status
+
+
+class _ErrorResponse:
+    # Response with status other than Ok: payload is error message from MtService
+    def __init__(self, status, message):
+        self.status = status
+        self.message = message
 
 
 class CommandTask:
@@ -62,6 +78,11 @@ class MtRpcClient:
         return self.__send(message, request_id, timeout)
 
     def send_command(self, expert_handle, command_type, payload=None, timeout=10):
+        """Send command to MetaTrader and wait for its response.
+
+        Returns None if the response was not received within timeout.
+        Raises MtRpcError if MtService could not deliver the command (no expert, expert not found or removed).
+        """
         command_id = self.__get_next_command_id()
         self.__logger.debug(
             f"send_command: expert_handle = {expert_handle}, command_id = {command_id}, "
@@ -87,10 +108,13 @@ class MtRpcClient:
             task = self.__tasks[command_id]
         try:
             self.__ws.send(message)
-            return task.wait_response(timeout)
+            response = task.wait_response(timeout)
         finally:
             with self.__lock:
                 self.__tasks.pop(command_id, None)
+        if isinstance(response, _ErrorResponse):
+            raise MtRpcError(response.status, response.message)
+        return response
 
     def __set_task_response(self, command_id, response):
         with self.__lock:
@@ -120,9 +144,13 @@ class MtRpcClient:
 
     def __process_response(self, msg):
         self.__logger.debug(
-            f"process_response: {msg.expert_handle}, {msg.command_id}, [{msg.string_payload}]"
+            f"process_response: {msg.expert_handle}, {msg.command_id}, {msg.status!r}, [{msg.string_payload}]"
         )
-        self.__set_task_response(msg.command_id, msg.string_payload)
+        if msg.status == ResponseStatus.Ok:
+            response = msg.string_payload
+        else:
+            response = _ErrorResponse(msg.status, msg.string_payload)
+        self.__set_task_response(msg.command_id, response)
 
     def __process_event(self, msg):
         self.__logger.debug(f"process_event: {msg.expert_handle}, {msg.event_type}, [{msg.string_payload}]")

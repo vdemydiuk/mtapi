@@ -12,7 +12,8 @@ from .mt5apiclient import (
     MqlBookInfo,
 )
 from .mt5commandtype import Mt5CommandType
-from .mtrpcclient import MtRpcClient
+from .mtrpcclient import MtRpcClient, MtRpcError
+from .mtprotocol_sbe import ResponseStatus
 from .mt5enums import *  # noqa: F401,F403  (ENUM_* types, CopyTicksFlag)
 from . import mt5enums
 
@@ -28,5 +29,7 @@ __all__ = [
     "MqlBookInfo",
     "Mt5CommandType",
     "MtRpcClient",
+    "MtRpcError",
+    "ResponseStatus",
     "mt5enums",
 ] + [name for name in dir(mt5enums) if name.startswith("ENUM_")] + ["CopyTicksFlag"]

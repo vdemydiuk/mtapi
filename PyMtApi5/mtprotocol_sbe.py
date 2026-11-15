@@ -7,6 +7,7 @@ Keep it in sync with the spec and the generated C# (MtClient/*.g.cs) / C++ (MtSe
 
 import struct
 from dataclasses import dataclass, field
+from enum import IntEnum
 
 SCHEMA_ID = 1
 SCHEMA_VERSION = 1
@@ -24,6 +25,23 @@ _GROUP_SIZE = struct.Struct("<HH")
 
 class SbeDecodeError(Exception):
     pass
+
+
+class ResponseStatus(IntEnum):
+    """enum ResponseStatus (int32): result of command delivery by MtService."""
+
+    Ok = 0  # command was executed by MetaTrader, payload contains its response
+    NoExperts = 1  # there is no expert attached to MtService to execute the command
+    ExpertNotFound = 2  # expert with requested handle is not found
+    ExpertRemoved = 3  # expert was removed before the command was executed
+
+
+def _decode_response_status(value):
+    # Values unknown to this version are kept as plain int (like the generated C# codec does)
+    try:
+        return ResponseStatus(value)
+    except ValueError:
+        return value
 
 
 @dataclass
@@ -105,29 +123,33 @@ class MtCommand:
 
 @dataclass
 class MtResponse:
-    """id=101: Carry response payload from MetaTrader."""
+    """id=101: Carry response payload from MetaTrader.
+
+    string_payload is MetaTrader response if status is Ok, otherwise error message from MtService.
+    """
 
     TEMPLATE_ID = 101
-    _BLOCK = struct.Struct("<iQ")  # expert_handle, command_id
-    BLOCK_LENGTH = _BLOCK.size  # 12
+    _BLOCK = struct.Struct("<iQi")  # expert_handle, command_id, status
+    BLOCK_LENGTH = _BLOCK.size  # 16
 
     expert_handle: int
     command_id: int
+    status: ResponseStatus = ResponseStatus.Ok
     string_payload: str = ""
 
     def encode(self):
         return (
             _header_for(MtResponse)
-            + self._BLOCK.pack(self.expert_handle, self.command_id)
+            + self._BLOCK.pack(self.expert_handle, self.command_id, int(self.status))
             + _encode_var_data(self.string_payload)
         )
 
     @staticmethod
     def decode(buffer, offset, block_length):
         _check_block(buffer, offset, block_length, MtResponse.BLOCK_LENGTH, "MtResponse")
-        expert_handle, command_id = MtResponse._BLOCK.unpack_from(buffer, offset)
+        expert_handle, command_id, status = MtResponse._BLOCK.unpack_from(buffer, offset)
         payload, _ = _decode_var_data(buffer, offset + block_length)
-        return MtResponse(expert_handle, command_id, payload)
+        return MtResponse(expert_handle, command_id, _decode_response_status(status), payload)
 
 
 @dataclass
