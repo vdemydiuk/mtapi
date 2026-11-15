@@ -234,14 +234,36 @@ namespace MtClient
         {
             logger_.Debug($"MtRpcClient.OnReceive: {msg.Length} bytes");
 
-            // Decoding the Header
+            // DirectBuffer reads header and fixed fields through unchecked pointers,
+            // so every length the decoders rely on must be validated before reading.
+            // Exceptions thrown here are caught and logged by DoReceive, dropping only this message.
+            if (msg.Length < MessageHeader.Size)
+                throw new InvalidDataException($"Message is shorter than SBE header: {msg.Length} bytes");
+
+            // Decoding the Header (Dispose unpins the message array)
             MessageHeader headerDecoder = new();
-            var directBuffer = new DirectBuffer(msg);
+            using var directBuffer = new DirectBuffer(msg);
             headerDecoder.Wrap(directBuffer, 0, MessageHeader.SbeSchemaVersion);
 
             ushort templateId = headerDecoder.TemplateId;
             ushort blockLength = headerDecoder.BlockLength;
+            ushort schemaId = headerDecoder.SchemaId;
             ushort schemaVersion = headerDecoder.Version;
+
+            if (schemaId != MessageHeader.SbeSchemaId)
+                throw new InvalidDataException($"Unexpected SBE schema ID: {schemaId}");
+
+            int minBlockLength = GetMinBlockLength(templateId);
+            if (minBlockLength < 0)
+            {
+                logger_.Warn($"MtRpcClient.OnReceive: Unknown SBE template ID: {templateId}");
+                return;
+            }
+
+            // Fixed fields are read at constant offsets: the sender's block must contain all of them.
+            // (WrapForDecode itself checks that the block fits into the message.)
+            if (blockLength < minBlockLength)
+                throw new InvalidDataException($"Invalid blockLength {blockLength} for template ID {templateId}, expected at least {minBlockLength}");
 
             switch (templateId)
             {
@@ -263,6 +285,11 @@ namespace MtClient
                     {
                         MtExpertList expertListMsg = new();
                         expertListMsg.WrapForDecode(directBuffer, MessageHeader.Size, blockLength, schemaVersion);
+
+                        // The group header (blockLength + numInGroup) is read before any limit check
+                        if (expertListMsg.Limit + MtExpertList.Expert_listGroup.SbeHeaderSize > msg.Length)
+                            throw new InvalidDataException("MtExpertList: expert_list group header is missing");
+
                         ProcessExpertList(expertListMsg);
                     }
                     break;
@@ -282,6 +309,17 @@ namespace MtClient
                     break;
             }
         }
+
+        // Minimum fixed block length of each message the client can receive, -1 for unknown messages
+        private static int GetMinBlockLength(ushort templateId) => templateId switch
+        {
+            MtEvent.TemplateId => MtEvent.BlockLength,
+            MtResponse.TemplateId => MtResponse.BlockLength,
+            MtExpertList.TemplateId => MtExpertList.BlockLength,
+            MtExpertAdded.TemplateId => MtExpertAdded.BlockLength,
+            MtExpertRemoved.TemplateId => MtExpertRemoved.BlockLength,
+            _ => -1
+        };
 
         private void ProcessEvent(MtEvent msg)
         {
@@ -314,6 +352,11 @@ namespace MtClient
             // Read the Repeating Group (expert_list)
             var groupDecoder = msg.Expert_list;
             int totalExperts = groupDecoder.Count;
+
+            // Next() checks that each entry's block fits into the message, but Expert_handle is read
+            // at a fixed offset inside the entry, so the entry block must be large enough for it.
+            if (totalExperts > 0 && groupDecoder.ActingBlockLength < MtExpertList.Expert_listGroup.SbeBlockLength)
+                throw new InvalidDataException($"MtExpertList: invalid expert_list entry blockLength {groupDecoder.ActingBlockLength}");
 
             HashSet<int> expertHandles = [];
             while (groupDecoder.HasNext)
