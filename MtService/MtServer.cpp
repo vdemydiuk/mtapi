@@ -259,114 +259,139 @@ void MtServer::OnDeinitExpert(int handle)
     }
 }
 
+namespace
+{
+// varDataEncoding.length has maxValue=2147483647 in the spec; the generated
+// putStringPayload() does not enforce it, so callers must.
+bool IsPayloadSizeValid(const std::string& payload)
+{
+    return payload.size() <= VarDataEncoding::lengthMaxValue();
+}
+}
+
+void MtServer::Broadcast(boost::beast::flat_buffer&& buffer)
+{
+    // Encode once, share the same immutable buffer between all connections.
+    auto shared_buf = std::make_shared<const boost::beast::flat_buffer>(std::move(buffer));
+    for (auto& c : connections_)
+        c->Send(shared_buf);
+}
+
 void MtServer::SendEvent(int expert_handle, int event_type, const std::string& payload)
 {
     log_.Trace("%s: expert_handle=%d, event_type=%d, payload=%s", __FUNCTION__, expert_handle, event_type, payload.c_str());
 
-    for (auto& c : connections_)
+    if (connections_.empty())
+        return;
+
+    if (!IsPayloadSizeValid(payload))
     {
-        boost::beast::flat_buffer event_buf;
-
-        MessageHeader header_encoder;
-        MtEvent event_encoder;
-
-        // Estimate max space needed and prepare Beast buffer memory
-        std::size_t required_size = MessageHeader::encodedLength() +
-            MtEvent::sbeBlockLength() +
-            4 + payload.size(); // 4 bytes for length prefix
-
-        auto mutable_buffer = event_buf.prepare(required_size);
-        char* dest = static_cast<char*>(mutable_buffer.data());
-
-        // 1. Wrap and write Message Header
-        header_encoder.wrap(dest, 0, MessageHeader::sbeSchemaVersion(), required_size)
-            .blockLength(MtEvent::sbeBlockLength())
-            .templateId(MtEvent::sbeTemplateId())
-            .schemaId(MtEvent::sbeSchemaId())
-            .version(MtEvent::sbeSchemaVersion());
-
-        // 2. Wrap and write Static Fields
-        event_encoder.wrapForEncode(dest, header_encoder.encodedLength(), required_size)
-            .expert_handle(expert_handle)
-            .event_type(event_type);
-
-        // 3. Write Variable-Length JSON Data
-        event_encoder.putStringPayload(payload.data(), static_cast<std::uint32_t>(payload.size()));
-
-        assert(event_encoder.sbePosition() <= required_size);
-        event_buf.commit(event_encoder.sbePosition());
-        c->Send(std::move(event_buf));
+        log_.Error("%s: event payload is too large (%zu bytes), event dropped. expert_handle=%d, event_type=%d",
+            __FUNCTION__, payload.size(), expert_handle, event_type);
+        return;
     }
+
+    boost::beast::flat_buffer event_buf;
+
+    MessageHeader header_encoder;
+    MtEvent event_encoder;
+
+    // Estimate max space needed and prepare Beast buffer memory
+    std::size_t required_size = MessageHeader::encodedLength() +
+        MtEvent::sbeBlockLength() +
+        MtEvent::stringPayloadHeaderLength() + payload.size();
+
+    auto mutable_buffer = event_buf.prepare(required_size);
+    char* dest = static_cast<char*>(mutable_buffer.data());
+
+    // 1. Wrap and write Message Header
+    header_encoder.wrap(dest, 0, MessageHeader::sbeSchemaVersion(), required_size)
+        .blockLength(MtEvent::sbeBlockLength())
+        .templateId(MtEvent::sbeTemplateId())
+        .schemaId(MtEvent::sbeSchemaId())
+        .version(MtEvent::sbeSchemaVersion());
+
+    // 2. Wrap and write Static Fields
+    event_encoder.wrapForEncode(dest, header_encoder.encodedLength(), required_size)
+        .expert_handle(expert_handle)
+        .event_type(event_type);
+
+    // 3. Write Variable-Length JSON Data
+    event_encoder.putStringPayload(payload.data(), static_cast<std::uint32_t>(payload.size()));
+
+    assert(event_encoder.sbePosition() <= required_size);
+    event_buf.commit(event_encoder.sbePosition());
+    Broadcast(std::move(event_buf));
 }
 
 void MtServer::SendExpertAdded(int handle)
 {
     log_.Trace("%s: entry. handle = %d", __FUNCTION__, handle);
 
-    for (auto& c : connections_)
-    {
-        boost::beast::flat_buffer event_buf;
+    if (connections_.empty())
+        return;
 
-        MessageHeader header_encoder;
-        MtExpertAdded event_encoder;
+    boost::beast::flat_buffer event_buf;
 
-        // Estimate max space needed and prepare Beast buffer memory
-        constexpr std::size_t required_size = MessageHeader::encodedLength() +
-            MtExpertAdded::sbeBlockLength();
+    MessageHeader header_encoder;
+    MtExpertAdded event_encoder;
 
-        auto mutable_buffer = event_buf.prepare(required_size);
-        char* dest = static_cast<char*>(mutable_buffer.data());
+    // Estimate max space needed and prepare Beast buffer memory
+    constexpr std::size_t required_size = MessageHeader::encodedLength() +
+        MtExpertAdded::sbeBlockLength();
 
-        // 1. Wrap and write Message Header
-        header_encoder.wrap(dest, 0, MessageHeader::sbeSchemaVersion(), required_size)
-            .blockLength(MtExpertAdded::sbeBlockLength())
-            .templateId(MtExpertAdded::sbeTemplateId())
-            .schemaId(MtExpertAdded::sbeSchemaId())
-            .version(MtExpertAdded::sbeSchemaVersion());
+    auto mutable_buffer = event_buf.prepare(required_size);
+    char* dest = static_cast<char*>(mutable_buffer.data());
 
-        // 2. Wrap and write Static Fields
-        event_encoder.wrapForEncode(dest, header_encoder.encodedLength(), required_size)
-            .expert_handle(handle);
+    // 1. Wrap and write Message Header
+    header_encoder.wrap(dest, 0, MessageHeader::sbeSchemaVersion(), required_size)
+        .blockLength(MtExpertAdded::sbeBlockLength())
+        .templateId(MtExpertAdded::sbeTemplateId())
+        .schemaId(MtExpertAdded::sbeSchemaId())
+        .version(MtExpertAdded::sbeSchemaVersion());
 
-        assert(event_encoder.sbePosition() <= required_size);
-        event_buf.commit(event_encoder.sbePosition());
-        c->Send(std::move(event_buf));
-    }
+    // 2. Wrap and write Static Fields
+    event_encoder.wrapForEncode(dest, header_encoder.encodedLength(), required_size)
+        .expert_handle(handle);
+
+    assert(event_encoder.sbePosition() <= required_size);
+    event_buf.commit(event_encoder.sbePosition());
+    Broadcast(std::move(event_buf));
 }
 
 void MtServer::SendExpertRemoved(int handle)
 {
     log_.Trace("%s: entry. handle = %d", __FUNCTION__, handle);
 
-    for (auto& c : connections_)
-    {
-        boost::beast::flat_buffer event_buf;
+    if (connections_.empty())
+        return;
 
-        MessageHeader header_encoder;
-        MtExpertRemoved event_encoder;
+    boost::beast::flat_buffer event_buf;
 
-        // Estimate max space needed and prepare Beast buffer memory
-        constexpr std::size_t required_size = MessageHeader::encodedLength() +
-            MtExpertRemoved::sbeBlockLength();
+    MessageHeader header_encoder;
+    MtExpertRemoved event_encoder;
 
-        auto mutable_buffer = event_buf.prepare(required_size);
-        char* dest = static_cast<char*>(mutable_buffer.data());
+    // Estimate max space needed and prepare Beast buffer memory
+    constexpr std::size_t required_size = MessageHeader::encodedLength() +
+        MtExpertRemoved::sbeBlockLength();
 
-        // 1. Wrap and write Message Header
-        header_encoder.wrap(dest, 0, MessageHeader::sbeSchemaVersion(), required_size)
-            .blockLength(MtExpertRemoved::sbeBlockLength())
-            .templateId(MtExpertRemoved::sbeTemplateId())
-            .schemaId(MtExpertRemoved::sbeSchemaId())
-            .version(MtExpertRemoved::sbeSchemaVersion());
+    auto mutable_buffer = event_buf.prepare(required_size);
+    char* dest = static_cast<char*>(mutable_buffer.data());
 
-        // 2. Wrap and write Static Fields
-        event_encoder.wrapForEncode(dest, header_encoder.encodedLength(), required_size)
-            .expert_handle(handle);
+    // 1. Wrap and write Message Header
+    header_encoder.wrap(dest, 0, MessageHeader::sbeSchemaVersion(), required_size)
+        .blockLength(MtExpertRemoved::sbeBlockLength())
+        .templateId(MtExpertRemoved::sbeTemplateId())
+        .schemaId(MtExpertRemoved::sbeSchemaId())
+        .version(MtExpertRemoved::sbeSchemaVersion());
 
-        assert(event_encoder.sbePosition() <= required_size);
-        event_buf.commit(event_encoder.sbePosition());
-        c->Send(std::move(event_buf));
-    }
+    // 2. Wrap and write Static Fields
+    event_encoder.wrapForEncode(dest, header_encoder.encodedLength(), required_size)
+        .expert_handle(handle);
+
+    assert(event_encoder.sbePosition() <= required_size);
+    event_buf.commit(event_encoder.sbePosition());
+    Broadcast(std::move(event_buf));
 }
 
 void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak_ptr<MtConnection> con)
@@ -396,8 +421,13 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
 
     if (schemaId != MtCommand::sbeSchemaId())
         throw std::runtime_error("Unexpected SBE schema ID: " + std::to_string(schemaId));
-    if (version > MessageHeader::sbeSchemaVersion())
-        throw std::runtime_error("Unsupported SBE schema version: " + std::to_string(version));
+    // A message with a newer schema version is NOT rejected: SBE is forward compatible.
+    // The decoder is wrapped with the sender's blockLength/version, so fields added in newer
+    // versions are skipped and known fields are still read correctly. The per-message
+    // minimum blockLength checks below guarantee that all fields this build reads are present.
+    if (version != MtCommand::sbeSchemaVersion())
+        log_.Debug("%s: message schema version %d differs from local version %d", __FUNCTION__,
+            version, static_cast<int>(MtCommand::sbeSchemaVersion()));
 
     // 4. Dispatch based on templateId
     switch (templateId) {
@@ -446,6 +476,14 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
                 auto connection = con.lock();
                 if (connection)
                 {
+                    if (!IsPayloadSizeValid(payload))
+                    {
+                        // Must not throw here: this runs inside an io_context handler.
+                        self->log_.Error("MtServer: response payload is too large (%zu bytes), response dropped. handle=%d, command_id=%llu",
+                            payload.size(), handle, static_cast<unsigned long long>(command_id));
+                        return;
+                    }
+
                     boost::beast::flat_buffer response_buf;
 
                     MessageHeader header_encoder;
@@ -454,7 +492,7 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
                     // Estimate max space needed and prepare Beast buffer memory
                     std::size_t required_size = MessageHeader::encodedLength() +
                         MtResponse::sbeBlockLength() +
-                        4 + payload.size(); // 4 bytes for length prefix
+                        MtResponse::stringPayloadHeaderLength() + payload.size();
 
                     auto mutable_buffer = response_buf.prepare(required_size);
                     char* dest = static_cast<char*>(mutable_buffer.data());

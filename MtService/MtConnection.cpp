@@ -48,13 +48,18 @@ void MtConnection::Close()
 
 void MtConnection::Send(boost::beast::flat_buffer&& buffer)
 {
+    Send(std::make_shared<const boost::beast::flat_buffer>(std::move(buffer)));
+}
+
+void MtConnection::Send(std::shared_ptr<const boost::beast::flat_buffer> buffer)
+{
     // Post onto the connection's strand so send_queue_ is only ever
     // touched from within the strand (same as DoWrite / OnWrite).
     boost::asio::post(ws_.get_executor(),
         [this, self = shared_from_this(), buf = std::move(buffer)]() mutable {
-            log_.Trace("%s: msg size = %d, msg = %s", __FUNCTION__,
-                buf.size(),
-                ToHex(buf).c_str());
+            log_.Trace("%s: msg size = %zu, msg = %s", __FUNCTION__,
+                buf->size(),
+                ToHex(*buf).c_str());
             send_queue_.push(std::move(buf));
             if (send_queue_.size() == 1)
                 DoWrite();
@@ -140,12 +145,13 @@ void MtConnection::DoWrite()
     if (send_queue_.empty())
         return;
 
-    log_.Trace("%s: msg size = %zu", __FUNCTION__, send_queue_.front().data().size());
+    log_.Trace("%s: msg size = %zu", __FUNCTION__, send_queue_.front()->size());
 
     ws_.binary(true);
-    auto& buffer = send_queue_.front();
+    // The shared_ptr stays in send_queue_ until OnWrite pops it, keeping the data alive during the write.
+    const auto& buffer = *send_queue_.front();
     ws_.async_write(
-        boost::asio::buffer(buffer.data(), buffer.size()),
+        buffer.data(),
         std::bind(
             &MtConnection::OnWrite,
             shared_from_this(),
