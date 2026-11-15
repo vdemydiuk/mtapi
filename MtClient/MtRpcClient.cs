@@ -67,6 +67,11 @@ namespace MtClient
             logger_.Debug($"MtRpcClient.Disconnect: success");
         }
 
+        /// <summary>
+        /// Sends command to MetaTrader and waits for its response.
+        /// Returns null if the response was not received within timeout.
+        /// </summary>
+        /// <exception cref="MtRpcException">MtService could not deliver the command to MetaTrader (no expert, expert not found or removed).</exception>
         public string? SendCommand(int expertHandle, int commandType, string payload, int timeout = 10000)  // 10 sec
         {
             logger_.Debug($"MtRpcClient.SendCommand: try to send command to {host_}:{port_}, expertHandle: {expertHandle}, commandType: {commandType}, payload: {payload}");
@@ -148,6 +153,10 @@ namespace MtClient
             {
                 responses_.Remove(commandId);
             }
+
+            // MtService could not deliver the command to MetaTrader
+            if (response is ErrorResponse error)
+                throw new MtRpcException(error.Status, error.Message);
 
             return (T?)response;
         }
@@ -340,14 +349,18 @@ namespace MtClient
         {
             var handle = msg.Expert_handle;
             var commandId = msg.Command_id;
+            var status = msg.Status;
             var payload = msg.GetStringPayload();
 
-            logger_.Debug($"MtRpcClient.ProcessResponse: {handle}, {commandId}, [{payload}]");
+            logger_.Debug($"MtRpcClient.ProcessResponse: {handle}, {commandId}, {status}, [{payload}]");
+
+            // On error the payload is not MetaTrader response, but error message from MtService
+            object response = status == ResponseStatus.Ok ? payload : new ErrorResponse(status, payload);
 
             lock (responses_)
             {
                 if (responses_.TryGetValue(commandId, out MessageResponse? value))
-                    value.SetResponse(payload);
+                    value.SetResponse(response);
             }
         }
 
@@ -427,6 +440,9 @@ namespace MtClient
 
         private readonly IRpcLogger logger_;
     }
+
+    // Response with status other than Ok: MtService could not deliver the command to MetaTrader
+    internal sealed record ErrorResponse(ResponseStatus Status, string Message);
 
     internal class MessageResponse
     {
