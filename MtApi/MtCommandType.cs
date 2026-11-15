@@ -287,6 +287,7 @@
         SymbolInfoTick                      = 288,
         SymbolInfoDouble                    = 289,
 
-        GetQuote                            = 290
+        GetQuote                            = 290,
+        GetSymbols                          = 291
     }
 }

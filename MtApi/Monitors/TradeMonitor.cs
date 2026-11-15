@@ -89,7 +89,7 @@ namespace MtApi.Monitors
                 {
                     //get closed orders from history with actual values
                     var historyOrders = ApiClient.GetOrders(OrderSelectSource.MODE_HISTORY) ?? [];
-                    closedOrders = closeOrdersTemp.Where(cot => historyOrders.Find(a => a.Ticket == cot.Ticket) != null).ToList();
+                    closedOrders = historyOrders.Where(cot => closeOrdersTemp.Find(a => a.Ticket == cot.Ticket) != null).ToList();
                 }
             }
 

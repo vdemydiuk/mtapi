@@ -10,7 +10,6 @@
 #include <boost/signals2.hpp>
 
 #include "Logger.h"
-#include "MtMessage.h"
 
 class MtConnection;
 class MtExpert;
@@ -48,12 +47,14 @@ private:
     void OnAccept(boost::beast::error_code ec, 
             boost::asio::ip::tcp::socket socket);
 
-    void OnEvent(const MtEvent& event);
+    void OnEvent(int handle, int event_type, const std::string& payload);
     void OnDeinitExpert(int handle);
 
-    void Send(const MtMessage& message);
+    void SendEvent(int expert_handle, int event_type, const std::string& payload);
+    void SendExpertAdded(int handle);
+    void SendExpertRemoved(int handle);
 
-    void ProcessMessage(const std::string& msg, std::weak_ptr<MtConnection> con);
+    void ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak_ptr<MtConnection> con);
 
     Logger log_{ "MtServer" };
     boost::asio::io_context& context_;

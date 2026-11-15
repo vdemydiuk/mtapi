@@ -79,10 +79,7 @@ public:
       jo.put("ClosePrice", new JSONNumber(_closePrice));
       jo.put("Lots", new JSONNumber(_lots));
       jo.put("Profit", new JSONNumber(_profit));
-      if (_comment != "")
-      {
-         jo.put("Comment", new JSONString(_comment));
-      }
+      jo.put("Comment", new JSONString(_comment));
       jo.put("Commission", new JSONNumber(_commission));
       jo.put("MagicNumber", new JSONNumber(_magicNumber));
       jo.put("MtOpenTime", new JSONNumber(_openTime));
@@ -1330,6 +1327,9 @@ int ExecuteCommand()
    case 290: //GetQuote
       response = Execute_GetQuote();
    break;
+   case 291: //GetSymbols
+      response = Execute_GetSymbols();
+   break;
    
    default:
       Print("WARNING: Unknown command type = ", command_type);
@@ -2269,7 +2269,7 @@ string Execute_iBands()
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
    GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
    GET_INT_JSON_VALUE(jo, "Period", period);
-   GET_INT_JSON_VALUE(jo, "Deviation", deviation);
+   GET_DOUBLE_JSON_VALUE(jo, "Deviation", deviation);
    GET_INT_JSON_VALUE(jo, "BandsShift", bands_shift);
    GET_INT_JSON_VALUE(jo, "AppliedPrice", applied_price);
    GET_INT_JSON_VALUE(jo, "Mode", mode);
@@ -2284,7 +2284,7 @@ string Execute_iBandsOnArray()
    GET_JSON_PAYLOAD(jo);
    GET_INT_JSON_VALUE(jo, "Total", total);
    GET_INT_JSON_VALUE(jo, "Period", period);
-   GET_INT_JSON_VALUE(jo, "Deviation", deviation);
+   GET_DOUBLE_JSON_VALUE(jo, "Deviation", deviation);
    GET_INT_JSON_VALUE(jo, "BandsShift", bands_shift);
    GET_INT_JSON_VALUE(jo, "Mode", mode);
    GET_INT_JSON_VALUE(jo, "Shift", shift);
@@ -3792,16 +3792,25 @@ bool OrderCloseAll()
    {
       if (OrderSelect(i, SELECT_BY_POS))
       {
-         int type = OrderType();   
+         int type = OrderType();
+         bool order_closed = true;
          switch(type)
          {
             //Close opened long positions
-            case OP_BUY: OrderClose( OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_BID), 5, Red );
+            case OP_BUY: 
+            {
+               order_closed = OrderClose( OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_BID), 5, Red );
                break;      
+            }
             //Close opened short positions
-            case OP_SELL: OrderClose( OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_ASK), 5, Red );
+            case OP_SELL: 
+            {
+               order_closed = OrderClose( OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_ASK), 5, Red );
                break;
+            }
          }
+         if (order_closed == false)
+            Print("Failed to close order ", OrderTicket());
       }
    }
 
@@ -3961,10 +3970,8 @@ string Execute_iCustom()
       {
          int intParams[];
          ArrayResize(intParams, size);
-         for (int i = 0; i < size; i++)
-         {
-            intParams[i] = jaParams.getInt(i);
-         }
+         for (int it_i = 0; it_i < size; it_i++)
+            intParams[it_i] = jaParams.getInt(it_i);
          result = iCustomT(symbol, timeframe, name, intParams, size, mode, shift);
       }
       break;
@@ -3972,6 +3979,8 @@ string Execute_iCustom()
       {
          double doubleParams[];
          ArrayResize(doubleParams, size);
+         for (int it_d = 0; it_d < size; it_d++)
+            doubleParams[it_d] = jaParams.getDouble(it_d);
          result = iCustomT(symbol, timeframe, name, doubleParams, size, mode, shift);
       }
       break;
@@ -3979,6 +3988,8 @@ string Execute_iCustom()
       {
          string stringParams[];
          ArrayResize(stringParams, size);
+         for (int it_s = 0; it_s < size; it_s++)
+            stringParams[it_s] = jaParams.getString(it_s);
          result = iCustomT(symbol, timeframe, name, stringParams, size, mode, shift);
       }
       break;
@@ -3986,6 +3997,8 @@ string Execute_iCustom()
       {
          bool boolParams[];
          ArrayResize(boolParams, size);
+         for (int it_b = 0; it_b < size; it_b++)
+            boolParams[it_b] = jaParams.getBool(it_b);
          result = iCustomT(symbol, timeframe, name, boolParams, size, mode, shift);
       }
       break;
@@ -4182,4 +4195,26 @@ string Execute_GetQuote()
    
    MtQuote quote(Symbol(), tick);
    return CreateSuccessResponse(quote.CreateJson());
+}
+
+string Execute_GetSymbols()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_BOOL_JSON_VALUE(jo, "Selected", selected);
+   
+   const int symbolsCount = SymbolsTotal(selected);
+   JSONArray* jaSymbols = new JSONArray();
+   int idx = 0;
+   for(int idxSymbol = 0; idxSymbol < symbolsCount; idxSymbol++)
+   {      
+      string symbol = SymbolName(idxSymbol, selected);
+      string firstChar = StringSubstr(symbol, 0, 1);
+      if(firstChar != "#" && StringLen(symbol) == 6)
+      {        
+         jaSymbols.put(idx, new JSONString(symbol));
+         idx++;
+      } 
+   }
+   
+   return CreateSuccessResponse(jaSymbols);
 }

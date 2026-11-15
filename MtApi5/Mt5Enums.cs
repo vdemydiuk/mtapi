@@ -862,6 +862,18 @@ namespace MtApi5
         STO_CLOSECLOSE = 1  //Calculation is based on Close/Close prices
     }
 
+    [Flags]
+    public enum ENUM_TICK_FLAGS
+    {
+        TICK_FLAG_NONE = 0,
+        TICK_FLAG_BID = 2,      // Tick has changed a Bid price
+        TICK_FLAG_ASK = 4,      // Tick has changed an Ask price
+        TICK_FLAG_LAST = 8,     // Tick has changed the last deal price
+        TICK_FLAG_VOLUME = 16,   // Tick has changed a volume
+        TICK_FLAG_BUY = 32,     // Tick is a result of a buy deal
+        TICK_FLAG_SELL = 64     // Tick is a result of a sell deal
+    }
+
     #endregion //Price Constants
 
     #region Smoothing Methods

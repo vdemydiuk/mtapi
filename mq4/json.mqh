@@ -782,7 +782,7 @@ private:
          // number
          int i=_pos;
 
-         if(_in[_pos]=='-') 
+         if(_in[_pos]=='-')
            {
             sign=-1;
             _pos++;
@@ -792,7 +792,8 @@ private:
               } else {
             sign=1;
            }
-
+         
+         i=_pos;
          while(i<_len && isDigit(_in[i])) 
            {
             l=l*10+(_in[i]-'0');

@@ -160,6 +160,11 @@ namespace MtApi5TestClient
         public DelegateCommand GlobalVariablesTotalCommand { get; private set; }
 
         public DelegateCommand UnlockTicksCommand { get; private set; }
+
+        public DelegateCommand GetSymbolsCommand { get; private set; }
+        public DelegateCommand RefreshQuotesCommand { get; private set; }
+
+        public DelegateCommand TimeoutApplyCommand { get; private set; }
         #endregion
 
         #region Properties
@@ -204,6 +209,17 @@ namespace MtApi5TestClient
             {
                 _port = value;
                 OnPropertyChanged("Port");
+            }
+        }
+
+        private int _command_timeout;
+        public int CommandTimeout
+        {
+            get { return _command_timeout; }
+            set
+            {
+                _command_timeout = value;
+                OnPropertyChanged("CommandTimeout");
             }
         }
 
@@ -314,6 +330,19 @@ namespace MtApi5TestClient
                 OnPropertyChanged("PositionTicketValue");
             }
         }
+
+        public bool GetSymbolsSelected { get; set; } = false;
+
+        private List<string> _symbols;
+        public List<string> Symbols
+        {
+            get { return _symbols; }
+            set
+            {
+                _symbols = value;
+                OnPropertyChanged("Symbols");
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -334,6 +363,7 @@ namespace MtApi5TestClient
             ConnectionState = _mtApiClient.ConnectionState;
             ConnectionMessage = "Disconnected";
             Port = 8228; //default local port
+            CommandTimeout = _mtApiClient.CommandTimeout;
 
             InitCommands();
 
@@ -475,6 +505,11 @@ namespace MtApi5TestClient
             GlobalVariablesTotalCommand = new DelegateCommand(ExecuteGlobalVariablesTotal);
 
             UnlockTicksCommand = new DelegateCommand(ExecuteUnlockTicks);
+
+            GetSymbolsCommand = new DelegateCommand(ExecuteGetSymbols);
+            RefreshQuotesCommand = new DelegateCommand(ExecuteRefreshQuotes);
+
+            TimeoutApplyCommand = new DelegateCommand(ExecuteTimeoutApply);
         }
 
         private bool CanExecuteConnect(object o)
@@ -1054,7 +1089,7 @@ namespace MtApi5TestClient
             {
                 foreach (var v in result)
                 {
-                    var tickStr = $"time = {v.time}, bid = {v.bid}, ask = {v.ask}, last = {v.last}, volume = {v.volume}";
+                    var tickStr = $"time = {v.time}, bid = {v.bid}, ask = {v.ask}, last = {v.last}, volume = {v.volume}, flags = {v.flags}";
                     TimeSeriesResults.Add(tickStr);
                 }
             });
@@ -1142,6 +1177,7 @@ namespace MtApi5TestClient
             AddLog($"SymbolInfoTick(EURUSD) tick.last = {result.last}");
             AddLog($"SymbolInfoTick(EURUSD) tick.volume = {result.volume}");
             AddLog($"SymbolInfoTick(EURUSD) tick.volume_real = {result.volume_real}");
+            AddLog($"SymbolInfoTick(EURUSD) tick.flags = {result.flags}");
         }
 
         private async void ExecuteSymbolInfoSessionQuote(object o)
@@ -1726,6 +1762,39 @@ namespace MtApi5TestClient
             _mtApiClient.UnlockTicks();
         }
 
+        private async void ExecuteGetSymbols(object o)
+        {
+            var result = await Execute(() => _mtApiClient.GetSymbols(GetSymbolsSelected));
+            if (result == null)
+                return;
+
+            AddLog($"ChartScreenShot: {result.Count} count of symbols");
+            RunOnUiThread(() =>
+            {
+                Symbols = result;
+            });
+        }
+        private async void ExecuteRefreshQuotes(object o)
+        {
+            _quotesMap.Clear();
+            Quotes.Clear();
+
+            var quotes = await Execute(() => _mtApiClient.GetQuotes());
+            if (quotes != null)
+            {
+                foreach (var quote in quotes)
+                {
+                    AddQuote(quote);
+                }
+            }
+        }
+
+        private void ExecuteTimeoutApply(object o)
+        {
+            _mtApiClient.CommandTimeout = CommandTimeout;
+            AddLog($"TimeoutApply: timeout = {CommandTimeout} milliseconds");
+        }
+
         private static void RunOnUiThread(Action action)
         {
             Application.Current?.Dispatcher.Invoke(action);
@@ -1804,7 +1873,7 @@ namespace MtApi5TestClient
 
         private void _mtApiClient_OnLastTimeBar(object sender, Mt5TimeBarArgs e)
         {
-            AddLog($"OnLastTimeBarEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}, open = {e.Rates.open}, close = {e.Rates.close}, time = {e.Rates.time}, high = {e.Rates.high}, low = {e.Rates.low}");
+            AddLog($"OnLastTimeBarEvent: ExpertHandle = {e.ExpertHandle}, Symbol = {e.Symbol}, Timeframe = {e.Timeframe}, open = {e.Rates.open}, close = {e.Rates.close}, time = {e.Rates.time}, high = {e.Rates.high}, low = {e.Rates.low}");
         }
 
         private void _mtApiClient_OnLockTicks(object sender, Mt5LockTicksEventArgs e)

@@ -4,6 +4,7 @@
     {
         public MqlRates? Rates { get; set; }
         public string? Instrument { get; set; }
+        public ENUM_TIMEFRAMES Timeframe { get; set; }
         public int ExpertHandle { get; set; }
     }
 }

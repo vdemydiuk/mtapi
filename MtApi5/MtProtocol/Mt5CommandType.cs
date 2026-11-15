@@ -259,6 +259,7 @@ namespace MtApi5.MtProtocol
         OrderSendAsync = 302,
         OrderCheck = 303,
         Buy = 304,
-        Sell = 305
+        Sell = 305,
+        GetSymbols = 306
     }
 }

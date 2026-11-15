@@ -2,6 +2,7 @@
 using MtClient;
 using MtApi5.MtProtocol;
 using MtApi5.MtProtocol.ICustomRequest;
+using System.Data;
 
 namespace MtApi5
 {
@@ -31,10 +32,23 @@ namespace MtApi5
         
         private HashSet<int> _experts = [];
         private Dictionary<int, Mt5Quote> _quotes = [];
+        private volatile int _command_timeout = 30000; // 30 seconds
         #endregion
 
         #region Public Methods
         private IMtLogger Log { get; }
+
+        // Time in milliseconds to wait for a response from MetaTrader for a command. Default is 30 seconds.
+        public int CommandTimeout
+        {
+            get => _command_timeout;
+            set
+            {
+                if (value <= 0)
+                    throw new ArgumentException("Command timeout must be greater than zero.");
+                _command_timeout = value;
+            }
+        }
 
         public MtApi5Client(IMtLogger? log = null)
         {
@@ -122,14 +136,7 @@ namespace MtApi5
                     throw new Exception($"Connection to {host}:{port} failed. Error: {errorMessage}");
                 }
 
-                // Load quotes
-                Dictionary<int, Mt5Quote> quotes = [];
-                foreach (var handle in experts)
-                {
-                    var quote = GetQuote(client, handle);
-                    if (quote != null)
-                        quotes[handle] = quote;
-                }
+                var quotes = LoadQuotes(client, experts);
 
                 lock (_locker)
                 {
@@ -150,6 +157,7 @@ namespace MtApi5
             catch (Exception e)
             {
                 Log.Error($"Connect: Failed connection to {host}:{port}. Error: {e.Message}");
+                client.Disconnect();
                 lock (_locker)
                 {
                     _connectionState = Mt5ConnectionState.Failed;
@@ -157,6 +165,18 @@ namespace MtApi5
                 ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Failed, e.Message));
                 throw new Exception($"Connection to {host}:{port} failed. Error: {e.Message}");
             }
+        }
+
+        private Dictionary<int, Mt5Quote> LoadQuotes(MtRpcClient client, HashSet<int> experts)
+        {
+            Dictionary<int, Mt5Quote> quotes = [];
+            foreach (var handle in experts)
+            {
+                var quote = GetQuote(client, handle);
+                if (quote != null)
+                    quotes[handle] = quote;
+            }
+            return quotes;
         }
 
         ///<summary>
@@ -182,10 +202,31 @@ namespace MtApi5
         ///</summary>
         public IEnumerable<Mt5Quote> GetQuotes()
         {
+            MtRpcClient? client;
+            HashSet<int> experts;
             lock (_locker)
             {
-                return _quotes.Values.ToList();
+                client = _client;
+                experts = new HashSet<int>(_experts);
             }
+            if (client == null)
+            {
+                Log.Warn("GetQuotes: No connection");
+                throw new Exception("No connection");
+            }
+
+            var quotes = LoadQuotes(client, experts);
+
+            return quotes.Values.ToList();
+        }
+
+        ///<summary>
+        ///Load symbols
+        ///</summary>
+        public List<string>? GetSymbols(bool selected)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Selected", selected } };
+            return SendCommand<List<string>>(ExecutorHandle, Mt5CommandType.GetSymbols, cmdParams);
         }
 
         ///<summary>
@@ -2664,7 +2705,7 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Period", (int)period },
                 { "FastMaPeriod", fastMaPeriod }, { "SlowMaPeriod", slowMaPeriod},
-                { "MaMethod", (int)maMethod }, { "appliedVolume", (int)appliedVolume } };
+                { "MaMethod", (int)maMethod }, { "AppliedVolume", (int)appliedVolume } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iChaikin, cmdParams);
         }
 
@@ -2730,14 +2771,14 @@ namespace MtApi5
         }
 
         ///<summary>
-        ///The function returns the handle of the Force Index indicator.
+        ///The function returns the handle of the Fractals indicator.
         ///</summary>
         ///<param name="symbol">The symbol name of the security, the data of which should be used to calculate the indicator.</param>
         ///<param name="period">The value of the period can be one of the ENUM_TIMEFRAMES enumeration values, 0 means the current timeframe.</param>
-        public int iForce(string symbol, ENUM_TIMEFRAMES period)
+        public int iFractals(string symbol, ENUM_TIMEFRAMES period)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Period", (int)period } };
-            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iForce, cmdParams);
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iFractals, cmdParams);
         }
 
         ///<summary>
@@ -2969,7 +3010,7 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Period", (int)period },
                 { "Kperiod", Kperiod }, { "Dperiod", Dperiod }, { "Slowing", slowing },
-                { "MaMethod", (int)maMethod }, { "priceField", (int)priceField } };
+                { "MaMethod", (int)maMethod }, { "PriceField", (int)priceField } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iStochastic, cmdParams);
         }
 
@@ -3055,8 +3096,8 @@ namespace MtApi5
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, double[] parameters)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty },
-                { "Period", (int)period }, { "Name", name ?? string.Empty}, 
-                { "Parameters", parameters }, { "ParamsType", ParametersType.Double} };
+                { "Timeframe", (int)period }, { "Name", name ?? string.Empty}, 
+                { "Params", parameters }, { "ParamsType", ParametersType.Double} };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
@@ -3070,7 +3111,7 @@ namespace MtApi5
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, int[] parameters)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty },
-                { "Period", (int)period }, { "Name", name  ?? string.Empty }, { "Parameters", parameters },
+                { "Timeframe", (int)period }, { "Name", name  ?? string.Empty }, { "Params", parameters },
                 { "ParamsType", ParametersType.Int } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
@@ -3085,8 +3126,8 @@ namespace MtApi5
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, string[] parameters)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty },
-                { "Period", (int)period }, { "Name", name ?? string.Empty },
-                { "Parameters", parameters }, { "ParamsType", ParametersType.String } };
+                { "Timeframe", (int)period }, { "Name", name ?? string.Empty },
+                { "Params", parameters }, { "ParamsType", ParametersType.String } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
@@ -3100,8 +3141,8 @@ namespace MtApi5
         public int iCustom(string symbol, ENUM_TIMEFRAMES period, string name, bool[] parameters)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty },
-                { "Period", (int)period }, { "Name", name ?? string.Empty },
-                { "Parameters", parameters }, { "ParamsType", ParametersType.Boolean } };
+                { "Timeframe", (int)period }, { "Name", name ?? string.Empty },
+                { "Params", parameters }, { "ParamsType", ParametersType.Boolean } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iCustom, cmdParams);
         }
 
@@ -3392,11 +3433,6 @@ namespace MtApi5
                 var quote = GetQuote(Client, handle);
                 if (quote != null)
                 {
-                    lock (_locker)
-                    {
-                        _quotes[handle] = quote;
-                    }
-
                     QuoteAdded?.Invoke(this, new Mt5QuoteEventArgs(quote));
                 }
                 else
@@ -3411,19 +3447,18 @@ namespace MtApi5
         {
             Log.Debug($"ProcessExpertRemoved: {handle}");
 
-            Mt5Quote? quote = null;
+            Mt5Quote? quote;
             lock (_locker)
             {
+                _quotes.TryGetValue(handle, out quote);
+                _quotes.Remove(handle);
                 _experts.Remove(handle);
-                if (_quotes.TryGetValue(handle, out quote))
-                    _quotes.Remove(handle);
                 if (_executorHandle == handle)
                     _executorHandle = (_experts.Count > 0) ? _experts.ElementAt(0) : 0;
-
             }
 
             if (quote != null)
-                QuoteRemoved?.Invoke(this, new Mt5QuoteEventArgs(quote));
+                QuoteRemoved?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote { Instrument = quote.Instrument, ExpertHandle = quote.ExpertHandle }));
         }
 
         private Mt5Quote? GetQuote(MtRpcClient? client, int expertHandle)
@@ -3512,7 +3547,7 @@ namespace MtApi5
             var e = JsonConvert.DeserializeObject<OnLastTimeBarEvent>(payload);
             if (e == null || string.IsNullOrEmpty(e.Instrument) || e.Rates == null)
                 return;
-            OnLastTimeBar?.Invoke(this, new Mt5TimeBarArgs(expertHandle, e.Instrument, e.Rates));
+            OnLastTimeBar?.Invoke(this, new Mt5TimeBarArgs(expertHandle, e.Instrument, e.Timeframe, e.Rates));
         }
 
         private void ReceivedOnLockTicksEvent(int expertHandle, string payload)
@@ -3540,7 +3575,6 @@ namespace MtApi5
                 client = _client;
                 _client = null;
 
-                _quotes.Clear();
                 _experts.Clear();
                 _executorHandle = 0;
             }
@@ -3568,7 +3602,7 @@ namespace MtApi5
             var payloadJson = payload == null ? string.Empty : JsonConvert.SerializeObject(payload);
             Log.Debug($"SendCommand: sending '{payloadJson}' ...");
 
-            var responseJson = client.SendCommand(expertHandle, (int)commandType, payloadJson);
+            var responseJson = client.SendCommand(expertHandle, (int)commandType, payloadJson, CommandTimeout);
 
             Log.Debug($"SendCommand: received response JSON [{responseJson}]");
 

@@ -1,7 +1,7 @@
 #property copyright "Vyacheslav Demidyuk"
 #property link      ""
 
-#property version   "2.0"
+#property version   "2.1"
 #property description "MtApi (MT5) connection expert"
 
 #include <json.mqh>
@@ -82,7 +82,7 @@ void OnTick()
            MqlRates rates_array[];
            CopyRates(symbol, Period(), 1, 1, rates_array);
       
-           MtTimeBarEvent time_bar(symbol, rates_array[0]);
+           MtTimeBarEvent time_bar(symbol, (int)Period(), rates_array[0]);
            SendMtEvent(ON_LAST_TIME_BAR_EVENT, time_bar);
          }
         lastbar_time_changed = true;
@@ -380,6 +380,7 @@ int preinit()
    ADD_EXECUTOR(303, OrderCheck);
    ADD_EXECUTOR(304, Buy);
    ADD_EXECUTOR(305, Sell);
+   ADD_EXECUTOR(306, GetSymbols);
    
    return (0);
 }
@@ -408,14 +409,14 @@ int init()
       isCrashed = true;
       return (1);
    }
-   if (MQL5InfoInteger(MQL5_DLLS_ALLOWED) == false) 
+   if (MQLInfoInteger(MQL_DLLS_ALLOWED) == false) 
    {
       MessageBox("Libraries not allowed.", "MtApi", 0);
       isCrashed = true;
       return (1);
    }
 
-   if (MQL5InfoInteger(MQL5_TRADE_ALLOWED) == false) 
+   if (MQLInfoInteger(MQL_TRADE_ALLOWED) == false) 
    {
       MessageBox("Trade not allowed.", "MtApi", 0);
       isCrashed = true;
@@ -1829,7 +1830,7 @@ string Execute_ObjectCreate()
    
    datetime times[30];
    double prices[30];
-   ArrayInitialize(times, EMPTY_VALUE);
+   ArrayInitialize(times, 0);
    ArrayInitialize(prices, EMPTY_VALUE);
    
    JSONArray* times_jo = jo.p.getArray("Times");
@@ -2168,10 +2169,10 @@ string Execute_iChaikin()
    GET_INT_JSON_VALUE(jo, "Period", period);
    GET_INT_JSON_VALUE(jo, "FastMaPeriod", fast_ma_period);
    GET_INT_JSON_VALUE(jo, "SlowMaPeriod", slow_ma_period);
-   GET_INT_JSON_VALUE(jo, "MaPeriod", ma_period);
+   GET_INT_JSON_VALUE(jo, "MaMethod", ma_method);
    GET_INT_JSON_VALUE(jo, "AppliedVolume", applied_volume);
    
-   int result = iChaikin(symbol, (ENUM_TIMEFRAMES)period, fast_ma_period, slow_ma_period, (ENUM_MA_METHOD)ma_period, (ENUM_APPLIED_VOLUME) applied_volume);
+   int result = iChaikin(symbol, (ENUM_TIMEFRAMES)period, fast_ma_period, slow_ma_period, (ENUM_MA_METHOD)ma_method, (ENUM_APPLIED_VOLUME) applied_volume);
    return CreateSuccessResponse(new JSONNumber(result));
 }
 
@@ -2377,7 +2378,7 @@ string Execute_iSAR()
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
    GET_INT_JSON_VALUE(jo, "Period", period);
    GET_DOUBLE_JSON_VALUE(jo, "Step", step);
-   GET_DOUBLE_JSON_VALUE(jo, "Mamimum", maximum);
+   GET_DOUBLE_JSON_VALUE(jo, "Maximum", maximum);
    
    int result = iSAR(symbol, (ENUM_TIMEFRAMES)period, step, maximum);
    return CreateSuccessResponse(new JSONNumber(result));
@@ -2959,6 +2960,7 @@ string Execute_UnlockTicks()
       return CreateErrorResponse(-1, "UnlockTicks can be used only for backtesting");
    }
    
+   _is_ticks_locked = false;
    return CreateSuccessResponse();
 }
 
@@ -3065,15 +3067,15 @@ string Execute_iCustom()
          int intParams[];
          ArrayResize(intParams, size);
          for (int i = 0; i < size; i++)
-         {
             intParams[i] = jaParams.getInt(i);
-         }
          result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, intParams, size);
       }
       break;
       case 1: //Double
       {
-         int doubleParams[];
+         double doubleParams[];
+         for (int i = 0; i < size; i++)
+            doubleParams[i] = jaParams.getDouble(i);
          ArrayResize(doubleParams, size);
          result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, doubleParams, size);
       }
@@ -3082,13 +3084,17 @@ string Execute_iCustom()
       {
          string stringParams[];
          ArrayResize(stringParams, size);
+         for (int i = 0; i < size; i++)
+            stringParams[i] = jaParams.getString(i);
          result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, stringParams, size);
       }
       break;
       case 3: //Boolean
       {
-         string boolParams[];
+         bool boolParams[];
          ArrayResize(boolParams, size);
+          for (int i = 0; i < size; i++)
+            boolParams[i] = jaParams.getBool(i);
          result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, boolParams, size);
       }
       break;
@@ -3446,6 +3452,28 @@ string Execute_Sell()
    return CreateSuccessResponse(result_value_jo); 
 }
 
+string Execute_GetSymbols()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_BOOL_JSON_VALUE(jo, "Selected", selected);
+   
+   const int symbolsCount = SymbolsTotal(selected);
+   JSONArray* jaSymbols = new JSONArray();
+   int idx = 0;
+   for(int idxSymbol = 0; idxSymbol < symbolsCount; idxSymbol++)
+   {      
+      string symbol = SymbolName(idxSymbol, selected);
+      string firstChar = StringSubstr(symbol, 0, 1);
+      if(firstChar != "#" && StringLen(symbol) == 6)
+      {        
+         jaSymbols.put(idx, new JSONString(symbol));
+         idx++;
+      } 
+   }
+   
+   return CreateSuccessResponse(jaSymbols);
+}
+
 int PositionCloseAll()
 {
    CTrade trade;
@@ -3635,9 +3663,10 @@ private:
 class MtTimeBarEvent: public MtObject
 {
 public:
-   MtTimeBarEvent(string symbol, const MqlRates& rates)
+   MtTimeBarEvent(string symbol, int timeframe, const MqlRates& rates)
    {
       _symbol = symbol;
+      _timeframe = timeframe;
       _rates = rates;
    }
    
@@ -3646,12 +3675,14 @@ public:
       JSONObject *jo = new JSONObject();
       jo.put("Rates", MqlRatesToJson(_rates));
       jo.put("Instrument", new JSONString(_symbol));
+      jo.put("Timeframe", new JSONNumber(_timeframe));
       jo.put("ExpertHandle", new JSONNumber(ExpertHandle));
       return jo;
    }
 
 private: 
    string _symbol;
+   int _timeframe;
    MqlRates _rates;
 };
 
@@ -3774,6 +3805,21 @@ bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
 
 JSONObject* MqlTickToJson(const MqlTick& tick)
 {
+   // MT5 can add some additional non-documented flags, so we need to filter required documented flags only
+    int summ=0;
+    if((tick.flags & TICK_FLAG_BID)==TICK_FLAG_BID)
+      summ+=TICK_FLAG_BID;
+    if((tick.flags & TICK_FLAG_ASK)==TICK_FLAG_ASK)
+      summ+=TICK_FLAG_ASK;
+    if((tick.flags & TICK_FLAG_LAST)==TICK_FLAG_LAST)
+      summ+=TICK_FLAG_LAST;
+    if((tick.flags & TICK_FLAG_VOLUME)==TICK_FLAG_VOLUME)
+      summ+=TICK_FLAG_VOLUME;
+    if((tick.flags & TICK_FLAG_BUY)==TICK_FLAG_BUY)
+      summ+=TICK_FLAG_BUY;
+    if((tick.flags & TICK_FLAG_SELL)==TICK_FLAG_SELL)
+      summ+=TICK_FLAG_SELL;
+
     JSONObject *jo = new JSONObject();
     jo.put("Time", new JSONNumber((long)tick.time));
     jo.put("Bid", new JSONNumber(tick.bid));
@@ -3781,6 +3827,7 @@ JSONObject* MqlTickToJson(const MqlTick& tick)
     jo.put("Last", new JSONNumber(tick.last));
     jo.put("Volume", new JSONNumber(tick.volume));
     jo.put("VolumeReal", new JSONNumber(tick.volume_real));
+    jo.put("Flags", new JSONNumber(summ));
     return jo;
 }
 

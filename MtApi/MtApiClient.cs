@@ -502,6 +502,12 @@ namespace MtApi
             Dictionary<string, object> cmdParams = new() { { "Pool", (int)pool} };
             return SendCommand<List<MtOrder>>(ExecutorHandle, MtCommandType.GetOrders, cmdParams);
         }
+
+        public List<string>? GetSymbols(bool selected)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Selected", selected } };
+            return SendCommand<List<string>>(ExecutorHandle, MtCommandType.GetSymbols, cmdParams);
+        }
         #endregion
 
         #region Checkup
@@ -1131,7 +1137,7 @@ namespace MtApi
             return SendCommand<double>(ExecutorHandle, MtCommandType.iBearsPower, cmdParams);
         }
 
-        public double iBands(string symbol, int timeframe, int period, int deviation, int bandsShift, int appliedPrice, int mode, int shift)
+        public double iBands(string symbol, int timeframe, int period, double deviation, int bandsShift, int appliedPrice, int mode, int shift)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol },
                 { "Timeframe", timeframe }, { "Period", period },
@@ -1141,7 +1147,7 @@ namespace MtApi
             return SendCommand<double>(ExecutorHandle, MtCommandType.iBands, cmdParams);
         }
 
-        public double iBandsOnArray(double[] array, int total, int period, int deviation, int bandsShift, int mode, int shift)
+        public double iBandsOnArray(double[] array, int total, int period, double deviation, int bandsShift, int mode, int shift)
         {
             Dictionary<string, object> cmdParams = new() { { "Total", total },
                 { "Period", period }, { "Deviation", deviation },
@@ -3090,6 +3096,7 @@ namespace MtApi
             }
             catch (Exception e)
             {
+                client.Disconnect();
                 Log.Warn($"Failed connection to {host}:{port}. {e.Message}");
                 lock (_locker)
                 {
