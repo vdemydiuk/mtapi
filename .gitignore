@@ -192,3 +192,6 @@ FakesAssemblies/
 #Claude
 .claude/
 CLAUDE.md
+
+# python files
+__pycache__
