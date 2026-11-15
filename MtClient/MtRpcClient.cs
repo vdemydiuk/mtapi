@@ -73,7 +73,11 @@ namespace MtClient
 
             ulong commandId = getNextCommandId();
 
-            int requiredBufferSize = MessageHeader.Size + MtCommand.BlockLength + 4 + payload.Length; // 4 bytes for length prefix
+            // Buffer size must be based on the UTF-8 byte count, not on string length (UTF-16 chars),
+            // otherwise payloads with non-ASCII characters do not fit into the buffer.
+            byte[] payloadBytes = Encoding.UTF8.GetBytes(payload);
+
+            int requiredBufferSize = MessageHeader.Size + MtCommand.BlockLength + 4 + payloadBytes.Length; // 4 bytes for length prefix
             byte[] buffer = new byte[requiredBufferSize];
             DirectBuffer directBuffer = new(buffer);
 
@@ -89,7 +93,6 @@ namespace MtClient
             commandEncoder.Expert_handle = expertHandle;
             commandEncoder.Command_type = (ushort)commandType;
 
-            byte[] payloadBytes = Encoding.UTF8.GetBytes(payload);
             commandEncoder.SetStringPayload(payloadBytes, 0, payloadBytes.Length);
 
             var response = Send<string>(buffer, commandId, timeout);
