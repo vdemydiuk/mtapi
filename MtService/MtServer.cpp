@@ -126,6 +126,13 @@ void MtServer::OnAccept(boost::beast::error_code ec,
     }
     else
     {
+        // Disable Nagle's algorithm: the protocol exchanges small request/response messages,
+        // which Nagle combined with delayed ACK can hold back for up to ~200 ms.
+        boost::beast::error_code opt_ec;
+        socket.set_option(boost::asio::ip::tcp::no_delay(true), opt_ec);
+        if (opt_ec)
+            log_.Warning("%s: failed to set TCP_NODELAY: %s", __FUNCTION__, opt_ec.message().c_str());
+
         WebsocketStream ws(std::move(socket));
         auto connection = std::make_shared<MtConnection>(std::move(ws));
         connection->OnConnected.connect([con = connection->weak_from_this(), this]() {
