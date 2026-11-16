@@ -380,7 +380,18 @@ namespace MtApi5TestClient
 
         public void Close()
         {
-            _mtApiClient.BeginDisconnect();
+            // Unsubscribe before disconnecting: the window (and the dispatcher) is closing,
+            // so events raised during disconnect must not be marshalled to the UI thread.
+            _mtApiClient.ConnectionStateChanged -= mMtApiClient_ConnectionStateChanged;
+            _mtApiClient.QuoteAdded -= mMtApiClient_QuoteAdded;
+            _mtApiClient.QuoteRemoved -= mMtApiClient_QuoteRemoved;
+            _mtApiClient.QuoteUpdate -= mMtApiClient_QuoteUpdate;
+            _mtApiClient.OnTradeTransaction -= mMtApiClient_OnTradeTransaction;
+            _mtApiClient.OnBookEvent -= _mtApiClient_OnBookEvent;
+            _mtApiClient.OnLastTimeBar -= _mtApiClient_OnLastTimeBar;
+            _mtApiClient.OnLockTicks -= _mtApiClient_OnLockTicks;
+
+            _mtApiClient.Disconnect();
         }
 
         #endregion
@@ -1797,12 +1808,34 @@ namespace MtApi5TestClient
 
         private static void RunOnUiThread(Action action)
         {
-            Application.Current?.Dispatcher.Invoke(action);
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.HasShutdownStarted)
+                return;
+
+            try
+            {
+                dispatcher.Invoke(action);
+            }
+            catch (TaskCanceledException)
+            {
+                // dispatcher was shut down while the call was pending (application is closing)
+            }
         }
 
         private static void RunOnUiThread<T>(Action<T> action, params object[] args)
         {
-            Application.Current?.Dispatcher.Invoke(action, args);
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.HasShutdownStarted)
+                return;
+
+            try
+            {
+                dispatcher.Invoke(action, args);
+            }
+            catch (TaskCanceledException)
+            {
+                // dispatcher was shut down while the call was pending (application is closing)
+            }
         }
 
         private void mMtApiClient_QuoteUpdate(object sender, Mt5QuoteEventArgs e)
