@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "LogConfigurator.h"
+#include "Logger.h"
 
 #include <boost/log/trivial.hpp>
 #include <boost/log/utility/setup.hpp>
@@ -87,4 +88,5 @@ void LogConfigurator::Setup(LogLevel level, OutputType output_type,
     add_common_attributes();
 
     core::get()->set_filter(trivial::severity >= ToSeverityLevel(level));
+    Logger::SetLevel(level);
 }

@@ -446,7 +446,8 @@ void MtServer::SendExpertRemoved(int handle)
 
 void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak_ptr<MtConnection> con)
 {
-    log_.Trace("MtServer::ProcessMessage: size=%zu | hex: %s", buffer.size(), ToHex(buffer).c_str());
+    if (Logger::IsEnabled(LogLevel::Trace))
+        log_.Trace("MtServer::ProcessMessage: size=%zu | hex: %s", buffer.size(), ToHex(buffer).c_str());
 
     auto readable = buffer.data();
     // The generated SBE API requires char*, but decoders are read-only (they only index into the pointer).

@@ -57,9 +57,10 @@ void MtConnection::Send(std::shared_ptr<const boost::beast::flat_buffer> buffer)
     // touched from within the strand (same as DoWrite / OnWrite).
     boost::asio::post(ws_.get_executor(),
         [this, self = shared_from_this(), buf = std::move(buffer)]() mutable {
-            log_.Trace("%s: msg size = %zu, msg = %s", __FUNCTION__,
-                buf->size(),
-                ToHex(*buf).c_str());
+            if (Logger::IsEnabled(LogLevel::Trace))
+                log_.Trace("%s: msg size = %zu, msg = %s", __FUNCTION__,
+                    buf->size(),
+                    ToHex(*buf).c_str());
             send_queue_.push(std::move(buf));
             if (send_queue_.size() == 1)
                 DoWrite();
