@@ -53,9 +53,10 @@ void MtConnection::Send(boost::beast::flat_buffer&& buffer)
 
 void MtConnection::Send(std::shared_ptr<const boost::beast::flat_buffer> buffer)
 {
-    // Post onto the connection's strand so send_queue_ is only ever
-    // touched from within the strand (same as DoWrite / OnWrite).
-    boost::asio::post(ws_.get_executor(),
+    // send_queue_ must only be touched on the io_context thread (same as DoWrite / OnWrite).
+    // All callers already run there, so dispatch executes the handler inline without
+    // allocating and queueing it; a call from another thread would still be posted.
+    boost::asio::dispatch(ws_.get_executor(),
         [this, self = shared_from_this(), buf = std::move(buffer)]() mutable {
             if (Logger::IsEnabled(LogLevel::Trace))
                 log_.Trace("%s: msg size = %zu, msg = %s", __FUNCTION__,

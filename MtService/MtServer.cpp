@@ -101,9 +101,10 @@ void MtServer::AddExpert(int handle, MtExpert* expert)
 
 void MtServer::DoAccept()
 {
-    // The new connection gets its own strand
+    // No strand is needed: io_context runs on a single thread (MtServiceImpl::ThreadProc),
+    // so all handlers of a connection are already serialized.
     acceptor_.async_accept(
-        boost::asio::make_strand(context_),
+        context_,
         boost::beast::bind_front_handler(
             &MtServer::OnAccept,
             shared_from_this()));
