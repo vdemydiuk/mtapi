@@ -79,14 +79,15 @@ void MtServiceImpl::InitExpert(int port, int handle, std::unique_ptr<MetaTraderH
 
     boost::asio::post(context_, [port, handle, mt_h = std::move(mt_handler), this]() mutable {
         auto expert = std::make_unique<MtExpert>(handle, std::move(mt_h));
-        if (servers_.count(port) == 0)
+        auto it = servers_.find(port);
+        if (it == servers_.end())
         {
             auto server = std::make_shared<MtServer>(context_, port);
             server->OnStopped.connect(boost::bind(&MtServiceImpl::OnServerStopped, this, std::placeholders::_1));
-            servers_[port] = server;
+            it = servers_.emplace(port, std::move(server)).first;
         }
 
-        servers_[port]->AddExpert(handle, expert.get());
+        it->second->AddExpert(handle, expert.get());
         experts_[handle] = std::move(expert);
     });
 }
@@ -96,10 +97,11 @@ void MtServiceImpl::DeinitExpert(int handle)
     log_.Info("%s: handle = %d", __FUNCTION__, handle);
 
     boost::asio::post(context_, [handle, this]() {
-        if (experts_.count(handle) > 0)
+        auto it = experts_.find(handle);
+        if (it != experts_.end())
         {
-            experts_[handle]->Deinit();
-            experts_.erase(handle);
+            it->second->Deinit();
+            experts_.erase(it);
         }
     });
 }
@@ -109,8 +111,9 @@ void MtServiceImpl::SendEvent(int handle, int event_type, std::string payload)
     log_.Trace("%s: handle = %d, event_type = %d, payload = %s", __FUNCTION__, handle, event_type, payload.c_str());
 
     boost::asio::post(context_, [handle, event_type, payload = std::move(payload), this]() {
-        if (experts_.count(handle) > 0)
-            experts_[handle]->SendEvent(event_type, payload);
+        auto it = experts_.find(handle);
+        if (it != experts_.end())
+            it->second->SendEvent(event_type, payload);
     });
 }
 
@@ -119,15 +122,17 @@ void MtServiceImpl::SendResponse(int handle, std::string payload)
     log_.Trace("%s: handle = %d, payload = %s", __FUNCTION__, handle, payload.c_str());
 
     boost::asio::post(context_, [handle, payload = std::move(payload), this]() {
-        if (experts_.count(handle) > 0)
-            experts_[handle]->SendResponse(payload);
+        auto it = experts_.find(handle);
+        if (it != experts_.end())
+            it->second->SendResponse(payload);
     });
 }
 
 int MtServiceImpl::GetCommandType(int handle)
 {
     std::packaged_task<int()> task([handle, this]() {
-        return (experts_.count(handle) > 0) ? experts_[handle]->GetCommandType() : 0;
+        auto it = experts_.find(handle);
+        return (it != experts_.end()) ? it->second->GetCommandType() : 0;
     });
     auto f = task.get_future();
     boost::asio::post(context_, std::bind(std::move(task)));
@@ -141,7 +146,8 @@ int MtServiceImpl::GetCommandType(int handle)
 std::string MtServiceImpl::GetCommandPayload(int handle)
 {
     std::packaged_task<std::string()> task([handle, this]() {
-        return (experts_.count(handle) > 0) ? experts_[handle]->GetCommandPayload() : "";
+        auto it = experts_.find(handle);
+        return (it != experts_.end()) ? it->second->GetCommandPayload() : std::string();
     });
     auto f = task.get_future();
     boost::asio::post(context_, std::bind(std::move(task)));
@@ -161,8 +167,7 @@ void MtServiceImpl::OnServerStopped(unsigned short port)
 {
     log_.Trace("%s: port = %d", __FUNCTION__, port);
 
-    if (servers_.count(port) > 0)
-        servers_.erase(port);
+    servers_.erase(port);
 }
 
 void MtServiceImpl::ThreadProc()
