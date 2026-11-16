@@ -20,8 +20,8 @@ public:
     void InitExpert(int port, int handle, std::unique_ptr<MetaTraderHandler> mt_handler);
     void DeinitExpert(int handle);
 
-    void SendEvent(int handle, int event_type, const std::string& payload);
-    void SendResponse(int handle, const std::string& payload);
+    void SendEvent(int handle, int event_type, std::string payload);
+    void SendResponse(int handle, std::string payload);
 
     int GetCommandType(int handle);
     std::string GetCommandPayload(int handle);

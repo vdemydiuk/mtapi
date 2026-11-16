@@ -26,7 +26,8 @@ public:
     }
 
     int getCommandType() const { return command_type_; }
-    std::string getPayload() const { return payload_; }
+    // Moves the payload out: it is fetched once by MetaTrader, so copying it is not needed.
+    std::string TakePayload() { return std::move(payload_); }
 
     void ProcessResponse(int handle, const std::string& response)
     {

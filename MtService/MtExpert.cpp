@@ -90,5 +90,5 @@ int MtExpert::GetCommandType()
 
 std::string MtExpert::GetCommandPayload()
 {
-    return current_task_ ? current_task_->getPayload() : "";
+    return current_task_ ? current_task_->TakePayload() : std::string();
 }

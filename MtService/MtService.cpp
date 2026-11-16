@@ -26,8 +26,8 @@ public:
     void InitExpert(int port, int handle, std::unique_ptr<MetaTraderHandler> mt_handler);
     void DeinitExpert(int handle);
 
-    void SendEvent(int handle, int event_type, const std::string& payload);
-    void SendResponse(int handle, const std::string& payload);
+    void SendEvent(int handle, int event_type, std::string payload);
+    void SendResponse(int handle, std::string payload);
 
     int GetCommandType(int handle);
     std::string GetCommandPayload(int handle);
@@ -104,21 +104,21 @@ void MtServiceImpl::DeinitExpert(int handle)
     });
 }
 
-void MtServiceImpl::SendEvent(int handle, int event_type, const std::string& payload)
+void MtServiceImpl::SendEvent(int handle, int event_type, std::string payload)
 {
     log_.Trace("%s: handle = %d, event_type = %d, payload = %s", __FUNCTION__, handle, event_type, payload.c_str());
 
-    boost::asio::post(context_, [handle, event_type, payload = payload, this]() {
+    boost::asio::post(context_, [handle, event_type, payload = std::move(payload), this]() {
         if (experts_.count(handle) > 0)
             experts_[handle]->SendEvent(event_type, payload);
     });
 }
 
-void MtServiceImpl::SendResponse(int handle, const std::string& payload)
+void MtServiceImpl::SendResponse(int handle, std::string payload)
 {
     log_.Trace("%s: handle = %d, payload = %s", __FUNCTION__, handle, payload.c_str());
 
-    boost::asio::post(context_, [handle, payload = payload, this]() {
+    boost::asio::post(context_, [handle, payload = std::move(payload), this]() {
         if (experts_.count(handle) > 0)
             experts_[handle]->SendResponse(payload);
     });
@@ -214,14 +214,14 @@ void MtService::DeinitExpert(int handle)
      impl_->DeinitExpert(handle);
 }
 
-void MtService::SendEvent(int handle, int event_type, const std::string& payload)
+void MtService::SendEvent(int handle, int event_type, std::string payload)
 {
-     impl_->SendEvent(handle, event_type, payload);
+     impl_->SendEvent(handle, event_type, std::move(payload));
 }
 
-void MtService::SendResponse(int handle, const std::string& payload)
+void MtService::SendResponse(int handle, std::string payload)
 {
-     impl_->SendResponse(handle, payload);
+     impl_->SendResponse(handle, std::move(payload));
 }
 
 int MtService::GetCommandType(int handle)
