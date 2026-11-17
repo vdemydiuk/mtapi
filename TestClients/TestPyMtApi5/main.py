@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime, timezone
 import flet as ft
 import threading
 import time
@@ -40,10 +41,17 @@ def main(page: ft.Page):
     # Log container view
     log_view = ft.ListView(expand=True, spacing=5, auto_scroll=True)
 
+    # Events (e.g. OnBookEvent) can arrive many times per second: keep only the last lines.
+    LOG_MAX_LINES = 1000
+    log_lock = threading.Lock()
+
     def log_message(message: str):
         timestamp = time.strftime("%H:%M:%S")
-        log_view.controls.append(ft.Text(f"[{timestamp}] {message}", size=12, font_family="Consolas"))
-        page.update()
+        with log_lock:
+            log_view.controls.append(ft.Text(f"[{timestamp}] {message}", size=12, font_family="Consolas"))
+            if len(log_view.controls) > LOG_MAX_LINES:
+                del log_view.controls[: len(log_view.controls) - LOG_MAX_LINES]
+            log_view.update()
 
     # Quotes list: one row per expert attached to a chart in MetaTrader (as in MtApi5TestClient).
     # Rows are changed from the client's event thread and from UI threads, so they are
@@ -76,6 +84,10 @@ def main(page: ft.Page):
             for handle, row in quote_rows.items():
                 row.selected = handle == selected_expert
             quotes_table.update()
+
+    def format_mt_time(mt_time: int) -> str:
+        # MetaTrader time is seconds since 1970 in the trade server's time zone: no conversion.
+        return datetime.fromtimestamp(mt_time, tz=timezone.utc).strftime("%Y.%m.%d %H:%M:%S")
 
     def format_price(price: float) -> str:
         return f"{price:.5f}"
@@ -199,22 +211,40 @@ def main(page: ft.Page):
             if closing.is_set():
                 return
             add_quote(quote)
-            log_message(f"Quote added: {quote}")
+            log_message(
+                f"QuoteAdded: ExpertHandle = {quote.expert_handle}, Symbol = {quote.instrument}, "
+                f"Bid = {format_price(quote.bid)}, Ask = {format_price(quote.ask)}"
+            )
 
         def on_quote_removed(self, quote):
             if closing.is_set():
                 return
             remove_quote(quote)
-            log_message(f"Quote removed: {quote}")
+            log_message(f"QuoteRemoved: ExpertHandle = {quote.expert_handle}, Symbol = {quote.instrument}")
 
         def on_book_event(self, expert_handle, symbol):
-            pass
+            if closing.is_set():
+                return
+            log_message(f"OnBookEvent: ExpertHandle = {expert_handle}, Symbol = {symbol}")
 
         def on_last_time_bar(self, expert_handle, instrument, rates):
-            pass
+            if closing.is_set():
+                return
+            log_message(
+                f"OnLastTimeBar: ExpertHandle = {expert_handle}, Symbol = {instrument}, "
+                f"time = {format_mt_time(rates.time)}, open = {rates.open}, high = {rates.high}, low = {rates.low}, "
+                f"close = {rates.close}, tick_volume = {rates.tick_volume}"
+            )
 
         def on_trade_transaction(self, expert_handle, trade_transaction, trade_request, trade_result):
-            log_message(f"Trade transaction [{expert_handle}]: {trade_transaction}")
+            if closing.is_set():
+                return
+            log_message(
+                f"OnTradeTransaction: ExpertHandle = {expert_handle}\n"
+                f"  Transaction = {trade_transaction}\n"
+                f"  Request = {trade_request}\n"
+                f"  Result = {trade_result}"
+            )
 
     def on_connection_closed():
         release_client()
