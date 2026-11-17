@@ -80,10 +80,15 @@ void OnTick()
          if(Enable_OnLastBarEvent)
          {
            MqlRates rates_array[];
-           CopyRates(symbol, Period(), 1, 1, rates_array);
-      
-           MtTimeBarEvent time_bar(symbol, (int)Period(), rates_array[0]);
-           SendMtEvent(ON_LAST_TIME_BAR_EVENT, time_bar);
+           if (CopyRates(symbol, Period(), 1, 1, rates_array) == 1)
+           {
+              MtTimeBarEvent time_bar(symbol, (int)Period(), rates_array[0]);
+              SendMtEvent(ON_LAST_TIME_BAR_EVENT, time_bar);
+           }
+           else
+           {
+              PrintFormat("WARNING: %s: failed to get last bar for %s, error = %d. Last bar event is skipped.", __FUNCTION__, symbol, GetLastError());
+           }
          }
         lastbar_time_changed = true;
       }
