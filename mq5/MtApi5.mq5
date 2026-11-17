@@ -1000,7 +1000,7 @@ string Execute_CopyBuffer1()
    GET_INT_JSON_VALUE(jo, "Count", count);
    
    double buffer[];
-   int copied = CopyBuffer(indicator_handle, buffer_num, start_time, count, buffer);
+   int copied = CopyBuffer(indicator_handle, buffer_num, (datetime)start_time, count, buffer);
    
    JSONArray* jaresult = new JSONArray();
    for(int i = 0; i < copied; i++)
@@ -1018,7 +1018,7 @@ string Execute_CopyBuffer2()
    GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
    
    double buffer[];
-   int copied = CopyBuffer(indicator_handle, buffer_num, start_time, stop_time, buffer);
+   int copied = CopyBuffer(indicator_handle, buffer_num, (datetime)start_time, (datetime)stop_time, buffer);
    
    JSONArray* jaresult = new JSONArray();
    for(int i = 0; i < copied; i++)
