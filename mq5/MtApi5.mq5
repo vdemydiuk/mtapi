@@ -600,11 +600,17 @@ JSONObject* GetJsonPayload()
    
    if (payload_json == NULL) 
    {   
-      PrintFormat("%s [ERROR]: %d - %s", __FUNCTION__, (string)payload_parser.getErrorCode(), payload_parser.getErrorMessage());
+      PrintFormat("%s [ERROR]: %d - %s", __FUNCTION__, payload_parser.getErrorCode(), payload_parser.getErrorMessage());
       return NULL;
    }
    
-   return payload_json.isObject() ? payload_json : NULL;
+   if (!payload_json.isObject())
+   {
+      delete payload_json;
+      return NULL;
+   }
+
+   return payload_json;
 }
 
 #define PRINT_MSG_AND_RETURN_VALUE(msg,value) PrintFormat("%s: %s",__FUNCTION__,msg);return value
