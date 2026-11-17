@@ -3009,7 +3009,7 @@ string Execute_ChartId()
 string Execute_ChartRedraw()
 {
    GET_JSON_PAYLOAD(jo);
-   GET_INT_JSON_VALUE(jo, "ChartId", chart_id);
+   GET_LONG_JSON_VALUE(jo, "ChartId", chart_id);
    
    ChartRedraw(chart_id);
    return CreateSuccessResponse();
