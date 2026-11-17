@@ -3513,12 +3513,8 @@ string Execute_GetSymbols()
    for(int idxSymbol = 0; idxSymbol < symbolsCount; idxSymbol++)
    {      
       string symbol = SymbolName(idxSymbol, selected);
-      string firstChar = StringSubstr(symbol, 0, 1);
-      if(firstChar != "#" && StringLen(symbol) == 6)
-      {        
-         jaSymbols.put(idx, new JSONString(symbol));
-         idx++;
-      } 
+      jaSymbols.put(idx, new JSONString(symbol));
+      idx++;
    }
    
    return CreateSuccessResponse(jaSymbols);
