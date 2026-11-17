@@ -164,29 +164,37 @@ class Mt5ApiClient:
 
     def connect(self):
         self.__logger.info(f"Connecting to {self.__address}:{self.__port}")
-        url = f"ws://{self.__address}:{self.__port}"
-        self.__rpcclient.connect(url)
-        experts = self.__rpcclient.request_expert_list()
-        if experts is None:
-            self.__rpcclient.disconnect()
-            raise Exception("Failed to load expert list")
-        self.__logger.info(f"loaded exerts {self.__experts}")
-        for expert_handle in experts:
-            quote = self.__get_quote(expert_handle)
-            if quote is not None:
-                self.__experts.append(expert_handle)
-                self.__quotes[expert_handle] = quote
-        self.__logger.info(f"loaded quotes {self.__quotes}")
-        # TODO: send backtesting ready
+        # The event loop must be running before the RPC client connects: the server starts
+        # pushing events (ticks, etc.) right after the connection is opened, and they are
+        # dispatched to this loop from the RPC receive thread.
         self.__event_loop = asyncio.new_event_loop()
         self.__event_thread = Thread(target=self.__event_thread_func)
         self.__event_thread.start()
-        self.__is_connected = True
+        try:
+            url = f"ws://{self.__address}:{self.__port}"
+            self.__rpcclient.connect(url)
+            experts = self.__rpcclient.request_expert_list()
+            if experts is None:
+                self.__rpcclient.disconnect()
+                raise Exception("Failed to load expert list")
+        except Exception:
+            self.__stop_event_thread()
+            raise
+        self.__logger.info(f"loaded experts {experts}")
+        for expert_handle in experts:
+            quote = self.__get_quote(expert_handle)
+            if quote is not None:
+                with self.__lock:
+                    self.__experts.append(expert_handle)
+                    self.__quotes[expert_handle] = quote
+        self.__logger.info(f"loaded quotes {self.__quotes}")
+        # TODO: send backtesting ready
+        with self.__lock:
+            self.__is_connected = True
 
     def disconnect(self):
         self.__rpcclient.disconnect()
-        self.__event_loop.call_soon_threadsafe(self.__event_loop.stop)
-        self.__event_thread.join()
+        self.__stop_event_thread()
         self.__quotes.clear()
         self.__experts.clear()
 
@@ -558,6 +566,11 @@ class Mt5ApiClient:
         asyncio.set_event_loop(self.__event_loop)
         self.__event_loop.run_forever()
         self.__logger.debug(f"__event_thread stopped")
+
+    def __stop_event_thread(self):
+        self.__event_loop.call_soon_threadsafe(self.__event_loop.stop)
+        self.__event_thread.join()
+        self.__event_loop.close()
 
     def __get_quote(self, expert_handle):
         response = self.__send_command(expert_handle, Mt5CommandType.GetQuote)
