@@ -71,6 +71,49 @@ The project's installers.
 Precompiled x64 and x86 libraries for using with C++ projects, placed in [root]\thirdparty\.
 
 
+## Communication Protocol (SBE)
+
+`MtClient` and `MtService` communicate over WebSocket using binary messages encoded with
+[Simple Binary Encoding (SBE)](https://github.com/real-logic/simple-binary-encoding).
+Each WebSocket binary frame carries exactly one SBE message.
+
+The protocol is defined by the schema **`specs/mtprotocol_sbe.xml`** (schema id `1`, version `1`, little-endian).
+The codecs are generated from this schema with the SBE tool:
+- C++ (`MtService`): `MtService/*.h` (`MtCommand.h`, `MtResponse.h`, `MessageHeader.h`, ...)
+- C# (`MtClient`): `MtClient/*.g.cs`
+
+Do not edit the generated files by hand: change the schema and regenerate the codecs for both languages.
+
+Every message starts with the standard SBE header (`blockLength`, `templateId`, `schemaId`, `version`, all `uint16`),
+followed by the fixed-size fields, then repeating groups and variable-length data (`uint32` length prefix + UTF-8 bytes).
+
+| Message               | Id  | Direction        | Fields                                                     | Description |
+|-----------------------|-----|------------------|------------------------------------------------------------|-------------|
+| `MtCommand`           | 100 | Client → Service | `expert_handle`, `command_id`, `command_type`, `stringPayload` | Command to be executed by the MetaTrader expert. `expert_handle = 0` means the default (first) expert. |
+| `MtResponse`          | 101 | Service → Client | `expert_handle`, `command_id`, `status`, `stringPayload`   | Response to `MtCommand`, matched by `command_id`. |
+| `MtEvent`             | 102 | Service → Client | `expert_handle`, `event_type`, `stringPayload`             | Event from MetaTrader (quotes, trade events, etc.). |
+| `MtExpertList`        | 103 | Service → Client | `request_id`, group `expert_list` of `expert_handle`        | Response to `MtRequestExpertList` with handles of all connected experts. |
+| `MtExpertAdded`       | 104 | Service → Client | `expert_handle`                                            | An expert has been attached to a chart. |
+| `MtExpertRemoved`     | 105 | Service → Client | `expert_handle`                                            | An expert has been removed from a chart. |
+| `MtRequestExpertList` | 106 | Client → Service | `request_id`                                               | Request of the current expert list. |
+
+The `stringPayload` of commands, responses and events is a JSON string: SBE provides the framing and routing,
+while the command parameters and results are serialized as JSON (as they are processed by the MQL expert).
+
+`MtResponse.status` (`ResponseStatus`) reports the result of command delivery by `MtService`:
+- `Ok` (0) – the command was executed by MetaTrader, the payload contains its response;
+- `NoExperts` (1) – no expert is attached to `MtService`;
+- `ExpertNotFound` (2) – there is no expert with the requested handle;
+- `ExpertRemoved` (3) – the expert was removed before the command was executed.
+
+For non-`Ok` statuses the payload contains an error message. Every command gets a response, so the client never waits for a timeout because of a missing expert.
+
+Notes:
+- Both sides validate received messages (header size, schema id, block lengths, payload bounds) and reject malformed ones.
+- Messages with a newer schema version are accepted (SBE forward compatibility): unknown fields added in newer versions are skipped.
+- `MtService` limits the send queue to 3000 events per connection: on overflow the oldest events are dropped. Responses are sent ahead of queued events and are never dropped.
+
+
 ## Installation
 
 Use the installers to setup all libraries automatically.  
