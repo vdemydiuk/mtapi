@@ -438,12 +438,6 @@ int init()
        return(1);
    }
    
-   if (executeCommand() == 1)
-   {   
-      isCrashed = true;
-      return (1);
-   }
-   
 #ifdef __DEBUG_LOG__
    PrintFormat("Expert Handle = %d", ExpertHandle);
    PrintFormat("IsTesting: %s", IsTesting() ? "true" : "false");
