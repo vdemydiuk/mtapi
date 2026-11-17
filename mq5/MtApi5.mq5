@@ -3197,7 +3197,9 @@ string Execute_OrderCheck()
    JSONObject* trade_request_jo = jo.p.getObject("TradeRequest");
       
    MqlTradeRequest trade_request;
-   JsonToMqlTradeRequest(trade_request_jo, trade_request);
+   bool converted = JsonToMqlTradeRequest(trade_request_jo, trade_request);
+   if (converted == false)
+      return CreateErrorResponse(-1, "Failed to parse parameter TradeRequest");
    
    MqlTradeCheckResult trade_check_result;
    bool ok = OrderCheck(trade_request, trade_check_result);
