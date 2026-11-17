@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "MtConnection.h"
 
+#include <algorithm>
 #include <iostream>
 
 MtConnection::MtConnection(WebsocketStream&& ws)
@@ -46,24 +47,69 @@ void MtConnection::Close()
             [](boost::beast::error_code const ec){ });
 }
 
-void MtConnection::Send(boost::beast::flat_buffer&& buffer)
+void MtConnection::Send(boost::beast::flat_buffer&& buffer, SendPriority priority)
 {
-    Send(std::make_shared<const boost::beast::flat_buffer>(std::move(buffer)));
+    Send(std::make_shared<const boost::beast::flat_buffer>(std::move(buffer)), priority);
 }
 
-void MtConnection::Send(std::shared_ptr<const boost::beast::flat_buffer> buffer)
+void MtConnection::Send(std::shared_ptr<const boost::beast::flat_buffer> buffer, SendPriority priority)
 {
-    // Post onto the connection's strand so send_queue_ is only ever
-    // touched from within the strand (same as DoWrite / OnWrite).
-    boost::asio::post(ws_.get_executor(),
-        [this, self = shared_from_this(), buf = std::move(buffer)]() mutable {
-            log_.Trace("%s: msg size = %zu, msg = %s", __FUNCTION__,
-                buf->size(),
-                ToHex(*buf).c_str());
-            send_queue_.push(std::move(buf));
-            if (send_queue_.size() == 1)
-                DoWrite();
+    // Send queues must only be touched on the io_context thread (same as DoWrite / OnWrite).
+    // All callers already run there, so dispatch executes the handler inline without
+    // allocating and queueing it; a call from another thread would still be posted.
+    boost::asio::dispatch(ws_.get_executor(),
+        [this, self = shared_from_this(), buf = std::move(buffer), priority]() mutable {
+            Enqueue(std::move(buf), priority);
         });
+}
+
+void MtConnection::Enqueue(std::shared_ptr<const boost::beast::flat_buffer> buffer, SendPriority priority)
+{
+    if (Logger::IsEnabled(LogLevel::Trace))
+        log_.Trace("%s: priority = %d, msg size = %zu, msg = %s", __FUNCTION__,
+            static_cast<int>(priority),
+            buffer->size(),
+            ToHex(*buffer).c_str());
+
+    switch (priority)
+    {
+    case SendPriority::Response:
+        response_queue_.push(std::move(buffer));
+        break;
+    case SendPriority::Notification:
+        notification_queue_.push_back({ std::move(buffer), false });
+        break;
+    case SendPriority::Event:
+        if (queued_events_ >= MaxQueuedEvents)
+            DropOldestEvent();
+        notification_queue_.push_back({ std::move(buffer), true });
+        ++queued_events_;
+        break;
+    }
+
+    if (!writing_)
+        DoWrite();
+}
+
+void MtConnection::DropOldestEvent()
+{
+    // Notifications are rare, so the oldest event is at (or very close to) the front.
+    auto it = std::find_if(notification_queue_.begin(), notification_queue_.end(),
+        [](const QueuedMessage& m) { return m.droppable; });
+    if (it == notification_queue_.end())
+        return;
+
+    notification_queue_.erase(it);
+    --queued_events_;
+    ++dropped_events_;
+
+    if (dropped_events_ == 1)
+        log_.Warning("%s: connection %p: client reads slower than events are produced, "
+            "more than %zu events are queued. Dropping the oldest events.",
+            __FUNCTION__, this, MaxQueuedEvents);
+    else if (dropped_events_ % 10000 == 0)
+        log_.Warning("%s: connection %p: %zu events dropped so far.",
+            __FUNCTION__, this, dropped_events_);
 }
 
 void MtConnection::OnAccept(boost::beast::error_code ec)
@@ -142,16 +188,38 @@ void MtConnection::OnRead(
 
 void MtConnection::DoWrite()
 {
-    if (send_queue_.empty())
+    // Responses go first: they must not wait behind queued events.
+    if (!response_queue_.empty())
+    {
+        writing_ = std::move(response_queue_.front());
+        response_queue_.pop();
+    }
+    else if (!notification_queue_.empty())
+    {
+        auto& msg = notification_queue_.front();
+        writing_ = std::move(msg.buffer);
+        if (msg.droppable)
+            --queued_events_;
+        notification_queue_.pop_front();
+    }
+    else
+    {
+        writing_.reset();
+        if (dropped_events_ > 0)
+        {
+            log_.Warning("%s: connection %p: send queue drained, %zu events were dropped.",
+                __FUNCTION__, this, dropped_events_);
+            dropped_events_ = 0;
+        }
         return;
+    }
 
-    log_.Trace("%s: msg size = %zu", __FUNCTION__, send_queue_.front()->size());
+    log_.Trace("%s: msg size = %zu", __FUNCTION__, writing_->size());
 
     ws_.binary(true);
-    // The shared_ptr stays in send_queue_ until OnWrite pops it, keeping the data alive during the write.
-    const auto& buffer = *send_queue_.front();
+    // writing_ keeps the data alive until OnWrite is called.
     ws_.async_write(
-        buffer.data(),
+        writing_->data(),
         std::bind(
             &MtConnection::OnWrite,
             shared_from_this(),
@@ -168,13 +236,13 @@ void MtConnection::OnWrite(
     if (ec)
     {
         log_.Error("%s, %s", __FUNCTION__, ec.what().c_str());
-        while (!send_queue_.empty())
-            send_queue_.pop();
+        // Keep writing_ set so that no new write is started on the failed stream.
+        response_queue_ = {};
+        notification_queue_.clear();
+        queued_events_ = 0;
         OnConnectionFailed(ec.message());
         return;
     }
 
-    send_queue_.pop();
     DoWrite();
 }
-

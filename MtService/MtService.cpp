@@ -11,6 +11,7 @@
 
 #include <boost/asio.hpp>
 #include <iostream>
+#include <mutex>
 #include <stdexcept>
 
 //--------------------------------------------------------------------------------
@@ -26,8 +27,8 @@ public:
     void InitExpert(int port, int handle, std::unique_ptr<MetaTraderHandler> mt_handler);
     void DeinitExpert(int handle);
 
-    void SendEvent(int handle, int event_type, const std::string& payload);
-    void SendResponse(int handle, const std::string& payload);
+    void SendEvent(int handle, int event_type, std::string payload);
+    void SendResponse(int handle, std::string payload);
 
     int GetCommandType(int handle);
     std::string GetCommandPayload(int handle);
@@ -35,6 +36,7 @@ public:
     void LogError(const std::string& error);
 
 private:
+    std::shared_ptr<MtExpert> FindExpert(int handle) const;
     void OnServerStopped(unsigned short port);
     void ThreadProc();
 
@@ -43,7 +45,13 @@ private:
     std::unique_ptr<boost::asio::io_context::work> work_;
     std::thread thread_;
 
-    std::unordered_map<int, std::unique_ptr<MtExpert>> experts_;
+    // Accessed both from terminal threads (command fetching, which must not wait for the io thread)
+    // and from the io thread. An expert is removed from the map on the terminal thread and
+    // deinitialized on the io thread; shared ownership keeps it alive until both are done with it.
+    mutable std::mutex experts_mutex_;
+    std::unordered_map<int, std::shared_ptr<MtExpert>> experts_;
+
+    // Accessed only on the io thread.
     std::unordered_map<unsigned short, std::shared_ptr<MtServer>> servers_;
 };
 
@@ -58,13 +66,15 @@ MtServiceImpl::~MtServiceImpl()
 {
     log_.Trace("%s: destructor started", __FUNCTION__);
 
-    boost::asio::post(context_, [this]() {
-        if (experts_.size() > 0)
-        {
-            for (auto& e : experts_)
-                e.second->Deinit();
-            experts_.clear();
-        }
+    std::unordered_map<int, std::shared_ptr<MtExpert>> experts;
+    {
+        std::lock_guard<std::mutex> lock(experts_mutex_);
+        experts.swap(experts_);
+    }
+
+    boost::asio::post(context_, [experts = std::move(experts)]() {
+        for (auto& e : experts)
+            e.second->Deinit();
     });
     work_.reset();
     if (thread_.joinable())
@@ -73,21 +83,35 @@ MtServiceImpl::~MtServiceImpl()
     log_.Debug("%s: service destroyed", __FUNCTION__);
 }
 
+std::shared_ptr<MtExpert> MtServiceImpl::FindExpert(int handle) const
+{
+    std::lock_guard<std::mutex> lock(experts_mutex_);
+    auto it = experts_.find(handle);
+    return (it != experts_.end()) ? it->second : nullptr;
+}
+
 void MtServiceImpl::InitExpert(int port, int handle, std::unique_ptr<MetaTraderHandler> mt_handler)
 {
     log_.Info("%s: port = %d, handle = %d", __FUNCTION__, port, handle);
 
-    boost::asio::post(context_, [port, handle, mt_h = std::move(mt_handler), this]() mutable {
-        auto expert = std::make_unique<MtExpert>(handle, std::move(mt_h));
-        if (servers_.count(port) == 0)
+    // The expert is registered synchronously, so that it is visible to GetCommandType right away.
+    auto expert = std::make_shared<MtExpert>(handle, std::move(mt_handler));
+    {
+        std::lock_guard<std::mutex> lock(experts_mutex_);
+        if (!experts_.emplace(handle, expert).second)
+            throw std::runtime_error("MtService: expert with handle " + std::to_string(handle) + " is already initialized");
+    }
+
+    boost::asio::post(context_, [port, handle, expert = std::move(expert), this]() {
+        auto it = servers_.find(port);
+        if (it == servers_.end())
         {
             auto server = std::make_shared<MtServer>(context_, port);
             server->OnStopped.connect(boost::bind(&MtServiceImpl::OnServerStopped, this, std::placeholders::_1));
-            servers_[port] = server;
+            it = servers_.emplace(port, std::move(server)).first;
         }
 
-        servers_[port]->AddExpert(handle, expert.get());
-        experts_[handle] = std::move(expert);
+        it->second->AddExpert(handle, expert.get());
     });
 }
 
@@ -95,58 +119,73 @@ void MtServiceImpl::DeinitExpert(int handle)
 {
     log_.Info("%s: handle = %d", __FUNCTION__, handle);
 
-    boost::asio::post(context_, [handle, this]() {
-        if (experts_.count(handle) > 0)
-        {
-            experts_[handle]->Deinit();
-            experts_.erase(handle);
-        }
+    std::shared_ptr<MtExpert> expert;
+    {
+        std::lock_guard<std::mutex> lock(experts_mutex_);
+        auto it = experts_.find(handle);
+        if (it == experts_.end())
+            return;
+        expert = std::move(it->second);
+        experts_.erase(it);
+    }
+
+    // Deinit runs on the io thread after all previously posted events and responses of the expert.
+    boost::asio::post(context_, [expert = std::move(expert)]() {
+        expert->Deinit();
     });
 }
 
-void MtServiceImpl::SendEvent(int handle, int event_type, const std::string& payload)
+void MtServiceImpl::SendEvent(int handle, int event_type, std::string payload)
 {
     log_.Trace("%s: handle = %d, event_type = %d, payload = %s", __FUNCTION__, handle, event_type, payload.c_str());
 
-    boost::asio::post(context_, [handle, event_type, payload = payload, this]() {
-        if (experts_.count(handle) > 0)
-            experts_[handle]->SendEvent(event_type, payload);
+    auto expert = FindExpert(handle);
+    if (!expert)
+        return;
+
+    boost::asio::post(context_, [expert = std::move(expert), event_type, payload = std::move(payload)]() {
+        expert->SendEvent(event_type, payload);
     });
 }
 
-void MtServiceImpl::SendResponse(int handle, const std::string& payload)
+void MtServiceImpl::SendResponse(int handle, std::string payload)
 {
     log_.Trace("%s: handle = %d, payload = %s", __FUNCTION__, handle, payload.c_str());
 
-    boost::asio::post(context_, [handle, payload = payload, this]() {
-        if (experts_.count(handle) > 0)
-            experts_[handle]->SendResponse(payload);
+    auto expert = FindExpert(handle);
+    if (!expert)
+        return;
+
+    // The task is detached right here on the terminal thread: the next GetCommandType call
+    // must not see it as the current task, even if the io thread has not handled the response yet.
+    auto task = expert->TakeCurrentTask();
+    if (!task)
+    {
+        log_.Warning("%s: expert %d has no command to respond to", __FUNCTION__, handle);
+        return;
+    }
+
+    // Callbacks touch connections, so they are invoked on the io thread.
+    boost::asio::post(context_, [handle, task = std::move(task), payload = std::move(payload)]() {
+        task->ProcessResponse(handle, payload);
     });
 }
 
+// Called on the terminal thread. Reads the expert's command queue directly instead of
+// going through the io thread, where it would wait behind every queued event.
 int MtServiceImpl::GetCommandType(int handle)
 {
-    std::packaged_task<int()> task([handle, this]() {
-        return (experts_.count(handle) > 0) ? experts_[handle]->GetCommandType() : 0;
-    });
-    auto f = task.get_future();
-    boost::asio::post(context_, std::bind(std::move(task)));
-
-    auto command_type = f.get();
+    auto expert = FindExpert(handle);
+    auto command_type = expert ? expert->GetCommandType() : 0;
     log_.Trace("%s: handle = %d, command_type = %d", __FUNCTION__, handle, command_type);
-    
+
     return command_type;
 }
 
 std::string MtServiceImpl::GetCommandPayload(int handle)
 {
-    std::packaged_task<std::string()> task([handle, this]() {
-        return (experts_.count(handle) > 0) ? experts_[handle]->GetCommandPayload() : "";
-    });
-    auto f = task.get_future();
-    boost::asio::post(context_, std::bind(std::move(task)));
-
-    auto payload = f.get();
+    auto expert = FindExpert(handle);
+    auto payload = expert ? expert->GetCommandPayload() : std::string();
     log_.Trace("%s: handle = %d, payload = %s", __FUNCTION__, handle, payload.c_str());
 
     return payload;
@@ -161,8 +200,7 @@ void MtServiceImpl::OnServerStopped(unsigned short port)
 {
     log_.Trace("%s: port = %d", __FUNCTION__, port);
 
-    if (servers_.count(port) > 0)
-        servers_.erase(port);
+    servers_.erase(port);
 }
 
 void MtServiceImpl::ThreadProc()
@@ -214,14 +252,14 @@ void MtService::DeinitExpert(int handle)
      impl_->DeinitExpert(handle);
 }
 
-void MtService::SendEvent(int handle, int event_type, const std::string& payload)
+void MtService::SendEvent(int handle, int event_type, std::string payload)
 {
-     impl_->SendEvent(handle, event_type, payload);
+     impl_->SendEvent(handle, event_type, std::move(payload));
 }
 
-void MtService::SendResponse(int handle, const std::string& payload)
+void MtService::SendResponse(int handle, std::string payload)
 {
-     impl_->SendResponse(handle, payload);
+     impl_->SendResponse(handle, std::move(payload));
 }
 
 int MtService::GetCommandType(int handle)

@@ -5,24 +5,45 @@
 #include <array>
 #include <functional>
 #include <string>
-#include <codecvt>
+#include <Windows.h>
 #include "Mt5Handler.h"
 #include "MtService.h"
 
+// Converts UTF-8 to UTF-16 and copies it into a buffer provided by MQL.
+// At most 1000 characters are copied and no terminating null is written:
+// MQL initializes the buffer with zeros (StringInit) before the call.
 static void convertSystemString(wchar_t* dest, const std::string& src)
 {
-    using convert_typeX = std::codecvt_utf8<wchar_t>;
-    std::wstring_convert<convert_typeX, wchar_t> converterX;
-    auto wstr = converterX.from_bytes(src);
+    if (src.empty())
+        return;
+
+    const int src_len = static_cast<int>(src.size());
+    const int len = MultiByteToWideChar(CP_UTF8, 0, src.data(), src_len, nullptr, 0);
+    if (len <= 0)
+        return;
+
+    std::wstring wstr(len, L'\0');
+    MultiByteToWideChar(CP_UTF8, 0, src.data(), src_len, &wstr[0], len);
     memcpy(dest, wstr.c_str(), wcsnlen(wstr.c_str(), 1000) * sizeof(wchar_t));
 }
 
+// Converts a null-terminated UTF-16 string from MQL to UTF-8.
 static std::string convertWString(const wchar_t* src)
 {
-    std::wstring string_to_convert(src);
-    using convert_typeX = std::codecvt_utf8<wchar_t>;
-    std::wstring_convert<convert_typeX, wchar_t> converterX;
-    return converterX.to_bytes(string_to_convert);
+    if (src == nullptr)
+        return std::string();
+
+    const int src_len = static_cast<int>(wcslen(src));
+    if (src_len == 0)
+        return std::string();
+
+    const int len = WideCharToMultiByte(CP_UTF8, 0, src, src_len, nullptr, 0, nullptr, nullptr);
+    if (len <= 0)
+        return std::string();
+
+    std::string result(len, '\0');
+    WideCharToMultiByte(CP_UTF8, 0, src, src_len, &result[0], len, nullptr, nullptr);
+    return result;
 }
 
 template <typename T> T Execute(std::function<T()> func, wchar_t* err, T default_value)

@@ -94,9 +94,17 @@ namespace TestApiClientUI
 
         private void RunOnUiThread(Action action)
         {
-            if (!IsDisposed)
+            if (IsDisposed || Disposing || !IsHandleCreated)
+                return;
+
+            try
             {
                 BeginInvoke(action);
+            }
+            catch (InvalidOperationException)
+            {
+                // form handle was destroyed between the check and the call (form is closing);
+                // also covers ObjectDisposedException
             }
         }
 
@@ -257,6 +265,22 @@ namespace TestApiClientUI
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
+            // Unsubscribe before disconnecting: the form is closing, so events raised
+            // during disconnect must not be marshalled to the UI thread.
+            _apiClient.QuoteUpdated -= apiClient_QuoteUpdated;
+            _apiClient.QuoteUpdate -= _apiClient_QuoteUpdate;
+            _apiClient.QuoteAdded -= apiClient_QuoteAdded;
+            _apiClient.QuoteRemoved -= apiClient_QuoteRemoved;
+            _apiClient.ConnectionStateChanged -= apiClient_ConnectionStateChanged;
+            _apiClient.OnLastTimeBar -= _apiClient_OnLastTimeBar;
+            _apiClient.OnChartEvent -= _apiClient_OnChartEvent;
+            _apiClient.OnLockTicks -= _apiClient_OnLockTicks;
+
+            _timerTradeMonitor.AvailabilityOrdersChanged -= _tradeMonitor_AvailabilityOrdersChanged;
+            _timeframeTradeMonitor.AvailabilityOrdersChanged -= _tradeMonitor_AvailabilityOrdersChanged;
+            _timerTradeMonitor.Stop();
+            _timeframeTradeMonitor.Stop();
+
             _apiClient.BeginDisconnect();
         }
 

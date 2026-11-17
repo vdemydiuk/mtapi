@@ -32,6 +32,14 @@ private:
     sources::severity_logger<trivial::severity_level> boost_logger_;
 };
 
+// Everything is enabled until LogConfigurator::Setup sets the configured level.
+std::atomic<int> Logger::level_{ static_cast<int>(LogLevel::Trace) };
+
+void Logger::SetLevel(LogLevel level)
+{
+    level_.store(static_cast<int>(level), std::memory_order_relaxed);
+}
+
 Logger::Logger(const char* class_name)
     : logger_impl_(new Logger::LoggerImpl(class_name))
 {
@@ -43,6 +51,9 @@ Logger::~Logger()
 
 void Logger::Fatal(const char* fmt, ...)
 {
+    if (!IsEnabled(LogLevel::Fatal))
+        return;
+
     va_list va;
     va_start(va, fmt);
     logger_impl_->LogSev(trivial::fatal, fmt, va);
@@ -51,6 +62,9 @@ void Logger::Fatal(const char* fmt, ...)
 
 void Logger::Error(const char* fmt, ...)
 {
+    if (!IsEnabled(LogLevel::Error))
+        return;
+
     va_list va;
     va_start(va, fmt);
     logger_impl_->LogSev(trivial::error, fmt, va);
@@ -59,6 +73,9 @@ void Logger::Error(const char* fmt, ...)
 
 void Logger::Warning(const char* fmt, ...)
 {
+    if (!IsEnabled(LogLevel::Warning))
+        return;
+
     va_list va;
     va_start(va, fmt);
     logger_impl_->LogSev(trivial::warning, fmt, va);
@@ -67,6 +84,9 @@ void Logger::Warning(const char* fmt, ...)
 
 void Logger::Info(const char* fmt, ...)
 {
+    if (!IsEnabled(LogLevel::Info))
+        return;
+
     va_list va;
     va_start(va, fmt);
     logger_impl_->LogSev(trivial::info, fmt, va);
@@ -75,6 +95,9 @@ void Logger::Info(const char* fmt, ...)
 
 void Logger::Debug(const char* fmt, ...)
 {
+    if (!IsEnabled(LogLevel::Debug))
+        return;
+
     va_list va;
     va_start(va, fmt);
     logger_impl_->LogSev(trivial::debug, fmt, va);
@@ -83,6 +106,9 @@ void Logger::Debug(const char* fmt, ...)
 
 void Logger::Trace(const char* fmt, ...)
 {
+    if (!IsEnabled(LogLevel::Trace))
+        return;
+
     va_list va;
     va_start(va, fmt);
     logger_impl_->LogSev(trivial::trace, fmt, va);

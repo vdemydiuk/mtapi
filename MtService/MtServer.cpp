@@ -101,9 +101,10 @@ void MtServer::AddExpert(int handle, MtExpert* expert)
 
 void MtServer::DoAccept()
 {
-    // The new connection gets its own strand
+    // No strand is needed: io_context runs on a single thread (MtServiceImpl::ThreadProc),
+    // so all handlers of a connection are already serialized.
     acceptor_.async_accept(
-        boost::asio::make_strand(context_),
+        context_,
         boost::beast::bind_front_handler(
             &MtServer::OnAccept,
             shared_from_this()));
@@ -126,6 +127,13 @@ void MtServer::OnAccept(boost::beast::error_code ec,
     }
     else
     {
+        // Disable Nagle's algorithm: the protocol exchanges small request/response messages,
+        // which Nagle combined with delayed ACK can hold back for up to ~200 ms.
+        boost::beast::error_code opt_ec;
+        socket.set_option(boost::asio::ip::tcp::no_delay(true), opt_ec);
+        if (opt_ec)
+            log_.Warning("%s: failed to set TCP_NODELAY: %s", __FUNCTION__, opt_ec.message().c_str());
+
         WebsocketStream ws(std::move(socket));
         auto connection = std::make_shared<MtConnection>(std::move(ws));
         connection->OnConnected.connect([con = connection->weak_from_this(), this]() {
@@ -315,16 +323,16 @@ void SendResponse(Logger& log, const std::weak_ptr<MtConnection>& con, int handl
 
     assert(response_encoder.sbePosition() <= required_size);
     response_buf.commit(response_encoder.sbePosition());
-    connection->Send(std::move(response_buf));
+    connection->Send(std::move(response_buf), SendPriority::Response);
 }
 }
 
-void MtServer::Broadcast(boost::beast::flat_buffer&& buffer)
+void MtServer::Broadcast(boost::beast::flat_buffer&& buffer, SendPriority priority)
 {
     // Encode once, share the same immutable buffer between all connections.
     auto shared_buf = std::make_shared<const boost::beast::flat_buffer>(std::move(buffer));
     for (auto& c : connections_)
-        c->Send(shared_buf);
+        c->Send(shared_buf, priority);
 }
 
 void MtServer::SendEvent(int expert_handle, int event_type, const std::string& payload)
@@ -371,7 +379,7 @@ void MtServer::SendEvent(int expert_handle, int event_type, const std::string& p
 
     assert(event_encoder.sbePosition() <= required_size);
     event_buf.commit(event_encoder.sbePosition());
-    Broadcast(std::move(event_buf));
+    Broadcast(std::move(event_buf), SendPriority::Event);
 }
 
 void MtServer::SendExpertAdded(int handle)
@@ -406,7 +414,7 @@ void MtServer::SendExpertAdded(int handle)
 
     assert(event_encoder.sbePosition() <= required_size);
     event_buf.commit(event_encoder.sbePosition());
-    Broadcast(std::move(event_buf));
+    Broadcast(std::move(event_buf), SendPriority::Notification);
 }
 
 void MtServer::SendExpertRemoved(int handle)
@@ -441,12 +449,13 @@ void MtServer::SendExpertRemoved(int handle)
 
     assert(event_encoder.sbePosition() <= required_size);
     event_buf.commit(event_encoder.sbePosition());
-    Broadcast(std::move(event_buf));
+    Broadcast(std::move(event_buf), SendPriority::Notification);
 }
 
 void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak_ptr<MtConnection> con)
 {
-    log_.Trace("MtServer::ProcessMessage: size=%zu | hex: %s", buffer.size(), ToHex(buffer).c_str());
+    if (Logger::IsEnabled(LogLevel::Trace))
+        log_.Trace("MtServer::ProcessMessage: size=%zu | hex: %s", buffer.size(), ToHex(buffer).c_str());
 
     auto readable = buffer.data();
     // The generated SBE API requires char*, but decoders are read-only (they only index into the pointer).
@@ -605,7 +614,7 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
 
             assert(response_encoder.sbePosition() <= required_size);
             response_buf.commit(response_encoder.sbePosition());
-            connection->Send(std::move(response_buf));
+            connection->Send(std::move(response_buf), SendPriority::Response);
         }
         else
         {

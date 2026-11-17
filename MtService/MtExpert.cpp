@@ -30,23 +30,31 @@ void MtExpert::Deinit()
 
 void MtExpert::CancelTasks()
 {
-    // Reply to every command that will never be executed, so that clients don't wait for timeout.
-    const std::string reason = "MtService: expert " + std::to_string(handle_) + " was removed before the command was executed";
-
-    if (current_task_)
+    std::unique_ptr<CommandTask> current_task;
+    std::queue<std::unique_ptr<CommandTask>> tasks;
     {
-        log_.Warning("%s: cancel current command of expert %d", __FUNCTION__, handle_);
-        current_task_->Cancel(handle_, reason);
-        current_task_.reset();
+        std::lock_guard<std::mutex> lock(mutex_);
+        current_task = std::move(current_task_);
+        std::swap(tasks, tasks_);
     }
 
-    if (!tasks_.empty())
-        log_.Warning("%s: cancel %zu queued command(s) of expert %d", __FUNCTION__, tasks_.size(), handle_);
+    // Reply to every command that will never be executed, so that clients don't wait for timeout.
+    // Callbacks are invoked outside the lock.
+    const std::string reason = "MtService: expert " + std::to_string(handle_) + " was removed before the command was executed";
 
-    while (!tasks_.empty())
+    if (current_task)
     {
-        tasks_.front()->Cancel(handle_, reason);
-        tasks_.pop();
+        log_.Warning("%s: cancel current command of expert %d", __FUNCTION__, handle_);
+        current_task->Cancel(handle_, reason);
+    }
+
+    if (!tasks.empty())
+        log_.Warning("%s: cancel %zu queued command(s) of expert %d", __FUNCTION__, tasks.size(), handle_);
+
+    while (!tasks.empty())
+    {
+        tasks.front()->Cancel(handle_, reason);
+        tasks.pop();
     }
 }
 
@@ -57,30 +65,27 @@ void MtExpert::SendEvent(int event_type, const std::string& payload)
     OnEvent(handle_, event_type, payload);
 }
 
-void MtExpert::SendResponse(const std::string& payload)
-{
-    log_.Trace("%s: handle = %d, payload = %s", __FUNCTION__, handle_, payload.c_str());
-
-    if (current_task_)
-    {
-        current_task_->ProcessResponse(handle_, payload);
-        current_task_.reset();
-    }
-}
-
 void MtExpert::ProcessCommand(uint64_t command_id, int command_type, std::string&& payload, TaskCallback&& callback)
 {
     log_.Debug("%s: handle = %d, command id = %llu, command type = %d, payload = %s", __FUNCTION__,
         handle_, static_cast<unsigned long long>(command_id), command_type, payload.c_str());
     auto task = std::make_unique<CommandTask>(command_id, command_type, std::move(payload), std::move(callback));
-    tasks_.push(std::move(task));
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        tasks_.push(std::move(task));
+    }
     mt_handler_->SendTickToMetaTrader();
 }
 
 int MtExpert::GetCommandType()
 {
-    if (tasks_.size() == 0)
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (tasks_.empty())
         return MT_COMMAND_TYPE_EMPTY;
+
+    if (current_task_)
+        log_.Warning("%s: expert %d did not respond to the previous command, it is dropped", __FUNCTION__, handle_);
 
     current_task_ = std::move(tasks_.front());
     tasks_.pop();
@@ -90,5 +95,12 @@ int MtExpert::GetCommandType()
 
 std::string MtExpert::GetCommandPayload()
 {
-    return current_task_ ? current_task_->getPayload() : "";
+    std::lock_guard<std::mutex> lock(mutex_);
+    return current_task_ ? current_task_->TakePayload() : std::string();
+}
+
+std::unique_ptr<CommandTask> MtExpert::TakeCurrentTask()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return std::move(current_task_);
 }

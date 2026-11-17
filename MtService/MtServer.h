@@ -12,6 +12,7 @@
 #include "Logger.h"
 
 class MtConnection;
+enum class SendPriority;
 class MtExpert;
 
 struct MtExpertSlot
@@ -53,7 +54,7 @@ private:
     void SendEvent(int expert_handle, int event_type, const std::string& payload);
     void SendExpertAdded(int handle);
     void SendExpertRemoved(int handle);
-    void Broadcast(boost::beast::flat_buffer&& buffer);
+    void Broadcast(boost::beast::flat_buffer&& buffer, SendPriority priority);
 
     void ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak_ptr<MtConnection> con);
 
