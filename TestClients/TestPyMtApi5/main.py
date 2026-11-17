@@ -45,6 +45,103 @@ def main(page: ft.Page):
         log_view.controls.append(ft.Text(f"[{timestamp}] {message}", size=12, font_family="Consolas"))
         page.update()
 
+    # Quotes list: one row per expert attached to a chart in MetaTrader (as in MtApi5TestClient).
+    # Rows are changed from the client's event thread and from UI threads, so they are
+    # guarded by quotes_lock. Tick updates only mark the table dirty; quotes_refresh_loop
+    # redraws it periodically instead of on every tick.
+    quotes_lock = threading.Lock()
+    quote_rows: dict[int, ft.DataRow] = {}
+    selected_expert: int | None = None
+    quotes_dirty = threading.Event()
+
+    quotes_table = ft.DataTable(
+        columns=[
+            ft.DataColumn(ft.Text("Instrument")),
+            ft.DataColumn(ft.Text("Bid"), numeric=True),
+            ft.DataColumn(ft.Text("Ask"), numeric=True),
+            ft.DataColumn(ft.Text("ExpertHandle"), numeric=True),
+        ],
+        rows=[],
+        show_checkbox_column=False,
+        column_spacing=24,
+        heading_row_height=36,
+        data_row_min_height=30,
+        data_row_max_height=30,
+    )
+
+    def select_quote(e):
+        nonlocal selected_expert
+        with quotes_lock:
+            selected_expert = e.control.data
+            for handle, row in quote_rows.items():
+                row.selected = handle == selected_expert
+            quotes_table.update()
+
+    def format_price(price: float) -> str:
+        return f"{price:.5f}"
+
+    def set_quote(quote: Mt5Quote):
+        """Add a row for the quote's expert or update its prices. Caller holds quotes_lock."""
+        row = quote_rows.get(quote.expert_handle)
+        if row is None:
+            row = ft.DataRow(
+                cells=[
+                    ft.DataCell(ft.Text(quote.instrument)),
+                    ft.DataCell(ft.Text(format_price(quote.bid))),
+                    ft.DataCell(ft.Text(format_price(quote.ask))),
+                    ft.DataCell(ft.Text(str(quote.expert_handle))),
+                ],
+                data=quote.expert_handle,
+                selected=quote.expert_handle == selected_expert,
+                on_select_changed=select_quote,
+            )
+            quote_rows[quote.expert_handle] = row
+            quotes_table.rows.append(row)
+        else:
+            row.cells[1].content.value = format_price(quote.bid)
+            row.cells[2].content.value = format_price(quote.ask)
+
+    def add_quote(quote: Mt5Quote):
+        with quotes_lock:
+            set_quote(quote)
+            quotes_table.update()
+
+    def update_quote(quote: Mt5Quote):
+        with quotes_lock:
+            if quote.expert_handle in quote_rows:
+                set_quote(quote)
+                quotes_dirty.set()
+
+    def remove_quote(quote: Mt5Quote):
+        nonlocal selected_expert
+        with quotes_lock:
+            row = quote_rows.pop(quote.expert_handle, None)
+            if row is None:
+                return
+            quotes_table.rows.remove(row)
+            if selected_expert == quote.expert_handle:
+                selected_expert = None
+            quotes_table.update()
+
+    def set_quotes(quotes: list[Mt5Quote]):
+        """Replace all rows, keeping the selection if its expert is still present."""
+        nonlocal selected_expert
+        with quotes_lock:
+            quote_rows.clear()
+            quotes_table.rows.clear()
+            for quote in quotes:
+                set_quote(quote)
+            if selected_expert not in quote_rows:
+                selected_expert = None
+            quotes_table.update()
+
+    def quotes_refresh_loop():
+        while not closing.wait(0.25):
+            if quotes_dirty.is_set():
+                quotes_dirty.clear()
+                with quotes_lock:
+                    quotes_table.update()
+
     # MtApi5 client state. Mt5ApiClient.connect()/disconnect() are blocking, so they
     # are run on worker threads (page.run_thread) to keep the UI responsive.
     client_lock = threading.Lock()
@@ -95,12 +192,19 @@ def main(page: ft.Page):
             threading.Thread(target=on_connection_closed, daemon=True).start()
 
         def on_quote_update(self, quote):
-            pass  # ticks are too frequent to be logged
+            if not closing.is_set():
+                update_quote(quote)  # ticks are too frequent to be logged
 
         def on_quote_added(self, quote):
+            if closing.is_set():
+                return
+            add_quote(quote)
             log_message(f"Quote added: {quote}")
 
         def on_quote_removed(self, quote):
+            if closing.is_set():
+                return
+            remove_quote(quote)
             log_message(f"Quote removed: {quote}")
 
         def on_book_event(self, expert_handle, symbol):
@@ -115,6 +219,7 @@ def main(page: ft.Page):
     def on_connection_closed():
         release_client()
         if not closing.is_set():
+            set_quotes([])
             set_connection_state("disconnected")
 
     def do_connect(host: str, port: int):
@@ -137,9 +242,8 @@ def main(page: ft.Page):
             return
         set_connection_state("connected")
         quotes = new_client.get_quotes()
+        set_quotes(quotes)
         log_message(f"Connected to {host}:{port}. Quotes: {len(quotes)}")
-        for quote in quotes:
-            log_message(f"  {quote}")
 
     def connect_click(e):
         host = (host_input.value or "").strip()
@@ -186,6 +290,18 @@ def main(page: ft.Page):
             return
         log_message("Sending order: BUY EURUSD (0.1 lot) -> Successfully executed (Ticket #589241).")
 
+    def refresh_quotes(e):
+        with client_lock:
+            current_client = client
+        if current_client is None or not current_client.is_connected():
+            log_message("Error: No active connection to the server.")
+            return
+        quotes = current_client.get_quotes()
+        set_quotes(quotes)
+        log_message(f"Quotes refreshed: {len(quotes)}")
+
+    refresh_quotes_btn = ft.OutlinedButton("Refresh Quotes", on_click=refresh_quotes)
+
     account_btn = ft.OutlinedButton("Get Account Info", on_click=get_account_info)
     order_btn = ft.OutlinedButton("Send Test Order", on_click=send_order)
 
@@ -206,15 +322,42 @@ def main(page: ft.Page):
         ft.Text("API Command Testing:", weight=ft.FontWeight.BOLD),
         actions_row,
         ft.Divider(),
-        ft.Text("Event Logs:", weight=ft.FontWeight.BOLD),
-        ft.Container(
-            content=log_view,
-            border=ft.border.all(1, ft.Colors.OUTLINE),
-            border_radius=8,
-            padding=10,
+        ft.Row(
+            [
+                ft.Column(
+                    [
+                        ft.Text("Quotes:", weight=ft.FontWeight.BOLD),
+                        ft.Container(
+                            content=ft.Column([quotes_table], scroll=ft.ScrollMode.AUTO, expand=True),
+                            border=ft.border.all(1, ft.Colors.OUTLINE),
+                            border_radius=8,
+                            expand=True,
+                            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
+                        ),
+                        refresh_quotes_btn,
+                    ],
+                    width=420,
+                ),
+                ft.Column(
+                    [
+                        ft.Text("Event Logs:", weight=ft.FontWeight.BOLD),
+                        ft.Container(
+                            content=log_view,
+                            border=ft.border.all(1, ft.Colors.OUTLINE),
+                            border_radius=8,
+                            padding=10,
+                            expand=True,
+                            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST
+                        ),
+                    ],
+                    expand=True,
+                ),
+            ],
             expand=True,
-            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST
-        )
+            vertical_alignment=ft.CrossAxisAlignment.STRETCH,
+        ),
     )
+
+    threading.Thread(target=quotes_refresh_loop, daemon=True).start()
 
 ft.app(target=main)
