@@ -1001,58 +1001,108 @@ string Execute_BarsCalculated()
    return CreateSuccessResponse(new JSONNumber(result));
 }
 
+// Copy* fast path: numeric arrays are serialized straight to a JSON string,
+// without building a JSONArray of per-element JSONNumber objects.
+// Number formatting matches JSONNumber::serialize in json.mqh.
+string DoubleArrayToJson(const double &a[], int n)
+{
+   string out = "[";
+   for(int i = 0; i < n; i++)
+   {
+      if(i > 0)
+         StringAdd(out, ",");
+      double v = a[i];
+      if(!MathIsValidNumber(v))
+         StringAdd(out, (v != v) ? "NaN" : (v > 0 ? "Infinity" : "-Infinity"));
+      else if(v != 0)
+         StringAdd(out, (string)v);
+      else
+         StringAdd(out, "0");
+   }
+   StringAdd(out, "]");
+   return out;
+}
+
+string LongArrayToJson(const long &a[], int n)
+{
+   string out = "[";
+   for(int i = 0; i < n; i++)
+   {
+      if(i > 0)
+         StringAdd(out, ",");
+      StringAdd(out, (string)a[i]);
+   }
+   StringAdd(out, "]");
+   return out;
+}
+
+string IntArrayToJson(const int &a[], int n)
+{
+   string out = "[";
+   for(int i = 0; i < n; i++)
+   {
+      if(i > 0)
+         StringAdd(out, ",");
+      StringAdd(out, (string)a[i]);
+   }
+   StringAdd(out, "]");
+   return out;
+}
+
+string TimeArrayToJson(const datetime &a[], int n)
+{
+   string out = "[";
+   for(int i = 0; i < n; i++)
+   {
+      if(i > 0)
+         StringAdd(out, ",");
+      StringAdd(out, (string)(long)a[i]);
+   }
+   StringAdd(out, "]");
+   return out;
+}
+
+// valueJson must already be valid JSON
+string CreateSuccessResponseRaw(const string valueJson)
+{
+   return "{\"ErrorCode\":\"0\",\"Value\":" + valueJson + "}";
+}
+
+#define COPY_BUFFER_POS_PARAMS GET_JSON_PAYLOAD(jo); GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle); GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num); GET_INT_JSON_VALUE(jo, "StartPos", start_pos); GET_INT_JSON_VALUE(jo, "Count", count)
+#define COPY_BUFFER_TIME_COUNT_PARAMS GET_JSON_PAYLOAD(jo); GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle); GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num); GET_INT_JSON_VALUE(jo, "StartTime", start_time); GET_INT_JSON_VALUE(jo, "Count", count)
+#define COPY_BUFFER_RANGE_PARAMS GET_JSON_PAYLOAD(jo); GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle); GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num); GET_INT_JSON_VALUE(jo, "StartTime", start_time); GET_INT_JSON_VALUE(jo, "StopTime", stop_time)
+#define COPY_POS_PARAMS GET_JSON_PAYLOAD(jo); GET_STRING_JSON_VALUE(jo, "Symbol", symbol); GET_INT_JSON_VALUE(jo, "Timeframe", timeframe); GET_INT_JSON_VALUE(jo, "StartPos", start_pos); GET_INT_JSON_VALUE(jo, "Count", count)
+#define COPY_TIME_COUNT_PARAMS GET_JSON_PAYLOAD(jo); GET_STRING_JSON_VALUE(jo, "Symbol", symbol); GET_INT_JSON_VALUE(jo, "Timeframe", timeframe); GET_INT_JSON_VALUE(jo, "StartTime", start_time); GET_INT_JSON_VALUE(jo, "Count", count)
+#define COPY_RANGE_PARAMS GET_JSON_PAYLOAD(jo); GET_STRING_JSON_VALUE(jo, "Symbol", symbol); GET_INT_JSON_VALUE(jo, "Timeframe", timeframe); GET_INT_JSON_VALUE(jo, "StartTime", start_time); GET_INT_JSON_VALUE(jo, "StopTime", stop_time)
+
 string Execute_CopyBuffer()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle);
-   GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
-   
+   COPY_BUFFER_POS_PARAMS;
+
    double buffer[];
    int copied = CopyBuffer(indicator_handle, buffer_num, start_pos, count, buffer);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(buffer[i]));
 
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(DoubleArrayToJson(buffer, copied));
 }
 
 string Execute_CopyBuffer1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle);
-   GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
-   
+   COPY_BUFFER_TIME_COUNT_PARAMS;
+
    double buffer[];
    int copied = CopyBuffer(indicator_handle, buffer_num, (datetime)start_time, count, buffer);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(buffer[i]));
 
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(DoubleArrayToJson(buffer, copied));
 }
 
 string Execute_CopyBuffer2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle);
-   GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
-   
+   COPY_BUFFER_RANGE_PARAMS;
+
    double buffer[];
    int copied = CopyBuffer(indicator_handle, buffer_num, (datetime)start_time, (datetime)stop_time, buffer);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(buffer[i]));
 
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(DoubleArrayToJson(buffer, copied));
 }
 
 string Execute_CopyRates()
@@ -1111,434 +1161,242 @@ string Execute_CopyRates2()
 
 string Execute_CopyTime()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
-   
-   datetime time_array[];
-   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, time_array);
+   COPY_POS_PARAMS;
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber((long)time_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   datetime data[];
+   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
+
+   return CreateSuccessResponseRaw(TimeArrayToJson(data, copied));
 }
 
 string Execute_CopyTime1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
-   
-   datetime time_array[];
-   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, time_array);
+   COPY_TIME_COUNT_PARAMS;
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber((long)time_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   datetime data[];
+   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
+
+   return CreateSuccessResponseRaw(TimeArrayToJson(data, copied));
 }
 
 string Execute_CopyTime2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
-   
-   datetime time_array[];
-   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, time_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber((long)time_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   COPY_RANGE_PARAMS;
+
+   datetime data[];
+   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
+
+   return CreateSuccessResponseRaw(TimeArrayToJson(data, copied));
 }
 
 string Execute_CopyOpen()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
-   
-   double open_array[];
-   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, open_array);
+   COPY_POS_PARAMS;
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(open_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyOpen1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
-   
-   double open_array[];
-   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, open_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(open_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   COPY_TIME_COUNT_PARAMS;
+
+   double data[];
+   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyOpen2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   COPY_RANGE_PARAMS;
 
-   double open_array[];
-   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, open_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(open_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyHigh()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_POS_PARAMS;
 
-   double high_array[];
-   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, high_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(high_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyHigh1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_TIME_COUNT_PARAMS;
 
-   double high_array[];
-   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, high_array);       
+   double data[];
+   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(high_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyHigh2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   COPY_RANGE_PARAMS;
 
-   double high_array[];
-   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, high_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(high_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyLow()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_POS_PARAMS;
 
-   double low_array[];   
-   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, low_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(low_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyLow1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_TIME_COUNT_PARAMS;
 
-   double low_array[];
-   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, low_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(low_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyLow2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   COPY_RANGE_PARAMS;
 
-   double low_array[];
-   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, low_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(low_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyClose()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_POS_PARAMS;
 
-   double close_array[];
-   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, close_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(close_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyClose1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_TIME_COUNT_PARAMS;
 
-   double close_array[];
-   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, close_array); 
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(close_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyClose2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
-   
-   double close_array[];
-   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, close_array);
+   COPY_RANGE_PARAMS;
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(close_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyTickVolume()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_POS_PARAMS;
 
-   long volume_array[];
-   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, volume_array);
+   long data[];
+   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(volume_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(LongArrayToJson(data, copied));
 }
 
 string Execute_CopyTickVolume1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_TIME_COUNT_PARAMS;
 
-   long volume_array[];
-   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, volume_array);
+   long data[];
+   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(volume_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(LongArrayToJson(data, copied));
 }
 
 string Execute_CopyTickVolume2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   COPY_RANGE_PARAMS;
 
-   long volume_array[];
-   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, volume_array);       
+   long data[];
+   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(volume_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(LongArrayToJson(data, copied));
 }
 
 string Execute_CopyRealVolume()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_POS_PARAMS;
 
-   long volume_array[];
-   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, volume_array);       
+   long data[];
+   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(volume_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(LongArrayToJson(data, copied));
 }
 
 string Execute_CopyRealVolume1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_TIME_COUNT_PARAMS;
 
-   long volume_array[];
-   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, volume_array);
+   long data[];
+   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(volume_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(LongArrayToJson(data, copied));
 }
 
 string Execute_CopyRealVolume2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   COPY_RANGE_PARAMS;
 
-   long volume_array[];
-   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, volume_array);
+   long data[];
+   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(volume_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(LongArrayToJson(data, copied));
 }
 
 string Execute_CopySpread()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_POS_PARAMS;
 
-   int spread_array[];
-   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, spread_array);       
+   int data[];
+   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(spread_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(IntArrayToJson(data, copied));
 }
 
 string Execute_CopySpread1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_TIME_COUNT_PARAMS;
 
-   int spread_array[];
-   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, spread_array);
+   int data[];
+   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(spread_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(IntArrayToJson(data, copied));
 }
 
 string Execute_CopySpread2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   COPY_RANGE_PARAMS;
 
-   int spread_array[];
-   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, spread_array);
+   int data[];
+   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(spread_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(IntArrayToJson(data, copied));
 }
 
 string Execute_SymbolsTotal()
