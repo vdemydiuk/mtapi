@@ -607,8 +607,8 @@ string Execute_GetQuote()
 
 string Execute_OrderCloseAll()
 {
-   OrderCloseAll();
-   return CreateSuccessResponse();
+   bool ok = OrderCloseAll();
+   return CreateSuccessResponse(new JSONBool(ok));
 }
 
 string Execute_OrderCalcMargin()
