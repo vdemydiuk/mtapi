@@ -3255,7 +3255,10 @@ string Execute_IndicatorCreate()
    int indicator_handle = -1;
    if (jo.p.getValue("Parameters") != NULL)
    {
-      JSONArray parameters_ja = jo.p.getArray("Parameters");
+      JSONValue* parameters_jv = jo.p.getValue("Parameters");
+      if (!parameters_jv.isArray())
+         return CreateErrorResponse(-1, "Parameter Parameters is not an array");
+      JSONArray* parameters_ja = parameters_jv;
       int size = parameters_ja.size();
       if (size > 0)
       {
@@ -3264,8 +3267,13 @@ string Execute_IndicatorCreate()
          
          for (int i = 0; i < size; i++)
          {
-            JSONObject param_jo = parameters_ja.getObject(i);
+            JSONValue* param_jv = parameters_ja.getValue(i);
+            if (param_jv == NULL || !param_jv.isObject())
+               return CreateErrorResponse(-1, StringFormat("Parameters[%d] is not an object", i));
+            JSONObject* param_jo = param_jv;
             
+            if (param_jo.getValue("DataType") == NULL)
+               return CreateErrorResponse(-1, StringFormat("Undefinded mandatory parameter Parameters[%d].DataType", i));
             parameters[i].type = (ENUM_DATATYPE)param_jo.getInt("DataType");
             if (param_jo.getValue("IntegerValue") != NULL)
             {
