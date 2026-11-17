@@ -63,10 +63,47 @@ public:
    /// True if JSONValue is a instance of JSONBool
    bool isBool() { return _type==JSON_BOOL; }
 
-   // Override in child classes
-   virtual string toString() 
+   /// Append the JSON text of this value to out. Override in child classes.
+   /// Appending into one buffer keeps serialization linear in the output size.
+   virtual void serialize(string &out) {}
+
+   /// Return the JSON text of this value
+   string toString()
      {
-      return "";
+      string out="";
+      serialize(out);
+      return out;
+     }
+
+   /// Append s to out as a quoted JSON string, escaping " \ and control characters
+   static void serializeString(string &out,string s)
+     {
+      StringAdd(out,"\"");
+      int len=StringLen(s);
+      int start=0;
+      for(int i=0; i<len; i++)
+        {
+         ushort c=StringGetCharacter(s,i);
+         if(c>=0x20 && c!='"' && c!='\\') continue;
+
+         // flush the unescaped run before this character
+         if(i>start) StringAdd(out,StringSubstr(s,start,i-start));
+         switch(c)
+           {
+            case '"':  StringAdd(out,"\\\""); break;
+            case '\\': StringAdd(out,"\\\\"); break;
+            case '\n': StringAdd(out,"\\n"); break;
+            case '\r': StringAdd(out,"\\r"); break;
+            case '\t': StringAdd(out,"\\t"); break;
+            case 8:    StringAdd(out,"\\b"); break;
+            case 12:   StringAdd(out,"\\f"); break;
+            default:   StringAdd(out,StringFormat("\\u%04X",(int)c));
+           }
+         start=i+1;
+        }
+      if(start==0) StringAdd(out,s); // nothing escaped - append as is
+      else if(start<len) StringAdd(out,StringSubstr(s,start));
+      StringAdd(out,"\"");
      }
 
    // Some convenience getters to cast to the subtype. - this is bad OO design!
@@ -171,12 +208,10 @@ public:
      }
    string getString() { return _string; }
    void setString(string v) { _string=v; }
-   string toString() 
-   {
-    string string_var; 
-    StringConcatenate(string_var, "\"",_string,"\"");
-    return string_var; 
-   }
+   void serialize(string &out)
+     {
+      JSONValue::serializeString(out,_string);
+     }
   };
 // -----------------------------------------
 
@@ -197,7 +232,7 @@ public:
      }
    bool getBool() { return _bool; }
    void setBool(bool v) { _bool=v; }
-   string toString() { return(string)_bool; }
+   void serialize(string &out) { StringAdd(out,_bool ? "true" : "false"); }
 
   };
 // -----------------------------------------
@@ -214,11 +249,13 @@ public:
      {
       _long= l;
       _dbl = 0;
+      setType(JSON_NUMBER);
      }
                      JSONNumber(double d) 
      {
       _long= 0;
       _dbl = d;
+      setType(JSON_NUMBER);
      }
    /// Get the long value, (cast) from internal double if necessary.
    long getLong() 
@@ -250,15 +287,19 @@ public:
          return _dbl;
         }
      }
-   string toString() 
+   void serialize(string &out)
      {
       // Favour the long
-      if(_long!=0) 
-        {
-         return (string)_long;
-           } else {
-         return (_dbl!=0) ? (string)_dbl : "0";
-        }
+      if(_long!=0)
+         StringAdd(out,(string)_long);
+      else if(!MathIsValidNumber(_dbl))
+         // Not valid in strict JSON, but accepted by Newtonsoft.Json and Python json.
+         // null is not used because clients fail to deserialize it into double.
+         StringAdd(out,(_dbl!=_dbl) ? "NaN" : (_dbl>0 ? "Infinity" : "-Infinity"));
+      else if(_dbl!=0)
+         StringAdd(out,(string)_dbl);
+      else
+         StringAdd(out,"0");
      }
   };
 // -----------------------------------------
@@ -273,9 +314,9 @@ public:
       setType(JSON_NULL);
      }
                     ~JSONNull() {}
-   string toString()
+   void serialize(string &out)
      {
-      return "null";
+      StringAdd(out,"null");
      }
   };
 
@@ -371,28 +412,31 @@ public:
    void put(string key,JSONValue *v)
      {
       if(_hash==NULL) _hash=new Hash();
-      _hash.hPut(key,v);
+      // hPut returns the replaced value (duplicate key) - the hash no longer owns it, so delete it
+      HashValue *old=_hash.hPut(key,v);
+      if(old!=NULL && old!=v && CheckPointer(old)==POINTER_DYNAMIC) delete old;
      }
-   string toString() 
+   void serialize(string &out)
      {
-      string s="{";
-      if(_hash!=NULL) 
+      StringAdd(out,"{");
+      if(_hash!=NULL)
         {
-         HashLoop *l;
-         int n=0;
-
-         for(l=new HashLoop(_hash); l.hasNext(); l.next()) 
+         bool first=true;
+         HashLoop l(_hash);
+         for(; l.hasNext(); l.next())
            {
+            if(!first) StringAdd(out,",");
+            first=false;
+            JSONValue::serializeString(out,l.key());
+            StringAdd(out,":");
             JSONValue *v=(JSONValue *)(l.val());
-            string str_var;
-            StringConcatenate(str_var, s,(++n==1?"":","),
-                                "\"",l.key(),"\" : ",v.toString());
-            s = str_var;
+            if(v==NULL)
+               StringAdd(out,"null");
+            else
+               v.serialize(out);
            }
-         delete l;
         }
-      s=s+"}";
-      return s;
+      StringAdd(out,"}");
      }
 
    /// Return the internal Hash - Used by JSONIterator
@@ -497,7 +541,9 @@ public:
       if(index>=_size) 
         {
          int oldSize = _size;
-         int newSize = ArrayResize(_array,index+1,30);
+         // Reserve as much again as the new size, so the capacity doubles and filling
+         // n elements one by one costs O(n) copying instead of O(n^2 / 30).
+         int newSize = ArrayResize(_array,index+1,index+1>30 ? index+1 : 30);
          if(newSize <= index) return false;
          _size=newSize;
 
@@ -513,23 +559,18 @@ public:
       return true;
      }
 
-   string toString() 
+   void serialize(string &out)
      {
-      string s="[";
-      if(_size>0) 
+      StringAdd(out,"[");
+      for(int i=0; i<_size; i++)
         {
-         string str_var;         
-         StringConcatenate(str_var, s,_array[0].toString());
-         s = str_var;
-         for(int i=1; i<_size; i++) 
-           {
-            string str_var1;         
-            StringConcatenate(str_var1, s,",",_array[i].toString());
-            s = str_var1;
-           }
+         if(i>0) StringAdd(out,",");
+         if(_array[i]==NULL)
+            StringAdd(out,"null");
+         else
+            _array[i].serialize(out);
         }
-      s=s+"]";
-      return s;
+      StringAdd(out,"]");
      }
 
    int size() 
@@ -609,9 +650,7 @@ private:
         {
          _errMsg="JSONParser::Error "+msg;
            } else {
-           string str_var;
-           StringConcatenate(str_var, _errMsg,"\n",msg);
-          _errMsg = str_var;
+         _errMsg=_errMsg+"\n"+msg;
         }
      }
 
@@ -620,35 +659,44 @@ private:
      {
       JSONObject *o=new JSONObject();
       skipSpace();
-      if(expect('{')) 
+      if(expect('{'))
         {
-         while(_errCode==0) 
+         skipSpace();
+         if(!expectOptional('}')) // not an empty object
            {
-            skipSpace();
-            if(_in[_pos]!='"') break;
+            while(_errCode==0)
+              {
+               skipSpace();
+               // A key is required here - this also rejects a trailing comma
+               if(_in[_pos]!='"')
+                 {
+                  setError(2,"expected \" ");
+                  break;
+                 }
 
-            // Read the key
-            string key=parseString();
+               // Read the key
+               string key=parseString();
 
-            if(_errCode!=0 || key==NULL) break;
+               if(_errCode!=0) break;
 
-            skipSpace();
+               skipSpace();
 
-            if(!expect(':')) break;
+               if(!expect(':')) break;
 
-            // read the value
-            JSONValue *v = parseValue();
-            if(_errCode != 0 ) break;
+               // read the value
+               JSONValue *v = parseValue();
+               if(_errCode != 0 ) break;
 
-            o.put(key,v);
+               o.put(key,v);
 
-            skipSpace();
+               skipSpace();
 
-            if(!expectOptional(',')) break;
-           }
-         if(!expect('}')) 
-           {
-            setError(2,"expected \" or } ");
+               if(!expectOptional(',')) break;
+              }
+            if(_errCode==0 && !expect('}'))
+              {
+               setError(2,"expected , or } ");
+              }
            }
         }
       if(_errCode!=0) 
@@ -659,14 +707,83 @@ private:
       return o;
      }
 
-   bool isDigit(ushort c) 
+   bool isDigit(ushort c)
      {
-      return (c >= '0' && c <= '9' ) || c == '+'  || c == '-';
+      return c >= '0' && c <= '9';
      }
 
-   bool isDoubleDigit(ushort c) 
+   /// Read 4 hex digits at _in[at] into out (for \uXXXX). False if invalid.
+   bool parseHex4(int at,ushort &out)
      {
-      return (c >= '0' && c <= '9' ) || c == '+'  || c == '-'  || c == '.'  || c == 'e'  || c == 'E';
+      if(at+4>_len) return false;
+      uint v=0;
+      for(int k=0; k<4; k++)
+        {
+         ushort h=_in[at+k];
+         uint d;
+         if(h>='0' && h<='9') d=(uint)(h-'0');
+         else if(h>='a' && h<='f') d=(uint)(h-'a'+10);
+         else if(h>='A' && h<='F') d=(uint)(h-'A'+10);
+         else return false;
+         v=v*16+d;
+        }
+      out=(ushort)v;
+      return true;
+     }
+
+   /// Parse a number following the JSON grammar: -?int(.frac)?([eE][+-]?exp)?
+   /// Integers are stored as long, anything with a fraction/exponent or too long for a long as double.
+   JSONValue *parseNumber()
+     {
+      int start=_pos;
+      int i=_pos;
+      bool neg=false;
+      if(_in[i]=='-')
+        {
+         neg=true;
+         i++;
+        }
+
+      long l=0;
+      int intStart=i;
+      while(i<_len && isDigit(_in[i]))
+        {
+         l=l*10+(_in[i]-'0');
+         i++;
+        }
+      int intDigits=i-intStart;
+      bool ok=intDigits>0;
+      bool isDouble=false;
+
+      if(ok && i<_len && _in[i]=='.')
+        {
+         isDouble=true;
+         i++;
+         int fracStart=i;
+         while(i<_len && isDigit(_in[i])) i++;
+         ok=i>fracStart;
+        }
+      if(ok && i<_len && (_in[i]=='e' || _in[i]=='E'))
+        {
+         isDouble=true;
+         i++;
+         if(i<_len && (_in[i]=='+' || _in[i]=='-')) i++;
+         int expStart=i;
+         while(i<_len && isDigit(_in[i])) i++;
+         ok=i>expStart;
+        }
+
+      if(!ok)
+        {
+         setError(3,"invalid number at position "+(string)start);
+         return NULL;
+        }
+      _pos=i;
+
+      // 18 digits always fit in a long, longer integers may overflow
+      if(isDouble || intDigits>18)
+         return new JSONNumber(StringToDouble(StringSubstr(_instr,start,i-start)));
+      return new JSONNumber(neg ? -l : l);
      }
 
    void skipSpace() 
@@ -687,11 +804,8 @@ private:
          ret=true;
            } else 
            {
-            string str_error;
-            StringConcatenate(str_error, "expected ",
-                  ShortToString(c),"(",c,")",
-                  " got ",ShortToString(_in[_pos]),"(",_in[_pos],")");
-            setError(1, str_error);
+            setError(1,"expected "+ShortToString(c)+"("+(string)c+")"+
+                     " got "+ShortToString(_in[_pos])+"("+(string)_in[_pos]+")");
         }
       return ret;
      }
@@ -725,40 +839,53 @@ private:
                setError(2,"missing quote: end"+(string)end+":len"+(string)_len+":"+ShortToString(_in[_pos])+":"+StringSubstr(_instr,_pos,10)+"...");
                break;
               }
-            // Check if character was escaped.
-            // TODO \" \\ \/ \b \f \n \r \t \u0000
-            if(_in[end]=='\\') 
+            // Check if character was escaped: \" \\ \/ \b \f \n \r \t \uXXXX
+            if(_in[end]=='\\')
               {
                // Add partial string and get more
-               ret=ret+StringSubstr(_instr,_pos,end-_pos);
+               if(end>_pos) StringAdd(ret,StringSubstr(_instr,_pos,end-_pos));
                end++;
-               if(end>=_len) 
+               if(end>=_len)
                  {
                   setError(4,"parse error after escape");
-                    } else {
-                  ushort c=0;
-                  switch(_in[end]) 
-                    {
-                     case '"':
-                     case '\\':
-                     case '/':
-                        c=_in[end];
-                        break;
-                     case 'b': c=8; break; // backspace - 8
-                     case 'f': c=12; break; // form feed 12
-                     case 'n': c = '\n'; break;
-                     case 'r': c = '\r'; break;
-                     case 't': c = '\t'; break;
-                     default:
-                        setError(3,"unknown escape");
-                    }
-                  if(c== 0) break;
-                  ret = ret+ShortToString(c);
-                  _pos= end+1;
+                  break;
                  }
-                 } else if(_in[end]=='"') {
+               ushort c=0;
+               bool valid=true;
+               switch(_in[end])
+                 {
+                  case '"':
+                  case '\\':
+                  case '/':
+                     c=_in[end];
+                     break;
+                  case 'b': c=8; break; // backspace - 8
+                  case 'f': c=12; break; // form feed 12
+                  case 'n': c = '\n'; break;
+                  case 'r': c = '\r'; break;
+                  case 't': c = '\t'; break;
+                  case 'u':
+                     // UTF-16 code unit - surrogate pairs come as two \u escapes and
+                     // combine naturally since MQL strings are UTF-16.
+                     valid=parseHex4(end+1,c);
+                     if(valid) end+=4;
+                     break;
+                  default:
+                     valid=false;
+                 }
+               if(!valid)
+                 {
+                  setError(3,"invalid escape");
+                  break;
+                 }
+               // \u0000 cannot be stored in an MQL string and is dropped
+               if(c!=0) StringAdd(ret,ShortToString(c));
+               _pos= end+1;
+              }
+            else // _in[end]=='"'
+              {
                // End of string
-               ret=ret+StringSubstr(_instr,_pos,end-_pos);
+               if(end>_pos) StringAdd(ret,StringSubstr(_instr,_pos,end-_pos));
                _pos=end+1;
                break;
               }
@@ -791,45 +918,9 @@ private:
          s=parseString();
          ret=(JSONValue*)new JSONString(s);
 
-           } else if(isDoubleDigit(_in[_pos])) {
-         bool isDoubleOnly=false;
-         long l=0;
-         long sign;
-         // number
-         int i=_pos;
+           } else if(_in[_pos]=='-' || isDigit(_in[_pos])) {
 
-         if(_in[_pos]=='-') 
-           {
-            sign=-1;
-            _pos++;
-              } else if(_in[_pos]=='+') {
-            sign=1;
-            _pos++;
-              } else {
-            sign=1;
-           }
-
-         i=_pos;
-         while(i<_len && isDigit(_in[i])) 
-           {
-            l=l*10+(_in[i]-'0');
-            i++;
-           }
-         if(isDoubleDigit(_in[i])) 
-           {
-            // Looks like a real number;
-            while(i<_len && isDoubleDigit(_in[i])) 
-              {
-               i++;
-              }
-            s=StringSubstr(_instr,_pos,i-_pos);
-            double d=sign*StringToDouble(s);
-            ret=(JSONValue*)new JSONNumber(d); // Create a Number as double only
-              } else {
-            l=sign*l;
-            ret=(JSONValue*)new JSONNumber(l); // Create a Number as a long
-           }
-         _pos=i;
+         ret=parseNumber();
 
            } else if(_in[_pos]=='t' && StringSubstr(_instr,_pos,4)=="true") {
 
@@ -866,29 +957,34 @@ private:
 
       int index=0;
       skipSpace();
-      if(expect('[')) 
+      if(expect('['))
         {
-         while(_errCode==0) 
+         skipSpace();
+         if(!expectOptional(']')) // not an empty array
            {
-            skipSpace();
-
-            // read the value
-            JSONValue *v = parseValue();
-            if(_errCode != 0) break;
-
-            if(!ret.put(index++,v)) 
+            while(_errCode==0)
               {
-               setError(3,"memory error adding "+(string)index);
-               break;
+               skipSpace();
+
+               // read the value - after a trailing comma this fails on ']'
+               JSONValue *v = parseValue();
+               if(_errCode != 0) break;
+
+               if(!ret.put(index++,v))
+                 {
+                  delete v;
+                  setError(3,"memory error adding "+(string)index);
+                  break;
+                 }
+
+               skipSpace();
+
+               if(!expectOptional(',')) break;
               }
-
-            skipSpace();
-
-            if(!expectOptional(',')) break;
-           }
-         if(!expect(']')) 
-           {
-            setError(2,"list: expected , or ] ");
+            if(_errCode==0 && !expect(']'))
+              {
+               setError(2,"list: expected , or ] ");
+              }
            }
         }
 
@@ -915,9 +1011,8 @@ public:
      {
       int inLen;
       JSONValue *ret=NULL;
-      StringTrimLeft(s);
-      StringTrimRight(s);
-
+      // No StringTrimLeft/Right: they trim in place in MQL5 but return a copy in MQL4.
+      // Leading and trailing whitespace is skipped by the parser instead.
       _instr=s;
       _len=StringToShortArray(_instr,_in); // nul '0' is added to length
       _pos= 0;
@@ -926,17 +1021,24 @@ public:
       inLen=StringLen(_instr);
       if(_len!=inLen+1 /* nul */) 
         {
-         string str_error;
-         StringConcatenate(str_error, "unable to create array ",inLen," got ",_len);
-         setError(1, str_error);
+         setError(1,"unable to create array "+(string)inLen+" got "+(string)_len);
            } else {
          _len --;
          ret=parseValue();
-         if(_errCode!=0) 
+         if(_errCode==0)
            {
-            string str_var;
-            StringConcatenate(str_var, _errMsg," at ",_pos," [",StringSubstr(_instr,_pos,10),"...]");
-            _errMsg = str_var;
+            // Only whitespace may follow the value
+            skipSpace();
+            if(_pos<_len) setError(5,"unexpected text after JSON value");
+           }
+         if(_errCode!=0)
+           {
+            if(ret!=NULL)
+              {
+               delete ret;
+               ret=NULL;
+              }
+            _errMsg=_errMsg+" at "+(string)_pos+" ["+StringSubstr(_instr,_pos,10)+"...]";
            }
         }
       return ret;
