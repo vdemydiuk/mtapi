@@ -3074,9 +3074,9 @@ string Execute_iCustom()
       case 1: //Double
       {
          double doubleParams[];
+         ArrayResize(doubleParams, size);
          for (int i = 0; i < size; i++)
             doubleParams[i] = jaParams.getDouble(i);
-         ArrayResize(doubleParams, size);
          result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, doubleParams, size);
       }
       break;
