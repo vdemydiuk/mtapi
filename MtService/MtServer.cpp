@@ -323,16 +323,16 @@ void SendResponse(Logger& log, const std::weak_ptr<MtConnection>& con, int handl
 
     assert(response_encoder.sbePosition() <= required_size);
     response_buf.commit(response_encoder.sbePosition());
-    connection->Send(std::move(response_buf));
+    connection->Send(std::move(response_buf), SendPriority::Response);
 }
 }
 
-void MtServer::Broadcast(boost::beast::flat_buffer&& buffer)
+void MtServer::Broadcast(boost::beast::flat_buffer&& buffer, SendPriority priority)
 {
     // Encode once, share the same immutable buffer between all connections.
     auto shared_buf = std::make_shared<const boost::beast::flat_buffer>(std::move(buffer));
     for (auto& c : connections_)
-        c->Send(shared_buf);
+        c->Send(shared_buf, priority);
 }
 
 void MtServer::SendEvent(int expert_handle, int event_type, const std::string& payload)
@@ -379,7 +379,7 @@ void MtServer::SendEvent(int expert_handle, int event_type, const std::string& p
 
     assert(event_encoder.sbePosition() <= required_size);
     event_buf.commit(event_encoder.sbePosition());
-    Broadcast(std::move(event_buf));
+    Broadcast(std::move(event_buf), SendPriority::Event);
 }
 
 void MtServer::SendExpertAdded(int handle)
@@ -414,7 +414,7 @@ void MtServer::SendExpertAdded(int handle)
 
     assert(event_encoder.sbePosition() <= required_size);
     event_buf.commit(event_encoder.sbePosition());
-    Broadcast(std::move(event_buf));
+    Broadcast(std::move(event_buf), SendPriority::Notification);
 }
 
 void MtServer::SendExpertRemoved(int handle)
@@ -449,7 +449,7 @@ void MtServer::SendExpertRemoved(int handle)
 
     assert(event_encoder.sbePosition() <= required_size);
     event_buf.commit(event_encoder.sbePosition());
-    Broadcast(std::move(event_buf));
+    Broadcast(std::move(event_buf), SendPriority::Notification);
 }
 
 void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak_ptr<MtConnection> con)
@@ -614,7 +614,7 @@ void MtServer::ProcessMessage(const boost::beast::flat_buffer& buffer, std::weak
 
             assert(response_encoder.sbePosition() <= required_size);
             response_buf.commit(response_encoder.sbePosition());
-            connection->Send(std::move(response_buf));
+            connection->Send(std::move(response_buf), SendPriority::Response);
         }
         else
         {
