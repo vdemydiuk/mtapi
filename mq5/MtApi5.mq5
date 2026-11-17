@@ -2432,7 +2432,7 @@ string Execute_iStochastic()
    GET_INT_JSON_VALUE(jo, "MaMethod", ma_method);
    GET_INT_JSON_VALUE(jo, "PriceField", price_field);
    
-   int result = iStochastic(symbol, (ENUM_TIMEFRAMES)period, Kperiod, Dperiod, slowing, (ENUM_MA_METHOD)slowing, (ENUM_STO_PRICE)price_field);
+   int result = iStochastic(symbol, (ENUM_TIMEFRAMES)period, Kperiod, Dperiod, slowing, (ENUM_MA_METHOD)ma_method, (ENUM_STO_PRICE)price_field);
    return CreateSuccessResponse(new JSONNumber(result));
 }
 
