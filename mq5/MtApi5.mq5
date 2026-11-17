@@ -3477,15 +3477,19 @@ string Execute_GetSymbols()
 int PositionCloseAll()
 {
    CTrade trade;
-   int total = PositionsTotal();
    int count = 0;
-   for(int i = 0; i < total; i++)
+   // iterate backwards and close by ticket: closing shifts the indices of the remaining positions,
+   // and closing by symbol closes only one position per symbol on hedging accounts
+   for(int i = PositionsTotal() - 1; i >= 0; i--)
    {
-      if (trade.PositionClose(PositionGetSymbol(i)))
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0)
+         continue;
+      if (trade.PositionClose(ticket))
          count++;
       Sleep(50); // Relax for 50 ms
    }
-   return total;
+   return count;
 }
 
 bool OrderCloseAll()
