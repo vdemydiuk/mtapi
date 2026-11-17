@@ -33,6 +33,7 @@ enum LockTickType
 
 input int Port = 8228;
 input LockTickType BacktestingLockTicks = NO_LOCK;
+input uint BacktestingReadyTimeout = 0; // Backtesting: timeout (sec) waiting for client, 0 - wait forever
 input group           "Disable Events "
 input bool Enable_OnBookEvent = true;                 
 input bool Enable_OnTickEvent = false;                 
@@ -49,6 +50,8 @@ bool IsRemoteReadyForTesting = false;
 
 long _last_bar_open_time = 0;
 bool _is_ticks_locked = false;
+bool _command_type_error_reported = false;
+string _last_command_type_error = "";
 
 int OnInit()
 {
@@ -448,13 +451,26 @@ int init()
     {      
        Print("Waiting on remote client...");
        //wait for command (BacktestingReady) from remote side to be ready for work
+       ulong wait_start = GetTickCount64();
        while(!IsRemoteReadyForTesting)
        {
+          if (IsStopped())
+          {
+             Print("Expert was stopped while waiting on remote client. Initialization is aborted.");
+             return (1);
+          }
+          
+          if (BacktestingReadyTimeout > 0 && GetTickCount64() - wait_start >= (ulong)BacktestingReadyTimeout * 1000)
+          {
+             PrintFormat("[ERROR] Remote client is not ready for backtesting within %u seconds (BacktestingReadyTimeout). Initialization is failed.", BacktestingReadyTimeout);
+             return (1);
+          }
+          
           executeCommand();
           
           //This section uses a while loop to simulate Sleep() during Backtest.
-          unsigned int viSleepUntilTick = GetTickCount() + 100; //100 milliseconds
-          while(GetTickCount() < viSleepUntilTick) 
+          ulong viSleepUntilTick = GetTickCount64() + 100; //100 milliseconds
+          while(GetTickCount64() < viSleepUntilTick && !IsStopped()) 
           {
              //Do absolutely nothing. Just loop until the desired tick is reached.
           }
@@ -495,7 +511,7 @@ int deinit()
 
 void OnTimer()
 {
-   while(true)
+   while(!IsStopped())
    {
       int executedCommand = executeCommand();
       
@@ -513,9 +529,16 @@ int executeCommand()
 
    if (!getCommandType(ExpertHandle, commandType, _error))
    {
-      Print("[ERROR] ExecuteCommand: Failed to get command type! ", _error);
+      //print the error only once until it changes or getCommandType succeeds, to avoid flooding the log
+      if (!_command_type_error_reported || _error != _last_command_type_error)
+      {
+         Print("[ERROR] ExecuteCommand: Failed to get command type! ", _error);
+         _command_type_error_reported = true;
+         _last_command_type_error = _error;
+      }
       return (0);
    }
+   _command_type_error_reported = false;
 
    if (commandType == 0)
       return 0;
