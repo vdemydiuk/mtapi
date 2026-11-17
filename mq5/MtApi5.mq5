@@ -1850,16 +1850,28 @@ string Execute_ObjectCreate()
    CHECK_JSON_VALUE(jo, "Times");
    CHECK_JSON_VALUE(jo, "Prices");
    
+   const int max_points = 30;
+   
+   JSONArray* times_jo = jo.p.getArray("Times");
+   if (times_jo == NULL)
+      return CreateErrorResponse(-1, "Parameter Times is not an array");
+   if (times_jo.size() > max_points)
+      return CreateErrorResponse(-1, StringFormat("Parameter Times has too many elements (%d), maximum is %d", times_jo.size(), max_points));
+   
+   JSONArray* prices_jo = jo.p.getArray("Prices");
+   if (prices_jo == NULL)
+      return CreateErrorResponse(-1, "Parameter Prices is not an array");
+   if (prices_jo.size() > max_points)
+      return CreateErrorResponse(-1, StringFormat("Parameter Prices has too many elements (%d), maximum is %d", prices_jo.size(), max_points));
+   
    datetime times[30];
    double prices[30];
    ArrayInitialize(times, 0);
    ArrayInitialize(prices, EMPTY_VALUE);
    
-   JSONArray* times_jo = jo.p.getArray("Times");
    for(int i = 0; i < times_jo.size(); i++)
       times[i] = (datetime) times_jo.getInt(i);
       
-   JSONArray* prices_jo = jo.p.getArray("Prices");
    for(int i = 0; i < prices_jo.size(); i++)
       prices[i] = prices_jo.getDouble(i);
       
