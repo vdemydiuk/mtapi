@@ -24,6 +24,10 @@ from PyMtApi5 import (  # noqa: E402
     MqlBookInfo,
 )
 from PyMtApi5 import mt5enums  # noqa: E402
+from command_tabs import Command, CommandTabs  # noqa: E402
+
+# Lists returned by commands (e.g. CopyRates) are logged up to this number of items.
+LOG_RESULT_MAX_ITEMS = 100
 
 def main(page: ft.Page):
     page.title = "MTAPI5 Test Client"
@@ -161,10 +165,6 @@ def main(page: ft.Page):
     # Set when the page is closing: Flet's thread pool is shut down then and the page
     # must not be updated anymore.
     closing = threading.Event()
-
-    def is_connected() -> bool:
-        with client_lock:
-            return client is not None and client.is_connected()
 
     def set_connection_state(state: str):
         if state == "connected":
@@ -308,17 +308,38 @@ def main(page: ft.Page):
     connect_btn = ft.ElevatedButton("Connect", on_click=connect_click, color="white", bgcolor="green_700")
     disconnect_btn = ft.ElevatedButton("Disconnect", on_click=disconnect_click, disabled=True, color="white", bgcolor="red_700")
 
-    def get_account_info(e):
-        if not is_connected():
-            log_message("Error: No active connection to the server.")
+    def run_command(name: str, command: Command, current_client: Mt5ApiClient):
+        try:
+            result = command(current_client)
+        except Exception as ex:
+            log_message(f"{name}: failed - {ex}")
             return
-        log_message("Requesting AccountInfo... Balance: $10,000.00 | Equity: $10,000.00")
+        if isinstance(result, list) and any(not isinstance(item, (int, float, str)) for item in result):
+            # list of structures (MqlRates, MqlTick, ...): one item per line
+            lines = [f"{name}: count = {len(result)}"]
+            lines += [f"  [{i}] {item}" for i, item in enumerate(result[:LOG_RESULT_MAX_ITEMS])]
+            if len(result) > LOG_RESULT_MAX_ITEMS:
+                lines.append(f"  ... {len(result) - LOG_RESULT_MAX_ITEMS} more")
+            log_message("\n".join(lines))
+        elif isinstance(result, list):
+            log_message(f"{name}: count = {len(result)}, result = {result}")
+        else:
+            log_message(f"{name}: result = {result}")
 
-    def send_order(e):
-        if not is_connected():
-            log_message("Error: No active connection to the server.")
+    def execute_command(name: str, command: Command):
+        """Runs a command from the command tabs on a worker thread and logs its result."""
+        with client_lock:
+            current_client = client
+        if current_client is None or not current_client.is_connected():
+            log_message(f"{name}: no active connection to the server.")
             return
-        log_message("Sending order: BUY EURUSD (0.1 lot) -> Successfully executed (Ticket #589241).")
+        page.run_thread(run_command, name, command, current_client)
+
+    def get_selected_expert() -> int | None:
+        with quotes_lock:
+            return selected_expert
+
+    command_tabs = CommandTabs(execute_command, get_selected_expert)
 
     def refresh_quotes(e):
         with client_lock:
@@ -332,25 +353,17 @@ def main(page: ft.Page):
 
     refresh_quotes_btn = ft.OutlinedButton("Refresh Quotes", on_click=refresh_quotes)
 
-    account_btn = ft.OutlinedButton("Get Account Info", on_click=get_account_info)
-    order_btn = ft.OutlinedButton("Send Test Order", on_click=send_order)
-
     # UI Layout configuration
     connection_row = ft.Row(
         [host_input, port_input, connect_btn, disconnect_btn, ft.VerticalDivider(), ft.Row([ft.Text("Status:"), status_text])], 
         alignment=ft.MainAxisAlignment.START, 
         wrap=True
     )
-    
-    actions_row = ft.Row([account_btn, order_btn], spacing=10)
 
     page.add(
         ft.Text("MTAPI Test Client (Python / Flet)", size=20, weight=ft.FontWeight.BOLD),
         ft.Divider(),
         connection_row,
-        ft.Divider(),
-        ft.Text("API Command Testing:", weight=ft.FontWeight.BOLD),
-        actions_row,
         ft.Divider(),
         ft.Row(
             [
@@ -370,13 +383,19 @@ def main(page: ft.Page):
                 ),
                 ft.Column(
                     [
+                        ft.Container(
+                            content=command_tabs.control,
+                            border=ft.border.all(1, ft.Colors.OUTLINE),
+                            border_radius=8,
+                            expand=3,
+                        ),
                         ft.Text("Event Logs:", weight=ft.FontWeight.BOLD),
                         ft.Container(
                             content=log_view,
                             border=ft.border.all(1, ft.Colors.OUTLINE),
                             border_radius=8,
                             padding=10,
-                            expand=True,
+                            expand=2,
                             bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST
                         ),
                     ],
