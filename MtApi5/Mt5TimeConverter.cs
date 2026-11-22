@@ -16,13 +16,13 @@ namespace MtApi5
             return new DateTime(tmpTime.Ticks + (time * 0x989680L));
         }
 
-        public static int ConvertToMtTime(DateTime? time)
+        public static long ConvertToMtTime(DateTime? time)
         {
-            var result = 0;
+            long result = 0;
             if (time == null || time == DateTime.MinValue)
                 return result;
             var tmpTime = new DateTime(1970, 1, 1);
-            result = (int)((time.Value.Ticks - tmpTime.Ticks) / 0x989680L);
+            result = ((time.Value.Ticks - tmpTime.Ticks) / 0x989680L);
             return result;
         }
     }

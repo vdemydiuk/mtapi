@@ -1865,7 +1865,7 @@ namespace MtApi5
                 && response.Result.TryGetValue("Price", out object? mtPrice))
             {
                 subWindow = Convert.ToInt32(mtSubWindow);
-                time = Mt5TimeConverter.ConvertFromMtTime(Convert.ToInt32(mtTime));
+                time = Mt5TimeConverter.ConvertFromMtTime(Convert.ToInt64(mtTime));
                 price = Convert.ToDouble(mtPrice);
                 return response.RetVal;
             }
@@ -2160,7 +2160,7 @@ namespace MtApi5
         ///</summary>
         public DateTime ChartTimeOnDropped()
         {
-            var res = SendCommand<int>(ExecutorHandle, Mt5CommandType.ChartTimeOnDropped);
+            var res = SendCommand<long>(ExecutorHandle, Mt5CommandType.ChartTimeOnDropped);
             return Mt5TimeConverter.ConvertFromMtTime(res);
         }
 
@@ -2311,7 +2311,7 @@ namespace MtApi5
             Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "Name", name ?? string.Empty },
                 { "Type", (int)type }, { "Nwin", nwin } };
 
-            List<int> times = [];
+            List<long> times = [];
             List<double> prices = [];
 
             if (iAdditionalCoordinates > 0 && listOfCoordinates != null)
@@ -2389,7 +2389,7 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "Name", name ?? string.Empty },
                 { "Value", value }, { "LineId", lineId } };
-            var res = SendCommand<int>(ExecutorHandle, Mt5CommandType.ObjectGetTimeByValue, cmdParams);
+            var res = SendCommand<long>(ExecutorHandle, Mt5CommandType.ObjectGetTimeByValue, cmdParams);
             return Mt5TimeConverter.ConvertFromMtTime(res);
         }
 

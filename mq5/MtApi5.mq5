@@ -813,8 +813,8 @@ string Execute_OrderGetString()
 string Execute_HistorySelect()
 {
    GET_JSON_PAYLOAD(jo);
-   GET_INT_JSON_VALUE(jo, "FromDate", from_date);
-   GET_INT_JSON_VALUE(jo, "ToDate", to_date);  
+   GET_LONG_JSON_VALUE(jo, "FromDate", from_date);
+   GET_LONG_JSON_VALUE(jo, "ToDate", to_date);  
 
    bool result = HistorySelect((datetime)from_date, (datetime)to_date);
    return CreateSuccessResponse(new JSONBool(result));
@@ -990,8 +990,8 @@ string Execute_Bars2()
    GET_JSON_PAYLOAD(jo);
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
    GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   GET_LONG_JSON_VALUE(jo, "StartTime", start_time);
+   GET_LONG_JSON_VALUE(jo, "StopTime", stop_time);
    
    int result = Bars(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time);
    return CreateSuccessResponse(new JSONNumber(result));
@@ -1081,11 +1081,11 @@ string CreateSuccessResponseRaw(const string valueJson)
 }
 
 #define COPY_BUFFER_POS_PARAMS GET_JSON_PAYLOAD(jo); GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle); GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num); GET_INT_JSON_VALUE(jo, "StartPos", start_pos); GET_INT_JSON_VALUE(jo, "Count", count)
-#define COPY_BUFFER_TIME_COUNT_PARAMS GET_JSON_PAYLOAD(jo); GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle); GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num); GET_INT_JSON_VALUE(jo, "StartTime", start_time); GET_INT_JSON_VALUE(jo, "Count", count)
-#define COPY_BUFFER_RANGE_PARAMS GET_JSON_PAYLOAD(jo); GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle); GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num); GET_INT_JSON_VALUE(jo, "StartTime", start_time); GET_INT_JSON_VALUE(jo, "StopTime", stop_time)
+#define COPY_BUFFER_TIME_COUNT_PARAMS GET_JSON_PAYLOAD(jo); GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle); GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num); GET_LONG_JSON_VALUE(jo, "StartTime", start_time); GET_INT_JSON_VALUE(jo, "Count", count)
+#define COPY_BUFFER_RANGE_PARAMS GET_JSON_PAYLOAD(jo); GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle); GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num); GET_LONG_JSON_VALUE(jo, "StartTime", start_time); GET_LONG_JSON_VALUE(jo, "StopTime", stop_time)
 #define COPY_POS_PARAMS GET_JSON_PAYLOAD(jo); GET_STRING_JSON_VALUE(jo, "Symbol", symbol); GET_INT_JSON_VALUE(jo, "Timeframe", timeframe); GET_INT_JSON_VALUE(jo, "StartPos", start_pos); GET_INT_JSON_VALUE(jo, "Count", count)
-#define COPY_TIME_COUNT_PARAMS GET_JSON_PAYLOAD(jo); GET_STRING_JSON_VALUE(jo, "Symbol", symbol); GET_INT_JSON_VALUE(jo, "Timeframe", timeframe); GET_INT_JSON_VALUE(jo, "StartTime", start_time); GET_INT_JSON_VALUE(jo, "Count", count)
-#define COPY_RANGE_PARAMS GET_JSON_PAYLOAD(jo); GET_STRING_JSON_VALUE(jo, "Symbol", symbol); GET_INT_JSON_VALUE(jo, "Timeframe", timeframe); GET_INT_JSON_VALUE(jo, "StartTime", start_time); GET_INT_JSON_VALUE(jo, "StopTime", stop_time)
+#define COPY_TIME_COUNT_PARAMS GET_JSON_PAYLOAD(jo); GET_STRING_JSON_VALUE(jo, "Symbol", symbol); GET_INT_JSON_VALUE(jo, "Timeframe", timeframe); GET_LONG_JSON_VALUE(jo, "StartTime", start_time); GET_INT_JSON_VALUE(jo, "Count", count)
+#define COPY_RANGE_PARAMS GET_JSON_PAYLOAD(jo); GET_STRING_JSON_VALUE(jo, "Symbol", symbol); GET_INT_JSON_VALUE(jo, "Timeframe", timeframe); GET_LONG_JSON_VALUE(jo, "StartTime", start_time); GET_LONG_JSON_VALUE(jo, "StopTime", stop_time)
 
 string Execute_CopyBuffer()
 {
@@ -1140,7 +1140,7 @@ string Execute_CopyRates1()
    GET_JSON_PAYLOAD(jo);
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
    GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
+   GET_LONG_JSON_VALUE(jo, "StartTime", start_time);
    GET_INT_JSON_VALUE(jo, "Count", count);
    
    MqlRates rates[];
@@ -1158,8 +1158,8 @@ string Execute_CopyRates2()
    GET_JSON_PAYLOAD(jo);
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
    GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   GET_LONG_JSON_VALUE(jo, "StartTime", start_time);
+   GET_LONG_JSON_VALUE(jo, "StopTime", stop_time);
 
    MqlRates rates[];
    int copied = CopyRates(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, rates);
@@ -1748,7 +1748,7 @@ string Execute_ObjectCreate()
    ArrayInitialize(prices, EMPTY_VALUE);
    
    for(int i = 0; i < times_jo.size(); i++)
-      times[i] = (datetime) times_jo.getInt(i);
+      times[i] = (datetime) times_jo.getLong(i);
       
    for(int i = 0; i < prices_jo.size(); i++)
       prices[i] = prices_jo.getDouble(i);
@@ -1819,7 +1819,7 @@ string Execute_ObjectGetTimeByValue()
    GET_DOUBLE_JSON_VALUE(jo, "Value", value);
    GET_INT_JSON_VALUE(jo, "LineId", lineId);
    
-   int result = (int)ObjectGetTimeByValue(chartId, name, value, lineId);
+   long result = (long)ObjectGetTimeByValue(chartId, name, value, lineId);
    return CreateSuccessResponse(new JSONNumber(result));
 }
 
@@ -1828,7 +1828,7 @@ string Execute_ObjectGetValueByTime()
    GET_JSON_PAYLOAD(jo);
    GET_LONG_JSON_VALUE(jo, "ChartId", chartId);
    GET_STRING_JSON_VALUE(jo, "Name", name);
-   GET_INT_JSON_VALUE(jo, "Time", time);
+   GET_LONG_JSON_VALUE(jo, "Time", time);
    GET_INT_JSON_VALUE(jo, "LineId", lineId);
    
    double result = ObjectGetValueByTime(chartId, name, (datetime)time, lineId);
@@ -1841,7 +1841,7 @@ string Execute_ObjectMove()
    GET_LONG_JSON_VALUE(jo, "ChartId", chartId);
    GET_STRING_JSON_VALUE(jo, "Name", name);
    GET_INT_JSON_VALUE(jo, "PointIndex", pointIndex);
-   GET_INT_JSON_VALUE(jo, "Time", time);
+   GET_LONG_JSON_VALUE(jo, "Time", time);
    GET_DOUBLE_JSON_VALUE(jo, "Price", price);
    
    bool result = ObjectMove(chartId, name, pointIndex, (datetime)time, price);
@@ -2852,7 +2852,7 @@ string Execute_GlobalVariablesDeleteAll()
 {
    GET_JSON_PAYLOAD(jo);
    GET_STRING_JSON_VALUE(jo, "PrefixName", prefix_name);
-   GET_INT_JSON_VALUE(jo, "LimitData", limit_data);
+   GET_LONG_JSON_VALUE(jo, "LimitData", limit_data);
    
    int result = GlobalVariablesDeleteAll(prefix_name, (datetime)limit_data);
    return CreateSuccessResponse(new JSONNumber(result));
@@ -3197,15 +3197,15 @@ string Execute_ChartTimePriceToXY()
    GET_JSON_PAYLOAD(jo);
    GET_LONG_JSON_VALUE(jo, "ChartId", chart_id);
    GET_INT_JSON_VALUE(jo, "SubWindow", sub_window);
-   GET_INT_JSON_VALUE(jo, "Time", time);
+   GET_LONG_JSON_VALUE(jo, "Time", time);
    GET_DOUBLE_JSON_VALUE(jo, "Price", price);
    
 #ifdef __DEBUG_LOG__   
-   PrintFormat("%s: chart_id = %I64d, sub_window = %d, time = %s", __FUNCTION__, chart_id, sub_window, TimeToString(time));
+   PrintFormat("%s: chart_id = %I64d, sub_window = %d, time = %s", __FUNCTION__, chart_id, sub_window, TimeToString((datetime)time));
 #endif
 
    int x,y;
-   bool ok = ChartTimePriceToXY(chart_id, sub_window, time, price, x, y);
+   bool ok = ChartTimePriceToXY(chart_id, sub_window, (datetime)time, price, x, y);
    
 #ifdef __DEBUG_LOG__   
    PrintFormat("%s: ok = %s, x = %d, y = %d", __FUNCTION__, BoolToString(ok), x, y);
@@ -3238,7 +3238,7 @@ string Execute_ChartXYToTimePrice()
    bool ok = ChartXYToTimePrice(chart_id, x, y, sub_window, time, price);
    
 #ifdef __DEBUG_LOG__   
-   PrintFormat("%s: ok = %s, sub_window = %d, time = %s, price = %f", __FUNCTION__, BoolToString(ok), sub_window, TimeToString(time), price);
+   PrintFormat("%s: ok = %s, sub_window = %d, time = %s, price = %f", __FUNCTION__, BoolToString(ok), sub_window, TimeToString((datetime)time), price);
 #endif
 
    JSONObject* result_value_jo = new JSONObject();
@@ -3705,7 +3705,7 @@ bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
    
    //Expiration
    if (jo.getValue("MtExpiration") == NULL) return false;
-   request.expiration = (datetime)jo.getInt("MtExpiration");
+   request.expiration = (datetime)jo.getLong("MtExpiration");
 
    //Comment
    if (jo.getValue("Comment") != NULL)
@@ -3793,7 +3793,7 @@ JSONObject* MqlTradeTransactionToJson(const MqlTradeTransaction& trans)
    jo.put("OrderState", new JSONNumber((int)trans.order_state));
    jo.put("DealType", new JSONNumber((int)trans.deal_type));
    jo.put("TimeType", new JSONNumber((int)trans.time_type));
-   jo.put("MtTimeExpiration", new JSONNumber((int)trans.time_expiration));
+   jo.put("MtTimeExpiration", new JSONNumber((long)trans.time_expiration));
    jo.put("Price", new JSONNumber(trans.price));
    jo.put("PriceTrigger", new JSONNumber(trans.price_trigger));
    jo.put("PriceSl", new JSONNumber(trans.price_sl));
@@ -3820,7 +3820,7 @@ JSONObject* MqlTradeRequestToJson(const MqlTradeRequest& request)
    jo.put("Type", new JSONNumber((int)request.type));
    jo.put("Type_filling", new JSONNumber((int)request.type_filling));
    jo.put("Type_time", new JSONNumber((int)request.type_time));
-   jo.put("MtExpiration", new JSONNumber((int)request.expiration));
+   jo.put("MtExpiration", new JSONNumber((long)request.expiration));
    jo.put("Comment", new JSONString(request.comment));
    jo.put("Position", new JSONNumber(request.position));
    jo.put("PositionBy", new JSONNumber(request.position_by));
@@ -3830,7 +3830,7 @@ JSONObject* MqlTradeRequestToJson(const MqlTradeRequest& request)
 JSONObject* MqlRatesToJson(const MqlRates& rates)
 {
    JSONObject *jo = new JSONObject();
-   jo.put("mt_time", new JSONNumber((int)rates.time));
+   jo.put("mt_time", new JSONNumber((long)rates.time));
    jo.put("open", new JSONNumber(rates.open));
    jo.put("high", new JSONNumber(rates.high));
    jo.put("low", new JSONNumber(rates.low));
