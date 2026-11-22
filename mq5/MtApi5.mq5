@@ -1062,6 +1062,13 @@ string TimeArrayToJson(const datetime &a[], int n)
    return out;
 }
 
+#ifdef __DEBUG_LOG__
+string BoolToString(const bool value)
+{
+   return value ? "true" : "false";
+}
+#endif
+
 // valueJson must already be valid JSON
 string CreateSuccessResponseRaw(const string valueJson)
 {
@@ -1474,7 +1481,7 @@ string Execute_SymbolInfoString2()
    GET_INT_JSON_VALUE(jo, "PropId", prop_id);
    
 #ifdef __DEBUG_LOG__   
-   PrintFormat("%s: symbol_name = %s, prop_id = %s", __FUNCTION__, symbol_name, EnumToString(prop_id));
+   PrintFormat("%s: symbol = %s, prop_id = %d", __FUNCTION__, symbol, prop_id);
 #endif
 
    string string_var;
@@ -1560,7 +1567,9 @@ string Execute_PositionModify()
    
    CTrade trade;
    bool ok = trade.PositionModify(ticket,sl,tp);
-   Print("command PositionModify: result = ", ok);
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(ok));
+#endif
    
    return CreateSuccessResponse(new JSONBool(ok));
 }
@@ -3187,7 +3196,7 @@ string Execute_ChartTimePriceToXY()
    GET_DOUBLE_JSON_VALUE(jo, "Price", price);
    
 #ifdef __DEBUG_LOG__   
-   PrintFormat("%s: chart_id = %d, sub_window = %d, time = %s", __FUNCTION__, chart_id, sub_window, TimeToString(time));
+   PrintFormat("%s: chart_id = %I64d, sub_window = %d, time = %s", __FUNCTION__, chart_id, sub_window, TimeToString(time));
 #endif
 
    int x,y;
@@ -3215,7 +3224,7 @@ string Execute_ChartXYToTimePrice()
    GET_INT_JSON_VALUE(jo, "Y", y);
    
 #ifdef __DEBUG_LOG__   
-   PrintFormat("%s: chart_id = %d, x = %d, y = %d", __FUNCTION__, chart_id, x, y);
+   PrintFormat("%s: chart_id = %I64d, x = %d, y = %d", __FUNCTION__, chart_id, x, y);
 #endif
 
    int sub_window;
@@ -3245,7 +3254,7 @@ string Execute_PositionClose()
    GET_ULONG_JSON_VALUE(jo, "Deviation", deviation);
 
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: Ticket = %d, Deviation = %d", __FUNCTION__, ticket, deviation);
+   PrintFormat("%s: Ticket = %I64u, Deviation = %I64u", __FUNCTION__, ticket, deviation);
 #endif
 
    CTrade trade;
