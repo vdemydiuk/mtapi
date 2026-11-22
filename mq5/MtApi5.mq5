@@ -409,6 +409,11 @@ bool IsTesting()
 
 int init() 
 {
+   _last_bar_open_time = 0;
+   _is_ticks_locked = false;
+   IsRemoteReadyForTesting = false;
+   isCrashed = false;
+
    preinit();  
 
    if (TerminalInfoInteger(TERMINAL_DLLS_ALLOWED) == false) 
