@@ -3808,6 +3808,8 @@ JSONObject* MqlTradeRequestToJson(const MqlTradeRequest& request)
    jo.put("Type_time", new JSONNumber((int)request.type_time));
    jo.put("MtExpiration", new JSONNumber((int)request.expiration));
    jo.put("Comment", new JSONString(request.comment));
+   jo.put("Position", new JSONNumber(request.position));
+   jo.put("PositionBy", new JSONNumber(request.position_by));
    return jo;
 }
 
