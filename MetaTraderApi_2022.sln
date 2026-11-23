@@ -33,6 +33,8 @@ Project("{B7DD6F7E-DEF8-4E67-B5B7-07EF123DB6F0}") = "MtApiInstaller", "MtApiInst
 		{7A76C388-A8FB-4949-8170-24D4742E934E} = {7A76C388-A8FB-4949-8170-24D4742E934E}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MtApi5.Tests", "MtApi5.Tests\MtApi5.Tests.csproj", "{AB14A035-1BE7-4D19-B3D8-BFA840F51FC5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -143,6 +145,18 @@ Global
 		{78B94552-DB17-40EC-B7C6-23D32DB85DC1}.Release|x64.ActiveCfg = Release|x64
 		{78B94552-DB17-40EC-B7C6-23D32DB85DC1}.Release|x86.ActiveCfg = Release|x86
 		{78B94552-DB17-40EC-B7C6-23D32DB85DC1}.Release|x86.Build.0 = Release|x86
+		{AB14A035-1BE7-4D19-B3D8-BFA840F51FC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB14A035-1BE7-4D19-B3D8-BFA840F51FC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB14A035-1BE7-4D19-B3D8-BFA840F51FC5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AB14A035-1BE7-4D19-B3D8-BFA840F51FC5}.Debug|x64.Build.0 = Debug|Any CPU
+		{AB14A035-1BE7-4D19-B3D8-BFA840F51FC5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AB14A035-1BE7-4D19-B3D8-BFA840F51FC5}.Debug|x86.Build.0 = Debug|Any CPU
+		{AB14A035-1BE7-4D19-B3D8-BFA840F51FC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB14A035-1BE7-4D19-B3D8-BFA840F51FC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB14A035-1BE7-4D19-B3D8-BFA840F51FC5}.Release|x64.ActiveCfg = Release|Any CPU
+		{AB14A035-1BE7-4D19-B3D8-BFA840F51FC5}.Release|x64.Build.0 = Release|Any CPU
+		{AB14A035-1BE7-4D19-B3D8-BFA840F51FC5}.Release|x86.ActiveCfg = Release|Any CPU
+		{AB14A035-1BE7-4D19-B3D8-BFA840F51FC5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
