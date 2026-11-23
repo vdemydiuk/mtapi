@@ -11,6 +11,9 @@
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
 	<ItemGroup>
+	  <InternalsVisibleTo Include="MtApi5.Tests" />
+	</ItemGroup>
+	<ItemGroup>
 	  <ProjectReference Include="..\MtClient\MtClient.csproj" />
 	</ItemGroup>
 </Project>
