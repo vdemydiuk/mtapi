@@ -29,6 +29,7 @@ namespace MtApi5
         public ulong Position { get; set; }                     // Position ticket 
         public ulong PositionBy { get; set; }                   // Ticket of an opposite position
 
+        [JsonProperty]
         public long MtTimeExpiration { get; private set; }
 
         public override string ToString()
