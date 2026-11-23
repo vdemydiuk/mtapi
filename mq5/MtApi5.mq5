@@ -33,6 +33,7 @@ enum LockTickType
 
 input int Port = 8228;
 input LockTickType BacktestingLockTicks = NO_LOCK;
+input uint BacktestingReadyTimeout = 0; // Backtesting: timeout (sec) waiting for client, 0 - wait forever
 input group           "Disable Events "
 input bool Enable_OnBookEvent = true;                 
 input bool Enable_OnTickEvent = false;                 
@@ -49,6 +50,8 @@ bool IsRemoteReadyForTesting = false;
 
 long _last_bar_open_time = 0;
 bool _is_ticks_locked = false;
+bool _command_type_error_reported = false;
+string _last_command_type_error = "";
 
 int OnInit()
 {
@@ -80,10 +83,15 @@ void OnTick()
          if(Enable_OnLastBarEvent)
          {
            MqlRates rates_array[];
-           CopyRates(symbol, Period(), 1, 1, rates_array);
-      
-           MtTimeBarEvent time_bar(symbol, (int)Period(), rates_array[0]);
-           SendMtEvent(ON_LAST_TIME_BAR_EVENT, time_bar);
+           if (CopyRates(symbol, Period(), 1, 1, rates_array) == 1)
+           {
+              MtTimeBarEvent time_bar(symbol, (int)Period(), rates_array[0]);
+              SendMtEvent(ON_LAST_TIME_BAR_EVENT, time_bar);
+           }
+           else
+           {
+              PrintFormat("WARNING: %s: failed to get last bar for %s, error = %d. Last bar event is skipped.", __FUNCTION__, symbol, GetLastError());
+           }
          }
         lastbar_time_changed = true;
       }
@@ -401,6 +409,11 @@ bool IsTesting()
 
 int init() 
 {
+   _last_bar_open_time = 0;
+   _is_ticks_locked = false;
+   IsRemoteReadyForTesting = false;
+   isCrashed = false;
+
    preinit();  
 
    if (TerminalInfoInteger(TERMINAL_DLLS_ALLOWED) == false) 
@@ -433,12 +446,6 @@ int init()
        return(1);
    }
    
-   if (executeCommand() == 1)
-   {   
-      isCrashed = true;
-      return (1);
-   }
-   
 #ifdef __DEBUG_LOG__
    PrintFormat("Expert Handle = %d", ExpertHandle);
    PrintFormat("IsTesting: %s", IsTesting() ? "true" : "false");
@@ -449,13 +456,26 @@ int init()
     {      
        Print("Waiting on remote client...");
        //wait for command (BacktestingReady) from remote side to be ready for work
+       ulong wait_start = GetTickCount64();
        while(!IsRemoteReadyForTesting)
        {
+          if (IsStopped())
+          {
+             Print("Expert was stopped while waiting on remote client. Initialization is aborted.");
+             return (1);
+          }
+          
+          if (BacktestingReadyTimeout > 0 && GetTickCount64() - wait_start >= (ulong)BacktestingReadyTimeout * 1000)
+          {
+             PrintFormat("[ERROR] Remote client is not ready for backtesting within %u seconds (BacktestingReadyTimeout). Initialization is failed.", BacktestingReadyTimeout);
+             return (1);
+          }
+          
           executeCommand();
           
           //This section uses a while loop to simulate Sleep() during Backtest.
-          unsigned int viSleepUntilTick = GetTickCount() + 100; //100 milliseconds
-          while(GetTickCount() < viSleepUntilTick) 
+          ulong viSleepUntilTick = GetTickCount64() + 100; //100 milliseconds
+          while(GetTickCount64() < viSleepUntilTick && !IsStopped()) 
           {
              //Do absolutely nothing. Just loop until the desired tick is reached.
           }
@@ -496,7 +516,7 @@ int deinit()
 
 void OnTimer()
 {
-   while(true)
+   while(!IsStopped())
    {
       int executedCommand = executeCommand();
       
@@ -514,9 +534,16 @@ int executeCommand()
 
    if (!getCommandType(ExpertHandle, commandType, _error))
    {
-      Print("[ERROR] ExecuteCommand: Failed to get command type! ", _error);
+      //print the error only once until it changes or getCommandType succeeds, to avoid flooding the log
+      if (!_command_type_error_reported || _error != _last_command_type_error)
+      {
+         Print("[ERROR] ExecuteCommand: Failed to get command type! ", _error);
+         _command_type_error_reported = true;
+         _last_command_type_error = _error;
+      }
       return (0);
    }
+   _command_type_error_reported = false;
 
    if (commandType == 0)
       return 0;
@@ -578,11 +605,17 @@ JSONObject* GetJsonPayload()
    
    if (payload_json == NULL) 
    {   
-      PrintFormat("%s [ERROR]: %d - %s", __FUNCTION__, (string)payload_parser.getErrorCode(), payload_parser.getErrorMessage());
+      PrintFormat("%s [ERROR]: %d - %s", __FUNCTION__, payload_parser.getErrorCode(), payload_parser.getErrorMessage());
       return NULL;
    }
    
-   return payload_json.isObject() ? payload_json : NULL;
+   if (!payload_json.isObject())
+   {
+      delete payload_json;
+      return NULL;
+   }
+
+   return payload_json;
 }
 
 #define PRINT_MSG_AND_RETURN_VALUE(msg,value) PrintFormat("%s: %s",__FUNCTION__,msg);return value
@@ -608,8 +641,8 @@ string Execute_GetQuote()
 
 string Execute_OrderCloseAll()
 {
-   OrderCloseAll();
-   return CreateSuccessResponse();
+   bool ok = OrderCloseAll();
+   return CreateSuccessResponse(new JSONBool(ok));
 }
 
 string Execute_OrderCalcMargin()
@@ -780,8 +813,8 @@ string Execute_OrderGetString()
 string Execute_HistorySelect()
 {
    GET_JSON_PAYLOAD(jo);
-   GET_INT_JSON_VALUE(jo, "FromDate", from_date);
-   GET_INT_JSON_VALUE(jo, "ToDate", to_date);  
+   GET_LONG_JSON_VALUE(jo, "FromDate", from_date);
+   GET_LONG_JSON_VALUE(jo, "ToDate", to_date);  
 
    bool result = HistorySelect((datetime)from_date, (datetime)to_date);
    return CreateSuccessResponse(new JSONBool(result));
@@ -957,8 +990,8 @@ string Execute_Bars2()
    GET_JSON_PAYLOAD(jo);
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
    GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   GET_LONG_JSON_VALUE(jo, "StartTime", start_time);
+   GET_LONG_JSON_VALUE(jo, "StopTime", stop_time);
    
    int result = Bars(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time);
    return CreateSuccessResponse(new JSONNumber(result));
@@ -973,58 +1006,115 @@ string Execute_BarsCalculated()
    return CreateSuccessResponse(new JSONNumber(result));
 }
 
+// Copy* fast path: numeric arrays are serialized straight to a JSON string,
+// without building a JSONArray of per-element JSONNumber objects.
+// Number formatting matches JSONNumber::serialize in json.mqh.
+string DoubleArrayToJson(const double &a[], int n)
+{
+   string out = "[";
+   for(int i = 0; i < n; i++)
+   {
+      if(i > 0)
+         StringAdd(out, ",");
+      double v = a[i];
+      if(!MathIsValidNumber(v))
+         StringAdd(out, (v != v) ? "NaN" : (v > 0 ? "Infinity" : "-Infinity"));
+      else if(v != 0)
+         StringAdd(out, (string)v);
+      else
+         StringAdd(out, "0");
+   }
+   StringAdd(out, "]");
+   return out;
+}
+
+string LongArrayToJson(const long &a[], int n)
+{
+   string out = "[";
+   for(int i = 0; i < n; i++)
+   {
+      if(i > 0)
+         StringAdd(out, ",");
+      StringAdd(out, (string)a[i]);
+   }
+   StringAdd(out, "]");
+   return out;
+}
+
+string IntArrayToJson(const int &a[], int n)
+{
+   string out = "[";
+   for(int i = 0; i < n; i++)
+   {
+      if(i > 0)
+         StringAdd(out, ",");
+      StringAdd(out, (string)a[i]);
+   }
+   StringAdd(out, "]");
+   return out;
+}
+
+string TimeArrayToJson(const datetime &a[], int n)
+{
+   string out = "[";
+   for(int i = 0; i < n; i++)
+   {
+      if(i > 0)
+         StringAdd(out, ",");
+      StringAdd(out, (string)(long)a[i]);
+   }
+   StringAdd(out, "]");
+   return out;
+}
+
+#ifdef __DEBUG_LOG__
+string BoolToString(const bool value)
+{
+   return value ? "true" : "false";
+}
+#endif
+
+// valueJson must already be valid JSON
+string CreateSuccessResponseRaw(const string valueJson)
+{
+   return "{\"ErrorCode\":\"0\",\"Value\":" + valueJson + "}";
+}
+
+#define COPY_BUFFER_POS_PARAMS GET_JSON_PAYLOAD(jo); GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle); GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num); GET_INT_JSON_VALUE(jo, "StartPos", start_pos); GET_INT_JSON_VALUE(jo, "Count", count)
+#define COPY_BUFFER_TIME_COUNT_PARAMS GET_JSON_PAYLOAD(jo); GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle); GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num); GET_LONG_JSON_VALUE(jo, "StartTime", start_time); GET_INT_JSON_VALUE(jo, "Count", count)
+#define COPY_BUFFER_RANGE_PARAMS GET_JSON_PAYLOAD(jo); GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle); GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num); GET_LONG_JSON_VALUE(jo, "StartTime", start_time); GET_LONG_JSON_VALUE(jo, "StopTime", stop_time)
+#define COPY_POS_PARAMS GET_JSON_PAYLOAD(jo); GET_STRING_JSON_VALUE(jo, "Symbol", symbol); GET_INT_JSON_VALUE(jo, "Timeframe", timeframe); GET_INT_JSON_VALUE(jo, "StartPos", start_pos); GET_INT_JSON_VALUE(jo, "Count", count)
+#define COPY_TIME_COUNT_PARAMS GET_JSON_PAYLOAD(jo); GET_STRING_JSON_VALUE(jo, "Symbol", symbol); GET_INT_JSON_VALUE(jo, "Timeframe", timeframe); GET_LONG_JSON_VALUE(jo, "StartTime", start_time); GET_INT_JSON_VALUE(jo, "Count", count)
+#define COPY_RANGE_PARAMS GET_JSON_PAYLOAD(jo); GET_STRING_JSON_VALUE(jo, "Symbol", symbol); GET_INT_JSON_VALUE(jo, "Timeframe", timeframe); GET_LONG_JSON_VALUE(jo, "StartTime", start_time); GET_LONG_JSON_VALUE(jo, "StopTime", stop_time)
+
 string Execute_CopyBuffer()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle);
-   GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
-   
+   COPY_BUFFER_POS_PARAMS;
+
    double buffer[];
    int copied = CopyBuffer(indicator_handle, buffer_num, start_pos, count, buffer);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(buffer[i]));
 
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(DoubleArrayToJson(buffer, copied));
 }
 
 string Execute_CopyBuffer1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle);
-   GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
-   
-   double buffer[];
-   int copied = CopyBuffer(indicator_handle, buffer_num, start_time, count, buffer);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(buffer[i]));
+   COPY_BUFFER_TIME_COUNT_PARAMS;
 
-   return CreateSuccessResponse(jaresult);
+   double buffer[];
+   int copied = CopyBuffer(indicator_handle, buffer_num, (datetime)start_time, count, buffer);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(buffer, copied));
 }
 
 string Execute_CopyBuffer2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_INT_JSON_VALUE(jo, "IndicatorHandle", indicator_handle);
-   GET_INT_JSON_VALUE(jo, "BufferNum", buffer_num);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
-   
-   double buffer[];
-   int copied = CopyBuffer(indicator_handle, buffer_num, start_time, stop_time, buffer);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(buffer[i]));
+   COPY_BUFFER_RANGE_PARAMS;
 
-   return CreateSuccessResponse(jaresult);
+   double buffer[];
+   int copied = CopyBuffer(indicator_handle, buffer_num, (datetime)start_time, (datetime)stop_time, buffer);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(buffer, copied));
 }
 
 string Execute_CopyRates()
@@ -1050,7 +1140,7 @@ string Execute_CopyRates1()
    GET_JSON_PAYLOAD(jo);
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
    GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
+   GET_LONG_JSON_VALUE(jo, "StartTime", start_time);
    GET_INT_JSON_VALUE(jo, "Count", count);
    
    MqlRates rates[];
@@ -1068,8 +1158,8 @@ string Execute_CopyRates2()
    GET_JSON_PAYLOAD(jo);
    GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
    GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   GET_LONG_JSON_VALUE(jo, "StartTime", start_time);
+   GET_LONG_JSON_VALUE(jo, "StopTime", stop_time);
 
    MqlRates rates[];
    int copied = CopyRates(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, rates);
@@ -1083,434 +1173,242 @@ string Execute_CopyRates2()
 
 string Execute_CopyTime()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
-   
-   datetime time_array[];
-   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, time_array);
+   COPY_POS_PARAMS;
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber((long)time_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   datetime data[];
+   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
+
+   return CreateSuccessResponseRaw(TimeArrayToJson(data, copied));
 }
 
 string Execute_CopyTime1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
-   
-   datetime time_array[];
-   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, time_array);
+   COPY_TIME_COUNT_PARAMS;
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber((long)time_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   datetime data[];
+   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
+
+   return CreateSuccessResponseRaw(TimeArrayToJson(data, copied));
 }
 
 string Execute_CopyTime2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
-   
-   datetime time_array[];
-   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, time_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber((long)time_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   COPY_RANGE_PARAMS;
+
+   datetime data[];
+   int copied = CopyTime(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
+
+   return CreateSuccessResponseRaw(TimeArrayToJson(data, copied));
 }
 
 string Execute_CopyOpen()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
-   
-   double open_array[];
-   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, open_array);
+   COPY_POS_PARAMS;
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(open_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyOpen1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
-   
-   double open_array[];
-   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, open_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(open_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   COPY_TIME_COUNT_PARAMS;
+
+   double data[];
+   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyOpen2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   COPY_RANGE_PARAMS;
 
-   double open_array[];
-   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, open_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(open_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyOpen(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyHigh()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_POS_PARAMS;
 
-   double high_array[];
-   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, high_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(high_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyHigh1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_TIME_COUNT_PARAMS;
 
-   double high_array[];
-   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, high_array);       
+   double data[];
+   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(high_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyHigh2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   COPY_RANGE_PARAMS;
 
-   double high_array[];
-   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, high_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(high_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyHigh(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyLow()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_POS_PARAMS;
 
-   double low_array[];   
-   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, low_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(low_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyLow1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_TIME_COUNT_PARAMS;
 
-   double low_array[];
-   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, low_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(low_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyLow2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   COPY_RANGE_PARAMS;
 
-   double low_array[];
-   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, low_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(low_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyLow(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyClose()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_POS_PARAMS;
 
-   double close_array[];
-   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, close_array);
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(close_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyClose1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_TIME_COUNT_PARAMS;
 
-   double close_array[];
-   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, close_array); 
-   
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(close_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyClose2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
-   
-   double close_array[];
-   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, close_array);
+   COPY_RANGE_PARAMS;
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(close_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   double data[];
+   int copied = CopyClose(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
+
+   return CreateSuccessResponseRaw(DoubleArrayToJson(data, copied));
 }
 
 string Execute_CopyTickVolume()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_POS_PARAMS;
 
-   long volume_array[];
-   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, volume_array);
+   long data[];
+   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(volume_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(LongArrayToJson(data, copied));
 }
 
 string Execute_CopyTickVolume1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_TIME_COUNT_PARAMS;
 
-   long volume_array[];
-   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, volume_array);
+   long data[];
+   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(volume_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(LongArrayToJson(data, copied));
 }
 
 string Execute_CopyTickVolume2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   COPY_RANGE_PARAMS;
 
-   long volume_array[];
-   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, volume_array);       
+   long data[];
+   int copied = CopyTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(volume_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(LongArrayToJson(data, copied));
 }
 
 string Execute_CopyRealVolume()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_POS_PARAMS;
 
-   long volume_array[];
-   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, volume_array);       
+   long data[];
+   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(volume_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(LongArrayToJson(data, copied));
 }
 
 string Execute_CopyRealVolume1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_TIME_COUNT_PARAMS;
 
-   long volume_array[];
-   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, volume_array);
+   long data[];
+   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(volume_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(LongArrayToJson(data, copied));
 }
 
 string Execute_CopyRealVolume2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   COPY_RANGE_PARAMS;
 
-   long volume_array[];
-   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, volume_array);
+   long data[];
+   int copied = CopyRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(volume_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(LongArrayToJson(data, copied));
 }
 
 string Execute_CopySpread()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartPos", start_pos);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_POS_PARAMS;
 
-   int spread_array[];
-   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, spread_array);       
+   int data[];
+   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, start_pos, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(spread_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(IntArrayToJson(data, copied));
 }
 
 string Execute_CopySpread1()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "Count", count);
+   COPY_TIME_COUNT_PARAMS;
 
-   int spread_array[];
-   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, spread_array);
+   int data[];
+   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, count, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(spread_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(IntArrayToJson(data, copied));
 }
 
 string Execute_CopySpread2()
 {
-   GET_JSON_PAYLOAD(jo);
-   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
-   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
-   GET_INT_JSON_VALUE(jo, "StartTime", start_time);
-   GET_INT_JSON_VALUE(jo, "StopTime", stop_time);
+   COPY_RANGE_PARAMS;
 
-   int spread_array[];
-   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, spread_array);
+   int data[];
+   int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
 
-   JSONArray* jaresult = new JSONArray();
-   for(int i = 0; i < copied; i++)
-      jaresult.put(i, new JSONNumber(spread_array[i]));
-      
-   return CreateSuccessResponse(jaresult);
+   return CreateSuccessResponseRaw(IntArrayToJson(data, copied));
 }
 
 string Execute_SymbolsTotal()
@@ -1588,7 +1486,7 @@ string Execute_SymbolInfoString2()
    GET_INT_JSON_VALUE(jo, "PropId", prop_id);
    
 #ifdef __DEBUG_LOG__   
-   PrintFormat("%s: symbol_name = %s, prop_id = %s", __FUNCTION__, symbol_name, EnumToString(prop_id));
+   PrintFormat("%s: symbol = %s, prop_id = %d", __FUNCTION__, symbol, prop_id);
 #endif
 
    string string_var;
@@ -1674,7 +1572,9 @@ string Execute_PositionModify()
    
    CTrade trade;
    bool ok = trade.PositionModify(ticket,sl,tp);
-   Print("command PositionModify: result = ", ok);
+#ifdef __DEBUG_LOG__
+   PrintFormat("%s: result = %s", __FUNCTION__, BoolToString(ok));
+#endif
    
    return CreateSuccessResponse(new JSONBool(ok));
 }
@@ -1828,16 +1728,28 @@ string Execute_ObjectCreate()
    CHECK_JSON_VALUE(jo, "Times");
    CHECK_JSON_VALUE(jo, "Prices");
    
+   const int max_points = 30;
+   
+   JSONArray* times_jo = jo.p.getArray("Times");
+   if (times_jo == NULL)
+      return CreateErrorResponse(-1, "Parameter Times is not an array");
+   if (times_jo.size() > max_points)
+      return CreateErrorResponse(-1, StringFormat("Parameter Times has too many elements (%d), maximum is %d", times_jo.size(), max_points));
+   
+   JSONArray* prices_jo = jo.p.getArray("Prices");
+   if (prices_jo == NULL)
+      return CreateErrorResponse(-1, "Parameter Prices is not an array");
+   if (prices_jo.size() > max_points)
+      return CreateErrorResponse(-1, StringFormat("Parameter Prices has too many elements (%d), maximum is %d", prices_jo.size(), max_points));
+   
    datetime times[30];
    double prices[30];
    ArrayInitialize(times, 0);
    ArrayInitialize(prices, EMPTY_VALUE);
    
-   JSONArray* times_jo = jo.p.getArray("Times");
    for(int i = 0; i < times_jo.size(); i++)
-      times[i] = (datetime) times_jo.getInt(i);
+      times[i] = (datetime) times_jo.getLong(i);
       
-   JSONArray* prices_jo = jo.p.getArray("Prices");
    for(int i = 0; i < prices_jo.size(); i++)
       prices[i] = prices_jo.getDouble(i);
       
@@ -1907,7 +1819,7 @@ string Execute_ObjectGetTimeByValue()
    GET_DOUBLE_JSON_VALUE(jo, "Value", value);
    GET_INT_JSON_VALUE(jo, "LineId", lineId);
    
-   int result = (int)ObjectGetTimeByValue(chartId, name, value, lineId);
+   long result = (long)ObjectGetTimeByValue(chartId, name, value, lineId);
    return CreateSuccessResponse(new JSONNumber(result));
 }
 
@@ -1916,7 +1828,7 @@ string Execute_ObjectGetValueByTime()
    GET_JSON_PAYLOAD(jo);
    GET_LONG_JSON_VALUE(jo, "ChartId", chartId);
    GET_STRING_JSON_VALUE(jo, "Name", name);
-   GET_INT_JSON_VALUE(jo, "Time", time);
+   GET_LONG_JSON_VALUE(jo, "Time", time);
    GET_INT_JSON_VALUE(jo, "LineId", lineId);
    
    double result = ObjectGetValueByTime(chartId, name, (datetime)time, lineId);
@@ -1929,7 +1841,7 @@ string Execute_ObjectMove()
    GET_LONG_JSON_VALUE(jo, "ChartId", chartId);
    GET_STRING_JSON_VALUE(jo, "Name", name);
    GET_INT_JSON_VALUE(jo, "PointIndex", pointIndex);
-   GET_INT_JSON_VALUE(jo, "Time", time);
+   GET_LONG_JSON_VALUE(jo, "Time", time);
    GET_DOUBLE_JSON_VALUE(jo, "Price", price);
    
    bool result = ObjectMove(chartId, name, pointIndex, (datetime)time, price);
@@ -2432,7 +2344,7 @@ string Execute_iStochastic()
    GET_INT_JSON_VALUE(jo, "MaMethod", ma_method);
    GET_INT_JSON_VALUE(jo, "PriceField", price_field);
    
-   int result = iStochastic(symbol, (ENUM_TIMEFRAMES)period, Kperiod, Dperiod, slowing, (ENUM_MA_METHOD)slowing, (ENUM_STO_PRICE)price_field);
+   int result = iStochastic(symbol, (ENUM_TIMEFRAMES)period, Kperiod, Dperiod, slowing, (ENUM_MA_METHOD)ma_method, (ENUM_STO_PRICE)price_field);
    return CreateSuccessResponse(new JSONNumber(result));
 }
 
@@ -2940,7 +2852,7 @@ string Execute_GlobalVariablesDeleteAll()
 {
    GET_JSON_PAYLOAD(jo);
    GET_STRING_JSON_VALUE(jo, "PrefixName", prefix_name);
-   GET_INT_JSON_VALUE(jo, "LimitData", limit_data);
+   GET_LONG_JSON_VALUE(jo, "LimitData", limit_data);
    
    int result = GlobalVariablesDeleteAll(prefix_name, (datetime)limit_data);
    return CreateSuccessResponse(new JSONNumber(result));
@@ -3009,7 +2921,7 @@ string Execute_ChartId()
 string Execute_ChartRedraw()
 {
    GET_JSON_PAYLOAD(jo);
-   GET_INT_JSON_VALUE(jo, "ChartId", chart_id);
+   GET_LONG_JSON_VALUE(jo, "ChartId", chart_id);
    
    ChartRedraw(chart_id);
    return CreateSuccessResponse();
@@ -3074,9 +2986,9 @@ string Execute_iCustom()
       case 1: //Double
       {
          double doubleParams[];
+         ArrayResize(doubleParams, size);
          for (int i = 0; i < size; i++)
             doubleParams[i] = jaParams.getDouble(i);
-         ArrayResize(doubleParams, size);
          result = iCustomT(symbol, (ENUM_TIMEFRAMES)timeframe, name, doubleParams, size);
       }
       break;
@@ -3163,7 +3075,9 @@ string Execute_OrderCheck()
    JSONObject* trade_request_jo = jo.p.getObject("TradeRequest");
       
    MqlTradeRequest trade_request;
-   JsonToMqlTradeRequest(trade_request_jo, trade_request);
+   bool converted = JsonToMqlTradeRequest(trade_request_jo, trade_request);
+   if (converted == false)
+      return CreateErrorResponse(-1, "Failed to parse parameter TradeRequest");
    
    MqlTradeCheckResult trade_check_result;
    bool ok = OrderCheck(trade_request, trade_check_result);
@@ -3221,7 +3135,10 @@ string Execute_IndicatorCreate()
    int indicator_handle = -1;
    if (jo.p.getValue("Parameters") != NULL)
    {
-      JSONArray parameters_ja = jo.p.getArray("Parameters");
+      JSONValue* parameters_jv = jo.p.getValue("Parameters");
+      if (!parameters_jv.isArray())
+         return CreateErrorResponse(-1, "Parameter Parameters is not an array");
+      JSONArray* parameters_ja = parameters_jv;
       int size = parameters_ja.size();
       if (size > 0)
       {
@@ -3230,8 +3147,13 @@ string Execute_IndicatorCreate()
          
          for (int i = 0; i < size; i++)
          {
-            JSONObject param_jo = parameters_ja.getObject(i);
+            JSONValue* param_jv = parameters_ja.getValue(i);
+            if (param_jv == NULL || !param_jv.isObject())
+               return CreateErrorResponse(-1, StringFormat("Parameters[%d] is not an object", i));
+            JSONObject* param_jo = param_jv;
             
+            if (param_jo.getValue("DataType") == NULL)
+               return CreateErrorResponse(-1, StringFormat("Undefinded mandatory parameter Parameters[%d].DataType", i));
             parameters[i].type = (ENUM_DATATYPE)param_jo.getInt("DataType");
             if (param_jo.getValue("IntegerValue") != NULL)
             {
@@ -3275,15 +3197,15 @@ string Execute_ChartTimePriceToXY()
    GET_JSON_PAYLOAD(jo);
    GET_LONG_JSON_VALUE(jo, "ChartId", chart_id);
    GET_INT_JSON_VALUE(jo, "SubWindow", sub_window);
-   GET_INT_JSON_VALUE(jo, "Time", time);
+   GET_LONG_JSON_VALUE(jo, "Time", time);
    GET_DOUBLE_JSON_VALUE(jo, "Price", price);
    
 #ifdef __DEBUG_LOG__   
-   PrintFormat("%s: chart_id = %d, sub_window = %d, time = %s", __FUNCTION__, chart_id, sub_window, TimeToString(time));
+   PrintFormat("%s: chart_id = %I64d, sub_window = %d, time = %s", __FUNCTION__, chart_id, sub_window, TimeToString((datetime)time));
 #endif
 
    int x,y;
-   bool ok = ChartTimePriceToXY(chart_id, sub_window, time, price, x, y);
+   bool ok = ChartTimePriceToXY(chart_id, sub_window, (datetime)time, price, x, y);
    
 #ifdef __DEBUG_LOG__   
    PrintFormat("%s: ok = %s, x = %d, y = %d", __FUNCTION__, BoolToString(ok), x, y);
@@ -3307,7 +3229,7 @@ string Execute_ChartXYToTimePrice()
    GET_INT_JSON_VALUE(jo, "Y", y);
    
 #ifdef __DEBUG_LOG__   
-   PrintFormat("%s: chart_id = %d, x = %d, y = %d", __FUNCTION__, chart_id, x, y);
+   PrintFormat("%s: chart_id = %I64d, x = %d, y = %d", __FUNCTION__, chart_id, x, y);
 #endif
 
    int sub_window;
@@ -3316,7 +3238,7 @@ string Execute_ChartXYToTimePrice()
    bool ok = ChartXYToTimePrice(chart_id, x, y, sub_window, time, price);
    
 #ifdef __DEBUG_LOG__   
-   PrintFormat("%s: ok = %s, sub_window = %d, time = %s, price = %f", __FUNCTION__, BoolToString(ok), sub_window, TimeToString(time), price);
+   PrintFormat("%s: ok = %s, sub_window = %d, time = %s, price = %f", __FUNCTION__, BoolToString(ok), sub_window, TimeToString((datetime)time), price);
 #endif
 
    JSONObject* result_value_jo = new JSONObject();
@@ -3337,7 +3259,7 @@ string Execute_PositionClose()
    GET_ULONG_JSON_VALUE(jo, "Deviation", deviation);
 
 #ifdef __DEBUG_LOG__
-   PrintFormat("%s: Ticket = %d, Deviation = %d", __FUNCTION__, ticket, deviation);
+   PrintFormat("%s: Ticket = %I64u, Deviation = %I64u", __FUNCTION__, ticket, deviation);
 #endif
 
    CTrade trade;
@@ -3463,12 +3385,8 @@ string Execute_GetSymbols()
    for(int idxSymbol = 0; idxSymbol < symbolsCount; idxSymbol++)
    {      
       string symbol = SymbolName(idxSymbol, selected);
-      string firstChar = StringSubstr(symbol, 0, 1);
-      if(firstChar != "#" && StringLen(symbol) == 6)
-      {        
-         jaSymbols.put(idx, new JSONString(symbol));
-         idx++;
-      } 
+      jaSymbols.put(idx, new JSONString(symbol));
+      idx++;
    }
    
    return CreateSuccessResponse(jaSymbols);
@@ -3477,15 +3395,19 @@ string Execute_GetSymbols()
 int PositionCloseAll()
 {
    CTrade trade;
-   int total = PositionsTotal();
    int count = 0;
-   for(int i = 0; i < total; i++)
+   // iterate backwards and close by ticket: closing shifts the indices of the remaining positions,
+   // and closing by symbol closes only one position per symbol on hedging accounts
+   for(int i = PositionsTotal() - 1; i >= 0; i--)
    {
-      if (trade.PositionClose(PositionGetSymbol(i)))
+      ulong ticket = PositionGetTicket(i);
+      if (ticket == 0)
+         continue;
+      if (trade.PositionClose(ticket))
          count++;
       Sleep(50); // Relax for 50 ms
    }
-   return total;
+   return count;
 }
 
 bool OrderCloseAll()
@@ -3783,7 +3705,7 @@ bool JsonToMqlTradeRequest(JSONObject *jo, MqlTradeRequest& request)
    
    //Expiration
    if (jo.getValue("MtExpiration") == NULL) return false;
-   request.expiration = (datetime)jo.getInt("MtExpiration");
+   request.expiration = (datetime)jo.getLong("MtExpiration");
 
    //Comment
    if (jo.getValue("Comment") != NULL)
@@ -3871,7 +3793,7 @@ JSONObject* MqlTradeTransactionToJson(const MqlTradeTransaction& trans)
    jo.put("OrderState", new JSONNumber((int)trans.order_state));
    jo.put("DealType", new JSONNumber((int)trans.deal_type));
    jo.put("TimeType", new JSONNumber((int)trans.time_type));
-   jo.put("MtTimeExpiration", new JSONNumber((int)trans.time_expiration));
+   jo.put("MtTimeExpiration", new JSONNumber((long)trans.time_expiration));
    jo.put("Price", new JSONNumber(trans.price));
    jo.put("PriceTrigger", new JSONNumber(trans.price_trigger));
    jo.put("PriceSl", new JSONNumber(trans.price_sl));
@@ -3898,15 +3820,17 @@ JSONObject* MqlTradeRequestToJson(const MqlTradeRequest& request)
    jo.put("Type", new JSONNumber((int)request.type));
    jo.put("Type_filling", new JSONNumber((int)request.type_filling));
    jo.put("Type_time", new JSONNumber((int)request.type_time));
-   jo.put("MtExpiration", new JSONNumber((int)request.expiration));
+   jo.put("MtExpiration", new JSONNumber((long)request.expiration));
    jo.put("Comment", new JSONString(request.comment));
+   jo.put("Position", new JSONNumber(request.position));
+   jo.put("PositionBy", new JSONNumber(request.position_by));
    return jo;
 }
 
 JSONObject* MqlRatesToJson(const MqlRates& rates)
 {
    JSONObject *jo = new JSONObject();
-   jo.put("mt_time", new JSONNumber((int)rates.time));
+   jo.put("mt_time", new JSONNumber((long)rates.time));
    jo.put("open", new JSONNumber(rates.open));
    jo.put("high", new JSONNumber(rates.high));
    jo.put("low", new JSONNumber(rates.low));

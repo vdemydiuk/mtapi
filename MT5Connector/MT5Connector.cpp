@@ -3,17 +3,26 @@
 #include "Stdafx.h"
 
 #include <array>
+#include <algorithm>
 #include <functional>
 #include <string>
 #include <Windows.h>
 #include "Mt5Handler.h"
 #include "MtService.h"
 
+// Buffer sizes (in characters) allocated by the MQL expert via StringInit().
+// Keep in sync with MtApi*.mq*: payload = 5000, error = 1000.
+static const size_t PAYLOAD_BUFFER_SIZE = 5000;
+static const size_t ERROR_BUFFER_SIZE = 1000;
+
 // Converts UTF-8 to UTF-16 and copies it into a buffer provided by MQL.
-// At most 1000 characters are copied and no terminating null is written:
-// MQL initializes the buffer with zeros (StringInit) before the call.
-static void convertSystemString(wchar_t* dest, const std::string& src)
+// Copies at most dest_size - 1 characters and always writes a terminating null.
+static void convertSystemString(wchar_t* dest, size_t dest_size, const std::string& src)
 {
+    if (dest == nullptr || dest_size == 0)
+        return;
+
+    dest[0] = L'\0';
     if (src.empty())
         return;
 
@@ -24,7 +33,9 @@ static void convertSystemString(wchar_t* dest, const std::string& src)
 
     std::wstring wstr(len, L'\0');
     MultiByteToWideChar(CP_UTF8, 0, src.data(), src_len, &wstr[0], len);
-    memcpy(dest, wstr.c_str(), wcsnlen(wstr.c_str(), 1000) * sizeof(wchar_t));
+    const size_t count = (std::min)(wcsnlen(wstr.c_str(), wstr.size()), dest_size - 1);
+    memcpy(dest, wstr.c_str(), count * sizeof(wchar_t));
+    dest[count] = L'\0';
 }
 
 // Converts a null-terminated UTF-16 string from MQL to UTF-8.
@@ -55,7 +66,7 @@ template <typename T> T Execute(std::function<T()> func, wchar_t* err, T default
     }
     catch (std::exception& e)
     {
-        convertSystemString(err, e.what());
+        convertSystemString(err, ERROR_BUFFER_SIZE, e.what());
         MtService::GetInstance().LogError(e.what());
     }
     return result;
@@ -105,7 +116,7 @@ _DLLAPI int _stdcall getCommandType(int expertHandle, int& res, wchar_t* err)
 _DLLAPI int _stdcall getPayload(int expertHandle, wchar_t* res, wchar_t* err)
 {
     return Execute<int>([&expertHandle, res]() {
-        convertSystemString(res, MtService::GetInstance().GetCommandPayload(expertHandle));
+        convertSystemString(res, PAYLOAD_BUFFER_SIZE, MtService::GetInstance().GetCommandPayload(expertHandle));
         return 1;
         }, err, 0);
 }

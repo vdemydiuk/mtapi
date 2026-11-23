@@ -1,0 +1,9 @@
+build/
+out/
+CMakeFiles/
+*.o
+*.a
+*.so
+*.dylib
+third_party/
+external/

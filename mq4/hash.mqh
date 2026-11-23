@@ -164,7 +164,7 @@ private:
     {
         _hashSlots = 0;
         _hashEntryCount = 0;
-        clearError();
+        setError(0,"");
         setAdoptValues(adoptValues);
 
         rehash(size);
@@ -191,21 +191,23 @@ private:
     /// this is the bottleneck function. Shame mql hash no default hash method for objects.
     uint hash(string s)
     {
-
-        uchar c[];
         uint h = 0;
 
         if (s != NULL) {
             h = 5381;
-            int n = StringToCharArray(s,c);
+            // Hash the UTF-16 characters directly: no temporary array, no code page conversion.
+            int n = StringLen(s);
             for(int i = 0 ; i < n ; i++ ) {
-                h = ((h << 5 ) + h ) + c[i];
+                h = ((h << 5 ) + h ) + StringGetCharacter(s,i);
             }
         }
         return h % _hashSlots;
     }
     void clearError() {
-        setError(0,"");
+        // Called on every lookup - only touch the string when there is an error to clear.
+        if (_errCode != 0) {
+            setError(0,"");
+        }
     }
     void setError(int e,string m) {
         _errCode = e;
@@ -286,6 +288,11 @@ public:
          //Alert("finding");
         bool found = false;
 
+        // Reset results of the previous lookup, otherwise hDel would unlink
+        // using a stale _foundPrev when the key is at the head of its bucket.
+        _foundEntry = NULL;
+        _foundPrev = NULL;
+
         // Get the index using the hashcode of the string
         _foundIndex = hash(keyName);
         
@@ -331,7 +338,6 @@ public:
     /// Change the hash size and re-allocate values to new buckets.
     bool rehash(uint newSize) {
         bool ret = false;
-        HashEntry* oldTable[];
 
         uint oldSize = _hashSlots;
         newSize  = size2prime(newSize);
@@ -340,36 +346,35 @@ public:
         if (newSize <= getSlots()) {
             setError(2,"rehash "+(string)newSize+" <= "+(string)_hashSlots);
         } else if (ArrayResize(_buckets,newSize) != newSize) {
+            // ArrayResize keeps the old buckets on failure, so the hash is still intact.
             setError(3,"unable to resize ");
-        } else if (ArrayResize(oldTable,oldSize) != oldSize) {
-            setError(4,"unable to resize old copy ");
         } else {
-            //Copy old table.
+            // ArrayResize kept the old buckets [0, oldSize). Unlink all entries into one
+            // list and clear the table, so no temporary copy of the table is needed.
+            HashEntry *all = NULL;
             uint i;
-            for(i = 0 ; i < oldSize ; i++ ) oldTable[i] = _buckets[i];
-            // Init new entries - not sure if MQL does this anyway
-            for(i = 0 ; i<newSize ; i++ ) _buckets[i] = NULL;
+            for(i = 0 ; i < oldSize ; i++ ) {
+                HashEntry *next = NULL;
+                for(HashEntry *e = _buckets[i] ; e != NULL ; e = next ) {
+                    next = e._next;
+                    e._next = all;
+                    all = e;
+                }
+            }
+            for(i = 0 ; i < newSize ; i++ ) _buckets[i] = NULL;
 
             // Move entries to new slots
             _hashSlots = newSize;
             _resizeThreshold = (int)_hashSlots / 4 * 3; // Just use the default load factor value of Javas HashTable
 
-            // Look through all slots
-            for(uint oldHashCode = 0 ; oldHashCode<oldSize ; oldHashCode++ ) {
-                HashEntry *next = NULL;
+            HashEntry *nextEntry = NULL;
+            for(HashEntry *e = all ; e != NULL ; e = nextEntry ) {
+                nextEntry = e._next;
 
-                // Walk linked list
-                for(HashEntry *e = oldTable[oldHashCode] ; e != NULL ; e = next )  {
-
-                    next = e._next;
-
-                    uint newHashCode = hash(e._key);
-                    // Insert at head of new list.
-                    e._next = _buckets[newHashCode];
-                    _buckets[newHashCode] = e;
-                }
-
-                oldTable[oldHashCode] = NULL;
+                uint newHashCode = hash(e._key);
+                // Insert at head of new list.
+                e._next = _buckets[newHashCode];
+                _buckets[newHashCode] = e;
             }
             ret = true;
         }
