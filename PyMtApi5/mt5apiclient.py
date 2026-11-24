@@ -1108,6 +1108,84 @@ class Mt5ApiClient:
         cmd_params = {"ChartId": chart_id, "PropId": prop_id, "SubWindow": sub_window}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartGetInteger, cmd_params)
 
+    # ChartGetString
+    def chart_get_string(self, chart_id, prop_id: ENUM_CHART_PROPERTY_STRING):
+        cmd_params = {"ChartId": chart_id, "PropId": prop_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartGetString, cmd_params)
+
+    # ChartSetSymbolPeriod
+    def chart_set_symbol_period(self, chart_id, symbol: str, period: ENUM_TIMEFRAMES):
+        cmd_params = {"ChartId": chart_id, "Symbol": symbol, "Period": period}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartSetSymbolPeriod, cmd_params)
+
+    # ChartScreenShot
+    def chart_screen_shot(
+        self,
+        chart_id,
+        filename: str,
+        width: int,
+        height: int,
+        align_mode: ENUM_ALIGN_MODE = ENUM_ALIGN_MODE.ALIGN_RIGHT,
+    ):
+        cmd_params = {
+            "ChartId": chart_id,
+            "Filename": filename,
+            "Width": width,
+            "Height": height,
+            "AlignMode": int(align_mode),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartScreenShot, cmd_params)
+
+    # ChartNavigate
+    def chart_navigate(self, chart_id, position: ENUM_CHART_POSITION, shift: int = 0):
+        cmd_params = {"ChartId": chart_id, "Position": int(position), "Shift": shift}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartNavigate, cmd_params)
+
+    # ChartIndicatorAdd
+    def chart_indicator_add(self, chart_id, sub_window: int, indicator_handle: int):
+        cmd_params = {"ChartId": chart_id, "SubWindow": sub_window, "IndicatorHandle": indicator_handle}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartIndicatorAdd, cmd_params)
+
+    # ChartIndicatorDelete
+    def chart_indicator_delete(self, chart_id, sub_window: int, indicator_shortname: str):
+        cmd_params = {"ChartId": chart_id, "SubWindow": sub_window, "IndicatorShortname": indicator_shortname}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartIndicatorDelete, cmd_params)
+
+    # ChartIndicatorGet, returns the indicator handle
+    def chart_indicator_get(self, chart_id, sub_window: int, indicator_shortname: str):
+        cmd_params = {"ChartId": chart_id, "SubWindow": sub_window, "IndicatorShortname": indicator_shortname}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartIndicatorGet, cmd_params)
+
+    # ChartIndicatorName
+    def chart_indicator_name(self, chart_id, sub_window: int, index: int):
+        cmd_params = {"ChartId": chart_id, "SubWindow": sub_window, "Index": index}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartIndicatorName, cmd_params)
+
+    # ChartIndicatorsTotal
+    def chart_indicators_total(self, chart_id, sub_window: int):
+        cmd_params = {"ChartId": chart_id, "SubWindow": sub_window}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartIndicatorsTotal, cmd_params)
+
+    # ChartWindowOnDropped
+    def chart_window_on_dropped(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartWindowOnDropped)
+
+    # ChartPriceOnDropped
+    def chart_price_on_dropped(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartPriceOnDropped)
+
+    # ChartTimeOnDropped, returns MetaTrader time (seconds since 1970)
+    def chart_time_on_dropped(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartTimeOnDropped)
+
+    # ChartXOnDropped
+    def chart_x_on_dropped(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartXOnDropped)
+
+    # ChartYOnDropped
+    def chart_y_on_dropped(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ChartYOnDropped)
+
     # Private methods
 
     def __event_thread_func(self):

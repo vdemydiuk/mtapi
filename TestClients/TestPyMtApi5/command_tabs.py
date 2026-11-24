@@ -803,6 +803,14 @@ class CommandTabs:
         prop_integer = enum_dropdown("Property", mt5enums.ENUM_CHART_PROPERTY_INTEGER)
         prop_string = enum_dropdown("Property", mt5enums.ENUM_CHART_PROPERTY_STRING)
         value = text_field("Value", "", width=200)
+        indicator_handle = text_field("Indicator handle", "0", width=160)
+        indicator_index = text_field("Indicator index", "0", width=140)
+        shot_file = text_field("Screenshot file", "shot.gif", width=200)
+        shot_width = text_field("Width", "800", width=100)
+        shot_height = text_field("Height", "600", width=100)
+        align_mode = enum_dropdown("Align", mt5enums.ENUM_ALIGN_MODE, mt5enums.ENUM_ALIGN_MODE.ALIGN_RIGHT, width=200)
+        nav_position = enum_dropdown("Position", mt5enums.ENUM_CHART_POSITION, width=220)
+        nav_shift = text_field("Shift", "0", width=100)
 
         def cid() -> int:
             return get_int(chart_id)
@@ -838,10 +846,18 @@ class CommandTabs:
                     self.__button("ChartRedraw", lambda c: c.chart_redraw(cid())),
                     self.__button("ChartClose", lambda c: c.chart_close(cid())),
                 ),
-                row(symbol, timeframe, self.__button(
-                    "ChartOpen",
-                    updates_chart_id(lambda c: c.chart_open(get_str(symbol), get_enum(timeframe, mt5enums.ENUM_TIMEFRAMES))),
-                )),
+                row(
+                    symbol,
+                    timeframe,
+                    self.__button(
+                        "ChartOpen",
+                        updates_chart_id(lambda c: c.chart_open(get_str(symbol), get_enum(timeframe, mt5enums.ENUM_TIMEFRAMES))),
+                    ),
+                    self.__button(
+                        "ChartSetSymbolPeriod",
+                        lambda c: c.chart_set_symbol_period(cid(), get_str(symbol), get_enum(timeframe, mt5enums.ENUM_TIMEFRAMES)),
+                    ),
+                ),
             ),
             section(
                 "Templates and windows (Chart ID from above)",
@@ -853,6 +869,65 @@ class CommandTabs:
                 row(indicator_name, self.__button(
                     "ChartWindowFind", lambda c: c.chart_window_find(cid(), get_str(indicator_name))
                 )),
+                row(
+                    shot_file,
+                    shot_width,
+                    shot_height,
+                    align_mode,
+                    self.__button(
+                        "ChartScreenShot",
+                        lambda c: c.chart_screen_shot(
+                            cid(),
+                            get_str(shot_file),
+                            get_int(shot_width),
+                            get_int(shot_height),
+                            get_enum(align_mode, mt5enums.ENUM_ALIGN_MODE),
+                        ),
+                    ),
+                ),
+                row(
+                    nav_position,
+                    nav_shift,
+                    self.__button(
+                        "ChartNavigate",
+                        lambda c: c.chart_navigate(
+                            cid(), get_enum(nav_position, mt5enums.ENUM_CHART_POSITION), get_int(nav_shift)
+                        ),
+                    ),
+                ),
+            ),
+            section(
+                "Indicators on chart (Chart ID, Sub-window and Indicator short name from above)",
+                row(indicator_handle, indicator_index),
+                row(
+                    self.__button(
+                        "ChartIndicatorAdd",
+                        lambda c: c.chart_indicator_add(cid(), get_int(sub_window), get_int(indicator_handle)),
+                    ),
+                    self.__button(
+                        "ChartIndicatorDelete",
+                        lambda c: c.chart_indicator_delete(cid(), get_int(sub_window), get_str(indicator_name)),
+                    ),
+                    self.__button(
+                        "ChartIndicatorGet",
+                        lambda c: c.chart_indicator_get(cid(), get_int(sub_window), get_str(indicator_name)),
+                    ),
+                    self.__button(
+                        "ChartIndicatorName",
+                        lambda c: c.chart_indicator_name(cid(), get_int(sub_window), get_int(indicator_index)),
+                    ),
+                    self.__button("ChartIndicatorsTotal", lambda c: c.chart_indicators_total(cid(), get_int(sub_window))),
+                ),
+            ),
+            section(
+                "Last drag and drop of an expert or script onto a chart",
+                row(
+                    self.__button("ChartWindowOnDropped", lambda c: c.chart_window_on_dropped()),
+                    self.__button("ChartPriceOnDropped", lambda c: c.chart_price_on_dropped()),
+                    self.__button("ChartTimeOnDropped", lambda c: c.chart_time_on_dropped()),
+                    self.__button("ChartXOnDropped", lambda c: c.chart_x_on_dropped()),
+                    self.__button("ChartYOnDropped", lambda c: c.chart_y_on_dropped()),
+                ),
             ),
             section(
                 "Coordinates (Chart ID from above)",
@@ -897,11 +972,18 @@ class CommandTabs:
                         ),
                     ),
                 ),
-                row(prop_string, self.__button(
-                    "ChartSetString",
-                    lambda c: c.chart_set_string(
-                        cid(), get_enum(prop_string, mt5enums.ENUM_CHART_PROPERTY_STRING), value.value or ""
+                row(
+                    prop_string,
+                    self.__button(
+                        "ChartSetString",
+                        lambda c: c.chart_set_string(
+                            cid(), get_enum(prop_string, mt5enums.ENUM_CHART_PROPERTY_STRING), value.value or ""
+                        ),
                     ),
-                )),
+                    self.__button(
+                        "ChartGetString",
+                        lambda c: c.chart_get_string(cid(), get_enum(prop_string, mt5enums.ENUM_CHART_PROPERTY_STRING)),
+                    ),
+                ),
             ),
         )
