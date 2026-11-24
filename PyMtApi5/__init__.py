@@ -34,4 +34,4 @@ __all__ = [
     "MtRpcError",
     "ResponseStatus",
     "mt5enums",
-] + [name for name in dir(mt5enums) if name.startswith("ENUM_")] + ["CopyTicksFlag"]
+] + [name for name in dir(mt5enums) if name.startswith("ENUM_")] + ["CopyTicksFlag", "ParametersType"]

@@ -290,8 +290,9 @@ class Mt5ApiClient:
         with self.__lock:
             return list(self.__quotes.values())
 
+    # IsTesting
     def is_testing(self):
-        return False
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.IsTesting)
 
     # Account Information functions
 
@@ -774,6 +775,541 @@ class Mt5ApiClient:
     # TimeGMT
     def time_gmt(self):
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.TimeGMT)
+
+    # Common Functions
+
+    # Alert
+    def alert(self, message: str):
+        cmd_params = {"Message": message}
+        self.__send_command(self.__get_default_expert(), Mt5CommandType.Alert, cmd_params)
+
+    # Print
+    def print_message(self, message: str):
+        cmd_params = {"PrintMsg": message}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.Print, cmd_params)
+
+    # GetLastError
+    def get_last_error(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.GetLastError)
+
+    # ResetLastError
+    def reset_last_error(self):
+        self.__send_command(self.__get_default_expert(), Mt5CommandType.ResetLastError)
+
+    # GetSymbols, returns the list of symbol names
+    def get_symbols(self, selected: bool):
+        cmd_params = {"Selected": selected}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.GetSymbols, cmd_params)
+
+    # Strategy tester functions
+
+    # TesterStop
+    def tester_stop(self):
+        self.__send_command(self.__get_default_expert(), Mt5CommandType.TesterStop)
+
+    # UnlockTicks
+    def unlock_ticks(self):
+        self.__send_command(self.__get_default_expert(), Mt5CommandType.UnlockTicks)
+
+    # Technical Indicators (each returns the indicator handle)
+
+    # iAC
+    def i_ac(self, symbol: str, period: ENUM_TIMEFRAMES):
+        cmd_params = {"Symbol": symbol, "Period": int(period)}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iAC, cmd_params)
+
+    # iAD
+    def i_ad(self, symbol: str, period: ENUM_TIMEFRAMES, applied_volume: ENUM_APPLIED_VOLUME):
+        cmd_params = {"Symbol": symbol, "Period": int(period), "AppliedVolume": int(applied_volume)}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iAD, cmd_params)
+
+    # iADX
+    def i_adx(self, symbol: str, period: ENUM_TIMEFRAMES, adx_period: int):
+        cmd_params = {"Symbol": symbol, "Period": int(period), "AdxPeriod": adx_period}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iADX, cmd_params)
+
+    # iADXWilder
+    def i_adx_wilder(self, symbol: str, period: ENUM_TIMEFRAMES, adx_period: int):
+        cmd_params = {"Symbol": symbol, "Period": int(period), "AdxPeriod": adx_period}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iADXWilder, cmd_params)
+
+    # iAlligator
+    def i_alligator(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        jaw_period: int,
+        jaw_shift: int,
+        teeth_period: int,
+        teeth_shift: int,
+        lips_period: int,
+        lips_shift: int,
+        ma_method: ENUM_MA_METHOD,
+        applied_price: ENUM_APPLIED_PRICE,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "JawPeriod": jaw_period,
+            "JawShift": jaw_shift,
+            "TeethPeriod": teeth_period,
+            "TeethShift": teeth_shift,
+            "LipsPeriod": lips_period,
+            "LipsShift": lips_shift,
+            "MaMethod": int(ma_method),
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iAlligator, cmd_params)
+
+    # iAMA
+    def i_ama(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        ama_period: int,
+        fast_ma_period: int,
+        slow_ma_period: int,
+        ama_shift: int,
+        applied_price: ENUM_APPLIED_PRICE,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "AmaPeriod": ama_period,
+            "FastMaPeriod": fast_ma_period,
+            "SlowMaPeriod": slow_ma_period,
+            "AmaShift": ama_shift,
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iAMA, cmd_params)
+
+    # iAO
+    def i_ao(self, symbol: str, period: ENUM_TIMEFRAMES):
+        cmd_params = {"Symbol": symbol, "Period": int(period)}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iAO, cmd_params)
+
+    # iATR
+    def i_atr(self, symbol: str, period: ENUM_TIMEFRAMES, ma_period: int):
+        cmd_params = {"Symbol": symbol, "Period": int(period), "MaPeriod": ma_period}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iATR, cmd_params)
+
+    # iBearsPower
+    def i_bears_power(self, symbol: str, period: ENUM_TIMEFRAMES, ma_period: int):
+        cmd_params = {"Symbol": symbol, "Period": int(period), "MaPeriod": ma_period}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iBearsPower, cmd_params)
+
+    # iBands
+    def i_bands(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        bands_period: int,
+        bands_shift: int,
+        deviation: float,
+        applied_price: ENUM_APPLIED_PRICE,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "BandsPeriod": bands_period,
+            "BandsShift": bands_shift,
+            "Deviation": deviation,
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iBands, cmd_params)
+
+    # iBullsPower
+    def i_bulls_power(self, symbol: str, period: ENUM_TIMEFRAMES, ma_period: int):
+        cmd_params = {"Symbol": symbol, "Period": int(period), "MaPeriod": ma_period}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iBullsPower, cmd_params)
+
+    # iCCI
+    def i_cci(self, symbol: str, period: ENUM_TIMEFRAMES, ma_period: int, applied_price: ENUM_APPLIED_PRICE):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "MaPeriod": ma_period,
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iCCI, cmd_params)
+
+    # iChaikin
+    def i_chaikin(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        fast_ma_period: int,
+        slow_ma_period: int,
+        ma_method: ENUM_MA_METHOD,
+        applied_volume: ENUM_APPLIED_VOLUME,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "FastMaPeriod": fast_ma_period,
+            "SlowMaPeriod": slow_ma_period,
+            "MaMethod": int(ma_method),
+            "AppliedVolume": int(applied_volume),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iChaikin, cmd_params)
+
+    # iDEMA
+    def i_dema(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        ma_period: int,
+        ma_shift: int,
+        applied_price: ENUM_APPLIED_PRICE,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "MaPeriod": ma_period,
+            "MaShift": ma_shift,
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iDEMA, cmd_params)
+
+    # iDeMarker
+    def i_de_marker(self, symbol: str, period: ENUM_TIMEFRAMES, ma_period: int):
+        cmd_params = {"Symbol": symbol, "Period": int(period), "MaPeriod": ma_period}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iDeMarker, cmd_params)
+
+    # iEnvelopes
+    def i_envelopes(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        ma_period: int,
+        ma_shift: int,
+        ma_method: ENUM_MA_METHOD,
+        applied_price: ENUM_APPLIED_PRICE,
+        deviation: float,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "MaPeriod": ma_period,
+            "MaShift": ma_shift,
+            "MaMethod": int(ma_method),
+            "AppliedPrice": int(applied_price),
+            "Deviation": deviation,
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iEnvelopes, cmd_params)
+
+    # iForce
+    def i_force(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        ma_period: int,
+        ma_method: ENUM_MA_METHOD,
+        applied_volume: ENUM_APPLIED_VOLUME,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "MaPeriod": ma_period,
+            "MaMethod": int(ma_method),
+            "AppliedVolume": int(applied_volume),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iForce, cmd_params)
+
+    # iFractals
+    def i_fractals(self, symbol: str, period: ENUM_TIMEFRAMES):
+        cmd_params = {"Symbol": symbol, "Period": int(period)}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iFractals, cmd_params)
+
+    # iFrAMA
+    def i_frama(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        ma_period: int,
+        ma_shift: int,
+        applied_price: ENUM_APPLIED_PRICE,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "MaPeriod": ma_period,
+            "MaShift": ma_shift,
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iFrAMA, cmd_params)
+
+    # iGator
+    def i_gator(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        jaw_period: int,
+        jaw_shift: int,
+        teeth_period: int,
+        teeth_shift: int,
+        lips_period: int,
+        lips_shift: int,
+        ma_method: ENUM_MA_METHOD,
+        applied_price: ENUM_APPLIED_PRICE,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "JawPeriod": jaw_period,
+            "JawShift": jaw_shift,
+            "TeethPeriod": teeth_period,
+            "TeethShift": teeth_shift,
+            "LipsPeriod": lips_period,
+            "LipsShift": lips_shift,
+            "MaMethod": int(ma_method),
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iGator, cmd_params)
+
+    # iIchimoku
+    def i_ichimoku(self, symbol: str, period: ENUM_TIMEFRAMES, tenkan_sen: int, kijun_sen: int, senkou_span_b: int):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "TenkanSen": tenkan_sen,
+            "KijunSen": kijun_sen,
+            "SenkouSpanB": senkou_span_b,
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iIchimoku, cmd_params)
+
+    # iBWMFI
+    def i_bwmfi(self, symbol: str, period: ENUM_TIMEFRAMES, applied_volume: ENUM_APPLIED_VOLUME):
+        cmd_params = {"Symbol": symbol, "Period": int(period), "AppliedVolume": int(applied_volume)}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iBWMFI, cmd_params)
+
+    # iMomentum
+    def i_momentum(self, symbol: str, period: ENUM_TIMEFRAMES, mom_period: int, applied_price: ENUM_APPLIED_PRICE):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "MomPeriod": mom_period,
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iMomentum, cmd_params)
+
+    # iMFI
+    def i_mfi(self, symbol: str, period: ENUM_TIMEFRAMES, ma_period: int, applied_volume: ENUM_APPLIED_VOLUME):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "MaPeriod": ma_period,
+            "AppliedVolume": int(applied_volume),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iMFI, cmd_params)
+
+    # iMA
+    def i_ma(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        ma_period: int,
+        ma_shift: int,
+        ma_method: ENUM_MA_METHOD,
+        applied_price: ENUM_APPLIED_PRICE,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "MaPeriod": ma_period,
+            "MaShift": ma_shift,
+            "MaMethod": int(ma_method),
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iMA, cmd_params)
+
+    # iOsMA
+    def i_osma(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        fast_ema_period: int,
+        slow_ema_period: int,
+        signal_period: int,
+        applied_price: ENUM_APPLIED_PRICE,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "FastEmaPeriod": fast_ema_period,
+            "SlowEmaPeriod": slow_ema_period,
+            "SignalPeriod": signal_period,
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iOsMA, cmd_params)
+
+    # iMACD
+    def i_macd(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        fast_ema_period: int,
+        slow_ema_period: int,
+        signal_period: int,
+        applied_price: ENUM_APPLIED_PRICE,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "FastEmaPeriod": fast_ema_period,
+            "SlowEmaPeriod": slow_ema_period,
+            "SignalPeriod": signal_period,
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iMACD, cmd_params)
+
+    # iOBV
+    def i_obv(self, symbol: str, period: ENUM_TIMEFRAMES, applied_volume: ENUM_APPLIED_VOLUME):
+        cmd_params = {"Symbol": symbol, "Period": int(period), "AppliedVolume": int(applied_volume)}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iOBV, cmd_params)
+
+    # iSAR
+    def i_sar(self, symbol: str, period: ENUM_TIMEFRAMES, step: float, maximum: float):
+        cmd_params = {"Symbol": symbol, "Period": int(period), "Step": step, "Maximum": maximum}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iSAR, cmd_params)
+
+    # iRSI
+    def i_rsi(self, symbol: str, period: ENUM_TIMEFRAMES, ma_period: int, applied_price: ENUM_APPLIED_PRICE):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "MaPeriod": ma_period,
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iRSI, cmd_params)
+
+    # iRVI
+    def i_rvi(self, symbol: str, period: ENUM_TIMEFRAMES, ma_period: int):
+        cmd_params = {"Symbol": symbol, "Period": int(period), "MaPeriod": ma_period}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iRVI, cmd_params)
+
+    # iStdDev
+    def i_std_dev(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        ma_period: int,
+        ma_shift: int,
+        ma_method: ENUM_MA_METHOD,
+        applied_price: ENUM_APPLIED_PRICE,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "MaPeriod": ma_period,
+            "MaShift": ma_shift,
+            "MaMethod": int(ma_method),
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iStdDev, cmd_params)
+
+    # iStochastic
+    def i_stochastic(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        k_period: int,
+        d_period: int,
+        slowing: int,
+        ma_method: ENUM_MA_METHOD,
+        price_field: ENUM_STO_PRICE,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "Kperiod": k_period,
+            "Dperiod": d_period,
+            "Slowing": slowing,
+            "MaMethod": int(ma_method),
+            "PriceField": int(price_field),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iStochastic, cmd_params)
+
+    # iTEMA
+    def i_tema(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        ma_period: int,
+        ma_shift: int,
+        applied_price: ENUM_APPLIED_PRICE,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "MaPeriod": ma_period,
+            "MaShift": ma_shift,
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iTEMA, cmd_params)
+
+    # iTriX
+    def i_trix(self, symbol: str, period: ENUM_TIMEFRAMES, ma_period: int, applied_price: ENUM_APPLIED_PRICE):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "MaPeriod": ma_period,
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iTriX, cmd_params)
+
+    # iWPR
+    def i_wpr(self, symbol: str, period: ENUM_TIMEFRAMES, calc_period: int):
+        cmd_params = {"Symbol": symbol, "Period": int(period), "CalcPeriod": calc_period}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iWPR, cmd_params)
+
+    # iVIDyA
+    def i_vidya(
+        self,
+        symbol: str,
+        period: ENUM_TIMEFRAMES,
+        cmo_period: int,
+        ema_period: int,
+        ma_shift: int,
+        applied_price: ENUM_APPLIED_PRICE,
+    ):
+        cmd_params = {
+            "Symbol": symbol,
+            "Period": int(period),
+            "CmoPeriod": cmo_period,
+            "EmaPeriod": ema_period,
+            "MaShift": ma_shift,
+            "AppliedPrice": int(applied_price),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iVIDyA, cmd_params)
+
+    # iVolumes
+    def i_volumes(self, symbol: str, period: ENUM_TIMEFRAMES, applied_volume: ENUM_APPLIED_VOLUME):
+        cmd_params = {"Symbol": symbol, "Period": int(period), "AppliedVolume": int(applied_volume)}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iVolumes, cmd_params)
+
+    # iCustom, 'parameters' is a list of up to 10 values of the same kind: all int, all float (ints are
+    # accepted too), all bool or all str
+    def i_custom(self, symbol: str, period: ENUM_TIMEFRAMES, name: str, parameters: list = ()):
+        parameters = list(parameters)
+        if all(isinstance(p, bool) for p in parameters) and parameters:
+            params_type = ParametersType.Boolean
+        elif all(isinstance(p, str) for p in parameters) and parameters:
+            params_type = ParametersType.String
+        elif all(isinstance(p, int) and not isinstance(p, bool) for p in parameters):
+            params_type = ParametersType.Int
+        elif all(isinstance(p, (int, float)) and not isinstance(p, bool) for p in parameters):
+            params_type = ParametersType.Double
+        else:
+            raise ValueError("All iCustom parameters must be of the same kind: int, float, bool or str")
+        cmd_params = {
+            "Symbol": symbol,
+            "Timeframe": int(period),
+            "Name": name,
+            "Params": parameters,
+            "ParamsType": int(params_type),
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iCustom, cmd_params)
 
     # Timeseries and Indicators Access
 

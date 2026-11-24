@@ -117,6 +117,80 @@ def set_value(field: ft.TextField, value: Any):
     field.update()
 
 
+# --- technical indicators (iXxx) ------------------------------------------------------
+
+# (function name, Mt5ApiClient method, [(parameter, kind, default)]) after the common 'symbol' and 'period'.
+# kind: i = integer, f = float, ap/av/mm/sto = enum (ENUM_APPLIED_PRICE/ENUM_APPLIED_VOLUME/ENUM_MA_METHOD/ENUM_STO_PRICE).
+INDICATORS = [
+    ("iAC", "i_ac", []),
+    ("iAD", "i_ad", [("applied_volume", "av", None)]),
+    ("iADX", "i_adx", [("adx_period", "i", '14')]),
+    ("iADXWilder", "i_adx_wilder", [("adx_period", "i", '14')]),
+    ("iAlligator", "i_alligator", [("jaw_period", "i", '13'), ("jaw_shift", "i", '8'), ("teeth_period", "i", '8'), ("teeth_shift", "i", '5'), ("lips_period", "i", '5'), ("lips_shift", "i", '3'), ("ma_method", "mm", None), ("applied_price", "ap", None)]),
+    ("iAMA", "i_ama", [("ama_period", "i", '9'), ("fast_ma_period", "i", '2'), ("slow_ma_period", "i", '30'), ("ama_shift", "i", '1'), ("applied_price", "ap", None)]),
+    ("iAO", "i_ao", []),
+    ("iATR", "i_atr", [("ma_period", "i", '14')]),
+    ("iBearsPower", "i_bears_power", [("ma_period", "i", '13')]),
+    ("iBands", "i_bands", [("bands_period", "i", '20'), ("bands_shift", "i", '1'), ("deviation", "f", '2.0'), ("applied_price", "ap", None)]),
+    ("iBullsPower", "i_bulls_power", [("ma_period", "i", '13')]),
+    ("iCCI", "i_cci", [("ma_period", "i", '14'), ("applied_price", "ap", None)]),
+    ("iChaikin", "i_chaikin", [("fast_ma_period", "i", '3'), ("slow_ma_period", "i", '10'), ("ma_method", "mm", None), ("applied_volume", "av", None)]),
+    ("iDEMA", "i_dema", [("ma_period", "i", '14'), ("ma_shift", "i", '2'), ("applied_price", "ap", None)]),
+    ("iDeMarker", "i_de_marker", [("ma_period", "i", '14')]),
+    ("iEnvelopes", "i_envelopes", [("ma_period", "i", '14'), ("ma_shift", "i", '2'), ("ma_method", "mm", None), ("applied_price", "ap", None), ("deviation", "f", '0.1')]),
+    ("iForce", "i_force", [("ma_period", "i", '13'), ("ma_method", "mm", None), ("applied_volume", "av", None)]),
+    ("iFractals", "i_fractals", []),
+    ("iFrAMA", "i_frama", [("ma_period", "i", '14'), ("ma_shift", "i", '2'), ("applied_price", "ap", None)]),
+    ("iGator", "i_gator", [("jaw_period", "i", '13'), ("jaw_shift", "i", '8'), ("teeth_period", "i", '8'), ("teeth_shift", "i", '5'), ("lips_period", "i", '5'), ("lips_shift", "i", '3'), ("ma_method", "mm", None), ("applied_price", "ap", None)]),
+    ("iIchimoku", "i_ichimoku", [("tenkan_sen", "i", '9'), ("kijun_sen", "i", '26'), ("senkou_span_b", "i", '52')]),
+    ("iBWMFI", "i_bwmfi", [("applied_volume", "av", None)]),
+    ("iMomentum", "i_momentum", [("mom_period", "i", '14'), ("applied_price", "ap", None)]),
+    ("iMFI", "i_mfi", [("ma_period", "i", '14'), ("applied_volume", "av", None)]),
+    ("iMA", "i_ma", [("ma_period", "i", '14'), ("ma_shift", "i", '2'), ("ma_method", "mm", None), ("applied_price", "ap", None)]),
+    ("iOsMA", "i_osma", [("fast_ema_period", "i", '12'), ("slow_ema_period", "i", '26'), ("signal_period", "i", '9'), ("applied_price", "ap", None)]),
+    ("iMACD", "i_macd", [("fast_ema_period", "i", '12'), ("slow_ema_period", "i", '26'), ("signal_period", "i", '9'), ("applied_price", "ap", None)]),
+    ("iOBV", "i_obv", [("applied_volume", "av", None)]),
+    ("iSAR", "i_sar", [("step", "f", '0.02'), ("maximum", "f", '0.2')]),
+    ("iRSI", "i_rsi", [("ma_period", "i", '14'), ("applied_price", "ap", None)]),
+    ("iRVI", "i_rvi", [("ma_period", "i", '10')]),
+    ("iStdDev", "i_std_dev", [("ma_period", "i", '20'), ("ma_shift", "i", '1'), ("ma_method", "mm", None), ("applied_price", "ap", None)]),
+    ("iStochastic", "i_stochastic", [("k_period", "i", '5'), ("d_period", "i", '3'), ("slowing", "i", '3'), ("ma_method", "mm", None), ("price_field", "sto", None)]),
+    ("iTEMA", "i_tema", [("ma_period", "i", '14'), ("ma_shift", "i", '2'), ("applied_price", "ap", None)]),
+    ("iTriX", "i_trix", [("ma_period", "i", '14'), ("applied_price", "ap", None)]),
+    ("iWPR", "i_wpr", [("calc_period", "i", '14')]),
+    ("iVIDyA", "i_vidya", [("cmo_period", "i", '9'), ("ema_period", "i", '12'), ("ma_shift", "i", '2'), ("applied_price", "ap", None)]),
+    ("iVolumes", "i_volumes", [("applied_volume", "av", None)]),
+]
+
+INDICATOR_ENUMS: dict[str, tuple[type[IntEnum], IntEnum]] = {
+    "ap": (mt5enums.ENUM_APPLIED_PRICE, mt5enums.ENUM_APPLIED_PRICE.PRICE_CLOSE),
+    "av": (mt5enums.ENUM_APPLIED_VOLUME, mt5enums.ENUM_APPLIED_VOLUME.VOLUME_TICK),
+    "mm": (mt5enums.ENUM_MA_METHOD, mt5enums.ENUM_MA_METHOD.MODE_SMA),
+    "sto": (mt5enums.ENUM_STO_PRICE, mt5enums.ENUM_STO_PRICE.STO_LOWHIGH),
+}
+
+
+def get_custom_parameters(field: ft.TextField) -> list:
+    """iCustom parameters from a comma separated list: true/false -> bool, 12 -> int, 1.5 -> float, otherwise text."""
+    result: list = []
+    for item in (field.value or "").split(","):
+        item = item.strip()
+        if not item:
+            continue
+        if item.lower() in ("true", "false"):
+            result.append(item.lower() == "true")
+            continue
+        for convert in (int, float):
+            try:
+                result.append(convert(item))
+                break
+            except ValueError:
+                pass
+        else:
+            result.append(item)
+    return result
+
+
 # --- tabs -----------------------------------------------------------------------------
 
 
@@ -131,6 +205,7 @@ class CommandTabs:
             tabs=[
                 self.__account_tab(),
                 self.__terminal_tab(),
+                self.__indicators_tab(),
                 self.__trade_tab(),
                 self.__history_tab(),
                 self.__global_variables_tab(),
@@ -608,6 +683,8 @@ class CommandTabs:
         prop_integer = enum_dropdown("Property", mt5enums.ENUM_TERMINAL_INFO_INTEGER)
         prop_double = enum_dropdown("Property", mt5enums.ENUM_TERMINAL_INFO_DOUBLE)
         prop_string = enum_dropdown("Property", mt5enums.ENUM_TERMINAL_INFO_STRING)
+        message = text_field("Message", "hello", width=260)
+        symbols_selected = ft.Checkbox(label="Selected symbols only", value=True)
         return tab(
             "Terminal",
             section(
@@ -626,6 +703,30 @@ class CommandTabs:
                 )),
             ),
             section(
+                "Common functions",
+                row(
+                    message,
+                    self.__button("Alert", lambda c: c.alert(get_str(message))),
+                    self.__button("Print", lambda c: c.print_message(get_str(message))),
+                ),
+                row(
+                    self.__button("GetLastError", lambda c: c.get_last_error()),
+                    self.__button("ResetLastError", lambda c: c.reset_last_error()),
+                    self.__button("IsTesting", lambda c: c.is_testing()),
+                ),
+                row(
+                    symbols_selected,
+                    self.__button("GetSymbols", lambda c: c.get_symbols(bool(symbols_selected.value))),
+                ),
+            ),
+            section(
+                "Strategy tester",
+                row(
+                    self.__button("TesterStop", lambda c: c.tester_stop()),
+                    self.__button("UnlockTicks", lambda c: c.unlock_ticks()),
+                ),
+            ),
+            section(
                 "Date and time (MetaTrader time, seconds since 1970)",
                 row(
                     self.__button("TimeCurrent", lambda c: c.time_current()),
@@ -634,6 +735,57 @@ class CommandTabs:
                     self.__button("TimeGMT", lambda c: c.time_gmt()),
                 ),
             ),
+        )
+
+    # Technical Indicators
+
+    def __indicators_tab(self) -> ft.Tab:
+        symbol = text_field("Symbol", "EURUSD")
+        timeframe = enum_dropdown("Timeframe", mt5enums.ENUM_TIMEFRAMES, mt5enums.ENUM_TIMEFRAMES.PERIOD_H1, width=200)
+        rows: list[ft.Control] = []
+        for function, method, parameters in INDICATORS:
+            controls: list[ft.Control] = []
+            readers: list[Callable[[], Any]] = []
+            for name, kind, default in parameters:
+                if kind in INDICATOR_ENUMS:
+                    enum_cls, enum_default = INDICATOR_ENUMS[kind]
+                    dropdown = enum_dropdown(name, enum_cls, enum_default, width=220)
+                    controls.append(dropdown)
+                    readers.append(lambda d=dropdown, e=enum_cls: get_enum(d, e))
+                else:
+                    field = text_field(name, default or "0", width=140)
+                    controls.append(field)
+                    readers.append(lambda f=field, k=kind: get_int(f) if k == "i" else get_float(f))
+
+            def command(c: Mt5ApiClient, method=method, readers=readers):
+                return getattr(c, method)(
+                    get_str(symbol), get_enum(timeframe, mt5enums.ENUM_TIMEFRAMES), *[read() for read in readers]
+                )
+
+            rows.append(row(self.__button(function, command), *controls))
+
+        custom_name = text_field("Indicator name / path", "Examples\\MACD", width=260)
+        custom_parameters = text_field("Parameters (comma separated)", "", width=300)
+        return tab(
+            "Indicators",
+            section("Symbol and timeframe (used by all indicators below)", row(symbol, timeframe)),
+            section(
+                "iCustom (all parameters must be of the same kind: int, float, true/false or text)",
+                row(
+                    custom_name,
+                    custom_parameters,
+                    self.__button(
+                        "iCustom",
+                        lambda c: c.i_custom(
+                            get_str(symbol),
+                            get_enum(timeframe, mt5enums.ENUM_TIMEFRAMES),
+                            get_str(custom_name),
+                            get_custom_parameters(custom_parameters),
+                        ),
+                    ),
+                ),
+            ),
+            section("Standard indicators (return the indicator handle)", *rows),
         )
 
     # Timeseries and Indicators Access

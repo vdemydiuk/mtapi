@@ -252,3 +252,4 @@ class Mt5CommandType(IntEnum):
         OrderCheck = 303
         Buy = 304
         Sell = 305
+        GetSymbols = 306

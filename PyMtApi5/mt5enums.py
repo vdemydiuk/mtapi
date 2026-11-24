@@ -899,3 +899,11 @@ class CopyTicksFlag(IntEnum):
     Info    = 1    # ticks with Bid and/or Ask changes
     Trade   = 2    # ticks with changes in Last and Volume
     All     = -1   # all ticks
+
+
+class ParametersType(IntEnum):
+    """Kind of the parameters passed to iCustom."""
+    Int     = 0
+    Double  = 1
+    String  = 2
+    Boolean = 3
