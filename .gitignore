@@ -189,8 +189,8 @@ UpgradeLog*.htm
 # Microsoft Fakes
 FakesAssemblies/
 
-# python files
-__pycache__
+# Python cache
+__pycache__/
 
 # codegraph
 .codegraph/
