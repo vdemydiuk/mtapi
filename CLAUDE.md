@@ -50,6 +50,8 @@ The communication stack flows top-to-bottom:
 
 **Unit tests (MT5 only):** `MtApi5.Tests/` is an xUnit project; run with `dotnet test MtApi5.Tests/MtApi5.Tests.csproj`. It needs no MetaTrader terminal: `MtApi5Client` is driven over an in-memory `FakeRpcClient` (see `MtApi5ClientTestHelper.Connect()`), and tests assert the command id and JSON payload sent plus reply conversion. It also covers the SBE codec/schema, JSON protocol, converters, enums, models and the RPC logger. Add a test whenever you add or fix an `MtApi5Client` method. There are no unit tests for MtApi (MT4) yet.
 
+**Python unit tests:** `PyMtApi5/tests/` (stdlib `unittest`, no terminal needed) drives `Mt5ApiClient` over a fake RPC client and asserts the command id and JSON payload sent plus reply conversion. Run from the repo root: `python -m unittest discover -s PyMtApi5/tests -t .`. Currently covers the trade, position and order functions; add a test when you add or fix a `Mt5ApiClient` method.
+
 **Manual testing** against a real terminal is done via GUI test client apps:
 
 - `TestClients/TestApiClientUI/` — MT4 test client

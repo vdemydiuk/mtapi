@@ -12,7 +12,7 @@ from typing import Any
 
 import flet as ft
 
-from PyMtApi5 import Mt5ApiClient, mt5enums
+from PyMtApi5 import Mt5ApiClient, MqlTradeRequest, mt5enums
 
 # A command reads its parameters from the UI controls and calls the client.
 # It may raise ValueError for invalid parameters.
@@ -130,6 +130,7 @@ class CommandTabs:
         self.control = ft.Tabs(
             tabs=[
                 self.__account_tab(),
+                self.__trade_tab(),
                 self.__timeseries_tab(),
                 self.__market_info_tab(),
                 self.__chart_tab(),
@@ -163,6 +164,192 @@ class CommandTabs:
                 row(prop_string, self.__button(
                     "AccountInfoString",
                     lambda c: c.account_info_string(get_enum(prop_string, mt5enums.ENUM_ACCOUNT_INFO_STRING)),
+                )),
+            ),
+        )
+
+    # Trade Functions
+
+    def __trade_tab(self) -> ft.Tab:
+        symbol = text_field("Symbol", "EURUSD")
+        volume = text_field("Volume", "0.1", width=100)
+        price = text_field("Price", "0", width=120)
+        sl = text_field("SL", "0", width=120)
+        tp = text_field("TP", "0", width=120)
+        comment = text_field("Comment", "", width=200)
+        deviation = text_field("Deviation", "10", width=100)
+        ticket = text_field("Ticket", "0", width=160)
+        order_type = enum_dropdown("Order type", mt5enums.ENUM_ORDER_TYPE, width=300)
+        # request-only fields
+        action = enum_dropdown(
+            "Action", mt5enums.ENUM_TRADE_REQUEST_ACTIONS, mt5enums.ENUM_TRADE_REQUEST_ACTIONS.TRADE_ACTION_DEAL, width=300
+        )
+        filling = enum_dropdown("Type filling", mt5enums.ENUM_ORDER_TYPE_FILLING, width=260)
+        type_time = enum_dropdown("Type time", mt5enums.ENUM_ORDER_TYPE_TIME, width=260)
+        magic = text_field("Magic", "0", width=100)
+        order = text_field("Order", "0", width=160)
+        stop_limit = text_field("Stop limit", "0", width=120)
+        expiration = text_field("Expiration (MT time)", "0", width=200)
+        position = text_field("Position", "0", width=160)
+        position_by = text_field("Position by", "0", width=160)
+        # calc-only fields
+        price_open = text_field("Price open", "1.1", width=120)
+        price_close = text_field("Price close", "1.2", width=120)
+        # info fields
+        index = text_field("Index", "0", width=100)
+        prop_pos_double = enum_dropdown("Property", mt5enums.ENUM_POSITION_PROPERTY_DOUBLE)
+        prop_pos_integer = enum_dropdown("Property", mt5enums.ENUM_POSITION_PROPERTY_INTEGER)
+        prop_pos_string = enum_dropdown("Property", mt5enums.ENUM_POSITION_PROPERTY_STRING)
+        prop_order_double = enum_dropdown("Property", mt5enums.ENUM_ORDER_PROPERTY_DOUBLE)
+        prop_order_integer = enum_dropdown("Property", mt5enums.ENUM_ORDER_PROPERTY_INTEGER)
+        prop_order_string = enum_dropdown("Property", mt5enums.ENUM_ORDER_PROPERTY_STRING)
+
+        def request() -> MqlTradeRequest:
+            return MqlTradeRequest(
+                action=get_enum(action, mt5enums.ENUM_TRADE_REQUEST_ACTIONS),
+                magic=get_int(magic),
+                order=get_int(order),
+                symbol=get_str(symbol),
+                volume=get_float(volume),
+                price=get_float(price),
+                stop_limit=get_float(stop_limit),
+                sl=get_float(sl),
+                tp=get_float(tp),
+                deviation=get_int(deviation),
+                order_type=get_enum(order_type, mt5enums.ENUM_ORDER_TYPE),
+                type_filling=get_enum(filling, mt5enums.ENUM_ORDER_TYPE_FILLING),
+                type_time=get_enum(type_time, mt5enums.ENUM_ORDER_TYPE_TIME),
+                expiration=get_int(expiration),
+                comment=comment.value or "",
+                position=get_int(position),
+                position_by=get_int(position_by),
+            )
+
+        def optional_str(field: ft.TextField) -> str | None:
+            return (field.value or "").strip() or None
+
+        return tab(
+            "Trade",
+            section(
+                "Common parameters",
+                row(symbol, volume, price, sl, tp, comment, deviation, ticket),
+                row(order_type),
+            ),
+            section(
+                "Trade request (all fields are sent; fill the ones the action needs)",
+                row(action, filling, type_time),
+                row(magic, order, stop_limit, expiration, position, position_by),
+                row(
+                    self.__button("OrderSend", lambda c: c.order_send(request())),
+                    self.__button("OrderSendAsync", lambda c: c.order_send_async(request())),
+                    self.__button("OrderCheck", lambda c: c.order_check(request())),
+                ),
+            ),
+            section(
+                "Calculations",
+                row(price_open, price_close),
+                row(
+                    self.__button(
+                        "OrderCalcMargin",
+                        lambda c: c.order_calc_margin(
+                            get_enum(order_type, mt5enums.ENUM_ORDER_TYPE), get_str(symbol), get_float(volume), get_float(price)
+                        ),
+                    ),
+                    self.__button(
+                        "OrderCalcProfit",
+                        lambda c: c.order_calc_profit(
+                            get_enum(order_type, mt5enums.ENUM_ORDER_TYPE),
+                            get_str(symbol),
+                            get_float(volume),
+                            get_float(price_open),
+                            get_float(price_close),
+                        ),
+                    ),
+                ),
+            ),
+            section(
+                "Positions",
+                row(
+                    self.__button(
+                        "Buy",
+                        lambda c: c.buy(
+                            get_float(volume), optional_str(symbol), get_float(price), get_float(sl), get_float(tp), optional_str(comment)
+                        ),
+                    ),
+                    self.__button(
+                        "Sell",
+                        lambda c: c.sell(
+                            get_float(volume), optional_str(symbol), get_float(price), get_float(sl), get_float(tp), optional_str(comment)
+                        ),
+                    ),
+                    self.__button(
+                        "PositionOpen",
+                        lambda c: c.position_open(
+                            get_str(symbol),
+                            get_enum(order_type, mt5enums.ENUM_ORDER_TYPE),
+                            get_float(volume),
+                            get_float(price),
+                            get_float(sl),
+                            get_float(tp),
+                            optional_str(comment),
+                        ),
+                    ),
+                    self.__button("PositionModify", lambda c: c.position_modify(get_int(ticket), get_float(sl), get_float(tp))),
+                ),
+                row(
+                    self.__button("PositionClose", lambda c: c.position_close(get_int(ticket), get_int(deviation))),
+                    self.__button(
+                        "PositionClosePartial (ticket)",
+                        lambda c: c.position_close_partial_by_ticket(get_int(ticket), get_float(volume), get_int(deviation)),
+                    ),
+                    self.__button(
+                        "PositionClosePartial (symbol)",
+                        lambda c: c.position_close_partial_by_symbol(get_str(symbol), get_float(volume), get_int(deviation)),
+                    ),
+                    self.__button("PositionCloseAll", lambda c: c.position_close_all()),
+                ),
+            ),
+            section(
+                "Position info (select a position first)",
+                row(
+                    index,
+                    self.__button("PositionsTotal", lambda c: c.positions_total()),
+                    self.__button("PositionGetSymbol", lambda c: c.position_get_symbol(get_int(index))),
+                    self.__button("PositionGetTicket", lambda c: c.position_get_ticket(get_int(index))),
+                    self.__button("PositionSelect", lambda c: c.position_select(get_str(symbol))),
+                    self.__button("PositionSelectByTicket", lambda c: c.position_select_by_ticket(get_int(ticket))),
+                ),
+                row(prop_pos_double, self.__button(
+                    "PositionGetDouble",
+                    lambda c: c.position_get_double(get_enum(prop_pos_double, mt5enums.ENUM_POSITION_PROPERTY_DOUBLE)),
+                )),
+                row(prop_pos_integer, self.__button(
+                    "PositionGetInteger",
+                    lambda c: c.position_get_integer(get_enum(prop_pos_integer, mt5enums.ENUM_POSITION_PROPERTY_INTEGER)),
+                )),
+                row(prop_pos_string, self.__button(
+                    "PositionGetString",
+                    lambda c: c.position_get_string(get_enum(prop_pos_string, mt5enums.ENUM_POSITION_PROPERTY_STRING)),
+                )),
+            ),
+            section(
+                "Order info (select an order first)",
+                row(
+                    self.__button("OrdersTotal", lambda c: c.orders_total()),
+                    self.__button("OrderGetTicket", lambda c: c.order_get_ticket(get_int(index))),
+                    self.__button("OrderSelect", lambda c: c.order_select(get_int(ticket))),
+                ),
+                row(prop_order_double, self.__button(
+                    "OrderGetDouble",
+                    lambda c: c.order_get_double(get_enum(prop_order_double, mt5enums.ENUM_ORDER_PROPERTY_DOUBLE)),
+                )),
+                row(prop_order_integer, self.__button(
+                    "OrderGetInteger",
+                    lambda c: c.order_get_integer(get_enum(prop_order_integer, mt5enums.ENUM_ORDER_PROPERTY_INTEGER)),
+                )),
+                row(prop_order_string, self.__button(
+                    "OrderGetString",
+                    lambda c: c.order_get_string(get_enum(prop_order_string, mt5enums.ENUM_ORDER_PROPERTY_STRING)),
                 )),
             ),
         )

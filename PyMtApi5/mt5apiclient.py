@@ -85,31 +85,95 @@ class MqlTradeTransaction:
 
 
 class MqlTradeRequest:
-    def __init__(self, mql_trade_request_json):
-        self.action = mql_trade_request_json["Action"]
-        self.magic = mql_trade_request_json["Magic"]
-        self.order = mql_trade_request_json["Order"]
-        self.symbol = mql_trade_request_json["Symbol"]
-        self.volume = mql_trade_request_json["Volume"]
-        self.price = mql_trade_request_json["Price"]
-        self.stop_limit = mql_trade_request_json["Stoplimit"]
-        self.sl = mql_trade_request_json["Sl"]
-        self.tp = mql_trade_request_json["Tp"]
-        self.deviation = mql_trade_request_json["Deviation"]
-        self.order_type = mql_trade_request_json["Type"]
-        self.type_filling = mql_trade_request_json["Type_filling"]
-        self.type_time = mql_trade_request_json["Type_time"]
-        self.expiration = mql_trade_request_json["MtExpiration"]
-        self.comment = mql_trade_request_json["Comment"]
-        # self.position = mql_trade_request_json["Position"]
-        # self.position_by = mql_trade_request_json["PositionBy"]
+    """Trade request. Build it with keyword arguments to pass to order_send/order_send_async/order_check,
+    or parse it from a JSON dict received in a trade transaction event."""
+
+    def __init__(
+        self,
+        mql_trade_request_json=None,
+        *,
+        action: ENUM_TRADE_REQUEST_ACTIONS = 0,
+        magic: int = 0,
+        order: int = 0,
+        symbol: str = "",
+        volume: float = 0.0,
+        price: float = 0.0,
+        stop_limit: float = 0.0,
+        sl: float = 0.0,
+        tp: float = 0.0,
+        deviation: int = 0,
+        order_type: ENUM_ORDER_TYPE = 0,
+        type_filling: ENUM_ORDER_TYPE_FILLING = 0,
+        type_time: ENUM_ORDER_TYPE_TIME = 0,
+        expiration: int = 0,
+        comment: str = "",
+        position: int = 0,
+        position_by: int = 0,
+    ):
+        if mql_trade_request_json is not None:
+            j = mql_trade_request_json
+            action = j["Action"]
+            magic = j["Magic"]
+            order = j["Order"]
+            symbol = j["Symbol"]
+            volume = j["Volume"]
+            price = j["Price"]
+            stop_limit = j["Stoplimit"]
+            sl = j["Sl"]
+            tp = j["Tp"]
+            deviation = j["Deviation"]
+            order_type = j["Type"]
+            type_filling = j["Type_filling"]
+            type_time = j["Type_time"]
+            expiration = j["MtExpiration"]
+            comment = j["Comment"]
+            position = j.get("Position", 0)
+            position_by = j.get("PositionBy", 0)
+        self.action = action
+        self.magic = magic
+        self.order = order
+        self.symbol = symbol
+        self.volume = volume
+        self.price = price
+        self.stop_limit = stop_limit
+        self.sl = sl
+        self.tp = tp
+        self.deviation = deviation
+        self.order_type = order_type
+        self.type_filling = type_filling
+        self.type_time = type_time
+        self.expiration = expiration
+        self.comment = comment
+        self.position = position
+        self.position_by = position_by
+
+    def to_dict(self):
+        return {
+            "Action": int(self.action),
+            "Magic": self.magic,
+            "Order": self.order,
+            "Symbol": self.symbol,
+            "Volume": self.volume,
+            "Price": self.price,
+            "Stoplimit": self.stop_limit,
+            "Sl": self.sl,
+            "Tp": self.tp,
+            "Deviation": self.deviation,
+            "Type": int(self.order_type),
+            "Type_filling": int(self.type_filling),
+            "Type_time": int(self.type_time),
+            "MtExpiration": self.expiration,
+            "Comment": self.comment,
+            "Position": self.position,
+            "PositionBy": self.position_by,
+        }
 
     def __repr__(self):
         return (
             f"action = {self.action}, magic = {self.magic}, order = {self.order}, symbol = {self.symbol}, volume = {self.volume}, "
             f"price = {self.price}, stop_limit = {self.stop_limit}, sl = {self.sl}, tp = {self.tp}, deviation = {self.deviation}, "
             f"order_type = {self.order_type}, type_filling = {self.type_filling}, type_time = {self.type_time}, expiration = {self.expiration}, "
-            f"comment = {self.comment}"
+            f"comment = {self.comment}, position = {self.position}, position_by = {self.position_by}"
         )
 
 
@@ -129,6 +193,26 @@ class MqlTradeResult:
         return (
             f"retcode = {self.retcode}, deal = {self.deal}, order = {self.order}, volume = {self.volume}, price = {self.price}, "
             f"bid = {self.bid}, ask = {self.ask}, comment = {self.comment}, request_id = {self.request_id}"
+        )
+
+
+class MqlTradeCheckResult:
+    def __init__(self, mql_trade_check_result_json):
+        j = mql_trade_check_result_json
+        self.retcode = j["Retcode"]
+        self.balance = j["Balance"]
+        self.equity = j["Equity"]
+        self.profit = j["Profit"]
+        self.margin = j["Margin"]
+        self.margin_free = j["Margin_free"]
+        self.margin_level = j["Margin_level"]
+        self.comment = j["Comment"]
+
+    def __repr__(self):
+        return (
+            f"retcode = {self.retcode}, balance = {self.balance}, equity = {self.equity}, profit = {self.profit}, "
+            f"margin = {self.margin}, margin_free = {self.margin_free}, margin_level = {self.margin_level}, "
+            f"comment = {self.comment}"
         )
 
 
@@ -225,6 +309,212 @@ class Mt5ApiClient:
     def account_info_string(self, property_id: ENUM_ACCOUNT_INFO_STRING):
         cmd_params = {"PropertyId": property_id}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.AccountInfoString, cmd_params)
+
+    # Trade functions
+
+    @staticmethod
+    def __func_result(res, result_type):
+        """Converts a FuncResult reply to (ret_val, result_object_or_None)."""
+        if res is None:
+            return False, None
+        result = res.get("Result")
+        return bool(res["RetVal"]), (result_type(result) if result is not None else None)
+
+    # OrderSend
+    def order_send(self, request: MqlTradeRequest):
+        """Returns (ok, MqlTradeResult | None)."""
+        cmd_params = {"TradeRequest": request.to_dict()}
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.OrderSend, cmd_params)
+        return self.__func_result(res, MqlTradeResult)
+
+    # OrderSendAsync
+    def order_send_async(self, request: MqlTradeRequest):
+        """Returns (ok, MqlTradeResult | None)."""
+        cmd_params = {"TradeRequest": request.to_dict()}
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.OrderSendAsync, cmd_params)
+        return self.__func_result(res, MqlTradeResult)
+
+    # OrderCheck
+    def order_check(self, request: MqlTradeRequest):
+        """Returns (ok, MqlTradeCheckResult | None)."""
+        cmd_params = {"TradeRequest": request.to_dict()}
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.OrderCheck, cmd_params)
+        return self.__func_result(res, MqlTradeCheckResult)
+
+    # OrderCalcMargin
+    def order_calc_margin(self, action: ENUM_ORDER_TYPE, symbol: str, volume: float, price: float):
+        """Returns the required margin, or None on failure."""
+        cmd_params = {"Action": int(action), "Symbol": symbol, "Volume": volume, "Price": price}
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.OrderCalcMargin, cmd_params)
+        if res is not None and res["RetVal"]:
+            return res["Result"]
+        return None
+
+    # OrderCalcProfit
+    def order_calc_profit(
+        self, action: ENUM_ORDER_TYPE, symbol: str, volume: float, price_open: float, price_close: float
+    ):
+        """Returns the calculated profit, or None on failure."""
+        cmd_params = {
+            "Action": int(action),
+            "Symbol": symbol,
+            "Volume": volume,
+            "PriceOpen": price_open,
+            "PriceClose": price_close,
+        }
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.OrderCalcProfit, cmd_params)
+        if res is not None and res["RetVal"]:
+            return res["Result"]
+        return None
+
+    # PositionsTotal
+    def positions_total(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionsTotal)
+
+    # PositionGetSymbol
+    def position_get_symbol(self, index: int):
+        cmd_params = {"Index": index}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionGetSymbol, cmd_params)
+
+    # PositionGetTicket
+    def position_get_ticket(self, index: int):
+        cmd_params = {"Index": index}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionGetTicket, cmd_params)
+
+    # PositionSelect
+    def position_select(self, symbol: str):
+        cmd_params = {"Symbol": symbol}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionSelect, cmd_params)
+
+    # PositionSelectByTicket
+    def position_select_by_ticket(self, ticket: int):
+        cmd_params = {"Ticket": ticket}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionSelectByTicket, cmd_params)
+
+    # PositionGetDouble
+    def position_get_double(self, property_id: ENUM_POSITION_PROPERTY_DOUBLE):
+        cmd_params = {"PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionGetDouble, cmd_params)
+
+    # PositionGetInteger
+    def position_get_integer(self, property_id: ENUM_POSITION_PROPERTY_INTEGER):
+        cmd_params = {"PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionGetInteger, cmd_params)
+
+    # PositionGetString
+    def position_get_string(self, property_id: ENUM_POSITION_PROPERTY_STRING):
+        cmd_params = {"PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionGetString, cmd_params)
+
+    # PositionOpen
+    def position_open(
+        self,
+        symbol: str,
+        order_type: ENUM_ORDER_TYPE,
+        volume: float,
+        price: float,
+        sl: float,
+        tp: float,
+        comment: str = None,
+    ):
+        """Returns (ok, MqlTradeResult | None)."""
+        cmd_params = {"Symbol": symbol, "OrderType": int(order_type), "Volume": volume, "Price": price, "Sl": sl, "Tp": tp}
+        if comment is not None:
+            cmd_params["Comment"] = comment
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionOpen2, cmd_params)
+        return self.__func_result(res, MqlTradeResult)
+
+    # PositionModify
+    def position_modify(self, ticket: int, sl: float, tp: float):
+        cmd_params = {"Ticket": ticket, "Sl": sl, "Tp": tp}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionModify, cmd_params)
+
+    # PositionClose
+    def position_close(self, ticket: int, deviation: int = 0xFFFFFFFFFFFFFFFF):
+        """Returns (ok, MqlTradeResult | None)."""
+        cmd_params = {"Ticket": ticket, "Deviation": deviation}
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionClose, cmd_params)
+        return self.__func_result(res, MqlTradeResult)
+
+    # PositionClosePartial (by ticket)
+    def position_close_partial_by_ticket(self, ticket: int, volume: float, deviation: int = 0xFFFFFFFFFFFFFFFF):
+        cmd_params = {"Ticket": ticket, "Volume": volume, "Deviation": deviation}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionClosePartial_byTicket, cmd_params)
+
+    # PositionClosePartial (by symbol, hedging accounts)
+    def position_close_partial_by_symbol(self, symbol: str, volume: float, deviation: int = 0xFFFFFFFFFFFFFFFF):
+        cmd_params = {"Symbol": symbol, "Volume": volume, "Deviation": deviation}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionClosePartial_bySymbol, cmd_params)
+
+    # PositionCloseAll, returns count of closed positions
+    def position_close_all(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionCloseAll)
+
+    # Buy
+    def buy(
+        self,
+        volume: float,
+        symbol: str = None,
+        price: float = 0.0,
+        sl: float = 0.0,
+        tp: float = 0.0,
+        comment: str = None,
+    ):
+        """Returns (ok, MqlTradeResult | None)."""
+        return self.__market_order(Mt5CommandType.Buy, volume, symbol, price, sl, tp, comment)
+
+    # Sell
+    def sell(
+        self,
+        volume: float,
+        symbol: str = None,
+        price: float = 0.0,
+        sl: float = 0.0,
+        tp: float = 0.0,
+        comment: str = None,
+    ):
+        """Returns (ok, MqlTradeResult | None)."""
+        return self.__market_order(Mt5CommandType.Sell, volume, symbol, price, sl, tp, comment)
+
+    def __market_order(self, command_type, volume, symbol, price, sl, tp, comment):
+        cmd_params = {"Volume": volume, "Price": price, "Sl": sl, "Tp": tp}
+        if symbol is not None:
+            cmd_params["Symbol"] = symbol
+        if comment is not None:
+            cmd_params["Comment"] = comment
+        res = self.__send_command(self.__get_default_expert(), command_type, cmd_params)
+        return self.__func_result(res, MqlTradeResult)
+
+    # Order functions (pending orders)
+
+    # OrdersTotal
+    def orders_total(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.OrdersTotal)
+
+    # OrderGetTicket
+    def order_get_ticket(self, index: int):
+        cmd_params = {"Index": index}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.OrderGetTicket, cmd_params)
+
+    # OrderSelect
+    def order_select(self, ticket: int):
+        cmd_params = {"Ticket": ticket}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.OrderSelect, cmd_params)
+
+    # OrderGetDouble
+    def order_get_double(self, property_id: ENUM_ORDER_PROPERTY_DOUBLE):
+        cmd_params = {"PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.OrderGetDouble, cmd_params)
+
+    # OrderGetInteger
+    def order_get_integer(self, property_id: ENUM_ORDER_PROPERTY_INTEGER):
+        cmd_params = {"PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.OrderGetInteger, cmd_params)
+
+    # OrderGetString
+    def order_get_string(self, property_id: ENUM_ORDER_PROPERTY_STRING):
+        cmd_params = {"PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.OrderGetString, cmd_params)
 
     # Timeseries and Indicators Access
 

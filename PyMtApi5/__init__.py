@@ -9,6 +9,7 @@ from .mt5apiclient import (
     MqlTradeTransaction,
     MqlTradeRequest,
     MqlTradeResult,
+    MqlTradeCheckResult,
     MqlBookInfo,
 )
 from .mt5commandtype import Mt5CommandType
@@ -26,6 +27,7 @@ __all__ = [
     "MqlTradeTransaction",
     "MqlTradeRequest",
     "MqlTradeResult",
+    "MqlTradeCheckResult",
     "MqlBookInfo",
     "Mt5CommandType",
     "MtRpcClient",
