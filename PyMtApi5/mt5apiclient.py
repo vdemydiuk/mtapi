@@ -740,6 +740,41 @@ class Mt5ApiClient:
         cmd_params = {"ChartId": chart_id, "Name": name, "PropId": prop_id}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectGetString, cmd_params)
 
+    # Terminal Information
+
+    # TerminalInfoInteger
+    def terminal_info_integer(self, property_id: ENUM_TERMINAL_INFO_INTEGER):
+        cmd_params = {"PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.TerminalInfoInteger, cmd_params)
+
+    # TerminalInfoDouble
+    def terminal_info_double(self, property_id: ENUM_TERMINAL_INFO_DOUBLE):
+        cmd_params = {"PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.TerminalInfoDouble, cmd_params)
+
+    # TerminalInfoString
+    def terminal_info_string(self, property_id: ENUM_TERMINAL_INFO_STRING):
+        cmd_params = {"PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.TerminalInfoString, cmd_params)
+
+    # Date and Time (all return MetaTrader time, seconds since 1970)
+
+    # TimeCurrent, last known server time
+    def time_current(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.TimeCurrent)
+
+    # TimeTradeServer, calculated trade server time
+    def time_trade_server(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.TimeTradeServer)
+
+    # TimeLocal, local computer time
+    def time_local(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.TimeLocal)
+
+    # TimeGMT
+    def time_gmt(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.TimeGMT)
+
     # Timeseries and Indicators Access
 
     # SeriesInfoInteger

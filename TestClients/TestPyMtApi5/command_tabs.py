@@ -130,6 +130,7 @@ class CommandTabs:
         self.control = ft.Tabs(
             tabs=[
                 self.__account_tab(),
+                self.__terminal_tab(),
                 self.__trade_tab(),
                 self.__history_tab(),
                 self.__global_variables_tab(),
@@ -597,6 +598,40 @@ class CommandTabs:
                         "ObjectGetString",
                         lambda c: c.object_get_string(cid(), get_str(name), get_enum(prop_string, mt5enums.ENUM_OBJECT_PROPERTY_STRING)),
                     ),
+                ),
+            ),
+        )
+
+    # Terminal Information and Time
+
+    def __terminal_tab(self) -> ft.Tab:
+        prop_integer = enum_dropdown("Property", mt5enums.ENUM_TERMINAL_INFO_INTEGER)
+        prop_double = enum_dropdown("Property", mt5enums.ENUM_TERMINAL_INFO_DOUBLE)
+        prop_string = enum_dropdown("Property", mt5enums.ENUM_TERMINAL_INFO_STRING)
+        return tab(
+            "Terminal",
+            section(
+                "Terminal properties",
+                row(prop_integer, self.__button(
+                    "TerminalInfoInteger",
+                    lambda c: c.terminal_info_integer(get_enum(prop_integer, mt5enums.ENUM_TERMINAL_INFO_INTEGER)),
+                )),
+                row(prop_double, self.__button(
+                    "TerminalInfoDouble",
+                    lambda c: c.terminal_info_double(get_enum(prop_double, mt5enums.ENUM_TERMINAL_INFO_DOUBLE)),
+                )),
+                row(prop_string, self.__button(
+                    "TerminalInfoString",
+                    lambda c: c.terminal_info_string(get_enum(prop_string, mt5enums.ENUM_TERMINAL_INFO_STRING)),
+                )),
+            ),
+            section(
+                "Date and time (MetaTrader time, seconds since 1970)",
+                row(
+                    self.__button("TimeCurrent", lambda c: c.time_current()),
+                    self.__button("TimeTradeServer", lambda c: c.time_trade_server()),
+                    self.__button("TimeLocal", lambda c: c.time_local()),
+                    self.__button("TimeGMT", lambda c: c.time_gmt()),
                 ),
             ),
         )
