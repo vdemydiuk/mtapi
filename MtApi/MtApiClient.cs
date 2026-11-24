@@ -3364,17 +3364,17 @@ namespace MtApi
 
         public void Error(string message)
         {
-            logger_.Debug(message);
+            logger_.Error(message);
         }
 
         public void Info(string message)
         {
-            logger_.Debug(message);
+            logger_.Info(message);
         }
 
         public void Warn(string message)
         {
-            logger_.Debug(message);
+            logger_.Warn(message);
         }
 
         private readonly IMtLogger logger_ = logger;
