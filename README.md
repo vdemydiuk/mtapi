@@ -1,6 +1,6 @@
 ## Introduction
-MtApi provides a .NET API for working with famous trading platfrom [MetaTrader(MetaQuotes)](https://www.metatrader5.com/).  
-It is not API for connection to MT servers directly. MtApi is just a bridge between MT terminal and .NET applications designed by developers.  
+MtApi provides an API for working with famous trading platform [MetaTrader(MetaQuotes)](https://www.metatrader5.com/) from .NET applications (MT4 and MT5) and from Python (MT5).  
+It is not API for connection to MT servers directly. MtApi is just a bridge between MT terminal and external applications (.NET, Python) designed by developers.  
 MtApi executes MQL commands and functions by MtApi's expert linked to chart of MetaTrader.  
 Most of the API's functions duplicates MQL interface.  
 The project was designed using WebSocket framework with the intention of using flexibility to setup connections.
@@ -66,6 +66,9 @@ MT4 and MT5 *Expert Advisors* linked to terminal's charts.  They executes API's 
 
 * `MtApi5.Tests` **`(C#, xUnit)`**  
 Unit tests of the MtApi5 library (no MetaTrader terminal required). `MtApi5Client` is driven over an in-memory `FakeRpcClient`, so the tests check the command id and JSON payload sent for each API method and the conversion of replies. They also cover the SBE codec and schema, JSON protocol, converters, enums, model classes and the RPC logger. Run them with `dotnet test MtApi5.Tests/MtApi5.Tests.csproj`.  
+
+* `PyMtApi5` **`(Python)`**  
+A pure-Python client for MT5 (no .NET required). `Mt5ApiClient` talks to MtService over WebSocket using a hand-written SBE codec (`mtprotocol_sbe.py`) and exposes the MtApi5 functions with snake_case names (`buy`, `symbol_info_tick`, `copy_rates`, ...). Unit tests live in `PyMtApi5/tests/` and run without a terminal: `python -m unittest discover -s PyMtApi5/tests -t .` from the repository root.  
 
 * `MtApiInstaller, MtApi5Installer` **`(WIX, .msi)`**  
 The project's installers.  
@@ -272,6 +275,25 @@ namespace MtApi5Console
 
 ```
 
+
+## Python client (MT5)
+`PyMtApi5` is a Python client for MT5 that connects directly to the MtApi5 expert (local or remote via TCP), so it does not need the .NET libraries. It requires the `websockets` package (`pip install websockets`).  
+Copy or reference the `PyMtApi5` folder in your project (it must be importable as a package) and use `Mt5ApiClient` as a context manager or call `connect()`/`disconnect()` explicitly:
+
+```python
+from PyMtApi5 import Mt5ApiClient
+
+with Mt5ApiClient("127.0.0.1", 8228) as client:
+    print(client.get_quotes())
+    tick = client.symbol_info_tick("EURUSD")
+    print(tick)
+```
+
+Pass an optional `callback` object as the third argument to receive events (`on_quote_update`, `on_quote_added`, `on_quote_removed`, `on_disconnect`, `on_book_event`, `on_last_time_bar`, `on_trade_transaction`).  
+The port is the one configured in the MtApi5 expert.
+
+A GUI test client built with [Flet](https://flet.dev/) is available in `TestClients/TestPyMtApi5` (`pip install -r requirements.txt`, then `python main.py`).  
+`Examples/Python/Python_to_MT5` shows an alternative way: using the C# `MtApi5.dll` from Python through `pythonnet`.
 
 # Telegram Channel
 https://t.me/joinchat/GfnfUxvelQCLvvIvLO16-w
