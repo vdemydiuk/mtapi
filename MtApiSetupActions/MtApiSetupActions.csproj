@@ -7,6 +7,10 @@
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 	</PropertyGroup>
 	<ItemGroup>
+	  <!-- Packed into the .CA.dll by Dtf: makes the custom action host start the .NET 4 runtime -->
+	  <Content Include="CustomAction.config" />
+	</ItemGroup>
+	<ItemGroup>
 	  <PackageReference Include="WixToolset.Dtf.CustomAction" Version="5.0.0" />
 	</ItemGroup>
 	<!-- Dtf packs the custom action into obj\...\MtApiSetupActions.CA.dll with its PackCustomAction target, but in an SDK-style project the
