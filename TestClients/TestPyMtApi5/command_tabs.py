@@ -132,6 +132,7 @@ class CommandTabs:
                 self.__account_tab(),
                 self.__trade_tab(),
                 self.__history_tab(),
+                self.__global_variables_tab(),
                 self.__timeseries_tab(),
                 self.__market_info_tab(),
                 self.__chart_tab(),
@@ -425,6 +426,56 @@ class CommandTabs:
                     "HistoryDealGetString",
                     lambda c: c.history_deal_get_string(get_int(ticket), get_enum(deal_string, mt5enums.ENUM_DEAL_PROPERTY_STRING)),
                 )),
+            ),
+        )
+
+    # Global Variables
+
+    def __global_variables_tab(self) -> ft.Tab:
+        name = text_field("Name", "gv_test", width=200)
+        value = text_field("Value", "1.0", width=120)
+        check_value = text_field("Check value", "1.0", width=120)
+        index = text_field("Index", "0", width=100)
+        prefix = text_field("Prefix (empty = all)", "", width=200)
+        limit_date = text_field("Limit date (0 = no limit)", "0", width=220)
+
+        return tab(
+            "Global Variables",
+            section(
+                "Variable",
+                row(name, value, check_value),
+                row(
+                    self.__button("GlobalVariableCheck", lambda c: c.global_variable_check(get_str(name))),
+                    self.__button("GlobalVariableGet", lambda c: c.global_variable_get(get_str(name))),
+                    self.__button("GlobalVariableTime", lambda c: c.global_variable_time(get_str(name))),
+                    self.__button("GlobalVariableSet", lambda c: c.global_variable_set(get_str(name), get_float(value))),
+                    self.__button("GlobalVariableTemp", lambda c: c.global_variable_temp(get_str(name))),
+                    self.__button(
+                        "GlobalVariableSetOnCondition",
+                        lambda c: c.global_variable_set_on_condition(get_str(name), get_float(value), get_float(check_value)),
+                    ),
+                    self.__button("GlobalVariableDel", lambda c: c.global_variable_del(get_str(name))),
+                ),
+            ),
+            section(
+                "List",
+                row(
+                    index,
+                    self.__button("GlobalVariableName", lambda c: c.global_variable_name(get_int(index))),
+                    self.__button("GlobalVariablesTotal", lambda c: c.global_variables_total()),
+                    self.__button("GlobalVariablesFlush", lambda c: c.global_variables_flush()),
+                ),
+            ),
+            section(
+                "Delete all",
+                row(
+                    prefix,
+                    limit_date,
+                    self.__button(
+                        "GlobalVariablesDeleteAll",
+                        lambda c: c.global_variables_delete_all(prefix.value or "", get_mt_time(limit_date)),
+                    ),
+                ),
             ),
         )
 

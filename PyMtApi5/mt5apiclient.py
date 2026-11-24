@@ -586,6 +586,61 @@ class Mt5ApiClient:
         cmd_params = {"TicketNumber": ticket_number, "PropertyId": property_id}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistoryDealGetString, cmd_params)
 
+    # Global Variables of the Client Terminal
+
+    # GlobalVariableCheck
+    def global_variable_check(self, name: str):
+        cmd_params = {"Name": name}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.GlobalVariableCheck, cmd_params)
+
+    # GlobalVariableTime, returns MetaTrader time (seconds since 1970) of the last access
+    def global_variable_time(self, name: str):
+        cmd_params = {"Name": name}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.GlobalVariableTime, cmd_params)
+
+    # GlobalVariableDel
+    def global_variable_del(self, name: str):
+        cmd_params = {"Name": name}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.GlobalVariableDel, cmd_params)
+
+    # GlobalVariableGet
+    def global_variable_get(self, name: str):
+        cmd_params = {"Name": name}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.GlobalVariableGet, cmd_params)
+
+    # GlobalVariableName
+    def global_variable_name(self, index: int):
+        cmd_params = {"Index": index}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.GlobalVariableName, cmd_params)
+
+    # GlobalVariableSet, returns MetaTrader time (seconds since 1970) of the modification
+    def global_variable_set(self, name: str, value: float):
+        cmd_params = {"Name": name, "Value": value}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.GlobalVariableSet, cmd_params)
+
+    # GlobalVariablesFlush
+    def global_variables_flush(self):
+        self.__send_command(self.__get_default_expert(), Mt5CommandType.GlobalVariablesFlush)
+
+    # GlobalVariableTemp
+    def global_variable_temp(self, name: str):
+        cmd_params = {"Name": name}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.GlobalVariableTemp, cmd_params)
+
+    # GlobalVariableSetOnCondition
+    def global_variable_set_on_condition(self, name: str, value: float, check_value: float):
+        cmd_params = {"Name": name, "Value": value, "CheckValue": check_value}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.GlobalVariableSetOnCondition, cmd_params)
+
+    # GlobalVariablesDeleteAll, limit_date is MetaTrader time (0 = no limit), returns count of deleted variables
+    def global_variables_delete_all(self, prefix_name: str = "", limit_date: int = 0):
+        cmd_params = {"PrefixName": prefix_name, "LimitData": limit_date}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.GlobalVariablesDeleteAll, cmd_params)
+
+    # GlobalVariablesTotal
+    def global_variables_total(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.GlobalVariablesTotal)
+
     # Timeseries and Indicators Access
 
     # SeriesInfoInteger
