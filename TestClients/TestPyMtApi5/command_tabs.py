@@ -136,6 +136,7 @@ class CommandTabs:
                 self.__timeseries_tab(),
                 self.__market_info_tab(),
                 self.__chart_tab(),
+                self.__objects_tab(),
             ],
             selected_index=0,
             animation_duration=150,
@@ -474,6 +475,127 @@ class CommandTabs:
                     self.__button(
                         "GlobalVariablesDeleteAll",
                         lambda c: c.global_variables_delete_all(prefix.value or "", get_mt_time(limit_date)),
+                    ),
+                ),
+            ),
+        )
+
+    # Object Functions
+
+    def __objects_tab(self) -> ft.Tab:
+        chart_id = text_field("Chart ID (0 = current)", "0", width=220)
+        name = text_field("Name", "obj_test", width=200)
+        sub_window = text_field("Sub-window (-1 = any)", "-1", width=200)
+        object_type = text_field("Type filter (-1 = any)", "-1", width=200)
+        create_type = enum_dropdown("Object type", mt5enums.ENUM_OBJECT, mt5enums.ENUM_OBJECT.OBJ_HLINE, width=300)
+        create_window = text_field("Nwin", "0", width=100)
+        time = text_field("Time", format_mt_time(datetime.now()), width=180)
+        price = text_field("Price", "1.1", width=120)
+        point_index = text_field("Point index", "0", width=120)
+        line_id = text_field("Line ID", "0", width=100)
+        pos = text_field("Pos", "0", width=100)
+        value = text_field("Value", "1.1", width=140)
+        prop_double = enum_dropdown("Property", mt5enums.ENUM_OBJECT_PROPERTY_DOUBLE)
+        prop_integer = enum_dropdown("Property", mt5enums.ENUM_OBJECT_PROPERTY_INTEGER)
+        prop_string = enum_dropdown("Property", mt5enums.ENUM_OBJECT_PROPERTY_STRING)
+
+        def cid() -> int:
+            return get_int(chart_id)
+
+        def filter_args():
+            return cid(), get_int(sub_window), get_int(object_type)
+
+        return tab(
+            "Objects",
+            section("Object", row(chart_id, name)),
+            section(
+                "Create and move",
+                row(create_type, create_window, time, price),
+                row(
+                    self.__button(
+                        "ObjectCreate",
+                        lambda c: c.object_create(
+                            cid(),
+                            get_str(name),
+                            get_enum(create_type, mt5enums.ENUM_OBJECT),
+                            get_int(create_window),
+                            get_mt_time(time),
+                            get_float(price),
+                        ),
+                    ),
+                    point_index,
+                    self.__button(
+                        "ObjectMove",
+                        lambda c: c.object_move(cid(), get_str(name), get_int(point_index), get_mt_time(time), get_float(price)),
+                    ),
+                ),
+                row(
+                    self.__button("ObjectFind", lambda c: c.object_find(cid(), get_str(name))),
+                    self.__button("ObjectDelete", lambda c: c.object_delete(cid(), get_str(name))),
+                ),
+            ),
+            section(
+                "List (Chart ID from above)",
+                row(sub_window, object_type, pos),
+                row(
+                    self.__button("ObjectsTotal", lambda c: c.objects_total(*filter_args())),
+                    self.__button("ObjectName", lambda c: c.object_name(cid(), get_int(pos), get_int(sub_window), get_int(object_type))),
+                    self.__button("ObjectsDeleteAll", lambda c: c.objects_delete_all(*filter_args())),
+                ),
+            ),
+            section(
+                "Value and time on a line (Time from above)",
+                row(value, line_id),
+                row(
+                    self.__button(
+                        "ObjectGetTimeByValue",
+                        lambda c: c.object_get_time_by_value(cid(), get_str(name), get_float(value), get_int(line_id)),
+                    ),
+                    self.__button(
+                        "ObjectGetValueByTime",
+                        lambda c: c.object_get_value_by_time(cid(), get_str(name), get_mt_time(time), get_int(line_id)),
+                    ),
+                ),
+            ),
+            section(
+                "Properties (Value from above is the value to set)",
+                row(
+                    prop_double,
+                    self.__button(
+                        "ObjectSetDouble",
+                        lambda c: c.object_set_double(
+                            cid(), get_str(name), get_enum(prop_double, mt5enums.ENUM_OBJECT_PROPERTY_DOUBLE), get_float(value)
+                        ),
+                    ),
+                    self.__button(
+                        "ObjectGetDouble",
+                        lambda c: c.object_get_double(cid(), get_str(name), get_enum(prop_double, mt5enums.ENUM_OBJECT_PROPERTY_DOUBLE)),
+                    ),
+                ),
+                row(
+                    prop_integer,
+                    self.__button(
+                        "ObjectSetInteger",
+                        lambda c: c.object_set_integer(
+                            cid(), get_str(name), get_enum(prop_integer, mt5enums.ENUM_OBJECT_PROPERTY_INTEGER), get_int(value)
+                        ),
+                    ),
+                    self.__button(
+                        "ObjectGetInteger",
+                        lambda c: c.object_get_integer(cid(), get_str(name), get_enum(prop_integer, mt5enums.ENUM_OBJECT_PROPERTY_INTEGER)),
+                    ),
+                ),
+                row(
+                    prop_string,
+                    self.__button(
+                        "ObjectSetString",
+                        lambda c: c.object_set_string(
+                            cid(), get_str(name), get_enum(prop_string, mt5enums.ENUM_OBJECT_PROPERTY_STRING), value.value or ""
+                        ),
+                    ),
+                    self.__button(
+                        "ObjectGetString",
+                        lambda c: c.object_get_string(cid(), get_str(name), get_enum(prop_string, mt5enums.ENUM_OBJECT_PROPERTY_STRING)),
                     ),
                 ),
             ),

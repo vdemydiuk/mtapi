@@ -641,6 +641,105 @@ class Mt5ApiClient:
     def global_variables_total(self):
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.GlobalVariablesTotal)
 
+    # Object Functions
+
+    # ObjectCreate (times are MetaTrader time, seconds since 1970)
+    def object_create(
+        self,
+        chart_id: int,
+        name: str,
+        object_type: ENUM_OBJECT,
+        sub_window: int,
+        time: int,
+        price: float,
+        coordinates: list = None,
+    ):
+        """Creates an object. 'coordinates' is an optional list of additional (time, price) anchor points
+        (up to 29), sent after the first point (time, price)."""
+        coordinates = coordinates or []
+        if len(coordinates) > 29:
+            raise ValueError("The maximum amount of additional coordinates is 29.")
+        points = [(time, price)] + list(coordinates)
+        cmd_params = {
+            "ChartId": chart_id,
+            "Name": name,
+            "Type": int(object_type),
+            "Nwin": sub_window,
+            "Times": [t for t, _ in points],
+            "Prices": [p for _, p in points],
+        }
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectCreate, cmd_params)
+
+    # ObjectName
+    def object_name(self, chart_id: int, pos: int, sub_window: int = -1, object_type: int = -1):
+        cmd_params = {"ChartId": chart_id, "Pos": pos, "SubWindow": sub_window, "Type": object_type}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectName, cmd_params)
+
+    # ObjectDelete
+    def object_delete(self, chart_id: int, name: str):
+        cmd_params = {"ChartId": chart_id, "Name": name}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectDelete, cmd_params)
+
+    # ObjectsDeleteAll, returns count of deleted objects
+    def objects_delete_all(self, chart_id: int, sub_window: int = -1, object_type: int = -1):
+        cmd_params = {"ChartId": chart_id, "SubWindow": sub_window, "Type": object_type}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectsDeleteAll, cmd_params)
+
+    # ObjectFind
+    def object_find(self, chart_id: int, name: str):
+        cmd_params = {"ChartId": chart_id, "Name": name}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectFind, cmd_params)
+
+    # ObjectGetTimeByValue, returns MetaTrader time
+    def object_get_time_by_value(self, chart_id: int, name: str, value: float, line_id: int):
+        cmd_params = {"ChartId": chart_id, "Name": name, "Value": value, "LineId": line_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectGetTimeByValue, cmd_params)
+
+    # ObjectGetValueByTime
+    def object_get_value_by_time(self, chart_id: int, name: str, time: int, line_id: int):
+        cmd_params = {"ChartId": chart_id, "Name": name, "Time": time, "LineId": line_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectGetValueByTime, cmd_params)
+
+    # ObjectMove
+    def object_move(self, chart_id: int, name: str, point_index: int, time: int, price: float):
+        cmd_params = {"ChartId": chart_id, "Name": name, "PointIndex": point_index, "Time": time, "Price": price}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectMove, cmd_params)
+
+    # ObjectsTotal
+    def objects_total(self, chart_id: int, sub_window: int = -1, object_type: int = -1):
+        cmd_params = {"ChartId": chart_id, "SubWindow": sub_window, "Type": object_type}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectsTotal, cmd_params)
+
+    # ObjectSetDouble
+    def object_set_double(self, chart_id: int, name: str, prop_id: ENUM_OBJECT_PROPERTY_DOUBLE, prop_value: float):
+        cmd_params = {"ChartId": chart_id, "Name": name, "PropId": prop_id, "PropValue": prop_value}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectSetDouble, cmd_params)
+
+    # ObjectSetInteger
+    def object_set_integer(self, chart_id: int, name: str, prop_id: ENUM_OBJECT_PROPERTY_INTEGER, prop_value: int):
+        cmd_params = {"ChartId": chart_id, "Name": name, "PropId": prop_id, "PropValue": prop_value}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectSetInteger, cmd_params)
+
+    # ObjectSetString
+    def object_set_string(self, chart_id: int, name: str, prop_id: ENUM_OBJECT_PROPERTY_STRING, prop_value: str):
+        cmd_params = {"ChartId": chart_id, "Name": name, "PropId": prop_id, "PropValue": prop_value}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectSetString, cmd_params)
+
+    # ObjectGetDouble
+    def object_get_double(self, chart_id: int, name: str, prop_id: ENUM_OBJECT_PROPERTY_DOUBLE):
+        cmd_params = {"ChartId": chart_id, "Name": name, "PropId": prop_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectGetDouble, cmd_params)
+
+    # ObjectGetInteger
+    def object_get_integer(self, chart_id: int, name: str, prop_id: ENUM_OBJECT_PROPERTY_INTEGER):
+        cmd_params = {"ChartId": chart_id, "Name": name, "PropId": prop_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectGetInteger, cmd_params)
+
+    # ObjectGetString
+    def object_get_string(self, chart_id: int, name: str, prop_id: ENUM_OBJECT_PROPERTY_STRING):
+        cmd_params = {"ChartId": chart_id, "Name": name, "PropId": prop_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.ObjectGetString, cmd_params)
+
     # Timeseries and Indicators Access
 
     # SeriesInfoInteger
