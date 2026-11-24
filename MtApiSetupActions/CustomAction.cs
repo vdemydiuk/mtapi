@@ -1,54 +1,83 @@
-﻿using WixToolset.Dtf.WindowsInstaller;
+﻿using System;
+using System.IO;
+using WixToolset.Dtf.WindowsInstaller;
 
 namespace MtApiSetupActions
 {
     public class CustomActions
     {
-        private const string MtApiFile = "MtApi.ex4";
-        private const string TerminalFolder = @"\MetaQuotes\Terminal";
-        private const string Mql4Folder = "MQL4";
-        private const string InstalledExpertFolderProperty = "ExpertFolder";
-        private const string DestinationExpertFolder = @"\Experts\";
+        // Installer properties that parametrize the action (set in Product.wxs of each installer).
+        private const string ExpertFileNameProperty = "EXPERT_FILE_NAME";   // e.g. MtApi5.ex5
+        private const string MqlFolderNameProperty = "MQL_FOLDER_NAME";     // MQL4 or MQL5
+        private const string InstalledExpertFolderProperty = "ExpertFolder"; // folder the expert was installed to
 
+        private const string TerminalFolder = @"MetaQuotes\Terminal";
+        private const string ExpertsFolder = "Experts";
+
+        /// <summary>
+        /// Copies the installed expert file into the Experts folder of every MetaTrader terminal
+        /// data folder (%APPDATA%\MetaQuotes\Terminal\{hash}\MQL4|MQL5\Experts).
+        /// It never fails the installation: problems are only written to the installer log.
+        /// </summary>
         [CustomAction]
-        public static ActionResult InstallEx4File(Session session)
+        public static ActionResult InstallExpertFile(Session session)
         {
-            session.Log("Begin action InstallEx4File...");
+            session.Log("Begin action InstallExpertFile...");
 
-            //Directory.CreateDirectory("c:\\dw");
+            try
+            {
+                var fileName = session[ExpertFileNameProperty];
+                var mqlFolder = session[MqlFolderNameProperty];
+                var installedFolder = session[InstalledExpertFolderProperty];
 
-            //var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                if (string.IsNullOrEmpty(fileName) || string.IsNullOrEmpty(mqlFolder) || string.IsNullOrEmpty(installedFolder))
+                {
+                    session.Log("InstallExpertFile: required properties are not set, nothing to do.");
+                    return ActionResult.Success;
+                }
 
-            //var metaquotesFolder = appDataFolder + TerminalFolder;
+                var srcFile = Path.Combine(installedFolder, fileName);
+                if (!File.Exists(srcFile))
+                {
+                    session.Log("InstallExpertFile: source file " + srcFile + " not found.");
+                    return ActionResult.Success;
+                }
 
-            //if (Directory.Exists(metaquotesFolder))
-            //{
-            //    var foldersFound = Directory.GetDirectories(metaquotesFolder, Mql4Folder, SearchOption.AllDirectories);
-            //    Console.WriteLine(string.Join("\n", foldersFound));
+                var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                var terminalsFolder = Path.Combine(appDataFolder, TerminalFolder);
 
-            //    foreach (var folder in foldersFound)
-            //    {
-            //        var srcFile = session[InstalledExpertFolderProperty] + MtApiFile;
-            //        var destFile = folder + DestinationExpertFolder + MtApiFile;
+                if (!Directory.Exists(terminalsFolder))
+                {
+                    session.Log("InstallExpertFile: MetaTrader is not installed (" + terminalsFolder + " not found).");
+                    return ActionResult.Success;
+                }
 
-            //        session.Log(string.Format("Try to copy from {0} to {1}", srcFile, destFile));
+                foreach (var terminalDataFolder in Directory.GetDirectories(terminalsFolder))
+                {
+                    var mqlPath = Path.Combine(terminalDataFolder, mqlFolder);
+                    if (!Directory.Exists(mqlPath))
+                        continue; // terminal data folder of another platform (MT4/MT5)
 
-            //        try
-            //        {
-            //            File.Copy(srcFile, destFile, true);
-            //        }
-            //        catch (Exception e)
-            //        {
-            //            session.Log(string.Format("Failed to copy MtApi4.ex4. {0}", e.Message));
-            //        }
+                    var destFolder = Path.Combine(mqlPath, ExpertsFolder);
+                    var destFile = Path.Combine(destFolder, fileName);
 
-            //        session.Log(string.Format("MtApi.ex4 has been coppied to {0}", destFile));
-            //    }
-            //}
-            //else
-            //{
-            //    session.Log("MetaTrader is not installed");
-            //}
+                    session.Log("InstallExpertFile: copy from " + srcFile + " to " + destFile);
+                    try
+                    {
+                        Directory.CreateDirectory(destFolder);
+                        File.Copy(srcFile, destFile, true);
+                        session.Log("InstallExpertFile: " + fileName + " has been copied to " + destFile);
+                    }
+                    catch (Exception e)
+                    {
+                        session.Log("InstallExpertFile: failed to copy " + fileName + " to " + destFile + ". " + e.Message);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                session.Log("InstallExpertFile: unexpected error. " + e);
+            }
 
             return ActionResult.Success;
         }

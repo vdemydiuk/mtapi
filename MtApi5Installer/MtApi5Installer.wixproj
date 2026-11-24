@@ -41,4 +41,10 @@
       <RefTargetDir>INSTALLFOLDER</RefTargetDir>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MtApiSetupActions\MtApiSetupActions.csproj">
+      <Name>MtApiSetupActions</Name>
+      <DoNotHarvest>True</DoNotHarvest>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

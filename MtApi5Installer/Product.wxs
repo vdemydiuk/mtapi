@@ -30,8 +30,19 @@
             <ComponentGroupRef Id="MT5ConnectorComponents" />
         </Feature>
 
+        <!-- Parameters of the InstallExpertFile custom action. Pass COPY_EXPERT=0 to skip copying the expert to MetaTrader. -->
+        <Property Id="EXPERT_FILE_NAME" Value="MtApi5.ex5" />
+        <Property Id="MQL_FOLDER_NAME" Value="MQL5" />
+        <Property Id="COPY_EXPERT" Value="1" />
+
+        <CustomActionRef Id="InstallExpertFile" />
+
         <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
         <ui:WixUI Id="WixUI_Mondo" />
+
+        <InstallExecuteSequence>
+            <Custom Action="InstallExpertFile" After="InstallFinalize" Condition="NOT REMOVE AND COPY_EXPERT&lt;&gt;&quot;0&quot;" />
+        </InstallExecuteSequence>
   </Package>
 
     <Fragment>

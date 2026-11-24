@@ -1,12 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
+		<!-- .NET Framework is present on every supported Windows, so the target machine needs no extra runtime -->
+		<TargetFramework>net472</TargetFramework>
+		<LangVersion>latest</LangVersion>
 		<BaseOutputPath>$(SolutionDir)build\products</BaseOutputPath>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 	</PropertyGroup>
 	<ItemGroup>
+	  <!-- Packed into the .CA.dll by Dtf: makes the custom action host start the .NET 4 runtime -->
+	  <Content Include="CustomAction.config" />
+	</ItemGroup>
+	<ItemGroup>
 	  <PackageReference Include="WixToolset.Dtf.CustomAction" Version="5.0.0" />
 	</ItemGroup>
+	<!-- Dtf packs the custom action into obj\...\MtApiSetupActions.CA.dll with its PackCustomAction target, but in an SDK-style project the
+	     hook that runs it (AfterCompile) is not reliably called, and the package is not copied to the output folder where the installers
+	     look for it. So run the packaging explicitly after compilation and copy the result. -->
+	<Target Name="CopyCustomActionPackage" AfterTargets="CoreCompile" DependsOnTargets="PackCustomAction">
+		<Copy SourceFiles="$(IntermediateOutputPath)$(TargetCAFileName)" DestinationFolder="$(OutDir)" />
+	</Target>
 </Project>
