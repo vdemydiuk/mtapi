@@ -1767,7 +1767,7 @@ namespace MtApi5
         ///</returns>
         public long ChartId(int expertHandle)
         {
-            return SendCommand<long>(ExecutorHandle, Mt5CommandType.ChartId, expertHandle);
+            return SendCommand<long>(expertHandle, Mt5CommandType.ChartId);
         }
 
         ///<summary>
