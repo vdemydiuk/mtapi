@@ -271,6 +271,36 @@ namespace MtApi5.Tests
             Assert.Empty(arr);
         }
 
+        // ---- chart id ----
+
+        [Fact]
+        public async Task ChartId_WithoutArgument_AsksExecutorExpert_WithoutPayload()
+        {
+            var (client, fake) = await Connect(7);
+            fake.Reply("555");
+
+            Assert.Equal(555, client.ChartId());
+
+            var sent = fake.Last();
+            Assert.Equal(7, sent.ExpertHandle);
+            Assert.Equal((int)Mt5CommandType.ChartId, sent.CommandType);
+            Assert.Equal("", sent.Payload);
+        }
+
+        [Fact]
+        public async Task ChartId_WithExpertHandle_AsksThatExpert_NotTheExecutor()
+        {
+            var (client, fake) = await Connect(7);
+            fake.Reply("777");
+
+            Assert.Equal(777, client.ChartId(42));
+
+            var sent = fake.Last();
+            Assert.Equal(42, sent.ExpertHandle);
+            Assert.Equal((int)Mt5CommandType.ChartId, sent.CommandType);
+            Assert.Equal("", sent.Payload);
+        }
+
         // ---- chart coordinate conversion ----
 
         [Fact]
