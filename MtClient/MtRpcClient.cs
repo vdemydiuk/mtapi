@@ -13,7 +13,22 @@ namespace MtClient
         public void Error(string message);
     }
 
-    public class MtRpcClient
+    // Abstraction of the RPC connection to MtService. Allows replacing the transport in unit tests.
+    public interface IMtRpcClient
+    {
+        Task Connect();
+        void Disconnect();
+        string? SendCommand(int expertHandle, int commandType, string payload, int timeout = 10000);
+        HashSet<int>? RequestExpertsList();
+
+        event EventHandler<EventArgs>? ConnectionFailed;
+        event EventHandler<EventArgs>? Disconnected;
+        event EventHandler<MtExpertEventArgs>? ExpertAdded;
+        event EventHandler<MtExpertEventArgs>? ExpertRemoved;
+        event EventHandler<MtEventArgs>? MtEventReceived;
+    }
+
+    public class MtRpcClient : IMtRpcClient
     {
         public MtRpcClient(string host, int port, IRpcLogger? logger = null)
         {

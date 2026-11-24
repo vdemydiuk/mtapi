@@ -24,7 +24,8 @@ namespace MtApi5
 
 
         #region Private Fields
-        private MtRpcClient? _client;
+        private IMtRpcClient? _client;
+        private readonly Func<string, int, IRpcLogger, IMtRpcClient> _clientFactory;
         private readonly object _locker = new();
         private Mt5ConnectionState _connectionState = Mt5ConnectionState.Disconnected;
         private int _executorHandle;
@@ -51,7 +52,14 @@ namespace MtApi5
         }
 
         public MtApi5Client(IMtLogger? log = null)
+            : this((host, port, logger) => new MtRpcClient(host, port, logger), log)
         {
+        }
+
+        // Allows tests to replace the connection to MtService.
+        internal MtApi5Client(Func<string, int, IRpcLogger, IMtRpcClient> clientFactory, IMtLogger? log = null)
+        {
+            _clientFactory = clientFactory;
             _mtEventHandlers[Mt5EventTypes.OnBookEvent] = ReceivedOnBookEvent;
             _mtEventHandlers[Mt5EventTypes.OnTick] = ReceivedOnTickEvent;
             _mtEventHandlers[Mt5EventTypes.OnTradeTransaction] = ReceivedOnTradeTransactionEvent;
@@ -113,7 +121,7 @@ namespace MtApi5
 
             ConnectionStateChanged?.Invoke(this, new Mt5ConnectionEventArgs(Mt5ConnectionState.Connecting, $"Connecting to {host}:{port}"));
 
-            var client = new MtRpcClient(host, port, new RpcClientLogger(Log));
+            var client = _clientFactory(host, port, new RpcClientLogger(Log));
             client.ExpertAdded += Client_ExpertAdded;
             client.ExpertRemoved += Client_ExpertRemoved;
             client.MtEventReceived += Client_MtEventReceived;
@@ -167,7 +175,7 @@ namespace MtApi5
             }
         }
 
-        private Dictionary<int, Mt5Quote> LoadQuotes(MtRpcClient client, HashSet<int> experts)
+        private Dictionary<int, Mt5Quote> LoadQuotes(IMtRpcClient client, HashSet<int> experts)
         {
             Dictionary<int, Mt5Quote> quotes = [];
             foreach (var handle in experts)
@@ -202,7 +210,7 @@ namespace MtApi5
         ///</summary>
         public IEnumerable<Mt5Quote> GetQuotes()
         {
-            MtRpcClient? client;
+            IMtRpcClient? client;
             HashSet<int> experts;
             lock (_locker)
             {
@@ -3390,7 +3398,7 @@ namespace MtApi5
         #endregion
 
         #region Private Methods
-        private MtRpcClient? Client
+        private IMtRpcClient? Client
         {
             get
             {
@@ -3461,7 +3469,7 @@ namespace MtApi5
                 QuoteRemoved?.Invoke(this, new Mt5QuoteEventArgs(new Mt5Quote { Instrument = quote.Instrument, ExpertHandle = quote.ExpertHandle }));
         }
 
-        private Mt5Quote? GetQuote(MtRpcClient? client, int expertHandle)
+        private Mt5Quote? GetQuote(IMtRpcClient? client, int expertHandle)
         {
             Log.Debug($"GetQuote: expertHandle = {expertHandle}");
 
@@ -3563,7 +3571,7 @@ namespace MtApi5
             var state = failed ? Mt5ConnectionState.Failed : Mt5ConnectionState.Disconnected;
             var message = failed ? "Connection Failed" : "Disconnected";
 
-            MtRpcClient? client;
+            IMtRpcClient? client;
 
             lock (_locker)
             {
@@ -3591,7 +3599,7 @@ namespace MtApi5
             return SendCommand<T>(Client, expertHandle, commandType, payload);
         }
 
-        private T? SendCommand<T>(MtRpcClient? client, int expertHandle, Mt5CommandType commandType, object? payload = null)
+        private T? SendCommand<T>(IMtRpcClient? client, int expertHandle, Mt5CommandType commandType, object? payload = null)
         {
             if (client == null)
             {
