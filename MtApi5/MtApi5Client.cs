@@ -2956,7 +2956,7 @@ namespace MtApi5
         public int iSAR(string symbol, ENUM_TIMEFRAMES period, double step, double maximum)
         {
             Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty },
-                { "Period", (int)period }, { "Step", (int)step}, { "Maximum", maximum } };
+                { "Period", (int)period }, { "Step", step }, { "Maximum", maximum } };
             return SendCommand<int>(ExecutorHandle, Mt5CommandType.iSAR, cmdParams);
         }
 
