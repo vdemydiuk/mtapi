@@ -26,7 +26,13 @@
   <ItemGroup>
     <ProjectReference Include="..\MT5Connector\MT5Connector.vcxproj">
       <Name>MT5Connector</Name>
-      <Project>{cb6d4a3e-2f2e-4c67-929d-3c2a8fd1c556}</Project>
+      <Project>{cb6d4a3e-2f2e-4c67-929d-3c2a8fd1c556}  <ItemGroup>
+    <ProjectReference Include="..\MtApiSetupActions\MtApiSetupActions.csproj">
+      <Name>MtApiSetupActions</Name>
+      <DoNotHarvest>True</DoNotHarvest>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
       <Private>True</Private>
       <DoNotHarvest>True</DoNotHarvest>
       <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>

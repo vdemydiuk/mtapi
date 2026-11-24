@@ -13,4 +13,10 @@
   <ItemGroup>
     <PackageReference Include="WixToolset.UI.wixext" Version="5.0.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MtApiSetupActions\MtApiSetupActions.csproj">
+      <Name>MtApiSetupActions</Name>
+      <DoNotHarvest>True</DoNotHarvest>
+    </ProjectReference>
+  </ItemGroup>
 </Project>
