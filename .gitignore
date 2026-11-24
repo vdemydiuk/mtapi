@@ -189,10 +189,6 @@ UpgradeLog*.htm
 # Microsoft Fakes
 FakesAssemblies/
 
-#Claude
-.claude/
-CLAUDE.md
-
 # python files
 __pycache__
 

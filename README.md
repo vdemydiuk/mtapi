@@ -64,6 +64,9 @@ The client side libraries that are using in user's projects.
 * **`(MQL4/MQL5, .ex4/.ex5)`**  
 MT4 and MT5 *Expert Advisors* linked to terminal's charts.  They executes API's functions and provides trading events.  
 
+* `MtApi5.Tests` **`(C#, xUnit)`**  
+Unit tests of the MtApi5 library (no MetaTrader terminal required). `MtApi5Client` is driven over an in-memory `FakeRpcClient`, so the tests check the command id and JSON payload sent for each API method and the conversion of replies. They also cover the SBE codec and schema, JSON protocol, converters, enums, model classes and the RPC logger. Run them with `dotnet test MtApi5.Tests/MtApi5.Tests.csproj`.  
+
 * `MtApiInstaller, MtApi5Installer` **`(WIX, .msi)`**  
 The project's installers.  
 
