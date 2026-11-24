@@ -9,4 +9,8 @@
 	<ItemGroup>
 	  <PackageReference Include="WixToolset.Dtf.CustomAction" Version="5.0.0" />
 	</ItemGroup>
+	<!-- Dtf packs the custom action into obj\...\MtApiSetupActions.CA.dll but doesn't copy it to the output folder, where the installers look for it -->
+	<Target Name="CopyCustomActionPackage" AfterTargets="PackCustomAction">
+		<Copy SourceFiles="$(IntermediateOutputPath)$(TargetCAFileName)" DestinationFolder="$(OutDir)" />
+	</Target>
 </Project>

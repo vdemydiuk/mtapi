@@ -1,10 +1,10 @@
 ﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
     <Fragment Id="CustomActions">
         <!-- Managed custom action (MtApiSetupActions, packaged as .CA.dll) -->
-        <Binary Id="MtApiSetupActionsBinary" SourceFile="$(var.MtApiSetupActions.TargetDir)$(var.MtApiSetupActions.TargetName).CA.dll" />
+        <Binary Id="MtApiSetupActions" SourceFile="$(var.MtApiSetupActions.TargetDir)$(var.MtApiSetupActions.TargetName).CA.dll" />
 
         <!-- Copies the expert file to the Experts folder of every installed MetaTrader terminal.
              Return="ignore": a failed copy must never fail the installation. -->
-        <CustomAction Id="InstallExpertFile" DllEntry="InstallExpertFile" Execute="immediate" Return="ignore" BinaryRef="MtApiSetupActionsBinary" />
+        <CustomAction Id="InstallExpertFile" DllEntry="InstallExpertFile" Execute="immediate" Return="ignore" BinaryRef="MtApiSetupActions" />
     </Fragment>
 </Wix>
