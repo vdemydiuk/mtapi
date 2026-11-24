@@ -18,5 +18,7 @@
       <Name>MtApiSetupActions</Name>
       <DoNotHarvest>True</DoNotHarvest>
     </ProjectReference>
+    <ProjectReference Include="..\MtApi\MtApi.csproj" />
+    <ProjectReference Include="..\MTConnector\MTConnector.vcxproj" />
   </ItemGroup>
 </Project>
