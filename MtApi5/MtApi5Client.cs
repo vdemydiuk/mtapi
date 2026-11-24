@@ -2319,8 +2319,9 @@ namespace MtApi5
             Dictionary<string, object> cmdParams = new() { { "ChartId", chartId }, { "Name", name ?? string.Empty },
                 { "Type", (int)type }, { "Nwin", nwin } };
 
-            List<long> times = [];
-            List<double> prices = [];
+            //The expert takes the first element as the first anchor point
+            List<long> times = [Mt5TimeConverter.ConvertToMtTime(time)];
+            List<double> prices = [price];
 
             if (iAdditionalCoordinates > 0 && listOfCoordinates != null)
             {

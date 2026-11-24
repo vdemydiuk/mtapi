@@ -373,12 +373,12 @@ namespace MtApi5.Tests
             var p = fake.LastPayload();
             Assert.Equal("line", (string?)p["Name"]);
             Assert.Equal((int)ENUM_OBJECT.OBJ_TREND, (int)p["Type"]!);
-            Assert.Equal([MtTime + 3600, MtTime + 7200], p["Times"]!.Select(t => (long)t));
-            Assert.Equal([2.0, 3.0], p["Prices"]!.Select(t => (double)t));
+            Assert.Equal([MtTime, MtTime + 3600, MtTime + 7200], p["Times"]!.Select(t => (long)t));
+            Assert.Equal([1.0, 2.0, 3.0], p["Prices"]!.Select(t => (double)t));
         }
 
         [Fact]
-        public async Task ObjectCreate_WithoutAdditionalCoordinates_SendsEmptyLists()
+        public async Task ObjectCreate_WithoutAdditionalCoordinates_SendsOnlyFirstPoint()
         {
             var (client, fake) = await Connect();
             fake.Reply("true");
@@ -386,8 +386,8 @@ namespace MtApi5.Tests
             client.ObjectCreate(0, "o", ENUM_OBJECT.OBJ_VLINE, 0, Time, 1.0);
 
             var p = fake.LastPayload();
-            Assert.Empty(p["Times"]!);
-            Assert.Empty(p["Prices"]!);
+            Assert.Equal([MtTime], p["Times"]!.Select(t => (long)t));
+            Assert.Equal([1.0], p["Prices"]!.Select(t => (double)t));
         }
 
         [Fact]
@@ -411,7 +411,7 @@ namespace MtApi5.Tests
             var coords = Enumerable.Range(0, 29).Select(i => Tuple.Create(Time, (double)i)).ToList();
 
             Assert.True(client.ObjectCreate(0, "o", ENUM_OBJECT.OBJ_TREND, 0, Time, 1.0, coords));
-            Assert.Equal(29, fake.LastPayload()["Times"]!.Count());
+            Assert.Equal(30, fake.LastPayload()["Times"]!.Count());
         }
 
         // ---- indicators ----
