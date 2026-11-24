@@ -368,13 +368,13 @@ public:
             _resizeThreshold = (int)_hashSlots / 4 * 3; // Just use the default load factor value of Javas HashTable
 
             HashEntry *nextEntry = NULL;
-            for(HashEntry *e = all ; e != NULL ; e = nextEntry ) {
-                nextEntry = e._next;
+            for(HashEntry *moved = all ; moved != NULL ; moved = nextEntry ) {
+                nextEntry = moved._next;
 
-                uint newHashCode = hash(e._key);
+                uint newHashCode = hash(moved._key);
                 // Insert at head of new list.
-                e._next = _buckets[newHashCode];
-                _buckets[newHashCode] = e;
+                moved._next = _buckets[newHashCode];
+                _buckets[newHashCode] = moved;
             }
             ret = true;
         }
