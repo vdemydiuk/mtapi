@@ -9,8 +9,10 @@
 	<ItemGroup>
 	  <PackageReference Include="WixToolset.Dtf.CustomAction" Version="5.0.0" />
 	</ItemGroup>
-	<!-- Dtf packs the custom action into obj\...\MtApiSetupActions.CA.dll but doesn't copy it to the output folder, where the installers look for it -->
-	<Target Name="CopyCustomActionPackage" AfterTargets="PackCustomAction">
+	<!-- Dtf packs the custom action into obj\...\MtApiSetupActions.CA.dll with its PackCustomAction target, but in an SDK-style project the
+	     hook that runs it (AfterCompile) is not reliably called, and the package is not copied to the output folder where the installers
+	     look for it. So run the packaging explicitly after compilation and copy the result. -->
+	<Target Name="CopyCustomActionPackage" AfterTargets="CoreCompile" DependsOnTargets="PackCustomAction">
 		<Copy SourceFiles="$(IntermediateOutputPath)$(TargetCAFileName)" DestinationFolder="$(OutDir)" />
 	</Target>
 </Project>
