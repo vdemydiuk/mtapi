@@ -516,6 +516,76 @@ class Mt5ApiClient:
         cmd_params = {"PropertyId": property_id}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.OrderGetString, cmd_params)
 
+    # History functions
+
+    # HistorySelect (times are MetaTrader server times, seconds since 1970)
+    def history_select(self, from_date: int, to_date: int):
+        cmd_params = {"FromDate": from_date, "ToDate": to_date}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistorySelect, cmd_params)
+
+    # HistorySelectByPosition
+    def history_select_by_position(self, position_id: int):
+        cmd_params = {"PositionId": position_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistorySelectByPosition, cmd_params)
+
+    # HistoryOrderSelect
+    def history_order_select(self, ticket: int):
+        cmd_params = {"Ticket": ticket}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistoryOrderSelect, cmd_params)
+
+    # HistoryOrdersTotal
+    def history_orders_total(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistoryOrdersTotal)
+
+    # HistoryOrderGetTicket
+    def history_order_get_ticket(self, index: int):
+        cmd_params = {"Index": index}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistoryOrderGetTicket, cmd_params)
+
+    # HistoryOrderGetDouble
+    def history_order_get_double(self, ticket_number: int, property_id: ENUM_ORDER_PROPERTY_DOUBLE):
+        cmd_params = {"TicketNumber": ticket_number, "PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistoryOrderGetDouble, cmd_params)
+
+    # HistoryOrderGetInteger
+    def history_order_get_integer(self, ticket_number: int, property_id: ENUM_ORDER_PROPERTY_INTEGER):
+        cmd_params = {"TicketNumber": ticket_number, "PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistoryOrderGetInteger, cmd_params)
+
+    # HistoryOrderGetString
+    def history_order_get_string(self, ticket_number: int, property_id: ENUM_ORDER_PROPERTY_STRING):
+        cmd_params = {"TicketNumber": ticket_number, "PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistoryOrderGetString, cmd_params)
+
+    # HistoryDealSelect
+    def history_deal_select(self, ticket: int):
+        cmd_params = {"Ticket": ticket}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistoryDealSelect, cmd_params)
+
+    # HistoryDealsTotal
+    def history_deals_total(self):
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistoryDealsTotal)
+
+    # HistoryDealGetTicket
+    def history_deal_get_ticket(self, index: int):
+        cmd_params = {"Index": index}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistoryDealGetTicket, cmd_params)
+
+    # HistoryDealGetDouble
+    def history_deal_get_double(self, ticket_number: int, property_id: ENUM_DEAL_PROPERTY_DOUBLE):
+        cmd_params = {"TicketNumber": ticket_number, "PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistoryDealGetDouble, cmd_params)
+
+    # HistoryDealGetInteger
+    def history_deal_get_integer(self, ticket_number: int, property_id: ENUM_DEAL_PROPERTY_INTEGER):
+        cmd_params = {"TicketNumber": ticket_number, "PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistoryDealGetInteger, cmd_params)
+
+    # HistoryDealGetString
+    def history_deal_get_string(self, ticket_number: int, property_id: ENUM_DEAL_PROPERTY_STRING):
+        cmd_params = {"TicketNumber": ticket_number, "PropertyId": property_id}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.HistoryDealGetString, cmd_params)
+
     # Timeseries and Indicators Access
 
     # SeriesInfoInteger

@@ -131,6 +131,7 @@ class CommandTabs:
             tabs=[
                 self.__account_tab(),
                 self.__trade_tab(),
+                self.__history_tab(),
                 self.__timeseries_tab(),
                 self.__market_info_tab(),
                 self.__chart_tab(),
@@ -350,6 +351,79 @@ class CommandTabs:
                 row(prop_order_string, self.__button(
                     "OrderGetString",
                     lambda c: c.order_get_string(get_enum(prop_order_string, mt5enums.ENUM_ORDER_PROPERTY_STRING)),
+                )),
+            ),
+        )
+
+    # History Functions
+
+    def __history_tab(self) -> ft.Tab:
+        now = datetime.now()
+        from_date = text_field("From (server time)", format_mt_time(now - timedelta(days=30)), width=200)
+        to_date = text_field("To (server time)", format_mt_time(now), width=200)
+        position_id = text_field("Position ID", "0", width=160)
+        ticket = text_field("Ticket", "0", width=160)
+        index = text_field("Index", "0", width=100)
+        order_double = enum_dropdown("Property", mt5enums.ENUM_ORDER_PROPERTY_DOUBLE)
+        order_integer = enum_dropdown("Property", mt5enums.ENUM_ORDER_PROPERTY_INTEGER)
+        order_string = enum_dropdown("Property", mt5enums.ENUM_ORDER_PROPERTY_STRING)
+        deal_double = enum_dropdown("Property", mt5enums.ENUM_DEAL_PROPERTY_DOUBLE)
+        deal_integer = enum_dropdown("Property", mt5enums.ENUM_DEAL_PROPERTY_INTEGER)
+        deal_string = enum_dropdown("Property", mt5enums.ENUM_DEAL_PROPERTY_STRING)
+
+        return tab(
+            "History",
+            section(
+                "Select history",
+                row(
+                    from_date,
+                    to_date,
+                    self.__button("HistorySelect", lambda c: c.history_select(get_mt_time(from_date), get_mt_time(to_date))),
+                ),
+                row(
+                    position_id,
+                    self.__button("HistorySelectByPosition", lambda c: c.history_select_by_position(get_int(position_id))),
+                ),
+            ),
+            section(
+                "Orders (select history first; Ticket and Index from below)",
+                row(ticket, index),
+                row(
+                    self.__button("HistoryOrderSelect", lambda c: c.history_order_select(get_int(ticket))),
+                    self.__button("HistoryOrdersTotal", lambda c: c.history_orders_total()),
+                    self.__button("HistoryOrderGetTicket", lambda c: c.history_order_get_ticket(get_int(index))),
+                ),
+                row(order_double, self.__button(
+                    "HistoryOrderGetDouble",
+                    lambda c: c.history_order_get_double(get_int(ticket), get_enum(order_double, mt5enums.ENUM_ORDER_PROPERTY_DOUBLE)),
+                )),
+                row(order_integer, self.__button(
+                    "HistoryOrderGetInteger",
+                    lambda c: c.history_order_get_integer(get_int(ticket), get_enum(order_integer, mt5enums.ENUM_ORDER_PROPERTY_INTEGER)),
+                )),
+                row(order_string, self.__button(
+                    "HistoryOrderGetString",
+                    lambda c: c.history_order_get_string(get_int(ticket), get_enum(order_string, mt5enums.ENUM_ORDER_PROPERTY_STRING)),
+                )),
+            ),
+            section(
+                "Deals (Ticket and Index from above)",
+                row(
+                    self.__button("HistoryDealSelect", lambda c: c.history_deal_select(get_int(ticket))),
+                    self.__button("HistoryDealsTotal", lambda c: c.history_deals_total()),
+                    self.__button("HistoryDealGetTicket", lambda c: c.history_deal_get_ticket(get_int(index))),
+                ),
+                row(deal_double, self.__button(
+                    "HistoryDealGetDouble",
+                    lambda c: c.history_deal_get_double(get_int(ticket), get_enum(deal_double, mt5enums.ENUM_DEAL_PROPERTY_DOUBLE)),
+                )),
+                row(deal_integer, self.__button(
+                    "HistoryDealGetInteger",
+                    lambda c: c.history_deal_get_integer(get_int(ticket), get_enum(deal_integer, mt5enums.ENUM_DEAL_PROPERTY_INTEGER)),
+                )),
+                row(deal_string, self.__button(
+                    "HistoryDealGetString",
+                    lambda c: c.history_deal_get_string(get_int(ticket), get_enum(deal_string, mt5enums.ENUM_DEAL_PROPERTY_STRING)),
                 )),
             ),
         )
