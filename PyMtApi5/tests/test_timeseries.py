@@ -65,7 +65,7 @@ class TimeseriesTests(TradingTestCase):
         self.assert_sent(Mt5CommandType.iBarShift, {"Symbol": "EURUSD", "Timeframe": int(TF), "Time": MT_TIME, "Exact": False})
         for method, command in (("i_highest", Mt5CommandType.iHighest), ("i_lowest", Mt5CommandType.iLowest)):
             with self.subTest(method):
-                getattr(self.client, method)("EURUSD", TF, ENUM_SERIESMODE.MODE_CLOSE)
+                getattr(self.client, method)("EURUSD", TF, mode=ENUM_SERIESMODE.MODE_CLOSE)
                 self.assert_sent(command, {"Symbol": "EURUSD", "Timeframe": int(TF),
                                            "Type": int(ENUM_SERIESMODE.MODE_CLOSE), "Count": -1, "Start": 0})
 

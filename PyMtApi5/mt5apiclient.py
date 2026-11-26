@@ -1564,10 +1564,10 @@ class Mt5ApiClient:
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.iHigh, cmd_params)
 
     # iHighest
-    def i_highest(self, symbol: str, timeframe: ENUM_TIMEFRAMES, type: ENUM_SERIESMODE, count: int = -1, start: int = 0):
+    def i_highest(self, symbol: str, timeframe: ENUM_TIMEFRAMES, mode: ENUM_SERIESMODE, count: int = -1, start: int = 0):
         if symbol is None:
             symbol = ""
-        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Type": int(type), "Count": count, "Start": start}
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Type": int(mode), "Count": count, "Start": start}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.iHighest, cmd_params)
 
     # iLow
@@ -1578,10 +1578,10 @@ class Mt5ApiClient:
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.iLow, cmd_params)
 
     # iLowest
-    def i_lowest(self, symbol: str, timeframe: ENUM_TIMEFRAMES, type: ENUM_SERIESMODE, count: int = -1, start: int = 0):
+    def i_lowest(self, symbol: str, timeframe: ENUM_TIMEFRAMES, mode: ENUM_SERIESMODE, count: int = -1, start: int = 0):
         if symbol is None:
             symbol = ""
-        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Type": int(type), "Count": count, "Start": start}
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Type": int(mode), "Count": count, "Start": start}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.iLowest, cmd_params)
 
     # iOpen
