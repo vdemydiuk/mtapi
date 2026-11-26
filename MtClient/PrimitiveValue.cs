@@ -276,14 +276,14 @@ namespace Org.SbeTool.Sbe.Dll
         }
 
         /// <summary>
-        ///     Construct and fill in value as a double.
+        ///     Construct and fill in value as an unsigned long.
         /// </summary>
-        /// <param name="value"> in double format </param>
+        /// <param name="value"> in unsigned long format </param>
         /// <param name="size"></param>
         public PrimitiveValue(ulong value, int size)
         {
             _representation = Representation.ULong;
-            _unsignedLongValue = 0;
+            _unsignedLongValue = value;
             _longValue = 0;
             _doubleValue = 0;
             _byteArrayValue = null;
@@ -465,7 +465,7 @@ namespace Org.SbeTool.Sbe.Dll
                     return Convert.ToString(_longValue);
 
                 case Representation.ULong:
-                    return Convert.ToString(_longValue);
+                    return Convert.ToString(_unsignedLongValue);
 
                 case Representation.Double:
                     return Convert.ToString(_doubleValue);
