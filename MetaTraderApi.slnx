@@ -13,7 +13,7 @@
       <Build Solution="*|x86" Project="false" />
     </Project>
   </Folder>
-  <Project Path="MT5Connector/MT5Connector.vcxproj">
+  <Project Path="MT5Connector/MT5Connector.vcxproj" Id="cb6d4a3e-2f2e-4c67-929d-3c2a8fd1c556">
     <Build Solution="*|x86" Project="false" />
   </Project>
   <Project Path="MtApi/MtApi.csproj">
@@ -40,8 +40,8 @@
   </Project>
   <Project Path="MtApiSetupActions/MtApiSetupActions.csproj" />
   <Project Path="MtClient/MtClient.csproj" />
-  <Project Path="MTConnector/MTConnector.vcxproj">
+  <Project Path="MTConnector/MTConnector.vcxproj" Id="2be5fac1-7fb7-45c3-9215-31a5bc4b964f">
     <Build Solution="*|x64" Project="false" />
   </Project>
-  <Project Path="MtService/MtService.vcxproj" />
+  <Project Path="MtService/MtService.vcxproj" Id="3effff03-2a1d-48aa-a49a-9f90889f31e0" />
 </Solution>
