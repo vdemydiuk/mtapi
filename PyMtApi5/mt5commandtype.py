@@ -253,3 +253,6 @@ class Mt5CommandType(IntEnum):
         Buy = 304
         Sell = 305
         GetSymbols = 306
+
+        GetPositions = 390
+        GetOrders = 391

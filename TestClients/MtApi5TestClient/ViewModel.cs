@@ -50,6 +50,8 @@ namespace MtApi5TestClient
         public DelegateCommand OrderSendCommand { get; private set; }
         public DelegateCommand OrderCheckCommand { get; private set; }
         public DelegateCommand PositionGetTicketCommand { get; private set; }
+        public DelegateCommand GetPositionsCommand { get; private set; }
+        public DelegateCommand GetOrdersCommand { get; private set; }
 
         public DelegateCommand HistoryOrderGetIntegerCommand { get; private set; }
         public DelegateCommand HistoryDealGetDoubleCommand { get; private set; }
@@ -407,6 +409,8 @@ namespace MtApi5TestClient
             OrderSendCommand = new DelegateCommand(ExecuteOrderSend);
             OrderCheckCommand = new DelegateCommand(ExecuteOrderCheck);
             PositionGetTicketCommand = new DelegateCommand(ExecutePositionGetTicket);
+            GetPositionsCommand = new DelegateCommand(ExecuteGetPositions);
+            GetOrdersCommand = new DelegateCommand(ExecuteGetOrders);
 
             HistoryOrderGetIntegerCommand = new DelegateCommand(ExecuteHistoryOrderGetInteger);
             HistoryDealGetDoubleCommand = new DelegateCommand(ExecuteHistoryDealGetDouble);
@@ -590,6 +594,34 @@ namespace MtApi5TestClient
 
             var message = $"PositionGetTicket: result = {retVal}";
             AddLog(message);
+        }
+
+        private async void ExecuteGetPositions(object obj)
+        {
+            var positions = await Execute(() => _mtApiClient.GetPositions());
+            if (positions == null)
+            {
+                AddLog("GetPositions: result is null");
+                return;
+            }
+
+            AddLog($"GetPositions: count = {positions.Count}");
+            foreach (var position in positions)
+                AddLog($"  {position}");
+        }
+
+        private async void ExecuteGetOrders(object obj)
+        {
+            var orders = await Execute(() => _mtApiClient.GetOrders());
+            if (orders == null)
+            {
+                AddLog("GetOrders: result is null");
+                return;
+            }
+
+            AddLog($"GetOrders: count = {orders.Count}");
+            foreach (var order in orders)
+                AddLog($"  {order}");
         }
 
         private async void ExecuteHistoryOrderGetInteger(object o)

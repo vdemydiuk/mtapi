@@ -284,6 +284,8 @@
                                     <Button Content="OrderSend" Command="{Binding OrderSendCommand}" Width="100" Height="25" HorizontalAlignment="Left" Margin="4"/>
                                     <Button Content="OrderCheck" Command="{Binding OrderCheckCommand}" Width="100" Height="25" HorizontalAlignment="Left" Margin="4"/>
                                     <Button Content="PositionGetTicket" Command="{Binding PositionGetTicketCommand}" Width="100" Height="25" HorizontalAlignment="Left" Margin="4"/>
+                                    <Button Content="GetPositions" Command="{Binding GetPositionsCommand}" Width="100" Height="25" HorizontalAlignment="Left" Margin="4"/>
+                                    <Button Content="GetOrders" Command="{Binding GetOrdersCommand}" Width="100" Height="25" HorizontalAlignment="Left" Margin="4"/>
                                 </StackPanel>
 
                                 <WrapPanel>

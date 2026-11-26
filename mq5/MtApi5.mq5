@@ -389,6 +389,8 @@ int preinit()
    ADD_EXECUTOR(304, Buy);
    ADD_EXECUTOR(305, Sell);
    ADD_EXECUTOR(306, GetSymbols);
+   ADD_EXECUTOR(390, GetPositions);
+   ADD_EXECUTOR(391, GetOrders);
    
    return (0);
 }
@@ -3392,6 +3394,42 @@ string Execute_GetSymbols()
    return CreateSuccessResponse(jaSymbols);
 }
 
+string Execute_GetPositions()
+{
+   const int total = PositionsTotal();
+   JSONArray* jaPositions = new JSONArray();
+   int idx = 0;
+   for(int i = 0; i < total; i++)
+   {
+      ulong ticket = PositionGetTicket(i); // also selects the position
+      if (ticket == 0)
+         continue; // the position was closed between PositionsTotal and selection
+
+      jaPositions.put(idx, SelectedPositionToJson(ticket));
+      idx++;
+   }
+
+   return CreateSuccessResponse(jaPositions);
+}
+
+string Execute_GetOrders()
+{
+   const int total = OrdersTotal();
+   JSONArray* jaOrders = new JSONArray();
+   int idx = 0;
+   for(int i = 0; i < total; i++)
+   {
+      ulong ticket = OrderGetTicket(i); // also selects the order
+      if (ticket == 0)
+         continue; // the order was triggered or removed between OrdersTotal and selection
+
+      jaOrders.put(idx, SelectedOrderToJson(ticket));
+      idx++;
+   }
+
+   return CreateSuccessResponse(jaOrders);
+}
+
 int PositionCloseAll()
 {
    CTrade trade;
@@ -3838,5 +3876,58 @@ JSONObject* MqlRatesToJson(const MqlRates& rates)
    jo.put("tick_volume", new JSONNumber(rates.tick_volume));
    jo.put("spread", new JSONNumber(rates.spread));
    jo.put("real_volume", new JSONNumber(rates.real_volume));
+   return jo;
+}
+
+JSONObject* SelectedPositionToJson(ulong ticket)
+{
+   JSONObject *jo = new JSONObject();
+   jo.put("Ticket", new JSONNumber((long)ticket));
+   jo.put("Identifier", new JSONNumber(PositionGetInteger(POSITION_IDENTIFIER)));
+   jo.put("Symbol", new JSONString(PositionGetString(POSITION_SYMBOL)));
+   jo.put("Type", new JSONNumber(PositionGetInteger(POSITION_TYPE)));
+   jo.put("Reason", new JSONNumber(PositionGetInteger(POSITION_REASON)));
+   jo.put("Magic", new JSONNumber(PositionGetInteger(POSITION_MAGIC)));
+   jo.put("Volume", new JSONNumber(PositionGetDouble(POSITION_VOLUME)));
+   jo.put("PriceOpen", new JSONNumber(PositionGetDouble(POSITION_PRICE_OPEN)));
+   jo.put("StopLoss", new JSONNumber(PositionGetDouble(POSITION_SL)));
+   jo.put("TakeProfit", new JSONNumber(PositionGetDouble(POSITION_TP)));
+   jo.put("PriceCurrent", new JSONNumber(PositionGetDouble(POSITION_PRICE_CURRENT)));
+   jo.put("Swap", new JSONNumber(PositionGetDouble(POSITION_SWAP)));
+   jo.put("Profit", new JSONNumber(PositionGetDouble(POSITION_PROFIT)));
+   jo.put("MtTime", new JSONNumber(PositionGetInteger(POSITION_TIME)));
+   jo.put("TimeMsc", new JSONNumber(PositionGetInteger(POSITION_TIME_MSC)));
+   jo.put("MtTimeUpdate", new JSONNumber(PositionGetInteger(POSITION_TIME_UPDATE)));
+   jo.put("TimeUpdateMsc", new JSONNumber(PositionGetInteger(POSITION_TIME_UPDATE_MSC)));
+   jo.put("Comment", new JSONString(PositionGetString(POSITION_COMMENT)));
+   jo.put("ExternalId", new JSONString(PositionGetString(POSITION_EXTERNAL_ID)));
+   return jo;
+}
+
+JSONObject* SelectedOrderToJson(ulong ticket)
+{
+   JSONObject *jo = new JSONObject();
+   jo.put("Ticket", new JSONNumber((long)ticket));
+   jo.put("Symbol", new JSONString(OrderGetString(ORDER_SYMBOL)));
+   jo.put("Type", new JSONNumber(OrderGetInteger(ORDER_TYPE)));
+   jo.put("State", new JSONNumber(OrderGetInteger(ORDER_STATE)));
+   jo.put("TypeTime", new JSONNumber(OrderGetInteger(ORDER_TYPE_TIME)));
+   jo.put("TypeFilling", new JSONNumber(OrderGetInteger(ORDER_TYPE_FILLING)));
+   jo.put("Reason", new JSONNumber(OrderGetInteger(ORDER_REASON)));
+   jo.put("Magic", new JSONNumber(OrderGetInteger(ORDER_MAGIC)));
+   jo.put("PositionId", new JSONNumber(OrderGetInteger(ORDER_POSITION_ID)));
+   jo.put("PositionById", new JSONNumber(OrderGetInteger(ORDER_POSITION_BY_ID)));
+   jo.put("VolumeInitial", new JSONNumber(OrderGetDouble(ORDER_VOLUME_INITIAL)));
+   jo.put("VolumeCurrent", new JSONNumber(OrderGetDouble(ORDER_VOLUME_CURRENT)));
+   jo.put("PriceOpen", new JSONNumber(OrderGetDouble(ORDER_PRICE_OPEN)));
+   jo.put("StopLoss", new JSONNumber(OrderGetDouble(ORDER_SL)));
+   jo.put("TakeProfit", new JSONNumber(OrderGetDouble(ORDER_TP)));
+   jo.put("PriceCurrent", new JSONNumber(OrderGetDouble(ORDER_PRICE_CURRENT)));
+   jo.put("PriceStopLimit", new JSONNumber(OrderGetDouble(ORDER_PRICE_STOPLIMIT)));
+   jo.put("MtTimeSetup", new JSONNumber(OrderGetInteger(ORDER_TIME_SETUP)));
+   jo.put("TimeSetupMsc", new JSONNumber(OrderGetInteger(ORDER_TIME_SETUP_MSC)));
+   jo.put("MtTimeExpiration", new JSONNumber(OrderGetInteger(ORDER_TIME_EXPIRATION)));
+   jo.put("Comment", new JSONString(OrderGetString(ORDER_COMMENT)));
+   jo.put("ExternalId", new JSONString(OrderGetString(ORDER_EXTERNAL_ID)));
    return jo;
 }

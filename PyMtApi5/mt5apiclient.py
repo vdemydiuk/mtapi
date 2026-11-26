@@ -227,6 +227,86 @@ class MqlBookInfo:
         return f"book_type = {self.book_type}, price = {self.price}, volume = {self.volume}, volume_real = {self.volume_real}"
 
 
+class Mt5Position:
+    """Open position with all its properties (returned by Mt5ApiClient.get_positions).
+
+    Times are MT times: seconds (time, time_update) or milliseconds (*_msc) since 01.01.1970.
+    """
+
+    def __init__(self, j):
+        self.ticket = j["Ticket"]
+        self.identifier = j["Identifier"]
+        self.symbol = j["Symbol"]
+        self.position_type = ENUM_POSITION_TYPE(j["Type"])
+        self.reason = ENUM_POSITION_REASON(j["Reason"])
+        self.magic = j["Magic"]
+        self.volume = j["Volume"]
+        self.price_open = j["PriceOpen"]
+        self.sl = j["StopLoss"]
+        self.tp = j["TakeProfit"]
+        self.price_current = j["PriceCurrent"]
+        self.swap = j["Swap"]
+        self.profit = j["Profit"]
+        self.time = j["MtTime"]
+        self.time_msc = j["TimeMsc"]
+        self.time_update = j["MtTimeUpdate"]
+        self.time_update_msc = j["TimeUpdateMsc"]
+        self.comment = j["Comment"]
+        self.external_id = j["ExternalId"]
+
+    def __repr__(self):
+        return (
+            f"ticket = {self.ticket}, identifier = {self.identifier}, symbol = {self.symbol}, "
+            f"position_type = {self.position_type.name}, reason = {self.reason.name}, magic = {self.magic}, "
+            f"volume = {self.volume}, price_open = {self.price_open}, sl = {self.sl}, tp = {self.tp}, "
+            f"price_current = {self.price_current}, swap = {self.swap}, profit = {self.profit}, "
+            f"time = {self.time}, time_update = {self.time_update}, comment = {self.comment}, external_id = {self.external_id}"
+        )
+
+
+class Mt5Order:
+    """Current (pending) order with all its properties (returned by Mt5ApiClient.get_orders).
+
+    Times are MT times: seconds (time_setup, time_expiration) or milliseconds (time_setup_msc) since 01.01.1970.
+    """
+
+    def __init__(self, j):
+        self.ticket = j["Ticket"]
+        self.symbol = j["Symbol"]
+        self.order_type = ENUM_ORDER_TYPE(j["Type"])
+        self.state = ENUM_ORDER_STATE(j["State"])
+        self.type_time = ENUM_ORDER_TYPE_TIME(j["TypeTime"])
+        self.type_filling = ENUM_ORDER_TYPE_FILLING(j["TypeFilling"])
+        self.reason = ENUM_ORDER_REASON(j["Reason"])
+        self.magic = j["Magic"]
+        self.position_id = j["PositionId"]
+        self.position_by_id = j["PositionById"]
+        self.volume_initial = j["VolumeInitial"]
+        self.volume_current = j["VolumeCurrent"]
+        self.price_open = j["PriceOpen"]
+        self.sl = j["StopLoss"]
+        self.tp = j["TakeProfit"]
+        self.price_current = j["PriceCurrent"]
+        self.price_stoplimit = j["PriceStopLimit"]
+        self.time_setup = j["MtTimeSetup"]
+        self.time_setup_msc = j["TimeSetupMsc"]
+        self.time_expiration = j["MtTimeExpiration"]
+        self.comment = j["Comment"]
+        self.external_id = j["ExternalId"]
+
+    def __repr__(self):
+        return (
+            f"ticket = {self.ticket}, symbol = {self.symbol}, order_type = {self.order_type.name}, "
+            f"state = {self.state.name}, type_time = {self.type_time.name}, type_filling = {self.type_filling.name}, "
+            f"reason = {self.reason.name}, magic = {self.magic}, position_id = {self.position_id}, "
+            f"position_by_id = {self.position_by_id}, volume_initial = {self.volume_initial}, "
+            f"volume_current = {self.volume_current}, price_open = {self.price_open}, sl = {self.sl}, tp = {self.tp}, "
+            f"price_current = {self.price_current}, price_stoplimit = {self.price_stoplimit}, "
+            f"time_setup = {self.time_setup}, time_expiration = {self.time_expiration}, "
+            f"comment = {self.comment}, external_id = {self.external_id}"
+        )
+
+
 class Mt5ApiClient:
     def __init__(self, address, port, callback=None):
         self.__address = address
@@ -382,6 +462,11 @@ class Mt5ApiClient:
         cmd_params = {"Index": index}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.PositionGetTicket, cmd_params)
 
+    # GetPositions, returns all open positions with all their properties in one request
+    def get_positions(self):
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.GetPositions)
+        return [Mt5Position(obj) for obj in res] if res is not None else None
+
     # PositionSelect
     def position_select(self, symbol: str):
         cmd_params = {"Symbol": symbol}
@@ -516,6 +601,11 @@ class Mt5ApiClient:
     def order_get_string(self, property_id: ENUM_ORDER_PROPERTY_STRING):
         cmd_params = {"PropertyId": property_id}
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.OrderGetString, cmd_params)
+
+    # GetOrders, returns all current (pending) orders with all their properties in one request
+    def get_orders(self):
+        res = self.__send_command(self.__get_default_expert(), Mt5CommandType.GetOrders)
+        return [Mt5Order(obj) for obj in res] if res is not None else None
 
     # History functions
 
