@@ -11,6 +11,8 @@ from .mt5apiclient import (
     MqlTradeResult,
     MqlTradeCheckResult,
     MqlBookInfo,
+    Mt5Position,
+    Mt5Order,
 )
 from .mt5commandtype import Mt5CommandType
 from .mtrpcclient import MtRpcClient, MtRpcError
@@ -29,6 +31,8 @@ __all__ = [
     "MqlTradeResult",
     "MqlTradeCheckResult",
     "MqlBookInfo",
+    "Mt5Position",
+    "Mt5Order",
     "Mt5CommandType",
     "MtRpcClient",
     "MtRpcError",

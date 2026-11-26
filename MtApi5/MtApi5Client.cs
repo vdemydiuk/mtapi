@@ -462,6 +462,16 @@ namespace MtApi5
         }
 
         ///<summary>
+        ///Gets all open positions with all their properties in a single request.
+        ///Replaces the PositionsTotal/PositionGetTicket/PositionGet* per-property call sequence with one round trip to the terminal.
+        ///</summary>
+        ///<returns>List of open positions (empty if there are none).</returns>
+        public List<Mt5Position>? GetPositions()
+        {
+            return SendCommand<List<Mt5Position>>(ExecutorHandle, Mt5CommandType.GetPositions);
+        }
+
+        ///<summary>
         ///Returns the number of current orders.
         ///</summary>
         public int OrdersTotal()
@@ -517,6 +527,19 @@ namespace MtApi5
         {
             Dictionary<string, object> cmdParams = new() { { "PropertyId", (int)propertyId } };
             return SendCommand<string>(ExecutorHandle, Mt5CommandType.OrderGetString, cmdParams);
+        }
+
+        ///<summary>
+        ///Gets all current (pending) orders with all their properties in a single request.
+        ///Replaces the OrdersTotal/OrderGetTicket/OrderGet* per-property call sequence with one round trip to the terminal.
+        ///Only pending orders that have not triggered yet are returned (the same ones OrdersTotal counts):
+        ///a market order that has been filled is no longer a current order, it becomes a position (see GetPositions)
+        ///and its order record moves to the history.
+        ///</summary>
+        ///<returns>List of current orders (empty if there are none).</returns>
+        public List<Mt5Order>? GetOrders()
+        {
+            return SendCommand<List<Mt5Order>>(ExecutorHandle, Mt5CommandType.GetOrders);
         }
 
         ///<summary>

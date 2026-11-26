@@ -12,16 +12,24 @@ from PyMtApi5 import (
     ENUM_ORDER_PROPERTY_DOUBLE,
     ENUM_ORDER_PROPERTY_INTEGER,
     ENUM_ORDER_PROPERTY_STRING,
+    ENUM_ORDER_REASON,
+    ENUM_ORDER_STATE,
     ENUM_ORDER_TYPE,
+    ENUM_ORDER_TYPE_FILLING,
+    ENUM_ORDER_TYPE_TIME,
     ENUM_POSITION_PROPERTY_DOUBLE,
     ENUM_POSITION_PROPERTY_INTEGER,
     ENUM_POSITION_PROPERTY_STRING,
+    ENUM_POSITION_REASON,
+    ENUM_POSITION_TYPE,
     ENUM_TRADE_REQUEST_ACTIONS,
     Mt5ApiClient,
     Mt5CommandType,
     MqlTradeCheckResult,
     MqlTradeRequest,
     MqlTradeResult,
+    Mt5Order,
+    Mt5Position,
 )
 
 U64_MAX = 0xFFFFFFFFFFFFFFFF
@@ -333,6 +341,142 @@ class ErrorTests(TradingTestCase):
         with self.assertRaises(Exception) as ctx:
             self.client.positions_total()
         self.assertIn("boom", str(ctx.exception))
+
+
+class SnapshotTests(TradingTestCase):
+    """get_positions / get_orders: all positions or orders with all properties in one request (#345)."""
+
+    POSITION = {
+        "Ticket": 2**63 - 1,
+        "Identifier": 2**63 - 2,
+        "Symbol": "EURUSD",
+        "Type": 1,
+        "Reason": 3,
+        "Magic": 123456789012,
+        "Volume": 0.15,
+        "PriceOpen": 1.0855,
+        "StopLoss": 1.09,
+        "TakeProfit": 1.07,
+        "PriceCurrent": 1.0849,
+        "Swap": -0.42,
+        "Profit": 9.0,
+        "MtTime": 1700000000,
+        "TimeMsc": 1700000000123,
+        "MtTimeUpdate": 1700003600,
+        "TimeUpdateMsc": 1700003600456,
+        "Comment": 'say "hi" \\ tab\tnew\nline',
+        "ExternalId": "ext-1",
+    }
+    ORDER = {
+        "Ticket": U64_MAX,
+        "Symbol": "GBPUSD",
+        "Type": 7,
+        "State": 1,
+        "TypeTime": 2,
+        "TypeFilling": 1,
+        "Reason": 3,
+        "Magic": 42,
+        "PositionId": 2**63 - 1,
+        "PositionById": 5,
+        "VolumeInitial": 0.3,
+        "VolumeCurrent": 0.2,
+        "PriceOpen": 1.25,
+        "StopLoss": 1.2,
+        "TakeProfit": 1.3,
+        "PriceCurrent": 1.26,
+        "PriceStopLimit": 1.255,
+        "MtTimeSetup": 1700000000,
+        "TimeSetupMsc": 1700000000789,
+        "MtTimeExpiration": 1700086400,
+        "Comment": 'q"c',
+        "ExternalId": "",
+    }
+
+    def test_get_positions(self):
+        self.fake.reply = [self.POSITION]
+        positions = self.client.get_positions()
+        self.assert_sent(Mt5CommandType.GetPositions, None)
+        self.assertEqual(390, int(Mt5CommandType.GetPositions))
+        self.assertEqual(1, len(positions))
+        p = positions[0]
+        self.assertIsInstance(p, Mt5Position)
+        self.assertEqual(2**63 - 1, p.ticket)
+        self.assertEqual(2**63 - 2, p.identifier)
+        self.assertEqual("EURUSD", p.symbol)
+        self.assertIs(ENUM_POSITION_TYPE.POSITION_TYPE_SELL, p.position_type)
+        self.assertIs(ENUM_POSITION_REASON.POSITION_REASON_EXPERT, p.reason)
+        self.assertEqual(123456789012, p.magic)
+        self.assertEqual(0.15, p.volume)
+        self.assertEqual(1.0855, p.price_open)
+        self.assertEqual(1.09, p.sl)
+        self.assertEqual(1.07, p.tp)
+        self.assertEqual(1.0849, p.price_current)
+        self.assertEqual(-0.42, p.swap)
+        self.assertEqual(9.0, p.profit)
+        self.assertEqual(1700000000, p.time)
+        self.assertEqual(1700000000123, p.time_msc)
+        self.assertEqual(1700003600, p.time_update)
+        self.assertEqual(1700003600456, p.time_update_msc)
+        self.assertEqual('say "hi" \\ tab\tnew\nline', p.comment)
+        self.assertEqual("ext-1", p.external_id)
+        self.assertIn("POSITION_TYPE_SELL", repr(p))
+
+    def test_get_orders(self):
+        self.fake.reply = [self.ORDER]
+        orders = self.client.get_orders()
+        self.assert_sent(Mt5CommandType.GetOrders, None)
+        self.assertEqual(391, int(Mt5CommandType.GetOrders))
+        self.assertEqual(1, len(orders))
+        o = orders[0]
+        self.assertIsInstance(o, Mt5Order)
+        self.assertEqual(U64_MAX, o.ticket)
+        self.assertEqual("GBPUSD", o.symbol)
+        self.assertIs(ENUM_ORDER_TYPE.ORDER_TYPE_SELL_STOP_LIMIT, o.order_type)
+        self.assertIs(ENUM_ORDER_STATE.ORDER_STATE_PLACED, o.state)
+        self.assertIs(ENUM_ORDER_TYPE_TIME.ORDER_TIME_SPECIFIED, o.type_time)
+        self.assertIs(ENUM_ORDER_TYPE_FILLING.ORDER_FILLING_IOC, o.type_filling)
+        self.assertIs(ENUM_ORDER_REASON.ORDER_REASON_EXPERT, o.reason)
+        self.assertEqual(42, o.magic)
+        self.assertEqual(2**63 - 1, o.position_id)
+        self.assertEqual(5, o.position_by_id)
+        self.assertEqual(0.3, o.volume_initial)
+        self.assertEqual(0.2, o.volume_current)
+        self.assertEqual(1.25, o.price_open)
+        self.assertEqual(1.2, o.sl)
+        self.assertEqual(1.3, o.tp)
+        self.assertEqual(1.26, o.price_current)
+        self.assertEqual(1.255, o.price_stoplimit)
+        self.assertEqual(1700000000, o.time_setup)
+        self.assertEqual(1700000000789, o.time_setup_msc)
+        self.assertEqual(1700086400, o.time_expiration)
+        self.assertEqual('q"c', o.comment)
+        self.assertEqual("", o.external_id)
+        self.assertIn("ORDER_TYPE_SELL_STOP_LIMIT", repr(o))
+
+    def test_reply_goes_through_json(self):
+        # escaped strings in the expert's JSON are decoded once
+        self.fake.raw_reply = '{"ErrorCode":0,"Value":[' + json.dumps(self.POSITION) + "]}"
+        self.assertEqual(self.POSITION["Comment"], self.client.get_positions()[0].comment)
+
+    def test_multiple_items_keep_order(self):
+        second = dict(self.POSITION, Ticket=2, Symbol="USDJPY", Type=0)
+        self.fake.reply = [self.POSITION, second]
+        positions = self.client.get_positions()
+        self.assertEqual(["EURUSD", "USDJPY"], [p.symbol for p in positions])
+        self.assertEqual(
+            [ENUM_POSITION_TYPE.POSITION_TYPE_SELL, ENUM_POSITION_TYPE.POSITION_TYPE_BUY],
+            [p.position_type for p in positions],
+        )
+
+    def test_empty_lists(self):
+        self.fake.reply = []
+        self.assertEqual([], self.client.get_positions())
+        self.assertEqual([], self.client.get_orders())
+
+    def test_no_value_returns_none(self):
+        self.fake.reply = None
+        self.assertIsNone(self.client.get_positions())
+        self.assertIsNone(self.client.get_orders())
 
 
 if __name__ == "__main__":
