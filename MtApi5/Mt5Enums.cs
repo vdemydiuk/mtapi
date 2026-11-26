@@ -837,6 +837,21 @@ namespace MtApi5
     }
     #endregion //Object Properties
 
+    #region Timeseries Constants
+
+    public enum ENUM_SERIESMODE
+    {
+        MODE_OPEN = 0,          //Open prices
+        MODE_LOW = 1,           //Low prices
+        MODE_HIGH = 2,          //High prices
+        MODE_CLOSE = 3,         //Close prices
+        MODE_VOLUME = 4,        //Tick volumes
+        MODE_REAL_VOLUME = 7,   //Real volumes
+        MODE_SPREAD = 6         //Spreads
+    }
+
+    #endregion
+
     #region Price Constants
 
     public enum ENUM_APPLIED_PRICE

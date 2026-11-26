@@ -16,6 +16,7 @@ from PyMtApi5 import (
     ParametersType,
 )
 
+from .test_timeseries import TIMESERIES_METHODS
 from .test_trading import TradingTestCase
 
 TF = ENUM_TIMEFRAMES.PERIOD_H1
@@ -81,7 +82,8 @@ class IndicatorTests(TradingTestCase):
         all_names = {
             m.replace("_", "")
             for m in dir(Mt5ApiClient)
-            if m.startswith("i_") and m != "i_custom" and callable(getattr(Mt5ApiClient, m))
+            if m.startswith("i_") and m != "i_custom" and m not in TIMESERIES_METHODS
+            and callable(getattr(Mt5ApiClient, m))
         }
         self.assertEqual(all_names, covered)
 

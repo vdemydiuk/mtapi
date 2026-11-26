@@ -95,7 +95,8 @@ namespace MtApi5.Tests
             var covered = Indicators().Select(r => (string)r[0]).ToHashSet();
             var all = typeof(MtApi5Client).GetMethods()
                 .Where(m => m.DeclaringType == typeof(MtApi5Client) && m.Name.Length > 1
-                    && m.Name[0] == 'i' && char.IsUpper(m.Name[1]) && m.Name != "iCustom")
+                    && m.Name[0] == 'i' && char.IsUpper(m.Name[1]) && m.Name != "iCustom"
+                    && !MtApi5ClientTimeseriesTests.Functions.Contains(m.Name))
                 .Select(m => m.Name).Distinct().ToList();
             Assert.Empty(all.Except(covered));
         }
