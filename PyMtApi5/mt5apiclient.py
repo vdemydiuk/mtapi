@@ -265,7 +265,9 @@ class Mt5Position:
 
 
 class Mt5Order:
-    """Current (pending) order with all its properties (returned by Mt5ApiClient.get_orders).
+    """Pending order with all its properties (returned by Mt5ApiClient.get_orders).
+
+    Filled market orders are not included: they become positions (see Mt5Position).
 
     Times are MT times: seconds (time_setup, time_expiration) or milliseconds (time_setup_msc) since 01.01.1970.
     """
@@ -603,6 +605,8 @@ class Mt5ApiClient:
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.OrderGetString, cmd_params)
 
     # GetOrders, returns all current (pending) orders with all their properties in one request
+    # Only pending orders that have not triggered yet are returned (the same ones orders_total counts):
+    # a filled market order becomes a position (see get_positions) and its order record moves to the history.
     def get_orders(self):
         res = self.__send_command(self.__get_default_expert(), Mt5CommandType.GetOrders)
         return [Mt5Order(obj) for obj in res] if res is not None else None

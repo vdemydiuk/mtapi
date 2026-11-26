@@ -6,6 +6,7 @@ namespace MtApi5
     ///Snapshot of a current (pending) order with all its properties.
     ///Returned by MtApi5Client.GetOrders() in a single request instead of the
     ///OrdersTotal/OrderGetTicket/OrderGet* per-property call sequence.
+    ///Only pending orders are included: a filled market order becomes a position (see Mt5Position).
     ///</summary>
     public class Mt5Order
     {

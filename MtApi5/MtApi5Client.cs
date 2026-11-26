@@ -532,6 +532,9 @@ namespace MtApi5
         ///<summary>
         ///Gets all current (pending) orders with all their properties in a single request.
         ///Replaces the OrdersTotal/OrderGetTicket/OrderGet* per-property call sequence with one round trip to the terminal.
+        ///Only pending orders that have not triggered yet are returned (the same ones OrdersTotal counts):
+        ///a market order that has been filled is no longer a current order, it becomes a position (see GetPositions)
+        ///and its order record moves to the history.
         ///</summary>
         ///<returns>List of current orders (empty if there are none).</returns>
         public List<Mt5Order>? GetOrders()
