@@ -6,8 +6,8 @@ Most of the API's functions duplicates MQL interface.
 The project was designed using WebSocket framework with the intention of using flexibility to setup connections.
 
 ## Build environment
-The project is supported by Visual Studio 2022 and based on .NetCore (.Net 8).
-It requires HeatWave for VS2022 - set of tools for creating WiX installation packages (https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17).
+The project is supported by Visual Studio 2026 and based on .NET 10. Open `MetaTraderApi.slnx` in Visual Studio.
+It requires HeatWave for VS2026 - set of tools for creating WiX installation packages (https://docs.firegiant.com/heatwave/).
 Just install the VS extensions.
 
 Use [MetaEditor](https://www.metatrader5.com/en/automated-trading/metaeditor) to working with MQL files.

@@ -1,0 +1,47 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/TestClients/">
+    <Project Path="TestClients/MtApi5TestClient/MtApi5TestClient.csproj">
+      <Build Solution="*|x86" Project="false" />
+    </Project>
+    <Project Path="TestClients/TestApiClientUI/TestApiClientUI.csproj">
+      <Build Solution="*|x64" Project="false" />
+      <Build Solution="*|x86" Project="false" />
+    </Project>
+  </Folder>
+  <Project Path="MT5Connector/MT5Connector.vcxproj">
+    <Build Solution="*|x86" Project="false" />
+  </Project>
+  <Project Path="MtApi/MtApi.csproj">
+    <Build Solution="*|x64" Project="false" />
+  </Project>
+  <Project Path="MtApi5.Tests/MtApi5.Tests.csproj" />
+  <Project Path="MtApi5/MtApi5.csproj">
+    <Build Solution="*|x86" Project="false" />
+  </Project>
+  <Project Path="MtApi5Installer/MtApi5Installer.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
+    <BuildDependency Project="MT5Connector/MT5Connector.vcxproj" />
+    <BuildDependency Project="MtApi5/MtApi5.csproj" />
+    <BuildDependency Project="MtApiSetupActions/MtApiSetupActions.csproj" />
+    <Platform Solution="*|Any CPU" Project="x64" />
+    <Build Solution="*|x64" Project="false" />
+    <Build Solution="*|x86" Project="false" />
+  </Project>
+  <Project Path="MtApiInstaller/MtApiInstaller.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
+    <BuildDependency Project="MtApi/MtApi.csproj" />
+    <BuildDependency Project="MtApiSetupActions/MtApiSetupActions.csproj" />
+    <BuildDependency Project="MTConnector/MTConnector.vcxproj" />
+    <Platform Solution="*|Any CPU" Project="x64" />
+    <Build Solution="*|x64" Project="false" />
+  </Project>
+  <Project Path="MtApiSetupActions/MtApiSetupActions.csproj" />
+  <Project Path="MtClient/MtClient.csproj" />
+  <Project Path="MTConnector/MTConnector.vcxproj">
+    <Build Solution="*|x64" Project="false" />
+  </Project>
+  <Project Path="MtService/MtService.vcxproj" />
+</Solution>

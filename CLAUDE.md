@@ -8,9 +8,9 @@ MtApi is a .NET bridge that lets .NET applications control MetaTrader 4 and Meta
 
 ## Build
 
-**Requirements:** Visual Studio 2022, .NET 8 SDK, HeatWave VS extension (for installers), Boost headers in `thirdparty/include/`.
+**Requirements:** Visual Studio 2026 (C++ toolset `v145`), .NET 10 SDK, HeatWave VS extension (for installers), Boost headers in `thirdparty/include/`.
 
-Open `MetaTraderApi_2022.sln` in Visual Studio 2022:
+Open `MetaTraderApi.slnx` in Visual Studio 2026:
 - **MT4**: select `x86` platform, build `MtApiInstaller` (builds MtApi, MtClient, MtService, MTConnector)
 - **MT5**: select `x64` platform, build `MtApi5Installer` (builds MtApi5, MtClient, MtService, MT5Connector)
 
