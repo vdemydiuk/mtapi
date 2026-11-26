@@ -16,7 +16,26 @@ Open `MetaTraderApi_2022.sln` in Visual Studio 2022:
 
 Build outputs go to `../build/products/{Configuration}/{Platform}/` and installers to `../build/installers/`.
 
-**MQL experts on Linux:** `scripts/build_mql.sh` compiles `mq5/MtApi5.mq5` (and `mq4/MtApi.mq4` when an MT4 install exists in `~/.mt4`) with MetaEditor under Wine and copies the `.ex5`/`.ex4` into the repo; `--check` compiles without copying. It expects MT5 in the Wine prefix `~/.mt5`, started once with `terminal64.exe /portable` so `MQL5/Include` exists. Use WineHQ `winehq-staging` (Wine 11+): Ubuntu's own Wine 10 cannot start MetaEditor (exit 222).
+**MQL experts on Linux:** `scripts/build_mql.sh` compiles `mq5/MtApi5.mq5` and `mq4/MtApi.mq4` with MetaEditor under Wine and copies the `.ex5`/`.ex4` into the repo; `--check` compiles without copying, and `mq5`/`mq4` arguments pick one expert. It builds each expert whose terminal is found: MT5 in the Wine prefix `~/.mt5`, MT4 in `~/.mt4` (override with `MT5_WINEPREFIX`/`MT5_DIR`, `MT4_WINEPREFIX`/`MT4_DIR`). Exit code: 0 ok, 1 compile error, 2 Wine or MetaEditor missing. MetaEditor's own exit code is unreliable (1 on success), so the script reads `Result: N errors` from the build log.
+
+One-time setup (Ubuntu; other distros: same steps with their WineHQ repo):
+
+1. Install WineHQ `winehq-staging` (Wine 11+). Ubuntu's own `wine` 10 cannot start `terminal64.exe`/`MetaEditor64.exe` (exit 222, `NtRaiseHardError`). apt rejects the ASCII-armored key, so dearmor it, and use the repo for your release (`resolute` = 26.04), not the one MetaQuotes' `mt5linux.sh` picks (that script also runs `apt upgrade -y`):
+   ```bash
+   sudo dpkg --add-architecture i386
+   curl -fsSL https://dl.winehq.org/wine-builds/winehq.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/winehq-archive.key
+   sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/$(. /etc/os-release; echo $VERSION_CODENAME)/winehq-$(. /etc/os-release; echo $VERSION_CODENAME).sources
+   sudo apt update && sudo apt install -y --install-recommends winehq-staging xvfb
+   ```
+   (`xvfb` lets the script run MetaEditor without a display.)
+2. MT5: `WINEPREFIX=~/.mt5 winecfg -v win11`, install WebView2 (`MicrosoftEdgeWebview2Setup.exe /silent /install`, link in `mt5linux.sh`), then `WINEPREFIX=~/.mt5 wine mt5setup.exe /auto` with `mt5setup.exe` from `https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe`.
+3. MT4: `WINEPREFIX=~/.mt4 winecfg -v win10`, then `WINEPREFIX=~/.mt4 wine mt4setup.exe /auto` with `mt4setup.exe` from `https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe` (still a real MT4 installer).
+4. Start each terminal once in portable mode so it unpacks the standard library (`MQL5/Include`, `MQL4/Include` with `WinUser32.mqh`, `stdlib.mqh`) next to the exe, then close it (`wineserver -k`). The setup's `/auto` run alone does not create it:
+   ```bash
+   cd ~/.mt5/drive_c/Program\ Files/MetaTrader\ 5 && WINEPREFIX=~/.mt5 wine terminal64.exe /portable
+   cd ~/.mt4/drive_c/Program\ Files\ \(x86\)/MetaTrader\ 4 && WINEPREFIX=~/.mt4 wine terminal.exe /portable
+   ```
+5. Check: `scripts/build_mql.sh --check` should report `0 errors` for both experts.
 
 ## Architecture
 
