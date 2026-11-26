@@ -2,20 +2,20 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <Reference Include="MtApi5">
-      <HintPath>..\..\..\build\products\Release\net8.0\MtApi5.dll</HintPath>
+      <HintPath>..\..\..\build\products\Release\net10.0\MtApi5.dll</HintPath>
     </Reference>
     <Reference Include="MtClient">
-      <HintPath>..\..\..\build\products\Release\net8.0\MtClient.dll</HintPath>
+      <HintPath>..\..\..\build\products\Release\net10.0\MtClient.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\build\products\Release\net8.0\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\build\products\Release\net10.0\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
 

@@ -2,7 +2,7 @@
     <?define ProductName="MtApi" ?>
     <?define ProductVersion=!(bind.FileVersion.MtApi.dll) ?>
     <?define Manufacturer="DW"?>
-    <?define ProductPath="..\build\products\$(var.Configuration)\net8.0\"?>
+    <?define ProductPath="..\build\products\$(var.Configuration)\net10.0\"?>
 	<?define ProductPathNative="..\build\products\$(var.Configuration)\$(var.Platform)\"?>
   
 	<Package Name="$(var.ProductName) $(var.ProductVersion)" Language="1033" Version="$(var.ProductVersion)" Manufacturer="$(var.Manufacturer)" UpgradeCode="4107F5F4-7300-4B45-88CE-63929AF228FA" InstallerVersion="200">

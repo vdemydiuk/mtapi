@@ -1,6 +1,5 @@
 <Project Sdk="WixToolset.Sdk/5.0.0">
   <PropertyGroup>
-    <ProductVersion>3.6</ProductVersion>
     <OutputName>MtApi5Installer_$(Platform)</OutputName>
     <RunWixToolsOutOfProc>true</RunWixToolsOutOfProc>
   </PropertyGroup>
