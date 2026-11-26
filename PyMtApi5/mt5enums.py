@@ -814,6 +814,16 @@ class ENUM_APPLIED_PRICE(IntEnum):
     PRICE_WEIGHTED = 7  # Average price, (high + low + close + close)/4
 
 
+class ENUM_SERIESMODE(IntEnum):
+    MODE_OPEN = 0  # Open prices
+    MODE_LOW = 1  # Low prices
+    MODE_HIGH = 2  # High prices
+    MODE_CLOSE = 3  # Close prices
+    MODE_VOLUME = 4  # Tick volumes
+    MODE_REAL_VOLUME = 7  # Real volumes
+    MODE_SPREAD = 6  # Spreads
+
+
 class ENUM_APPLIED_VOLUME(IntEnum):
     VOLUME_TICK = 0  # Tick volume
     VOLUME_REAL = 1  # Trade volume

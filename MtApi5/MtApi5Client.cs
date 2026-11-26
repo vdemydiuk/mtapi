@@ -1518,6 +1518,192 @@ namespace MtApi5
             return spreadArray?.Length ?? 0;
         }
 
+        ///<summary>
+        ///Returns the number of bars of a corresponding symbol and period, available in history.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the financial instrument. NULL means the current symbol.</param>
+        ///<param name="timeframe">Period. It can be one of the values of the ENUM_TIMEFRAMES enumeration. 0 means the current chart period.</param>
+        ///<see href="https://www.mql5.com/en/docs/series/ibars"/>
+        public int iBars(string symbol, ENUM_TIMEFRAMES timeframe)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Timeframe", (int)timeframe } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iBars, cmdParams);
+        }
+
+        ///<summary>
+        ///Search bar by time. The function returns the index of the bar corresponding to the specified time.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the financial instrument. NULL means the current symbol.</param>
+        ///<param name="timeframe">Period. It can be one of the values of the ENUM_TIMEFRAMES enumeration. 0 means the current chart period.</param>
+        ///<param name="time">Time value to search for.</param>
+        ///<param name="exact">A return value, in case the bar with the specified time is not found. If exact=false, iBarShift returns the index of the nearest bar, the Open time of which is less than the specified time. If exact=true, iBarShift returns -1.</param>
+        ///<see href="https://www.mql5.com/en/docs/series/ibarshift"/>
+        public int iBarShift(string symbol, ENUM_TIMEFRAMES timeframe, DateTime time, bool exact = false)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "Time", Mt5TimeConverter.ConvertToMtTime(time) }, { "Exact", exact } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iBarShift, cmdParams);
+        }
+
+        ///<summary>
+        ///Returns the Close price of the bar (indicated by the 'shift' parameter) on the corresponding chart.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the financial instrument. NULL means the current symbol.</param>
+        ///<param name="timeframe">Period. It can be one of the values of the ENUM_TIMEFRAMES enumeration. 0 means the current chart period.</param>
+        ///<param name="shift">The index of the received value from the timeseries (backward shift by specified number of bars relative to the current bar).</param>
+        ///<see href="https://www.mql5.com/en/docs/series/iclose"/>
+        public double iClose(string symbol, ENUM_TIMEFRAMES timeframe, int shift)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.iClose, cmdParams);
+        }
+
+        ///<summary>
+        ///Returns the High price of the bar (indicated by the 'shift' parameter) on the corresponding chart.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the financial instrument. NULL means the current symbol.</param>
+        ///<param name="timeframe">Period. It can be one of the values of the ENUM_TIMEFRAMES enumeration. 0 means the current chart period.</param>
+        ///<param name="shift">The index of the received value from the timeseries (backward shift by specified number of bars relative to the current bar).</param>
+        ///<see href="https://www.mql5.com/en/docs/series/ihigh"/>
+        public double iHigh(string symbol, ENUM_TIMEFRAMES timeframe, int shift)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.iHigh, cmdParams);
+        }
+
+        ///<summary>
+        ///Returns the index of the highest value found on the corresponding chart (shift relative to the current bar).
+        ///</summary>
+        ///<param name="symbol">The symbol name of the financial instrument. NULL means the current symbol.</param>
+        ///<param name="timeframe">Period. It can be one of the values of the ENUM_TIMEFRAMES enumeration. 0 means the current chart period.</param>
+        ///<param name="type">The identifier of the timeseries, in which the highest element is searched. Can be any of the ENUM_SERIESMODE values.</param>
+        ///<param name="count">The number of elements in the timeseries (from the current bar towards index increasing). -1 (WHOLE_ARRAY) means all bars.</param>
+        ///<param name="start">The index (shift relative to the current bar) of the initial bar, from which search for the highest value begins.</param>
+        ///<see href="https://www.mql5.com/en/docs/series/ihighest"/>
+        public int iHighest(string symbol, ENUM_TIMEFRAMES timeframe, ENUM_SERIESMODE type, int count = -1, int start = 0)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "Type", (int)type }, { "Count", count }, { "Start", start } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iHighest, cmdParams);
+        }
+
+        ///<summary>
+        ///Returns the Low price of the bar (indicated by the 'shift' parameter) on the corresponding chart.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the financial instrument. NULL means the current symbol.</param>
+        ///<param name="timeframe">Period. It can be one of the values of the ENUM_TIMEFRAMES enumeration. 0 means the current chart period.</param>
+        ///<param name="shift">The index of the received value from the timeseries (backward shift by specified number of bars relative to the current bar).</param>
+        ///<see href="https://www.mql5.com/en/docs/series/ilow"/>
+        public double iLow(string symbol, ENUM_TIMEFRAMES timeframe, int shift)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.iLow, cmdParams);
+        }
+
+        ///<summary>
+        ///Returns the index of the lowest value found on the corresponding chart (shift relative to the current bar).
+        ///</summary>
+        ///<param name="symbol">The symbol name of the financial instrument. NULL means the current symbol.</param>
+        ///<param name="timeframe">Period. It can be one of the values of the ENUM_TIMEFRAMES enumeration. 0 means the current chart period.</param>
+        ///<param name="type">The identifier of the timeseries, in which the lowest element is searched. Can be any of the ENUM_SERIESMODE values.</param>
+        ///<param name="count">The number of elements in the timeseries (from the current bar towards index increasing). -1 (WHOLE_ARRAY) means all bars.</param>
+        ///<param name="start">The index (shift relative to the current bar) of the initial bar, from which search for the lowest value begins.</param>
+        ///<see href="https://www.mql5.com/en/docs/series/ilowest"/>
+        public int iLowest(string symbol, ENUM_TIMEFRAMES timeframe, ENUM_SERIESMODE type, int count = -1, int start = 0)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "Type", (int)type }, { "Count", count }, { "Start", start } };
+            return SendCommand<int>(ExecutorHandle, Mt5CommandType.iLowest, cmdParams);
+        }
+
+        ///<summary>
+        ///Returns the Open price of the bar (indicated by the 'shift' parameter) on the corresponding chart.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the financial instrument. NULL means the current symbol.</param>
+        ///<param name="timeframe">Period. It can be one of the values of the ENUM_TIMEFRAMES enumeration. 0 means the current chart period.</param>
+        ///<param name="shift">The index of the received value from the timeseries (backward shift by specified number of bars relative to the current bar).</param>
+        ///<see href="https://www.mql5.com/en/docs/series/iopen"/>
+        public double iOpen(string symbol, ENUM_TIMEFRAMES timeframe, int shift)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            return SendCommand<double>(ExecutorHandle, Mt5CommandType.iOpen, cmdParams);
+        }
+
+        ///<summary>
+        ///Returns the opening time of the bar (indicated by the 'shift' parameter) on the corresponding chart.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the financial instrument. NULL means the current symbol.</param>
+        ///<param name="timeframe">Period. It can be one of the values of the ENUM_TIMEFRAMES enumeration. 0 means the current chart period.</param>
+        ///<param name="shift">The index of the received value from the timeseries (backward shift by specified number of bars relative to the current bar).</param>
+        ///<see href="https://www.mql5.com/en/docs/series/itime"/>
+        public DateTime iTime(string symbol, ENUM_TIMEFRAMES timeframe, int shift)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            var response = SendCommand<long>(ExecutorHandle, Mt5CommandType.iTime, cmdParams);
+            return Mt5TimeConverter.ConvertFromMtTime(response);
+        }
+
+        ///<summary>
+        ///Returns the tick volume of the bar (indicated by the 'shift' parameter) on the corresponding chart.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the financial instrument. NULL means the current symbol.</param>
+        ///<param name="timeframe">Period. It can be one of the values of the ENUM_TIMEFRAMES enumeration. 0 means the current chart period.</param>
+        ///<param name="shift">The index of the received value from the timeseries (backward shift by specified number of bars relative to the current bar).</param>
+        ///<see href="https://www.mql5.com/en/docs/series/itickvolume"/>
+        public long iTickVolume(string symbol, ENUM_TIMEFRAMES timeframe, int shift)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.iTickVolume, cmdParams);
+        }
+
+        ///<summary>
+        ///Returns the real volume of the bar (indicated by the 'shift' parameter) on the corresponding chart.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the financial instrument. NULL means the current symbol.</param>
+        ///<param name="timeframe">Period. It can be one of the values of the ENUM_TIMEFRAMES enumeration. 0 means the current chart period.</param>
+        ///<param name="shift">The index of the received value from the timeseries (backward shift by specified number of bars relative to the current bar).</param>
+        ///<see href="https://www.mql5.com/en/docs/series/irealvolume"/>
+        public long iRealVolume(string symbol, ENUM_TIMEFRAMES timeframe, int shift)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.iRealVolume, cmdParams);
+        }
+
+        ///<summary>
+        ///Returns the tick volume of the bar (indicated by the 'shift' parameter) on the corresponding chart.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the financial instrument. NULL means the current symbol.</param>
+        ///<param name="timeframe">Period. It can be one of the values of the ENUM_TIMEFRAMES enumeration. 0 means the current chart period.</param>
+        ///<param name="shift">The index of the received value from the timeseries (backward shift by specified number of bars relative to the current bar).</param>
+        ///<see href="https://www.mql5.com/en/docs/series/ivolume"/>
+        public long iVolume(string symbol, ENUM_TIMEFRAMES timeframe, int shift)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.iVolume, cmdParams);
+        }
+
+        ///<summary>
+        ///Returns the spread value of the bar (indicated by the 'shift' parameter) on the corresponding chart.
+        ///</summary>
+        ///<param name="symbol">The symbol name of the financial instrument. NULL means the current symbol.</param>
+        ///<param name="timeframe">Period. It can be one of the values of the ENUM_TIMEFRAMES enumeration. 0 means the current chart period.</param>
+        ///<param name="shift">The index of the received value from the timeseries (backward shift by specified number of bars relative to the current bar).</param>
+        ///<see href="https://www.mql5.com/en/docs/series/ispread"/>
+        public long iSpread(string symbol, ENUM_TIMEFRAMES timeframe, int shift)
+        {
+            Dictionary<string, object> cmdParams = new() { { "Symbol", symbol ?? string.Empty }, { "Timeframe", (int)timeframe },
+                { "Shift", shift } };
+            return SendCommand<long>(ExecutorHandle, Mt5CommandType.iSpread, cmdParams);
+        }
+
 
         ///<summary>
         ///The function receives ticks in the MqlTick format into ticks_array. In this case, ticks are indexed from the past to the present, i.e. the 0 indexed tick is the oldest one in the array. For tick analysis, check the flags field, which shows what exactly has changed in the tick.

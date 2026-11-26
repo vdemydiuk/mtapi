@@ -346,6 +346,19 @@ int preinit()
    ADD_EXECUTOR(159, UnlockTicks);
    ADD_EXECUTOR(160, PositionCloseAll);
    ADD_EXECUTOR(161, TesterStop);
+   ADD_EXECUTOR(162, iBars);
+   ADD_EXECUTOR(163, iBarShift);
+   ADD_EXECUTOR(164, iClose);
+   ADD_EXECUTOR(165, iHigh);
+   ADD_EXECUTOR(166, iHighest);
+   ADD_EXECUTOR(167, iLow);
+   ADD_EXECUTOR(168, iLowest);
+   ADD_EXECUTOR(169, iOpen);
+   ADD_EXECUTOR(170, iTime);
+   ADD_EXECUTOR(171, iTickVolume);
+   ADD_EXECUTOR(172, iRealVolume);
+   ADD_EXECUTOR(173, iVolume);
+   ADD_EXECUTOR(174, iSpread);
    ADD_EXECUTOR(204, TerminalInfoInteger);
    ADD_EXECUTOR(205, TerminalInfoDouble);
    ADD_EXECUTOR(206, ChartId);
@@ -1411,6 +1424,108 @@ string Execute_CopySpread2()
    int copied = CopySpread(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)start_time, (datetime)stop_time, data);
 
    return CreateSuccessResponseRaw(IntArrayToJson(data, copied));
+}
+
+#define SERIES_SHIFT_PARAMS GET_JSON_PAYLOAD(jo); GET_STRING_JSON_VALUE(jo, "Symbol", symbol); GET_INT_JSON_VALUE(jo, "Timeframe", timeframe); GET_INT_JSON_VALUE(jo, "Shift", shift)
+#define SERIES_EXTREMUM_PARAMS GET_JSON_PAYLOAD(jo); GET_STRING_JSON_VALUE(jo, "Symbol", symbol); GET_INT_JSON_VALUE(jo, "Timeframe", timeframe); GET_INT_JSON_VALUE(jo, "Type", type); GET_INT_JSON_VALUE(jo, "Count", count); GET_INT_JSON_VALUE(jo, "Start", start)
+
+string Execute_iBars()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
+   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
+
+   int result = iBars(symbol, (ENUM_TIMEFRAMES)timeframe);
+   return CreateSuccessResponse(new JSONNumber(result));
+}
+
+string Execute_iBarShift()
+{
+   GET_JSON_PAYLOAD(jo);
+   GET_STRING_JSON_VALUE(jo, "Symbol", symbol);
+   GET_INT_JSON_VALUE(jo, "Timeframe", timeframe);
+   GET_LONG_JSON_VALUE(jo, "Time", time);
+   GET_BOOL_JSON_VALUE(jo, "Exact", exact);
+
+   int result = iBarShift(symbol, (ENUM_TIMEFRAMES)timeframe, (datetime)time, exact);
+   return CreateSuccessResponse(new JSONNumber(result));
+}
+
+string Execute_iClose()
+{
+   SERIES_SHIFT_PARAMS;
+   double result = iClose(symbol, (ENUM_TIMEFRAMES)timeframe, shift);
+   return CreateSuccessResponse(new JSONNumber(result));
+}
+
+string Execute_iHigh()
+{
+   SERIES_SHIFT_PARAMS;
+   double result = iHigh(symbol, (ENUM_TIMEFRAMES)timeframe, shift);
+   return CreateSuccessResponse(new JSONNumber(result));
+}
+
+string Execute_iHighest()
+{
+   SERIES_EXTREMUM_PARAMS;
+   int result = iHighest(symbol, (ENUM_TIMEFRAMES)timeframe, (ENUM_SERIESMODE)type, count, start);
+   return CreateSuccessResponse(new JSONNumber(result));
+}
+
+string Execute_iLow()
+{
+   SERIES_SHIFT_PARAMS;
+   double result = iLow(symbol, (ENUM_TIMEFRAMES)timeframe, shift);
+   return CreateSuccessResponse(new JSONNumber(result));
+}
+
+string Execute_iLowest()
+{
+   SERIES_EXTREMUM_PARAMS;
+   int result = iLowest(symbol, (ENUM_TIMEFRAMES)timeframe, (ENUM_SERIESMODE)type, count, start);
+   return CreateSuccessResponse(new JSONNumber(result));
+}
+
+string Execute_iOpen()
+{
+   SERIES_SHIFT_PARAMS;
+   double result = iOpen(symbol, (ENUM_TIMEFRAMES)timeframe, shift);
+   return CreateSuccessResponse(new JSONNumber(result));
+}
+
+string Execute_iTime()
+{
+   SERIES_SHIFT_PARAMS;
+   datetime result = iTime(symbol, (ENUM_TIMEFRAMES)timeframe, shift);
+   return CreateSuccessResponse(new JSONNumber((long)result));
+}
+
+string Execute_iTickVolume()
+{
+   SERIES_SHIFT_PARAMS;
+   long result = iTickVolume(symbol, (ENUM_TIMEFRAMES)timeframe, shift);
+   return CreateSuccessResponse(new JSONNumber(result));
+}
+
+string Execute_iRealVolume()
+{
+   SERIES_SHIFT_PARAMS;
+   long result = iRealVolume(symbol, (ENUM_TIMEFRAMES)timeframe, shift);
+   return CreateSuccessResponse(new JSONNumber(result));
+}
+
+string Execute_iVolume()
+{
+   SERIES_SHIFT_PARAMS;
+   long result = iVolume(symbol, (ENUM_TIMEFRAMES)timeframe, shift);
+   return CreateSuccessResponse(new JSONNumber(result));
+}
+
+string Execute_iSpread()
+{
+   SERIES_SHIFT_PARAMS;
+   long result = iSpread(symbol, (ENUM_TIMEFRAMES)timeframe, shift);
+   return CreateSuccessResponse(new JSONNumber(result));
 }
 
 string Execute_SymbolsTotal()

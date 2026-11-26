@@ -246,6 +246,21 @@ class Mt5CommandType(IntEnum):
         PositionCloseAll = 160
         TesterStop = 161
 
+        #Timeseries access
+        iBars = 162
+        iBarShift = 163
+        iClose = 164
+        iHigh = 165
+        iHighest = 166
+        iLow = 167
+        iLowest = 168
+        iOpen = 169
+        iTime = 170
+        iTickVolume = 171
+        iRealVolume = 172
+        iVolume = 173
+        iSpread = 174
+
         CopyTicks = 300
         OrderSend = 301
         OrderSendAsync = 302

@@ -1535,6 +1535,97 @@ class Mt5ApiClient:
         }
         return self.__send_command(self.__get_default_expert(), Mt5CommandType.CopySpread, cmd_params)
 
+    # iBars
+    def i_bars(self, symbol: str, timeframe: ENUM_TIMEFRAMES):
+        if symbol is None:
+            symbol = ""
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe)}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iBars, cmd_params)
+
+    # iBarShift (time is MQL datetime: seconds since 1970.01.01)
+    def i_bar_shift(self, symbol: str, timeframe: ENUM_TIMEFRAMES, time: int, exact: bool = False):
+        if symbol is None:
+            symbol = ""
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Time": time, "Exact": exact}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iBarShift, cmd_params)
+
+    # iClose
+    def i_close(self, symbol: str, timeframe: ENUM_TIMEFRAMES, shift: int):
+        if symbol is None:
+            symbol = ""
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Shift": shift}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iClose, cmd_params)
+
+    # iHigh
+    def i_high(self, symbol: str, timeframe: ENUM_TIMEFRAMES, shift: int):
+        if symbol is None:
+            symbol = ""
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Shift": shift}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iHigh, cmd_params)
+
+    # iHighest
+    def i_highest(self, symbol: str, timeframe: ENUM_TIMEFRAMES, mode: ENUM_SERIESMODE, count: int = -1, start: int = 0):
+        if symbol is None:
+            symbol = ""
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Type": int(mode), "Count": count, "Start": start}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iHighest, cmd_params)
+
+    # iLow
+    def i_low(self, symbol: str, timeframe: ENUM_TIMEFRAMES, shift: int):
+        if symbol is None:
+            symbol = ""
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Shift": shift}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iLow, cmd_params)
+
+    # iLowest
+    def i_lowest(self, symbol: str, timeframe: ENUM_TIMEFRAMES, mode: ENUM_SERIESMODE, count: int = -1, start: int = 0):
+        if symbol is None:
+            symbol = ""
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Type": int(mode), "Count": count, "Start": start}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iLowest, cmd_params)
+
+    # iOpen
+    def i_open(self, symbol: str, timeframe: ENUM_TIMEFRAMES, shift: int):
+        if symbol is None:
+            symbol = ""
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Shift": shift}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iOpen, cmd_params)
+
+    # iTime (returns MQL datetime: seconds since 1970.01.01)
+    def i_time(self, symbol: str, timeframe: ENUM_TIMEFRAMES, shift: int):
+        if symbol is None:
+            symbol = ""
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Shift": shift}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iTime, cmd_params)
+
+    # iTickVolume
+    def i_tick_volume(self, symbol: str, timeframe: ENUM_TIMEFRAMES, shift: int):
+        if symbol is None:
+            symbol = ""
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Shift": shift}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iTickVolume, cmd_params)
+
+    # iRealVolume
+    def i_real_volume(self, symbol: str, timeframe: ENUM_TIMEFRAMES, shift: int):
+        if symbol is None:
+            symbol = ""
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Shift": shift}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iRealVolume, cmd_params)
+
+    # iVolume
+    def i_volume(self, symbol: str, timeframe: ENUM_TIMEFRAMES, shift: int):
+        if symbol is None:
+            symbol = ""
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Shift": shift}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iVolume, cmd_params)
+
+    # iSpread
+    def i_spread(self, symbol: str, timeframe: ENUM_TIMEFRAMES, shift: int):
+        if symbol is None:
+            symbol = ""
+        cmd_params = {"Symbol": symbol, "Timeframe": int(timeframe), "Shift": shift}
+        return self.__send_command(self.__get_default_expert(), Mt5CommandType.iSpread, cmd_params)
+
     # CopyTicks
     def copy_ticks(self, symbol_name: str, flags: CopyTicksFlag, from_date: int, count: int):
         cmd_params = {
