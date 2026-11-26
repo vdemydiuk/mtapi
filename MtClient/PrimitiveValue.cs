@@ -234,9 +234,9 @@ namespace Org.SbeTool.Sbe.Dll
         /// </summary>
         public const double NullValueDouble = double.NaN;
 
-        private readonly byte[] _byteArrayValue;
+        private readonly byte[]? _byteArrayValue;
         private readonly byte[] _byteArrayValueForLong = new byte[1];
-        private readonly string _characterEncoding;
+        private readonly string? _characterEncoding;
         private readonly double _doubleValue;
         private readonly long _longValue;
         private readonly ulong _unsignedLongValue;
@@ -321,7 +321,7 @@ namespace Org.SbeTool.Sbe.Dll
         ///     The character encoding of the byte array representation.
         /// </summary>
         /// <value>the character encoding of te byte array representation.</value>
-        public string CharacterEncoding
+        public string? CharacterEncoding
         {
             get { return _characterEncoding; }
         }
@@ -431,7 +431,7 @@ namespace Org.SbeTool.Sbe.Dll
                 throw new InvalidOperationException("PrimitiveValue is not a byte[] representation");
             }
 
-            return _byteArrayValue;
+            return _byteArrayValue!;
         }
 
         /// <summary>
@@ -443,7 +443,7 @@ namespace Org.SbeTool.Sbe.Dll
         {
             if (_representation == Representation.ByteArray)
             {
-                return _byteArrayValue;
+                return _byteArrayValue!;
             }
             if (_representation == Representation.Long && _size == 1 && type == SbePrimitiveType.Char)
             {
@@ -471,7 +471,7 @@ namespace Org.SbeTool.Sbe.Dll
                     return Convert.ToString(_doubleValue);
 
                 case Representation.ByteArray:
-                    return Encoding.GetEncoding(_characterEncoding).GetString(_byteArrayValue);
+                    return Encoding.GetEncoding(_characterEncoding!).GetString(_byteArrayValue!);
 
                 default:
                     throw new InvalidOperationException("Unsupported Representation: " + _representation);
@@ -483,7 +483,7 @@ namespace Org.SbeTool.Sbe.Dll
         /// </summary>
         /// <param name="value"> to compare this value with </param>
         /// <returns> equivalence of values </returns>
-        public override bool Equals(object value)
+        public override bool Equals(object? value)
         {
             if (value is PrimitiveValue rhs && _representation == rhs._representation)
             {
@@ -499,7 +499,7 @@ namespace Org.SbeTool.Sbe.Dll
                         return BitConverter.DoubleToInt64Bits(_doubleValue) == BitConverter.DoubleToInt64Bits(rhs._doubleValue);
 
                     case Representation.ByteArray:
-                        return _byteArrayValue.SequenceEqual(rhs._byteArrayValue);
+                        return _byteArrayValue!.SequenceEqual(rhs._byteArrayValue!);
                 }
             }
 
@@ -524,7 +524,7 @@ namespace Org.SbeTool.Sbe.Dll
                     return _doubleValue.GetHashCode();
 
                 case Representation.ByteArray:
-                    return _byteArrayValue.GetHashCode();
+                    return _byteArrayValue!.GetHashCode();
 
                 default:
                     throw new InvalidOperationException("Unrecognised representation: " + _representation);

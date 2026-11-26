@@ -15,8 +15,8 @@ namespace Org.SbeTool.Sbe.Dll
         /// <param name="existingBufferSize"></param>
         /// <param name="requestedBufferSize"></param>
         /// <returns>New buffer, or null if reallocation is not possible</returns>
-        public delegate byte[] BufferOverflowDelegate(int existingBufferSize, int requestedBufferSize);
-        private readonly BufferOverflowDelegate bufferOverflow;
+        public delegate byte[]? BufferOverflowDelegate(int existingBufferSize, int requestedBufferSize);
+        private readonly BufferOverflowDelegate? bufferOverflow;
 
         private byte* _pBuffer;
         private bool _disposed;
@@ -37,7 +37,7 @@ namespace Org.SbeTool.Sbe.Dll
         /// </summary>
         /// <param name="buffer">buffer to which the view is attached.</param>
         /// <param name="bufferOverflow">delegate to allow reallocation of buffer</param>
-        public DirectBuffer(byte[] buffer, BufferOverflowDelegate bufferOverflow)
+        public DirectBuffer(byte[] buffer, BufferOverflowDelegate? bufferOverflow)
         {
             this.bufferOverflow = bufferOverflow;
             Wrap(buffer);
@@ -58,7 +58,7 @@ namespace Org.SbeTool.Sbe.Dll
         /// <param name="pBuffer">Unmanaged byte buffer</param>
         /// <param name="bufferLength">Length of the buffer</param>
         /// <param name="bufferOverflow">delegate to allow reallocation of buffer</param>
-        public DirectBuffer(byte* pBuffer, int bufferLength, BufferOverflowDelegate bufferOverflow)
+        public DirectBuffer(byte* pBuffer, int bufferLength, BufferOverflowDelegate? bufferOverflow)
         {
             this.bufferOverflow = bufferOverflow;
             Wrap(pBuffer, bufferLength);
@@ -77,7 +77,7 @@ namespace Org.SbeTool.Sbe.Dll
         /// </summary>
         /// <param name="buffer">byte buffer</param>
         /// <param name="bufferOverflow">delegate to allow reallocation of buffer</param>
-        public DirectBuffer(ArraySegment<byte> buffer, BufferOverflowDelegate bufferOverflow)
+        public DirectBuffer(ArraySegment<byte> buffer, BufferOverflowDelegate? bufferOverflow)
         {
             this.bufferOverflow = bufferOverflow;
             Wrap(buffer);
@@ -93,7 +93,7 @@ namespace Org.SbeTool.Sbe.Dll
         /// <summary>
         /// Creates a DirectBuffer that can later be wrapped
         /// </summary>
-        public DirectBuffer(BufferOverflowDelegate bufferOverflow)
+        public DirectBuffer(BufferOverflowDelegate? bufferOverflow)
         {
             this.bufferOverflow = bufferOverflow;
         }
@@ -139,7 +139,7 @@ namespace Org.SbeTool.Sbe.Dll
         /// <param name="buffer">buffer of bytes</param>
         public void Wrap(ArraySegment<byte> buffer)
         {
-            if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+            if (buffer.Array == null) throw new ArgumentNullException(nameof(buffer));
 
             FreeGCHandle();
 
@@ -739,7 +739,7 @@ namespace Org.SbeTool.Sbe.Dll
         /// <param name="maxLength">The maximum number of bytes to read</param>
         /// <param name="nullByte">The null value for this string</param>
         /// <returns>The created string</returns>
-        public unsafe string GetStringFromNullTerminatedBytes(Encoding encoding, int index, int maxLength, byte nullByte)
+        public unsafe string? GetStringFromNullTerminatedBytes(Encoding encoding, int index, int maxLength, byte nullByte)
         {
             int count = Math.Min(maxLength, _capacity - index);
             if (count <= 0)
