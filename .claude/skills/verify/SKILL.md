@@ -1,6 +1,6 @@
 ---
 name: verify
-description: Run every check for mtapi that works without Windows or a MetaTrader terminal - MtApi5 unit tests, PyMtApi5 unit tests, C# builds, and a cross-check of command ids and payload keys between MtApi5Client, Mt5ApiClient and the mq5 expert. Use after changing MtApi5, MtClient, PyMtApi5 or mq5/MtApi5.mq5, before committing, or when the user asks to verify, test or check the changes.
+description: Run every check for mtapi that works without Windows or a MetaTrader terminal - MtApi5 unit tests, PyMtApi5 unit tests, C# builds, MQL compile under Wine, and a cross-check of command ids and payload keys between MtApi5Client, Mt5ApiClient and the mq5 expert. Use after changing MtApi5, MtClient, PyMtApi5 or mq5/MtApi5.mq5, before committing, or when the user asks to verify, test or check the changes.
 ---
 
 # Verify mtapi changes
@@ -54,11 +54,23 @@ WPF test clients (`TestClients/MtApi5TestClient`, `TestApiClientUI`),
 
 ## 4. MQL
 
-If `mq5/*.mq5|*.mqh` or `mq4/*.mq4|*.mqh` changed, MetaEditor must recompile
-the expert, and the rebuilt `.ex5`/`.ex4` must be committed (it can be a
-separate commit, e.g. "Issue #N: mt5 - build ex5 file"). Check
-`git status` to see if the `.ex5`/`.ex4` is already updated, and say so. Never
-claim the MQL compiles.
+If `mq5/*.mq5|*.mqh` or `mq4/*.mq4|*.mqh` changed, compile the experts with
+MetaEditor under Wine:
+
+    scripts/build_mql.sh --check
+
+It builds every expert whose MetaEditor is installed (MT5 in `~/.mt5`, MT4 in
+`~/.mt4`) and exits 1 on any compile error; errors are printed as
+`mq5/MtApi5.mq5(line,col) : error ...`. Report new warnings too. If the script
+exits 2 (Wine or MetaEditor missing), mark this step skipped and say MetaEditor
+is needed; never claim the MQL compiles without a passing run. An expert whose
+MetaEditor is not installed (usually MT4) is skipped: say so.
+
+`--check` leaves the repo alone. The rebuilt `.ex5`/`.ex4` must still be
+committed (it can be a separate commit, e.g. "Issue #N: mt5 - build ex5 file"):
+check `git status` to see if it is already updated and say so. Only run
+`scripts/build_mql.sh` without `--check` (which overwrites the binaries) when
+the user asks for the binaries to be built.
 
 If `mq5/json.mqh` or `mq5/hash.mqh` changed, the `mq4/` copies must stay
 identical: `cmp mq5/json.mqh mq4/json.mqh && cmp mq5/hash.mqh mq4/hash.mqh`.
@@ -73,5 +85,5 @@ identical: `cmp mq5/json.mqh mq4/json.mqh && cmp mq5/hash.mqh mq4/hash.mqh`.
 
 ## 6. Summary
 
-End with a short table: step | result. List what still needs Windows or
-MetaEditor.
+End with a short table: step | result. List what still needs Windows
+(C++ layers, WPF clients, installers, running the EA in a terminal).

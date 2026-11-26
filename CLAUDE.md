@@ -16,6 +16,8 @@ Open `MetaTraderApi_2022.sln` in Visual Studio 2022:
 
 Build outputs go to `../build/products/{Configuration}/{Platform}/` and installers to `../build/installers/`.
 
+**MQL experts on Linux:** `scripts/build_mql.sh` compiles `mq5/MtApi5.mq5` (and `mq4/MtApi.mq4` when an MT4 install exists in `~/.mt4`) with MetaEditor under Wine and copies the `.ex5`/`.ex4` into the repo; `--check` compiles without copying. It expects MT5 in the Wine prefix `~/.mt5`, started once with `terminal64.exe /portable` so `MQL5/Include` exists. Use WineHQ `winehq-staging` (Wine 11+): Ubuntu's own Wine 10 cannot start MetaEditor (exit 222).
+
 ## Architecture
 
 The communication stack flows top-to-bottom:
