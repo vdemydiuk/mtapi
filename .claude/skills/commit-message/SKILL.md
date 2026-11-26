@@ -36,6 +36,7 @@ Single line by default. Add a body only if the change needs extra explanation.
   |------------------|--------------------------------------------|
   | MtApi            | MT4 C# client library                      |
   | MtApi5           | MT5 C# client library                      |
+  | PyMtApi5         | MT5 Python client library                  |
   | MtClient         | C# WebSocket client                        |
   | MtService        | C++ WebSocket server                       |
   | MTConnector      | MT4 C++ connector DLL                      |
@@ -43,6 +44,7 @@ Single line by default. Add a body only if the change needs extra explanation.
   | mq4 / mq5        | MQL Expert Advisors                        |
   | Installer        | WiX installers                             |
   | Examples         | Examples and TestClients                   |
+  | mt4 / mt5        | Rebuilt .ex4 / .ex5 only ("build ex5 file")|
 
   For several components, list them separated by commas (`MtApi5, mq5 - ...`).
   For repo-wide changes (README, solution files), omit the component.
