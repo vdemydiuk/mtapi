@@ -295,5 +295,11 @@ The port is the one configured in the MtApi5 expert.
 A GUI test client built with [Flet](https://flet.dev/) is available in `TestClients/TestPyMtApi5` (`pip install -r requirements.txt`, then `python main.py`).  
 `Examples/Python/Python_to_MT5` shows an alternative way: using the C# `MtApi5.dll` from Python through `pythonnet`.
 
+## Contributing
+Development happens on the `dev` branch; `master` is used only for releases.
+
+- Create your branch from `dev`.
+- Open pull requests against `dev`, not `master`.
+
 # Telegram Channel
 https://t.me/joinchat/GfnfUxvelQCLvvIvLO16-w
