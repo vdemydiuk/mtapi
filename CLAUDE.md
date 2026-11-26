@@ -66,3 +66,9 @@ Example integrations are in `Examples/MtApi5Samples/`.
 - MQL source changes must be recompiled in MetaEditor; only commit the resulting `.ex4`/`.ex5` binaries.
 - The SBE-generated files (`MtService/*.h` and `MtClient/*.g.cs`) are derived from `specs/mtprotocol_sbe.xml` — edit the spec, then regenerate rather than hand-editing generated files.
 - `PyMtApi5/mtprotocol_sbe.py` is not generated: whenever `specs/mtprotocol_sbe.xml` changes, update it by hand to match (message ids, field order/types, block lengths). Do not replace it with a third-party SBE library or a Python code generator unless the spec grows significantly.
+
+## Branching and Pull Requests
+
+- `dev` is the development branch: all development work happens on `dev` (or feature branches created from `dev`).
+- Pull requests must target `dev`, never `master` (e.g. `gh pr create --base dev`).
+- `master` is used only for releases; changes reach it by merging `dev` at release time.
