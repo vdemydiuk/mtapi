@@ -60,6 +60,19 @@ class Mt5ApiApp:
             "CopyRealVolume": self.process_copy_real_volume,
             "CopySpread": self.process_copy_spread,
             "CopyTicks": self.process_copy_ticks,
+            "iBars": self.process_i_bars,
+            "iBarShift": self.process_i_bar_shift,
+            "iOpen": partial(self.process_i_bar_value, "iOpen", Mt5ApiClient.i_open),
+            "iHigh": partial(self.process_i_bar_value, "iHigh", Mt5ApiClient.i_high),
+            "iLow": partial(self.process_i_bar_value, "iLow", Mt5ApiClient.i_low),
+            "iClose": partial(self.process_i_bar_value, "iClose", Mt5ApiClient.i_close),
+            "iTime": partial(self.process_i_bar_value, "iTime", Mt5ApiClient.i_time),
+            "iTickVolume": partial(self.process_i_bar_value, "iTickVolume", Mt5ApiClient.i_tick_volume),
+            "iRealVolume": partial(self.process_i_bar_value, "iRealVolume", Mt5ApiClient.i_real_volume),
+            "iVolume": partial(self.process_i_bar_value, "iVolume", Mt5ApiClient.i_volume),
+            "iSpread": partial(self.process_i_bar_value, "iSpread", Mt5ApiClient.i_spread),
+            "iHighest": partial(self.process_i_extremum, "iHighest", Mt5ApiClient.i_highest),
+            "iLowest": partial(self.process_i_extremum, "iLowest", Mt5ApiClient.i_lowest),
             "ChartId": self.process_chart_id,
             "ChartRedraw": self.process_chart_redraw,
             "ChartApplyTemplate": self.process_chart_apply_template,
@@ -445,6 +458,46 @@ class Mt5ApiApp:
         count = int(pieces[3])
         result = mtapi.copy_ticks(symbol_name, timeframe, from_date, count)
         print(f"> CopyTicks: response = {result}")
+
+    # iBars <symbol> <timeframe>
+    def process_i_bars(self, mtapi, parameters):
+        pieces = parameters.split()
+        if len(pieces) != 2:
+            print(f"! Invalid parameters for command iBars: {parameters}")
+            return
+        result = mtapi.i_bars(pieces[0], mt5enums.ENUM_TIMEFRAMES(int(pieces[1])))
+        print(f"> iBars: result = {result}")
+
+    # iBarShift <symbol> <timeframe> <time (seconds since 1970.01.01)> [exact (0/1)]
+    def process_i_bar_shift(self, mtapi, parameters):
+        pieces = parameters.split()
+        if len(pieces) not in (3, 4):
+            print(f"! Invalid parameters for command iBarShift: {parameters}")
+            return
+        exact = len(pieces) == 4 and pieces[3].lower() in ("1", "true")
+        result = mtapi.i_bar_shift(pieces[0], mt5enums.ENUM_TIMEFRAMES(int(pieces[1])), int(pieces[2]), exact)
+        print(f"> iBarShift: result = {result}")
+
+    # iOpen/iHigh/iLow/iClose/iTime/iTickVolume/iRealVolume/iVolume/iSpread <symbol> <timeframe> <shift>
+    def process_i_bar_value(self, name, func, mtapi, parameters):
+        pieces = parameters.split()
+        if len(pieces) != 3:
+            print(f"! Invalid parameters for command {name}: {parameters}")
+            return
+        result = func(mtapi, pieces[0], mt5enums.ENUM_TIMEFRAMES(int(pieces[1])), int(pieces[2]))
+        print(f"> {name}: result = {result}")
+
+    # iHighest/iLowest <symbol> <timeframe> <series mode> [count] [start]
+    def process_i_extremum(self, name, func, mtapi, parameters):
+        pieces = parameters.split()
+        if len(pieces) not in (3, 4, 5):
+            print(f"! Invalid parameters for command {name}: {parameters}")
+            return
+        mode = mt5enums.ENUM_SERIESMODE(int(pieces[2]))
+        count = int(pieces[3]) if len(pieces) > 3 else -1
+        start = int(pieces[4]) if len(pieces) > 4 else 0
+        result = func(mtapi, pieces[0], mt5enums.ENUM_TIMEFRAMES(int(pieces[1])), mode, count, start)
+        print(f"> {name}: result = {result}")
 
     def process_chart_id(self, mtapi, parameters):
         result = mtapi.chart_id(int(parameters))

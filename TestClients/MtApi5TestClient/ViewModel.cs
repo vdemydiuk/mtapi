@@ -73,6 +73,7 @@ namespace MtApi5TestClient
         public DelegateCommand CopyHighCommand { get; private set; }
         public DelegateCommand CopyLowCommand { get; private set; }
         public DelegateCommand CopyCloseCommand { get; private set; }
+        public DelegateCommand TimeSeriesValueCommand { get; private set; }
         public DelegateCommand IndicatorCreateCommand { get; private set; }
         public DelegateCommand IndicatorReleaseCommand { get; private set; }
         public DelegateCommand iCustomCommand { get; private set; }
@@ -432,6 +433,7 @@ namespace MtApi5TestClient
             CopyHighCommand = new DelegateCommand(ExecuteCopyHigh);
             CopyLowCommand = new DelegateCommand(ExecuteCopyLow);
             CopyCloseCommand = new DelegateCommand(ExecuteCopyClose);
+            TimeSeriesValueCommand = new DelegateCommand(ExecuteTimeSeriesValue);
             IndicatorCreateCommand = new DelegateCommand(ExecuteIndicatorCreate);
             IndicatorReleaseCommand = new DelegateCommand(ExecuteIndicatorRelease);
             iCustomCommand = new DelegateCommand(ExecuteICustom);
@@ -881,6 +883,50 @@ namespace MtApi5TestClient
             });
 
             AddLog("CopyClose: success");
+        }
+
+        // iBars, iBarShift, iOpen, iHigh, iLow, iClose, iTime, iTickVolume, iRealVolume, iVolume, iSpread,
+        // iHighest, iLowest: the function name is the command parameter
+        private async void ExecuteTimeSeriesValue(object o)
+        {
+            var name = o as string;
+            var values = TimeSeriesValues;
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(values?.SymbolValue)) return;
+
+            TimeSeriesResults.Clear();
+
+            var symbol = values.SymbolValue;
+            var timeframe = values.TimeFrame;
+            var result = await Execute<object>(() => name switch
+            {
+                "iBars" => _mtApiClient.iBars(symbol, timeframe),
+                "iBarShift" => _mtApiClient.iBarShift(symbol, timeframe, values.Time, values.Exact),
+                "iOpen" => _mtApiClient.iOpen(symbol, timeframe, values.Shift),
+                "iHigh" => _mtApiClient.iHigh(symbol, timeframe, values.Shift),
+                "iLow" => _mtApiClient.iLow(symbol, timeframe, values.Shift),
+                "iClose" => _mtApiClient.iClose(symbol, timeframe, values.Shift),
+                "iTime" => _mtApiClient.iTime(symbol, timeframe, values.Shift),
+                "iTickVolume" => _mtApiClient.iTickVolume(symbol, timeframe, values.Shift),
+                "iRealVolume" => _mtApiClient.iRealVolume(symbol, timeframe, values.Shift),
+                "iVolume" => _mtApiClient.iVolume(symbol, timeframe, values.Shift),
+                "iSpread" => _mtApiClient.iSpread(symbol, timeframe, values.Shift),
+                "iHighest" => _mtApiClient.iHighest(symbol, timeframe, values.SeriesMode, values.Count, values.StartPos),
+                "iLowest" => _mtApiClient.iLowest(symbol, timeframe, values.SeriesMode, values.Count, values.StartPos),
+                _ => null
+            });
+
+            if (result == null)
+            {
+                AddLog($"{name}: result is null");
+                return;
+            }
+
+            var text = result is IFormattable formattable
+                ? formattable.ToString(null, CultureInfo.CurrentCulture)
+                : result.ToString();
+            RunOnUiThread(() => TimeSeriesResults.Add($"{name}: {text}"));
+
+            AddLog($"{name}: result = {text}");
         }
 
         private async void ExecuteIndicatorCreate(object o)

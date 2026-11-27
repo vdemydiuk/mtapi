@@ -107,6 +107,12 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
 
+        <ObjectDataProvider x:Key="ENUM_SERIESMODE_Key" MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="mtapi5:ENUM_SERIESMODE"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
         <ObjectDataProvider x:Key="ENUM_INDICATOR_Key" MethodName="GetValues"
                             ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
@@ -403,6 +409,9 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -418,9 +427,22 @@
                                           SelectedItem="{Binding TimeSeriesValues.TimeFrame}"/>
                                 <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding TimeSeriesValues.StartPos}" Margin="1"/>
                                 <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding TimeSeriesValues.Count}" Margin="1"/>
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Shift" Margin="1" HorizontalAlignment="Right"/>
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="Time" Margin="1" HorizontalAlignment="Right"/>
+                                <TextBlock Grid.Row="6" Grid.Column="0" Text="SeriesMode" Margin="1" HorizontalAlignment="Right"/>
+                                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding TimeSeriesValues.Shift}" Margin="1"/>
+                                <DockPanel Grid.Row="5" Grid.Column="1" LastChildFill="True">
+                                    <CheckBox DockPanel.Dock="Right" Content="Exact" VerticalAlignment="Center" Margin="4,1,1,1"
+                                              IsChecked="{Binding TimeSeriesValues.Exact}"/>
+                                    <TextBox Text="{Binding TimeSeriesValues.Time}" Margin="1"/>
+                                </DockPanel>
+                                <ComboBox Grid.Row="6" Grid.Column="1" Margin="1"
+                                          ItemsSource="{Binding Source={StaticResource ENUM_SERIESMODE_Key}}"
+                                          SelectedItem="{Binding TimeSeriesValues.SeriesMode}"/>
                             </Grid>
 
-                            <WrapPanel Grid.Row="1" Grid.Column="0" Margin="5">
+                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="5">
+                            <WrapPanel>
                                 <Button Command="{Binding CopyRatesCommand}" Margin="1"
                                         Content="CopyRates" HorizontalAlignment="Left" />
                                 <Button Command="{Binding CopyTimesCommand}" Margin="1"
@@ -442,6 +464,23 @@
                                 <Button Command="{Binding CopyTicksCommand}" Margin="1"
                                         Content="CopyTicks" HorizontalAlignment="Left" />
                             </WrapPanel>
+                            <!-- Single bar values: Shift; iBarShift: Time, Exact; iHighest/iLowest: SeriesMode, Count, StartPos -->
+                            <WrapPanel Margin="0,4,0,0">
+                                <Button Command="{Binding TimeSeriesValueCommand}" CommandParameter="iBars" Content="iBars" Margin="1"/>
+                                <Button Command="{Binding TimeSeriesValueCommand}" CommandParameter="iBarShift" Content="iBarShift" Margin="1"/>
+                                <Button Command="{Binding TimeSeriesValueCommand}" CommandParameter="iOpen" Content="iOpen" Margin="1"/>
+                                <Button Command="{Binding TimeSeriesValueCommand}" CommandParameter="iHigh" Content="iHigh" Margin="1"/>
+                                <Button Command="{Binding TimeSeriesValueCommand}" CommandParameter="iLow" Content="iLow" Margin="1"/>
+                                <Button Command="{Binding TimeSeriesValueCommand}" CommandParameter="iClose" Content="iClose" Margin="1"/>
+                                <Button Command="{Binding TimeSeriesValueCommand}" CommandParameter="iTime" Content="iTime" Margin="1"/>
+                                <Button Command="{Binding TimeSeriesValueCommand}" CommandParameter="iTickVolume" Content="iTickVolume" Margin="1"/>
+                                <Button Command="{Binding TimeSeriesValueCommand}" CommandParameter="iRealVolume" Content="iRealVolume" Margin="1"/>
+                                <Button Command="{Binding TimeSeriesValueCommand}" CommandParameter="iVolume" Content="iVolume" Margin="1"/>
+                                <Button Command="{Binding TimeSeriesValueCommand}" CommandParameter="iSpread" Content="iSpread" Margin="1"/>
+                                <Button Command="{Binding TimeSeriesValueCommand}" CommandParameter="iHighest" Content="iHighest" Margin="1"/>
+                                <Button Command="{Binding TimeSeriesValueCommand}" CommandParameter="iLowest" Content="iLowest" Margin="1"/>
+                            </WrapPanel>
+                            </StackPanel>
 
                             <Grid Grid.Row="2">
                                 <Grid.RowDefinitions>

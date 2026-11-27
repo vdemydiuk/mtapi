@@ -812,6 +812,10 @@ class CommandTabs:
         series_prop = enum_dropdown("Series property", mt5enums.ENUM_SERIES_INFO_INTEGER)
         ticks_flag = enum_dropdown("Ticks flag", mt5enums.CopyTicksFlag, mt5enums.CopyTicksFlag.All, width=160)
         ticks_from = text_field("From (msc)", "0", width=180)
+        shift = text_field("Shift", "0", width=100)
+        bar_time = text_field("Time", format_mt_time(now - timedelta(hours=1)), width=180)
+        exact = ft.Checkbox(label="Exact", value=False)
+        series_mode = enum_dropdown("Series mode", mt5enums.ENUM_SERIESMODE, mt5enums.ENUM_SERIESMODE.MODE_HIGH, width=220)
 
         indicator_type = enum_dropdown("Indicator type", mt5enums.ENUM_INDICATOR, width=240)
         indicator_handle = text_field("Indicator handle", "", width=150)
@@ -834,6 +838,26 @@ class CommandTabs:
             ("CopyRealVolume", Mt5ApiClient.copy_real_volume),
             ("CopySpread", Mt5ApiClient.copy_spread),
         ]
+
+        def bar_value_command(func: Callable[..., Any]) -> Command:
+            return lambda c: func(c, get_str(symbol), tf(), get_int(shift))
+
+        bar_value_functions = [
+            ("iOpen", Mt5ApiClient.i_open),
+            ("iHigh", Mt5ApiClient.i_high),
+            ("iLow", Mt5ApiClient.i_low),
+            ("iClose", Mt5ApiClient.i_close),
+            ("iTime", Mt5ApiClient.i_time),
+            ("iTickVolume", Mt5ApiClient.i_tick_volume),
+            ("iRealVolume", Mt5ApiClient.i_real_volume),
+            ("iVolume", Mt5ApiClient.i_volume),
+            ("iSpread", Mt5ApiClient.i_spread),
+        ]
+
+        def extremum_command(func: Callable[..., Any]) -> Command:
+            return lambda c: func(
+                c, get_str(symbol), tf(), get_enum(series_mode, mt5enums.ENUM_SERIESMODE), get_int(count), get_int(start_pos)
+            )
 
         def indicator_create(c: Mt5ApiClient):
             handle = c.indicator_create(get_str(symbol), tf(), get_enum(indicator_type, mt5enums.ENUM_INDICATOR))
@@ -868,6 +892,24 @@ class CommandTabs:
                         get_str(symbol), get_enum(ticks_flag, mt5enums.CopyTicksFlag), get_int(ticks_from), get_int(count)
                     ),
                 )),
+            ),
+            section(
+                "Single bar (symbol and timeframe from above; iHighest/iLowest use count and start pos, count -1 = whole array)",
+                row(shift, *[self.__button(name, bar_value_command(func)) for name, func in bar_value_functions]),
+                row(
+                    self.__button("iBars", lambda c: c.i_bars(get_str(symbol), tf())),
+                    bar_time,
+                    exact,
+                    self.__button(
+                        "iBarShift",
+                        lambda c: c.i_bar_shift(get_str(symbol), tf(), get_mt_time(bar_time), bool(exact.value)),
+                    ),
+                ),
+                row(
+                    series_mode,
+                    self.__button("iHighest", extremum_command(Mt5ApiClient.i_highest)),
+                    self.__button("iLowest", extremum_command(Mt5ApiClient.i_lowest)),
+                ),
             ),
             section(
                 "Indicators (symbol and timeframe from above)",
