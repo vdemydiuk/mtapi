@@ -7,6 +7,7 @@
 #include "Windows.h"
 #include <algorithm>
 #include <functional>
+#include <mutex>
 #include <string>
 
 // Buffer sizes (in characters) allocated by the MQL expert via StringInit().
@@ -71,10 +72,29 @@ template <typename T> T Execute(std::function<T()> func, wchar_t* err, T default
     return result;
 }
 
+// MtService runs an io thread that is joined by the destructor of its static instance.
+// If the terminal unloads this DLL (MT4 does it when a backtest ends and no chart uses the expert),
+// that destructor runs in DLL_PROCESS_DETACH under the loader lock, where joining a thread deadlocks
+// and the io thread may still run code of the unloaded DLL. Pinning keeps the DLL loaded until
+// the process exits, so the service is reused by the next expert.
+static void pinModule()
+{
+    static std::once_flag flag;
+    std::call_once(flag, []() {
+        HMODULE module = nullptr;
+        if (!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_PIN,
+            reinterpret_cast<LPCWSTR>(&pinModule), &module))
+        {
+            MtService::GetInstance().LogError("pinModule: GetModuleHandleExW failed, error = " + std::to_string(GetLastError()));
+        }
+    });
+}
+
 _DLLAPI bool _stdcall initExpert(int expertHandle, int port, wchar_t* err)
 {
     return Execute<bool>([&expertHandle, &port]() {
         auto mt_handler = std::make_unique<MT4Handler>(expertHandle);
+        pinModule();
         MtService::GetInstance().InitExpert(port, expertHandle, std::move(mt_handler));
         return true;
     }, err, false);
