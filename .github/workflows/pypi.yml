@@ -1,10 +1,17 @@
 name: Publish PyMtApi5 to PyPI
 
-# Runs when a GitHub release is published (tag vX.Y.Z). The package version
-# (PyMtApi5.__version__) must match the tag, otherwise nothing is published.
+# Publishes only when a GitHub release is published (tag vX.Y.Z) whose commit
+# is on master and whose tag matches PyMtApi5.__version__.
+# Pushes and pull requests to dev (and manual runs) only test and build.
 on:
   release:
     types: [published]
+  push:
+    branches: [dev]
+    paths: ["PyMtApi5/**", ".github/workflows/pypi.yml"]
+  pull_request:
+    branches: [dev]
+    paths: ["PyMtApi5/**", ".github/workflows/pypi.yml"]
   workflow_dispatch:
 
 jobs:
@@ -12,6 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # full history for release runs, so the master check can see ancestry
+          fetch-depth: ${{ github.event_name == 'release' && 0 || 1 }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -28,6 +38,14 @@ jobs:
           tag="${GITHUB_REF_NAME#v}"
           if [ "$version" != "$tag" ]; then
             echo "PyMtApi5.__version__ ($version) does not match release tag ($GITHUB_REF_NAME)"
+            exit 1
+          fi
+      - name: Check release commit is on master
+        if: github.event_name == 'release'
+        run: |
+          git fetch --no-tags origin master
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            echo "Release tag $GITHUB_REF_NAME ($GITHUB_SHA) is not on master"
             exit 1
           fi
       - uses: actions/upload-artifact@v4
