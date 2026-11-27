@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import flet as ft
 import threading
 import time
+from typing import cast
 import sys
 from pathlib import Path
 
@@ -109,13 +110,13 @@ def main(page: ft.Page):
                 ],
                 data=quote.expert_handle,
                 selected=quote.expert_handle == selected_expert,
-                on_select_changed=select_quote,
+                on_select_change=select_quote,
             )
             quote_rows[quote.expert_handle] = row
             quotes_table.rows.append(row)
         else:
-            row.cells[1].content.value = format_price(quote.bid)
-            row.cells[2].content.value = format_price(quote.ask)
+            cast(ft.Text, row.cells[1].content).value = format_price(quote.bid)
+            cast(ft.Text, row.cells[2].content).value = format_price(quote.ask)
 
     def add_quote(quote: Mt5Quote):
         with quotes_lock:
@@ -305,8 +306,15 @@ def main(page: ft.Page):
     page.on_close = on_page_close
     page.on_disconnect = on_page_close
 
-    connect_btn = ft.ElevatedButton("Connect", on_click=connect_click, color="white", bgcolor="green_700")
-    disconnect_btn = ft.ElevatedButton("Disconnect", on_click=disconnect_click, disabled=True, color="white", bgcolor="red_700")
+    def button_style(bgcolor: ft.Colors) -> ft.ButtonStyle:
+        # Per-state colors: a plain 'bgcolor' would also paint the disabled button.
+        return ft.ButtonStyle(
+            color={ft.ControlState.DISABLED: ft.Colors.ON_SURFACE_VARIANT, ft.ControlState.DEFAULT: ft.Colors.WHITE},
+            bgcolor={ft.ControlState.DISABLED: ft.Colors.SURFACE_CONTAINER_HIGHEST, ft.ControlState.DEFAULT: bgcolor},
+        )
+
+    connect_btn = ft.Button("Connect", on_click=connect_click, style=button_style(ft.Colors.GREEN_700))
+    disconnect_btn = ft.Button("Disconnect", on_click=disconnect_click, disabled=True, style=button_style(ft.Colors.RED_700))
 
     def run_command(name: str, command: Command, current_client: Mt5ApiClient):
         try:
@@ -372,7 +380,7 @@ def main(page: ft.Page):
                         ft.Text("Quotes:", weight=ft.FontWeight.BOLD),
                         ft.Container(
                             content=ft.Column([quotes_table], scroll=ft.ScrollMode.AUTO, expand=True),
-                            border=ft.border.all(1, ft.Colors.OUTLINE),
+                            border=ft.Border.all(1, ft.Colors.OUTLINE),
                             border_radius=8,
                             expand=True,
                             bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
@@ -385,14 +393,14 @@ def main(page: ft.Page):
                     [
                         ft.Container(
                             content=command_tabs.control,
-                            border=ft.border.all(1, ft.Colors.OUTLINE),
+                            border=ft.Border.all(1, ft.Colors.OUTLINE),
                             border_radius=8,
                             expand=3,
                         ),
                         ft.Text("Event Logs:", weight=ft.FontWeight.BOLD),
                         ft.Container(
                             content=log_view,
-                            border=ft.border.all(1, ft.Colors.OUTLINE),
+                            border=ft.Border.all(1, ft.Colors.OUTLINE),
                             border_radius=8,
                             padding=10,
                             expand=2,
@@ -409,4 +417,4 @@ def main(page: ft.Page):
 
     threading.Thread(target=quotes_refresh_loop, daemon=True).start()
 
-ft.app(target=main)
+ft.run(main)
