@@ -1,5 +1,8 @@
 """PyMtApi5 - Python client for MetaTrader 5 via MtApi5 WebSocket bridge."""
 
+# Kept in step with the MtApi5 release (VersionPrefix in MtApi5/MtApi5.csproj).
+__version__ = "2.1.0"
+
 from .mt5apiclient import (
     Mt5ApiClient,
     Mt5EventType,

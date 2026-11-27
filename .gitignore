@@ -194,3 +194,7 @@ __pycache__/
 
 # codegraph
 .codegraph/
+
+# Python packaging
+*.egg-info/
+dist/

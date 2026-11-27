@@ -65,7 +65,7 @@ The communication stack flows top-to-bottom:
 
 **SBE Protocol** (`specs/mtprotocol_sbe.xml`) — Simple Binary Encoding specification that defines the binary message format of the WebSocket RPC between MtService and the clients. Generated codecs live in `MtService/*.h` (C++) and `MtClient/*.g.cs` (C#).
 
-**PyMtApi5** (`PyMtApi5/`) — Python client for MT5. `mtrpcclient.py` is the Python counterpart of `MtClient/MtRpcClient.cs`; it uses the SBE codec in `mtprotocol_sbe.py`, which is hand-written (the SBE tool has no Python generator, and the spec is small enough that an extra library isn't worth it).
+**PyMtApi5** (`PyMtApi5/`) — Python client for MT5. It is published to PyPI as `pymtapi5` (`PyMtApi5/pyproject.toml`; `.github/workflows/pypi.yml` runs the tests, builds and publishes when a GitHub release is published, and fails unless `PyMtApi5.__version__` matches the release tag, so bump it together with the MtApi5 version). `mtrpcclient.py` is the Python counterpart of `MtClient/MtRpcClient.cs`; it uses the SBE codec in `mtprotocol_sbe.py`, which is hand-written (the SBE tool has no Python generator, and the spec is small enough that an extra library isn't worth it).
 
 ## Testing
 

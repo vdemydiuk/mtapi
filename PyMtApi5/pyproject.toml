@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pymtapi5"
+dynamic = ["version"]
+description = "Python client for MetaTrader 5 through the MtApi5 expert (WebSocket bridge)"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Vyacheslav Demidyuk" }]
+requires-python = ">=3.9"
+dependencies = ["websockets>=12.0"]
+keywords = ["metatrader", "metatrader5", "mt5", "mql5", "trading", "mtapi"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
+[project.urls]
+Homepage = "https://github.com/vdemydiuk/mtapi"
+Source = "https://github.com/vdemydiuk/mtapi/tree/master/PyMtApi5"
+Issues = "https://github.com/vdemydiuk/mtapi/issues"
+
+# This folder is the package itself: map the import name PyMtApi5 onto it.
+# Only the package is listed, so the tests subpackage is not shipped.
+[tool.setuptools]
+packages = ["PyMtApi5"]
+package-dir = { "PyMtApi5" = "." }
+
+[tool.setuptools.dynamic]
+version = { attr = "PyMtApi5.__version__" }
