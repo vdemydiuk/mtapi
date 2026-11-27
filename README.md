@@ -277,8 +277,13 @@ namespace MtApi5Console
 
 
 ## Python client (MT5)
-`PyMtApi5` is a Python client for MT5 that connects directly to the MtApi5 expert (local or remote via TCP), so it does not need the .NET libraries. It requires the `websockets` package (`pip install websockets`).  
-Copy or reference the `PyMtApi5` folder in your project (it must be importable as a package) and use `Mt5ApiClient` as a context manager or call `connect()`/`disconnect()` explicitly:
+`PyMtApi5` is a Python client for MT5 that connects directly to the MtApi5 expert (local or remote via TCP), so it does not need the .NET libraries. Install it from PyPI (this also installs the `websockets` dependency):
+
+```bash
+pip install pymtapi5
+```
+
+Use the package version that matches the MtApi5 release installed on the terminal side. The import name stays `PyMtApi5`. Use `Mt5ApiClient` as a context manager or call `connect()`/`disconnect()` explicitly:
 
 ```python
 from PyMtApi5 import Mt5ApiClient

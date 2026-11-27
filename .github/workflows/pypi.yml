@@ -1,0 +1,58 @@
+name: Publish PyMtApi5 to PyPI
+
+# Runs when a GitHub release is published (tag vX.Y.Z). The package version
+# (PyMtApi5.__version__) must match the tag, otherwise nothing is published.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tools
+        run: python -m pip install --upgrade build websockets
+      - name: Run unit tests
+        run: python -m unittest discover -s PyMtApi5/tests -t .
+      - name: Build sdist and wheel
+        run: python -m build PyMtApi5 --outdir dist
+      - name: Check version matches release tag
+        if: github.event_name == 'release'
+        run: |
+          version=$(python -c "import PyMtApi5; print(PyMtApi5.__version__)")
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$version" != "$tag" ]; then
+            echo "PyMtApi5.__version__ ($version) does not match release tag ($GITHUB_REF_NAME)"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pymtapi5
+    permissions:
+      id-token: write   # trusted publishing
+      contents: write   # attach files to the release
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Attach files to the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY"
