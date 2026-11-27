@@ -19,6 +19,8 @@ from PyMtApi5 import Mt5ApiClient, MqlTradeRequest, mt5enums
 Command = Callable[[Mt5ApiClient], Any]
 # Runs a command for a button: (command name, command).
 Execute = Callable[[str, Command], None]
+# A command tab: (label shown in the tab bar, tab content).
+TabPage = tuple[str, ft.Control]
 
 MT_TIME_FORMATS = ("%Y.%m.%d %H:%M:%S", "%Y.%m.%d %H:%M", "%Y.%m.%d")
 
@@ -37,7 +39,7 @@ def enum_dropdown(label: str, enum_cls: type[IntEnum], value: IntEnum | None = N
         label=label,
         width=width,
         dense=True,
-        options=[ft.dropdown.Option(key=str(m.value), text=m.name) for m in members],
+        options=[ft.DropdownOption(key=str(m.value), text=m.name) for m in members],
         value=str(selected.value),
     )
 
@@ -53,14 +55,14 @@ def row(*controls: ft.Control) -> ft.Row:
     return ft.Row(list(controls), wrap=True, spacing=8, vertical_alignment=ft.CrossAxisAlignment.CENTER)
 
 
-def tab(text: str, *sections: ft.Control) -> ft.Tab:
+def tab(text: str, *sections: ft.Control) -> TabPage:
     controls: list[ft.Control] = []
     for s in sections:
         if controls:
             controls.append(ft.Divider())
         controls.append(s)
     content = ft.Column(controls, scroll=ft.ScrollMode.AUTO, spacing=10)
-    return ft.Tab(text=text, content=ft.Container(content=content, padding=10))
+    return text, ft.Container(content=content, padding=10)
 
 
 # --- parameter readers (called on a worker thread when a command runs) ----------------
@@ -201,22 +203,31 @@ class CommandTabs:
     def __init__(self, execute: Execute, get_selected_expert: Callable[[], int | None]):
         self.__execute = execute
         self.__get_selected_expert = get_selected_expert
+        pages = [
+            self.__account_tab(),
+            self.__terminal_tab(),
+            self.__indicators_tab(),
+            self.__trade_tab(),
+            self.__history_tab(),
+            self.__global_variables_tab(),
+            self.__timeseries_tab(),
+            self.__market_info_tab(),
+            self.__chart_tab(),
+            self.__objects_tab(),
+        ]
         self.control = ft.Tabs(
-            tabs=[
-                self.__account_tab(),
-                self.__terminal_tab(),
-                self.__indicators_tab(),
-                self.__trade_tab(),
-                self.__history_tab(),
-                self.__global_variables_tab(),
-                self.__timeseries_tab(),
-                self.__market_info_tab(),
-                self.__chart_tab(),
-                self.__objects_tab(),
-            ],
+            length=len(pages),
             selected_index=0,
             animation_duration=150,
             expand=True,
+            content=ft.Column(
+                [
+                    ft.TabBar(tabs=[ft.Tab(label=label) for label, _ in pages], scrollable=True),
+                    ft.TabBarView(controls=[content for _, content in pages], expand=True),
+                ],
+                spacing=0,
+                expand=True,
+            ),
         )
 
     def __button(self, name: str, command: Command) -> ft.OutlinedButton:
@@ -224,7 +235,7 @@ class CommandTabs:
 
     # Account Information
 
-    def __account_tab(self) -> ft.Tab:
+    def __account_tab(self) -> TabPage:
         prop_double = enum_dropdown("Property", mt5enums.ENUM_ACCOUNT_INFO_DOUBLE)
         prop_integer = enum_dropdown("Property", mt5enums.ENUM_ACCOUNT_INFO_INTEGER)
         prop_string = enum_dropdown("Property", mt5enums.ENUM_ACCOUNT_INFO_STRING)
@@ -249,7 +260,7 @@ class CommandTabs:
 
     # Trade Functions
 
-    def __trade_tab(self) -> ft.Tab:
+    def __trade_tab(self) -> TabPage:
         symbol = text_field("Symbol", "EURUSD")
         volume = text_field("Volume", "0.1", width=100)
         price = text_field("Price", "0", width=120)
@@ -435,7 +446,7 @@ class CommandTabs:
 
     # History Functions
 
-    def __history_tab(self) -> ft.Tab:
+    def __history_tab(self) -> TabPage:
         now = datetime.now()
         from_date = text_field("From (server time)", format_mt_time(now - timedelta(days=30)), width=200)
         to_date = text_field("To (server time)", format_mt_time(now), width=200)
@@ -508,7 +519,7 @@ class CommandTabs:
 
     # Global Variables
 
-    def __global_variables_tab(self) -> ft.Tab:
+    def __global_variables_tab(self) -> TabPage:
         name = text_field("Name", "gv_test", width=200)
         value = text_field("Value", "1.0", width=120)
         check_value = text_field("Check value", "1.0", width=120)
@@ -558,7 +569,7 @@ class CommandTabs:
 
     # Object Functions
 
-    def __objects_tab(self) -> ft.Tab:
+    def __objects_tab(self) -> TabPage:
         chart_id = text_field("Chart ID (0 = current)", "0", width=220)
         name = text_field("Name", "obj_test", width=200)
         sub_window = text_field("Sub-window (-1 = any)", "-1", width=200)
@@ -679,7 +690,7 @@ class CommandTabs:
 
     # Terminal Information and Time
 
-    def __terminal_tab(self) -> ft.Tab:
+    def __terminal_tab(self) -> TabPage:
         prop_integer = enum_dropdown("Property", mt5enums.ENUM_TERMINAL_INFO_INTEGER)
         prop_double = enum_dropdown("Property", mt5enums.ENUM_TERMINAL_INFO_DOUBLE)
         prop_string = enum_dropdown("Property", mt5enums.ENUM_TERMINAL_INFO_STRING)
@@ -739,7 +750,7 @@ class CommandTabs:
 
     # Technical Indicators
 
-    def __indicators_tab(self) -> ft.Tab:
+    def __indicators_tab(self) -> TabPage:
         symbol = text_field("Symbol", "EURUSD")
         timeframe = enum_dropdown("Timeframe", mt5enums.ENUM_TIMEFRAMES, mt5enums.ENUM_TIMEFRAMES.PERIOD_H1, width=200)
         rows: list[ft.Control] = []
@@ -790,7 +801,7 @@ class CommandTabs:
 
     # Timeseries and Indicators Access
 
-    def __timeseries_tab(self) -> ft.Tab:
+    def __timeseries_tab(self) -> TabPage:
         now = datetime.now()
         symbol = text_field("Symbol", "EURUSD")
         timeframe = enum_dropdown("Timeframe", mt5enums.ENUM_TIMEFRAMES, mt5enums.ENUM_TIMEFRAMES.PERIOD_H1, width=200)
@@ -875,7 +886,7 @@ class CommandTabs:
 
     # Market Info
 
-    def __market_info_tab(self) -> ft.Tab:
+    def __market_info_tab(self) -> TabPage:
         symbol = text_field("Symbol", "EURUSD")
         selected = ft.Checkbox(label="Selected", value=True)
         position = text_field("Position", "0", width=100)
@@ -940,7 +951,7 @@ class CommandTabs:
 
     # Chart Functions
 
-    def __chart_tab(self) -> ft.Tab:
+    def __chart_tab(self) -> TabPage:
         chart_id = text_field("Chart ID (0 = current)", "0", width=220)
         symbol = text_field("Symbol", "EURUSD")
         timeframe = enum_dropdown("Timeframe", mt5enums.ENUM_TIMEFRAMES, mt5enums.ENUM_TIMEFRAMES.PERIOD_H1, width=200)

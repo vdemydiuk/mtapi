@@ -83,8 +83,11 @@ overloads, `OrderCloseAll`, `PositionOpen`, `SymbolInfoString2` and
   to the `CASES` table of a `TradingTestCase` subclass
   `(name, call, command, payload, reply, expected)`. Write a separate test
   for result classes and conversions.
-- `TestClients/TestPyMtApi5/` (flet test app): add the function to the
-  matching tab in `command_tabs.py`.
+- `TestClients/TestPyMtApi5/` (Flet 1.x test app): add the function to the
+  matching tab in `command_tabs.py`. A new tab is a `__<name>_tab()` method
+  returning `tab(label, *sections)` (a `TabPage`), added to the `pages` list
+  in `CommandTabs.__init__`. Use the Flet 1.x API (`ft.Button`,
+  `ft.DropdownOption`, `ft.Border.all`, `ft.Colors.*` constants).
 
 ## 5. Test clients and samples
 

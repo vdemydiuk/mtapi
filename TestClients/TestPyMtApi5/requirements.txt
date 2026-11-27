@@ -1,2 +1,2 @@
-flet==0.26.0
+flet[desktop]==1.1.4
 websockets>=12.0
