@@ -36,7 +36,12 @@ public:
     void LogError(const std::string& error);
 
 private:
+    // Max number of events one drain handler sends before it yields to other io handlers
+    // (socket reads and writes, commands, responses).
+    static constexpr std::size_t EventBatchSize = 100;
+
     std::shared_ptr<MtExpert> FindExpert(int handle) const;
+    void PostDrainEvents(std::shared_ptr<MtExpert> expert);
     void OnServerStopped(unsigned short port);
     void ThreadProc();
 
@@ -129,7 +134,8 @@ void MtServiceImpl::DeinitExpert(int handle)
         experts_.erase(it);
     }
 
-    // Deinit runs on the io thread after all previously posted events and responses of the expert.
+    // Deinit runs on the io thread after all previously posted responses of the expert;
+    // it sends the events that are still queued in the expert first.
     boost::asio::post(context_, [expert = std::move(expert)]() {
         expert->Deinit();
     });
@@ -143,8 +149,19 @@ void MtServiceImpl::SendEvent(int handle, int event_type, std::string payload)
     if (!expert)
         return;
 
-    boost::asio::post(context_, [expert = std::move(expert), event_type, payload = std::move(payload)]() {
-        expert->SendEvent(event_type, payload);
+    // Events are not posted one by one: when the expert produces them faster than the io thread
+    // handles them, the io queue would grow without limit and socket reads and writes would wait
+    // behind the whole backlog. The expert queues them, and a single drain handler sends them.
+    if (expert->PushEvent(event_type, std::move(payload)))
+        PostDrainEvents(std::move(expert));
+}
+
+void MtServiceImpl::PostDrainEvents(std::shared_ptr<MtExpert> expert)
+{
+    boost::asio::post(context_, [expert = std::move(expert), this]() mutable {
+        // Send a bounded batch, then go to the back of the io queue so that other handlers run in between.
+        if (expert->DrainEvents(EventBatchSize))
+            PostDrainEvents(std::move(expert));
     });
 }
 
