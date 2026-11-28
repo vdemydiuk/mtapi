@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "MtExpert.h"
+#include <algorithm>
 #include <iostream>
 
 namespace
@@ -23,6 +24,11 @@ MtExpert::~MtExpert()
 void MtExpert::Deinit()
 {
     log_.Debug("%s: handle = %d", __FUNCTION__, handle_);
+
+    // Events queued before the expert was removed are sent before the MtExpertRemoved notification.
+    // The queue is bounded by MaxQueuedEvents, and no new events arrive: the expert is no longer
+    // reachable from the terminal thread.
+    DrainEvents(MaxQueuedEvents);
 
     CancelTasks();
     OnDeinit(handle_);
@@ -58,11 +64,67 @@ void MtExpert::CancelTasks()
     }
 }
 
-void MtExpert::SendEvent(int event_type, const std::string& payload)
+bool MtExpert::PushEvent(int event_type, std::string payload)
 {
-    log_.Trace("%s: handle = %d, event_type = %d, payload = %s", __FUNCTION__, handle_, event_type, payload.c_str());
+    std::lock_guard<std::mutex> lock(events_mutex_);
 
-    OnEvent(handle_, event_type, payload);
+    if (events_.size() >= MaxQueuedEvents)
+    {
+        events_.pop_front();
+        ++dropped_events_;
+
+        if (dropped_events_ == 1)
+            log_.Warning("%s: expert %d: events are produced faster than the service sends them, "
+                "more than %zu events are queued. Dropping the oldest events.",
+                __FUNCTION__, handle_, MaxQueuedEvents);
+        else if (dropped_events_ % 10000 == 0)
+            log_.Warning("%s: expert %d: %zu events dropped so far.", __FUNCTION__, handle_, dropped_events_);
+    }
+
+    events_.push_back({ event_type, std::move(payload) });
+
+    if (drain_pending_)
+        return false;
+    drain_pending_ = true;
+    return true;
+}
+
+bool MtExpert::DrainEvents(std::size_t max_count)
+{
+    std::vector<QueuedEvent> batch;
+    bool more;
+    {
+        std::lock_guard<std::mutex> lock(events_mutex_);
+
+        const auto count = std::min(max_count, events_.size());
+        batch.reserve(count);
+        for (std::size_t i = 0; i < count; ++i)
+        {
+            batch.push_back(std::move(events_.front()));
+            events_.pop_front();
+        }
+
+        more = !events_.empty();
+        if (!more)
+        {
+            drain_pending_ = false;
+            if (dropped_events_ > 0)
+            {
+                log_.Warning("%s: expert %d: event queue drained, %zu events were dropped.",
+                    __FUNCTION__, handle_, dropped_events_);
+                dropped_events_ = 0;
+            }
+        }
+    }
+
+    // Handlers are invoked outside the lock, so the terminal thread is not blocked while events are encoded.
+    for (const auto& e : batch)
+    {
+        log_.Trace("%s: handle = %d, event_type = %d, payload = %s", __FUNCTION__, handle_, e.event_type, e.payload.c_str());
+        OnEvent(handle_, e.event_type, e.payload);
+    }
+
+    return more;
 }
 
 void MtExpert::ProcessCommand(uint64_t command_id, int command_type, std::string&& payload, TaskCallback&& callback)
